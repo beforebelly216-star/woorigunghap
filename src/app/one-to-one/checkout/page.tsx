@@ -22,8 +22,15 @@ function CheckoutContent() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setOrder(paymentId ? loadOrderDraft(paymentId) : null);
-    setLoaded(true);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setOrder(paymentId ? loadOrderDraft(paymentId) : null);
+      setLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [paymentId]);
 
   if (!loaded) {
