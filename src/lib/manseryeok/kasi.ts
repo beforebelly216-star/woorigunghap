@@ -16,7 +16,7 @@ export type KasiSolarDayRecord = {
 };
 
 function readTag(xml: string, tag: string) {
-  const match = new RegExp(`<${tag}>([^<]*)</${tag}>`).exec(xml);
+  const match = new RegExp(`<${tag}>([^<]*)</${tag}>`, "i").exec(xml);
   return match?.[1]?.trim() ?? "";
 }
 
@@ -33,6 +33,26 @@ function normalizeServiceKey(value: string) {
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function summarizeGatewayError(body: string) {
+  const candidates = [
+    readTag(body, "returnAuthMsg"),
+    readTag(body, "resultMsg"),
+    readTag(body, "resultMag"),
+    readTag(body, "errMsg"),
+    readTag(body, "cmmMsgHeader"),
+  ].filter(Boolean);
+
+  if (candidates.length > 0) return candidates.join(" / ");
+
+  return body
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 300) || "응답 본문 없음";
 }
 
 async function fetchWithRetry(url: URL, solarDate: string) {
@@ -79,11 +99,18 @@ export async function fetchKasiSolarDay(solarDate: string): Promise<KasiSolarDay
   url.searchParams.set("solDay", match[3]);
 
   const response = await fetchWithRetry(url, solarDate);
-  if (!response.ok) throw new Error(`KASI ${solarDate} 조회가 실패했습니다. (${response.status})`);
-
   const xml = await response.text();
+
+  if (!response.ok) {
+    throw new Error(
+      `KASI ${solarDate} HTTP ${response.status}: ${summarizeGatewayError(xml)}`,
+    );
+  }
+
   if (readTag(xml, "resultCode") !== "00") {
-    throw new Error(`KASI API 오류 (${solarDate}): ${readTag(xml, "resultMsg") || readTag(xml, "resultMag") || "unknown"}`);
+    throw new Error(
+      `KASI API 오류 (${solarDate}): ${summarizeGatewayError(xml)}`,
+    );
   }
 
   const record: KasiSolarDayRecord = {
