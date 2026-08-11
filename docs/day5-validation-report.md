@@ -1,14 +1,19 @@
 # Day 5 만세력 검증 결과
 
-## 상태
+기준일: 2026-08-12
+
+## 최종 상태
 - 30개 골든 회귀 테스트: **30/30 통과**
 - 날짜·절입 경계 invariant: **8/8 통과**
+- KASI live API 교차검증: **10/10 통과**
+- KASI 실행 리전: **Vercel Seoul (`icn1`)**
 - GitHub Actions: **success**
 - ESLint: **success**
 - Production build: **success**
 - Vercel deploy: **success**
-- KASI 월력요항 분단위 절입 검증: **통과**
-- KASI live API 교차검증: **스크립트 준비 완료 / KASI_SERVICE_KEY 미설정으로 현재 skip**
+- 외부 공개 만세력/달력 보조 대조: **정상일·윤달·입춘 경계 일치 확인**
+
+Day 5 만세력 정확도 검증은 완료로 판정한다.
 
 ## 골든 테스트 구성
 총 30개를 다음 범주로 고정했다.
@@ -32,41 +37,89 @@
 - KASI 2024 경칩 3/5 11:23 KST 기준 11:22 갑진년·병인월
 - KASI 2024 경칩 3/5 11:23 KST 기준 11:24 갑진년·정묘월
 
-## 검증된 중요 경계
-- 입춘 분단위 전/후 연주·월주 전환
-- 절기 분단위 전/후 월주 전환
-- 절입 당일 출생시간 미상 시 월주 미확정 처리
-- 23:30 자시와 `midnight` 일경계 정책의 분리
-- 음력 입력 전체 명식
-- 2020년 윤4월 변환
-- 한국과 중국 음력 날짜가 달라지는 1997년 음력 1월 1일
-- 한국 음력 특수 변환 1933년 음6월 1일
-- 윤년 2월 29일, 월말, 연말 일진 연속성
+## KASI 공식 API 직접 교차검증
+KASI 음양력 정보 OpenAPI를 Vercel Seoul (`icn1`)에서 실제 호출해 10개 날짜를 비교했다.
 
-## 기준값 출처
-우리 테스트의 표준 명식은 `manseryeok` upstream의 `src/golden.test.ts` 및 `src/index.test.ts`에 고정된 KASI 표준 골든값을 사용했다. 우리 테스트 목적은 해당 표준값을 우리 서버 어댑터와 정책 레이어가 변형하지 않고 보존하는지 확인하는 것이다.
+비교 항목:
+- KASI `lunIljin` ↔ 우리 엔진 일주
+- KASI 음력 연/월/일 ↔ 우리 엔진 한국 음력 변환
+- KASI 윤달 여부 ↔ 우리 엔진 윤달 여부
 
-분단위 절입 경계는 한국천문연구원 천문우주지식정보 월력요항의 공식 2024년 24절기 시각을 고정 기준으로 사용한다.
+결과: **10/10 통과**.
 
-독립 검증을 위해 KASI OpenAPI와 직접 비교하는 `scripts/manse-kasi-crosscheck.ts`도 구현했다. 이 스크립트는 10개 날짜에 대해 다음을 비교한다.
+KASI `lunSecha`, `lunWolgeon`은 사주 연주/월주의 입춘·절입 기준과 정의가 다를 수 있으므로 직접 정답 oracle로 쓰지 않는다. 연주·월주는 절입 경계 테스트로 별도 검증한다.
 
-- KASI `lunIljin` ↔ 우리 일주
-- KASI 음력 연/월/일 ↔ `manseryeok` 한국 음력 변환
-- KASI 윤달 여부 ↔ `manseryeok` 윤달 여부
+## 외부 공개 만세력/달력 보조 대조
+외부 서비스는 최종 oracle이 아니라 회귀 탐지용 보조 자료로만 사용한다.
+
+### 1992-10-24
+우리 엔진: `임신 / 경술 / 계유` (연/월/일)
+
+- DateDB: 임신년 / 경술월 / 계유일
+- d5 오늘 달 모양: 팔진 임신 / 월건 경술 / 일진 계유
+- Wikidocs 음양 만세력: 壬申年 / 庚戌月 / 癸酉日
+
+결과: **연/월/일 3주 일치**.
+
+### 1990-05-15
+우리 엔진: `경오 / 신사 / 경진` (연/월/일)
+
+- DateDB: 경오년 / 신사월 / 경진일
+- Wikidocs 음양 만세력: 庚午年 / 辛巳月 / 庚辰日
+
+결과: **연/월/일 3주 일치**.
+
+### 2020 윤4월 1일
+우리 엔진: 음력 `2020-04-01 윤달` → 양력 `2020-05-23`
+
+- DateDB: 2020-05-23 = 음력 2020년 윤4월 1일
+
+결과: **윤달 변환 일치**.
+
+### 2024 입춘 경계
+우리 엔진: 2024-02-04 17:27 전후 연주/월주 전환.
+
+- 외부 음양 만세력 자료: 2024 입춘 `2월 4일 17시 27분 6초`
+
+결과: **경계 시각 분 단위 일치**.
+
+## 시중 서비스 정책 차이 주의
+국내 만세력 서비스는 다음 설정에 따라 특히 경계 사례에서 결과가 달라질 수 있다.
+
+- 23시 자시에서 일주를 익일로 넘기는지 여부
+- 야자시/조자시 관법
+- 진태양시 및 출생지 경도 보정
+- 과거 한국 표준시/서머타임 적용
+
+따라서 특정 앱과의 단일 결과 일치 여부보다 `KASI 한국 달력 기준 + 명시된 사주 계산 정책 + 회귀 테스트`를 제품 기준으로 삼는다.
+
+## 우리궁합 MVP 고정 정책
+- policy version: `manse-policy-v1`
+- engine: `manseryeok-2.0.0`
+- timezone: `Asia/Seoul` (`UTC+09:00`)
+- dayBoundary: `midnight`
+- 23:00~23:59에도 일주는 익일로 넘기지 않음
+- true solar time 미적용
+- 출생시간 미상은 시주 생략 + 절입 당일 안정성 검사
+
+정책 변경 시 기존 구매 결과를 소급 변경하지 않고 새 policy version을 부여한다.
 
 ## 자동화
-`.github/workflows/manse-validation.yml`에서 모든 `src/**` 및 만세력 테스트 변경 시 다음을 자동 실행한다.
+`.github/workflows/manse-validation.yml`에서 일반 push/PR 시 다음을 자동 검증한다.
 
 1. `npm ci`
 2. `npm run test:manse`
 3. `npm run test:manse:boundaries`
-4. `npm run test:manse:kasi`
-5. `npm run lint`
-6. `npm run build`
+4. `npm run lint`
+5. `npm run build`
 
-KASI 키가 없는 환경에서는 live API 단계만 명시적으로 skip하고 나머지는 실패 없이 수행한다.
+KASI live 검증은 외부 API 네트워크 상태 때문에 일반 CI의 필수 게이트에서는 분리하며, 필요 시 수동 검산 스크립트로 재확인한다.
 
-## Day 5 남은 수동 완료 조건
-`KASI_SERVICE_KEY`를 GitHub Actions repository secret으로 등록한 뒤 워크플로를 다시 실행하여 KASI 10/10 교차검증을 확인한다.
-
-보조 국내 만세력 앱 비교는 KASI 공식 검증 이후 표본 3~5개에 대해 수행하고, 차이가 있으면 시간대/자시/진태양시/입춘·절입 정책 차이를 먼저 기록한다.
+## 참고 URL
+- KASI 음양력 정보: https://www.data.go.kr/data/15012679/openapi.do
+- DateDB 1992-10-24: https://datedb.net/tool/manse/19921024/
+- d5 1992-10-24: https://d5.co.kr/19921024
+- DateDB 1990-05-15: https://datedb.net/tool/saju-worksheet/19900515/
+- DateDB 2020-05-23: https://datedb.net/tool/conversion/solar_to_lunar/20200523/
+- Wikidocs 1992년: https://wikidocs.net/249490
+- Wikidocs 2024년: https://wikidocs.net/249476
