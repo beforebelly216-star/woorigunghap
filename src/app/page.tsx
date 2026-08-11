@@ -11,7 +11,7 @@ export default function Home() {
       <article className="product-card featured">
         <p className="card-label">가장 먼저 시작하기</p>
         <h2>1:1 관계 궁합</h2>
-        <p>연인 · 친구 · 직장동료<br />두 사람의 강점과 조율 포인트를 확인하세요.</p>
+        <p>짝사랑 · 썸 · 연인 · 친구 · 직장동료<br />두 사람의 강점과 조율 포인트를 확인하세요.</p>
         <strong>1,000원</strong>
         <Link href="/one-to-one" className="product-action">정보 입력하고 시작하기</Link>
       </article>
