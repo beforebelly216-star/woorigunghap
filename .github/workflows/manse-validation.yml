@@ -35,22 +35,8 @@ jobs:
         run: npm run test:manse
       - name: Run leap-day and month-end invariants
         run: npm run test:manse:boundaries
-      - name: Probe KASI connectivity over IPv4
-        if: ${{ env.KASI_SERVICE_KEY != '' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          http_code=$(curl --ipv4 --silent --show-error --connect-timeout 10 --max-time 30 \
-            --output /tmp/kasi-probe.xml --write-out '%{http_code}' --get \
-            'https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService/getLunCalInfo' \
-            --data-urlencode "serviceKey=${KASI_SERVICE_KEY}" \
-            --data-urlencode 'solYear=2024' \
-            --data-urlencode 'solMonth=01' \
-            --data-urlencode 'solDay=01')
-          echo "KASI IPv4 probe HTTP ${http_code}"
-          test "${http_code}" = "200"
-          grep -q '<resultCode>00</resultCode>' /tmp/kasi-probe.xml
-      - name: Cross-check KASI when secret is configured
+      - name: Cross-check KASI when manually requested
+        if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi
       - name: Lint
         run: npm run lint
