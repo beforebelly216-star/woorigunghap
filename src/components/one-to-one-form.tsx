@@ -1,0 +1,241 @@
+"use client";
+
+import { FormEvent, useState } from "react";
+import {
+  CALENDAR_TYPES,
+  GENDER_LABELS,
+  GENDERS,
+  RELATIONSHIP_LABELS,
+  RELATIONSHIP_TYPES,
+  type Gender,
+  type OneToOneReportInput,
+  type PersonBirthInput,
+  type RelationshipType,
+  validateOneToOneReportInput,
+} from "@/lib/report-input";
+
+type PersonFormState = Omit<PersonBirthInput, "gender"> & { gender: Gender | "" };
+type FormState = {
+  relationshipType: RelationshipType | "";
+  personA: PersonFormState;
+  personB: PersonFormState;
+};
+
+const emptyPerson = (): PersonFormState => ({
+  displayName: "",
+  gender: "",
+  calendarType: "solar",
+  birthDate: "",
+  birthTimeKnown: true,
+  birthTime: "",
+  isLeapMonth: false,
+});
+
+const initialState: FormState = {
+  relationshipType: "",
+  personA: emptyPerson(),
+  personB: emptyPerson(),
+};
+
+function PersonFields({
+  title,
+  prefix,
+  value,
+  errors,
+  onChange,
+}: {
+  title: string;
+  prefix: "personA" | "personB";
+  value: PersonFormState;
+  errors: Record<string, string>;
+  onChange: (next: PersonFormState) => void;
+}) {
+  const error = (field: string) => errors[`${prefix}.${field}`];
+
+  return (
+    <fieldset className="person-panel">
+      <legend>{title}</legend>
+
+      <label className="field-stack">
+        <span>이름 또는 별칭</span>
+        <input
+          type="text"
+          maxLength={20}
+          placeholder={prefix === "personA" ? "예: 나" : "예: 상대방"}
+          value={value.displayName}
+          onChange={(event) => onChange({ ...value, displayName: event.target.value })}
+        />
+        {error("displayName") ? <small className="field-error">{error("displayName")}</small> : null}
+      </label>
+
+      <div className="field-stack">
+        <span>성별</span>
+        <div className="segmented-control" role="radiogroup" aria-label={`${title} 성별`}>
+          {GENDERS.map((gender) => (
+            <label key={gender} className={value.gender === gender ? "selected" : ""}>
+              <input
+                type="radio"
+                name={`${prefix}-gender`}
+                value={gender}
+                checked={value.gender === gender}
+                onChange={() => onChange({ ...value, gender })}
+              />
+              {GENDER_LABELS[gender]}
+            </label>
+          ))}
+        </div>
+        {error("gender") ? <small className="field-error">{error("gender")}</small> : null}
+      </div>
+
+      <div className="field-stack">
+        <span>달력 기준</span>
+        <div className="segmented-control" role="radiogroup" aria-label={`${title} 달력 기준`}>
+          {CALENDAR_TYPES.map((calendarType) => (
+            <label key={calendarType} className={value.calendarType === calendarType ? "selected" : ""}>
+              <input
+                type="radio"
+                name={`${prefix}-calendar`}
+                value={calendarType}
+                checked={value.calendarType === calendarType}
+                onChange={() =>
+                  onChange({
+                    ...value,
+                    calendarType,
+                    isLeapMonth: calendarType === "solar" ? false : value.isLeapMonth,
+                  })
+                }
+              />
+              {calendarType === "solar" ? "양력" : "음력"}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <label className="field-stack">
+        <span>생년월일</span>
+        <input
+          type="date"
+          min="1900-01-01"
+          value={value.birthDate}
+          onChange={(event) => onChange({ ...value, birthDate: event.target.value })}
+        />
+        {error("birthDate") ? <small className="field-error">{error("birthDate")}</small> : null}
+      </label>
+
+      {value.calendarType === "lunar" ? (
+        <label className="check-row">
+          <input
+            type="checkbox"
+            checked={value.isLeapMonth}
+            onChange={(event) => onChange({ ...value, isLeapMonth: event.target.checked })}
+          />
+          윤달 생일이에요
+        </label>
+      ) : null}
+
+      <div className="field-stack">
+        <span>출생시간</span>
+        <input
+          type="time"
+          value={value.birthTime ?? ""}
+          disabled={!value.birthTimeKnown}
+          onChange={(event) => onChange({ ...value, birthTime: event.target.value })}
+        />
+        <label className="check-row">
+          <input
+            type="checkbox"
+            checked={!value.birthTimeKnown}
+            onChange={(event) =>
+              onChange({
+                ...value,
+                birthTimeKnown: !event.target.checked,
+                birthTime: event.target.checked ? null : "",
+              })
+            }
+          />
+          정확한 출생시간을 몰라요
+        </label>
+        {error("birthTime") ? <small className="field-error">{error("birthTime")}</small> : null}
+      </div>
+    </fieldset>
+  );
+}
+
+export function OneToOneForm() {
+  const [form, setForm] = useState<FormState>(initialState);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [ready, setReady] = useState(false);
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setReady(false);
+
+    const nextErrors: Record<string, string> = {};
+    if (!form.relationshipType) nextErrors.relationshipType = "관계 유형을 선택해 주세요.";
+    if (!form.personA.gender) nextErrors["personA.gender"] = "성별을 선택해 주세요.";
+    if (!form.personB.gender) nextErrors["personB.gender"] = "성별을 선택해 주세요.";
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    const input: OneToOneReportInput = {
+      relationshipType: form.relationshipType as RelationshipType,
+      personA: { ...form.personA, gender: form.personA.gender as Gender },
+      personB: { ...form.personB, gender: form.personB.gender as Gender },
+    };
+    const result = validateOneToOneReportInput(input);
+    setErrors(result.errors);
+    setReady(result.valid);
+  }
+
+  return (
+    <form className="compatibility-form" onSubmit={submit} noValidate>
+      <section className="form-section relationship-section">
+        <h2>어떤 관계를 보고 싶나요?</h2>
+        <div className="relationship-options" role="radiogroup" aria-label="관계 유형">
+          {RELATIONSHIP_TYPES.map((relationshipType) => (
+            <label key={relationshipType} className={form.relationshipType === relationshipType ? "selected" : ""}>
+              <input
+                type="radio"
+                name="relationshipType"
+                value={relationshipType}
+                checked={form.relationshipType === relationshipType}
+                onChange={() => setForm({ ...form, relationshipType })}
+              />
+              {RELATIONSHIP_LABELS[relationshipType]}
+            </label>
+          ))}
+        </div>
+        {errors.relationshipType ? <small className="field-error">{errors.relationshipType}</small> : null}
+      </section>
+
+      <div className="people-grid">
+        <PersonFields
+          title="첫 번째 사람"
+          prefix="personA"
+          value={form.personA}
+          errors={errors}
+          onChange={(personA) => setForm({ ...form, personA })}
+        />
+        <PersonFields
+          title="두 번째 사람"
+          prefix="personB"
+          value={form.personB}
+          errors={errors}
+          onChange={(personB) => setForm({ ...form, personB })}
+        />
+      </div>
+
+      <button type="submit" className="primary-action">입력 확인하기</button>
+
+      {ready ? (
+        <div className="form-success" role="status">
+          <strong>입력 확인 완료</strong>
+          <p>두 사람의 정보가 준비됐어요. 다음 단계에서 이 입력값을 주문·결제 흐름에 연결합니다.</p>
+        </div>
+      ) : null}
+    </form>
+  );
+}
