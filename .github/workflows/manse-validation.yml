@@ -32,6 +32,8 @@ jobs:
         run: npm ci
       - name: Run 30 golden cases
         run: npm run test:manse
+      - name: Run leap-day and month-end invariants
+        run: npm run test:manse:boundaries
       - name: Cross-check KASI when secret is configured
         run: npm run test:manse:kasi
       - name: Lint
