@@ -20,6 +20,19 @@ function readTag(xml: string, tag: string) {
   return match?.[1]?.trim() ?? "";
 }
 
+function normalizeServiceKey(value: string) {
+  const trimmed = value.trim();
+  if (!/%[0-9a-f]{2}/i.test(trimmed)) return trimmed;
+
+  try {
+    // data.go.kr 화면에서 제공하는 Encoding 인증키(%2B/%2F/%3D 등)를
+    // 그대로 Secret에 붙여 넣어도 URLSearchParams가 이중 인코딩하지 않도록 정규화한다.
+    return decodeURIComponent(trimmed);
+  } catch {
+    return trimmed;
+  }
+}
+
 /**
  * KASI OpenAPI는 우리궁합의 런타임 계산 엔진이 아니라 Day 5 검산용 oracle이다.
  *
@@ -35,7 +48,7 @@ export async function fetchKasiSolarDay(solarDate: string): Promise<KasiSolarDay
   if (!match) throw new RangeError("KASI 조회 날짜는 YYYY-MM-DD 형식이어야 합니다.");
 
   const url = new URL(KASI_SOLAR_DAY_ENDPOINT);
-  url.searchParams.set("serviceKey", serviceKey);
+  url.searchParams.set("serviceKey", normalizeServiceKey(serviceKey));
   url.searchParams.set("solYear", match[1]);
   url.searchParams.set("solMonth", match[2]);
   url.searchParams.set("solDay", match[3]);
