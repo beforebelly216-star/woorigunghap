@@ -25,12 +25,37 @@ function normalizeServiceKey(value: string) {
   if (!/%[0-9a-f]{2}/i.test(trimmed)) return trimmed;
 
   try {
-    // data.go.kr 화면에서 제공하는 Encoding 인증키(%2B/%2F/%3D 등)를
-    // 그대로 Secret에 붙여 넣어도 URLSearchParams가 이중 인코딩하지 않도록 정규화한다.
     return decodeURIComponent(trimmed);
   } catch {
     return trimmed;
   }
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(url: URL, solarDate: string) {
+  const maxAttempts = 2;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fetch(url, {
+        signal: AbortSignal.timeout(20_000),
+        cache: "no-store",
+      });
+    } catch (error) {
+      lastError = error;
+      if (attempt < maxAttempts) {
+        console.warn(`KASI ${solarDate} 요청 ${attempt}/${maxAttempts} timeout/네트워크 오류 — 재시도합니다.`);
+        await wait(1_500 * attempt);
+      }
+    }
+  }
+
+  const reason = lastError instanceof Error ? lastError.message : "unknown network error";
+  throw new Error(`KASI ${solarDate} 조회가 ${maxAttempts}회 모두 실패했습니다: ${reason}`);
 }
 
 /**
@@ -53,12 +78,12 @@ export async function fetchKasiSolarDay(solarDate: string): Promise<KasiSolarDay
   url.searchParams.set("solMonth", match[2]);
   url.searchParams.set("solDay", match[3]);
 
-  const response = await fetch(url, { signal: AbortSignal.timeout(10_000), cache: "no-store" });
-  if (!response.ok) throw new Error(`KASI 조회가 실패했습니다. (${response.status})`);
+  const response = await fetchWithRetry(url, solarDate);
+  if (!response.ok) throw new Error(`KASI ${solarDate} 조회가 실패했습니다. (${response.status})`);
 
   const xml = await response.text();
   if (readTag(xml, "resultCode") !== "00") {
-    throw new Error(`KASI API 오류: ${readTag(xml, "resultMsg") || readTag(xml, "resultMag") || "unknown"}`);
+    throw new Error(`KASI API 오류 (${solarDate}): ${readTag(xml, "resultMsg") || readTag(xml, "resultMag") || "unknown"}`);
   }
 
   const record: KasiSolarDayRecord = {
@@ -76,7 +101,7 @@ export async function fetchKasiSolarDay(solarDate: string): Promise<KasiSolarDay
   };
 
   if (!record.solYear || !record.lunIljin) {
-    throw new Error("KASI 응답에서 필요한 날짜/일진 정보를 찾지 못했습니다.");
+    throw new Error(`KASI ${solarDate} 응답에서 필요한 날짜/일진 정보를 찾지 못했습니다.`);
   }
   return record;
 }
