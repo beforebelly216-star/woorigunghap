@@ -39,15 +39,28 @@ export type InputFieldErrors = Record<string, string>;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-function isValidCalendarDate(value: string) {
-  if (!DATE_PATTERN.test(value)) return false;
+function parseDateParts(value: string) {
+  if (!DATE_PATTERN.test(value)) return null;
   const [year, month, day] = value.split("-").map(Number);
+  return { year, month, day };
+}
+
+function isValidSolarDate(value: string) {
+  const parts = parseDateParts(value);
+  if (!parts) return false;
+  const { year, month, day } = parts;
   const parsed = new Date(Date.UTC(year, month - 1, day));
   return (
     parsed.getUTCFullYear() === year &&
     parsed.getUTCMonth() === month - 1 &&
     parsed.getUTCDate() === day
   );
+}
+
+function isValidLunarDateShape(value: string) {
+  const parts = parseDateParts(value);
+  if (!parts) return false;
+  return parts.month >= 1 && parts.month <= 12 && parts.day >= 1 && parts.day <= 30;
 }
 
 function validatePerson(person: PersonBirthInput, prefix: "personA" | "personB") {
@@ -60,15 +73,26 @@ function validatePerson(person: PersonBirthInput, prefix: "personA" | "personB")
   if (!GENDERS.includes(person.gender)) errors[`${prefix}.gender`] = "성별을 선택해 주세요.";
   if (!CALENDAR_TYPES.includes(person.calendarType)) errors[`${prefix}.calendarType`] = "양력 또는 음력을 선택해 주세요.";
 
-  if (!isValidCalendarDate(person.birthDate)) {
-    errors[`${prefix}.birthDate`] = "올바른 생년월일을 입력해 주세요.";
+  const validBirthDate = person.calendarType === "solar"
+    ? isValidSolarDate(person.birthDate)
+    : isValidLunarDateShape(person.birthDate);
+
+  if (!validBirthDate) {
+    errors[`${prefix}.birthDate`] = person.calendarType === "solar"
+      ? "올바른 양력 생년월일을 입력해 주세요."
+      : "음력 생년월일을 YYYY-MM-DD 형식으로 입력해 주세요.";
   } else {
-    const [year] = person.birthDate.split("-").map(Number);
+    const parts = parseDateParts(person.birthDate)!;
     const today = new Date();
-    const inputDate = new Date(`${person.birthDate}T00:00:00`);
-    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    if (year < 1900) errors[`${prefix}.birthDate`] = "1900년 이후 생년월일을 입력해 주세요.";
-    if (inputDate > todayDate) errors[`${prefix}.birthDate`] = "미래 날짜는 입력할 수 없어요.";
+    if (parts.year < 1900) {
+      errors[`${prefix}.birthDate`] = "1900년 이후 생년월일을 입력해 주세요.";
+    } else if (parts.year > today.getFullYear()) {
+      errors[`${prefix}.birthDate`] = "미래 연도는 입력할 수 없어요.";
+    } else if (person.calendarType === "solar") {
+      const inputDate = new Date(parts.year, parts.month - 1, parts.day);
+      const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      if (inputDate > todayDate) errors[`${prefix}.birthDate`] = "미래 날짜는 입력할 수 없어요.";
+    }
   }
 
   if (person.birthTimeKnown) {
