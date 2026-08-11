@@ -1,3 +1,8 @@
+import {
+  getRelationshipCalculationProfile,
+  type RelationshipType,
+} from "@/lib/report-input";
+
 /**
  * AI는 이 파일의 입력만 받는다. 원본 생년월일시, 연락처, 결제정보는 절대 전달하지 않는다.
  * 만세력 계산과 점수 산출은 별도의 서버 전용 엔진이 담당한다.
@@ -16,7 +21,7 @@ export type NarrativeSectionId = (typeof NARRATIVE_SECTION_IDS)[number];
 export type ReportNarrativeMode = "template" | "openai";
 
 export type NarrativeCalculationSnapshot = {
-  relationshipType: "lover" | "friend" | "coworker";
+  relationshipType: RelationshipType;
   reportType: "oneToOne" | "oneToMany";
   compatibilityEngineVersion: string;
   totalScore: number;
@@ -46,6 +51,7 @@ const sectionTitles: Record<NarrativeSectionId, string> = {
 function sanitizeSnapshot(snapshot: NarrativeCalculationSnapshot) {
   return {
     relationshipType: snapshot.relationshipType,
+    calculationProfile: getRelationshipCalculationProfile(snapshot.relationshipType),
     reportType: snapshot.reportType,
     compatibilityEngineVersion: snapshot.compatibilityEngineVersion,
     totalScore: snapshot.totalScore,
@@ -101,7 +107,8 @@ function parseSections(value: unknown): Record<NarrativeSectionId, string> | nul
 }
 
 export async function generateReportNarratives(snapshot: NarrativeCalculationSnapshot): Promise<GeneratedNarratives> {
-  if (snapshot.relationshipType !== "lover" || getMode() === "template") {
+  const calculationProfile = getRelationshipCalculationProfile(snapshot.relationshipType);
+  if (calculationProfile !== "romance" || getMode() === "template") {
     return { provider: "template", model: null, promptVersion: "report-narrative-v1", sections: templateNarratives(snapshot) };
   }
 
@@ -121,7 +128,7 @@ export async function generateReportNarratives(snapshot: NarrativeCalculationSna
         "친밀 섹션에서는 명확한 동의와 경계 존중을 우선으로 표현하세요.",
         "각 섹션은 자연스러운 한국어 2~3문장, 80~260자로 작성하세요. 이름·생년월일·개인식별정보를 요구하거나 만들지 마세요.",
       ].join("\n"),
-      input: JSON.stringify({ task: "연인 궁합 리포트 6개 섹션 작성", sectionTitles, calculationSnapshot: sanitizeSnapshot(snapshot) }),
+      input: JSON.stringify({ task: "연애 관계 궁합 리포트 6개 섹션 작성", sectionTitles, calculationSnapshot: sanitizeSnapshot(snapshot) }),
       text: { format: { type: "json_schema", name: "relationship_report_sections", strict: true, schema: responseSchema() } },
     }),
     signal: AbortSignal.timeout(45_000),
