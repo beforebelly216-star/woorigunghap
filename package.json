@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:manse": "tsx scripts/manse-golden-test.ts",
+    "test:manse:kasi": "tsx scripts/manse-kasi-crosscheck.ts"
   },
   "dependencies": {
     "@portone/browser-sdk": "^0.1.9",
@@ -24,6 +26,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }
