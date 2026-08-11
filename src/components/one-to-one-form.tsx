@@ -116,12 +116,24 @@ function PersonFields({
 
       <label className="field-stack">
         <span>생년월일</span>
-        <input
-          type="date"
-          min="1900-01-01"
-          value={value.birthDate}
-          onChange={(event) => onChange({ ...value, birthDate: event.target.value })}
-        />
+        {value.calendarType === "solar" ? (
+          <input
+            type="date"
+            min="1900-01-01"
+            value={value.birthDate}
+            onChange={(event) => onChange({ ...value, birthDate: event.target.value })}
+          />
+        ) : (
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={10}
+            placeholder="예: 1998-08-15"
+            value={value.birthDate}
+            onChange={(event) => onChange({ ...value, birthDate: event.target.value })}
+          />
+        )}
+        {value.calendarType === "lunar" ? <small className="field-hint">음력 날짜를 YYYY-MM-DD 형식으로 입력해 주세요.</small> : null}
         {error("birthDate") ? <small className="field-error">{error("birthDate")}</small> : null}
       </label>
 
