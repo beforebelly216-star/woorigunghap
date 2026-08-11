@@ -5,16 +5,16 @@ import { fetchKasiSolarDay } from "../src/lib/manseryeok/kasi";
 import type { PersonBirthInput } from "../src/lib/report-input";
 
 const dates = [
-  "1936-08-25",
-  "1948-05-01",
-  "1960-03-15",
-  "1984-06-15",
-  "1992-10-24",
-  "1997-02-08",
-  "2000-06-10",
-  "2020-05-23",
-  "2023-05-20",
   "2024-01-01",
+  "2023-05-20",
+  "2020-05-23",
+  "2000-06-10",
+  "1997-02-08",
+  "1992-10-24",
+  "1984-06-15",
+  "1960-03-15",
+  "1948-05-01",
+  "1936-08-25",
 ] as const;
 
 function normalizeGanji(value: string) {
