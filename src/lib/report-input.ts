@@ -1,11 +1,32 @@
-export const RELATIONSHIP_TYPES = ["lover", "friend", "coworker"] as const;
+export const RELATIONSHIP_TYPES = ["crush", "flirting", "lover", "friend", "coworker"] as const;
 export type RelationshipType = (typeof RELATIONSHIP_TYPES)[number];
 
 export const RELATIONSHIP_LABELS: Record<RelationshipType, string> = {
+  crush: "짝사랑",
+  flirting: "썸",
   lover: "연인",
   friend: "친구",
   coworker: "직장동료",
 };
+
+export const CALCULATION_PROFILES = ["romance", "friend", "coworker"] as const;
+export type CalculationProfile = (typeof CALCULATION_PROFILES)[number];
+
+/**
+ * MVP에서는 사용자에게 5개 관계 단계를 보여주되 궁합 점수 엔진은 3개 프로필만 사용한다.
+ * 짝사랑/썸/연인의 세부 점수 가중치 분리는 베타 이후 후속 작업으로 미룬다.
+ */
+export const RELATIONSHIP_CALCULATION_PROFILE: Record<RelationshipType, CalculationProfile> = {
+  crush: "romance",
+  flirting: "romance",
+  lover: "romance",
+  friend: "friend",
+  coworker: "coworker",
+};
+
+export function getRelationshipCalculationProfile(relationshipType: RelationshipType) {
+  return RELATIONSHIP_CALCULATION_PROFILE[relationshipType];
+}
 
 export const GENDERS = ["male", "female"] as const;
 export type Gender = (typeof GENDERS)[number];
