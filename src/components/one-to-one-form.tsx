@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CALENDAR_TYPES,
   GENDER_LABELS,
@@ -13,6 +14,8 @@ import {
   type RelationshipType,
   validateOneToOneReportInput,
 } from "@/lib/report-input";
+import { createOneToOneOrderDraft } from "@/lib/orders";
+import { saveOrderDraft } from "@/lib/order-storage";
 
 type PersonFormState = Omit<PersonBirthInput, "gender"> & { gender: Gender | "" };
 type FormState = {
@@ -162,13 +165,14 @@ function PersonFields({
 }
 
 export function OneToOneForm() {
+  const router = useRouter();
   const [form, setForm] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [ready, setReady] = useState(false);
+  const [isContinuing, setIsContinuing] = useState(false);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setReady(false);
+    setIsContinuing(false);
 
     const nextErrors: Record<string, string> = {};
     if (!form.relationshipType) nextErrors.relationshipType = "관계 유형을 선택해 주세요.";
@@ -187,7 +191,12 @@ export function OneToOneForm() {
     };
     const result = validateOneToOneReportInput(input);
     setErrors(result.errors);
-    setReady(result.valid);
+    if (!result.valid) return;
+
+    setIsContinuing(true);
+    const order = createOneToOneOrderDraft(input);
+    saveOrderDraft(order);
+    router.push(`/one-to-one/checkout?paymentId=${encodeURIComponent(order.paymentId)}`);
   }
 
   return (
@@ -228,14 +237,9 @@ export function OneToOneForm() {
         />
       </div>
 
-      <button type="submit" className="primary-action">입력 확인하기</button>
-
-      {ready ? (
-        <div className="form-success" role="status">
-          <strong>입력 확인 완료</strong>
-          <p>두 사람의 정보가 준비됐어요. 다음 단계에서 이 입력값을 주문·결제 흐름에 연결합니다.</p>
-        </div>
-      ) : null}
+      <button type="submit" className="primary-action" disabled={isContinuing}>
+        {isContinuing ? "결제 단계로 이동 중..." : "입력 확인하고 계속하기"}
+      </button>
     </form>
   );
 }
