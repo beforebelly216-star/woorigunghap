@@ -1,4 +1,4 @@
-import { PaymentButton } from "@/components/payment-button";
+import Link from "next/link";
 
 export default function Home() {
   return <main className="landing-page">
@@ -13,7 +13,7 @@ export default function Home() {
         <h2>1:1 관계 궁합</h2>
         <p>연인 · 친구 · 직장동료<br />두 사람의 강점과 조율 포인트를 확인하세요.</p>
         <strong>1,000원</strong>
-        <PaymentButton product="oneToOne" />
+        <Link href="/one-to-one" className="product-action">정보 입력하고 시작하기</Link>
       </article>
       <article className="product-card muted">
         <p className="card-label">준비 중</p>
