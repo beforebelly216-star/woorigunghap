@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:manse": "tsx scripts/manse-golden-test.ts",
+    "test:manse:boundaries": "tsx scripts/manse-boundary-invariants.ts",
     "test:manse:kasi": "tsx scripts/manse-kasi-crosscheck.ts"
   },
   "dependencies": {
