@@ -14,7 +14,7 @@ const input: OneToOneReportInput = {
     calendarType: "solar",
     birthDate: "1990-05-15",
     birthTimeKnown: true,
-    birthTime: "14:30",
+    birthTime: "14:17",
     isLeapMonth: false,
   },
   personB: {
@@ -23,7 +23,7 @@ const input: OneToOneReportInput = {
     calendarType: "solar",
     birthDate: "1992-10-24",
     birthTimeKnown: true,
-    birthTime: "05:30",
+    birthTime: "05:43",
     isLeapMonth: false,
   },
 };
@@ -42,8 +42,8 @@ async function main() {
     "테스트B",
     "1990-05-15",
     "1992-10-24",
-    "14:30",
-    "05:30",
+    "14:17",
+    "05:43",
     "paymentId",
     "orderId",
   ]) {
