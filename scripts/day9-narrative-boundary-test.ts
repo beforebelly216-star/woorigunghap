@@ -71,19 +71,14 @@ async function main() {
   assert(generated.meta.fallbackReason === null, "정상 template에는 fallbackReason이 없어야 합니다.");
   assert(generated.meta.payloadBytes > 0, "payload 크기가 기록되어야 합니다.");
 
-  const previousMode = process.env.REPORT_NARRATIVE_MODE;
   const previousKey = process.env.ANTHROPIC_API_KEY;
-  process.env.REPORT_NARRATIVE_MODE = "anthropic";
   delete process.env.ANTHROPIC_API_KEY;
-  const fallback = await generateCompatibilityNarrative(snapshot);
+  const fallback = await generateCompatibilityNarrative(snapshot, { modeOverride: "anthropic" });
   assert(fallback.meta.mode === "template", "Anthropic 키 미설정 시 template fallback이어야 합니다.");
   assert(
     fallback.meta.fallbackReason === "ANTHROPIC_API_KEY_MISSING",
-    "키 미설정 fallback 사유가 달라요.",
+    `키 미설정 fallback 사유가 달라요: ${fallback.meta.fallbackReason}`,
   );
-
-  if (previousMode === undefined) delete process.env.REPORT_NARRATIVE_MODE;
-  else process.env.REPORT_NARRATIVE_MODE = previousMode;
   if (previousKey === undefined) delete process.env.ANTHROPIC_API_KEY;
   else process.env.ANTHROPIC_API_KEY = previousKey;
 
