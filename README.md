@@ -26,6 +26,7 @@ npm run dev
 - PortOne 웹훅 원문·서명 검증 엔드포인트
 - `manseryeok 2.0.0` 기반 서버 만세력 계산
 - KASI live API 10/10 및 골든/경계 테스트를 통한 만세력 검증
+- Day 6 궁합 엔진: 관계 프로필 100점 배점 테이블 + 항목 1 일간 상성 산식 구현
 - AI 리포트용 서버 전용 생성 모듈: 결제·계산과 분리하고 계산된 결과만 전달
 
 현재 1:1 사용자 흐름:
@@ -45,12 +46,14 @@ npm run dev
 
 - 만세력 정책: [`docs/manse-calculation-policy.md`](./docs/manse-calculation-policy.md)
 - Day 5 검증 결과: [`docs/day5-validation-report.md`](./docs/day5-validation-report.md)
-- 궁합 9항목 배점·관계 프로필·시간 미상 처리: [`docs/compatibility-scoring-policy.md`](./docs/compatibility-scoring-policy.md)
+- 궁합 9항목 배점·관계 프로필·시간 미상 처리·항목별 승인 산식: [`docs/compatibility-scoring-policy.md`](./docs/compatibility-scoring-policy.md)
 - 1:N 구현 명세: [`docs/one-to-many-spec.md`](./docs/one-to-many-spec.md)
 
 궁합 점수는 사용자 관계 유형에 따라 `romance / friend / coworker` 프로필로 100점 배점을 재분배합니다. 짝사랑·썸·연인은 MVP에서 동일한 `romance` 계산 프로필을 사용하고, 관계 단계별 별도 가중치는 Day 15 이후 백로그입니다.
 
 출생시간 미상자는 임의 시주나 고정 중립점으로 대체하지 않습니다. 가능한 시주 시나리오를 계산해 항목별 중앙값과 실제 `uncertaintyRange`를 사용합니다.
+
+항목 1 `일간 상성`은 오행의 기본 생극 관계를 85(상생) / 70(동일 오행) / 55(상극)로 정규화하며, 방향성과 음양은 evidence로만 저장합니다. 천간합과 용신·기신 효과는 다른 항목에서 별도 계산해 중복 점수를 방지합니다.
 
 ## AI 리포트 구조
 
@@ -74,13 +77,14 @@ AI는 사주를 계산하거나 결제 여부를 판단하지 않습니다. 서�
 - Day 3: 1:1 입력·주문 뼈대 ✅
 - Day 4: 만세력 계산 모듈 ✅
 - Day 5: 골든 30/30 + 경계 8/8 + KASI live 10/10 ✅
-- Day 6: 1:1 궁합 계산 엔진 — 배점/시간 미상 정책 확정, 산식 구현 진행 중
+- Day 6: 1:1 궁합 계산 엔진 — 정책 확정 + 항목 1 일간 상성 구현, 나머지 산식 승인/구현 진행 중
 
 ## 검증
 
 ```bash
 npm run test:manse
 npm run test:manse:boundaries
+npm run test:compatibility:day-master
 npm run lint
 npm run build
 ```

@@ -1,4 +1,4 @@
-name: Manseryeok validation
+name: Core calculation validation
 
 on:
   workflow_dispatch:
@@ -7,6 +7,7 @@ on:
     paths:
       - "src/**"
       - "scripts/manse-*.ts"
+      - "scripts/compatibility-*.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/manse-validation.yml"
@@ -14,6 +15,7 @@ on:
     paths:
       - "src/**"
       - "scripts/manse-*.ts"
+      - "scripts/compatibility-*.ts"
       - "package.json"
       - "package-lock.json"
 
@@ -35,6 +37,8 @@ jobs:
         run: npm run test:manse
       - name: Run leap-day and month-end invariants
         run: npm run test:manse:boundaries
+      - name: Run Day 6 day-master compatibility validation
+        run: npm run test:compatibility:day-master
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi
