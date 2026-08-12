@@ -24,7 +24,7 @@ export type StrengthLevel =
   | "VERY_STRONG";
 
 export type StrengthCandidateResult = {
-  version: "strength-shadow-v1";
+  version: "strength-shadow-v2";
   status: "SHADOW_ONLY";
   productionScoringEnabled: false;
   score: number;
@@ -34,7 +34,7 @@ export type StrengthCandidateResult = {
     deukryeong: {
       label: "得令(득령)";
       score: number;
-      weight: 0.4;
+      weight: 0.35;
       monthBranchRelation: StrengthRelation | null;
       commanderRelation: StrengthRelation | null;
     };
@@ -48,7 +48,7 @@ export type StrengthCandidateResult = {
     deukse: {
       label: "得勢(득세)";
       score: number;
-      weight: 0.3;
+      weight: 0.35;
       supportPower: number;
       pressurePower: number;
     };
@@ -85,14 +85,14 @@ const STEM_ELEMENT: Record<string, FiveElement> = {
   계: "water",
 };
 
-// 계절(월령)은 가장 강한 단일 신호이지만 절대판정으로 쓰지 않는다.
-// 아래 숫자는 고전의 절대 점수가 아니라 우리궁합 v1의 재현 가능한 보정 파라미터다.
+// 得令(득령)은 계절의 방향성을 보는 축이다. 0~100의 절대 강도율이 아니라
+// 50을 중립으로 둔 제품용 지수이며, 월령 하나가 전체를 결정하지 않도록 범위를 제한한다.
 const SEASON_RELATION_SCORE: Record<StrengthRelation, number> = {
-  PEER: 100,
-  RESOURCE: 85,
-  OUTPUT: 40,
-  WEALTH: 30,
-  OFFICER: 15,
+  PEER: 75,
+  RESOURCE: 65,
+  OUTPUT: 45,
+  WEALTH: 40,
+  OFFICER: 30,
 };
 
 // 得勢(득세)에서는 같은 오행과 인성은 일간을 돕고,
@@ -165,7 +165,7 @@ export function relationToDayMaster(
 }
 
 function strengthLevel(score: number): StrengthLevel {
-  if (score < 30) return "VERY_WEAK";
+  if (score < 35) return "VERY_WEAK";
   if (score < 45) return "WEAK";
   if (score < 56) return "BALANCED";
   if (score < 71) return "STRONG";
@@ -200,9 +200,10 @@ function calculateDeukryeong(evidence: UsefulGodPreparationEvidence) {
   const commanderRelation = relationToDayMaster(dayMasterElement, commanderElement);
   const commanderScore = SEASON_RELATION_SCORE[commanderRelation];
 
-  // 월지 자체 70%, 월령 사령 30%: 사령 하루 경계가 전체 판정을 뒤집지 않도록 보정 신호로 사용.
+  // 월지 자체를 80%, 월령 사령을 20%로 둔다. 사령은 정밀 보정이지 하루 경계로
+  // 신강약 전체가 급변하는 절대판정 스위치가 아니다.
   return {
-    score: round1(branchScore * 0.7 + commanderScore * 0.3),
+    score: round1(branchScore * 0.8 + commanderScore * 0.2),
     monthBranchRelation,
     commanderRelation,
   };
@@ -230,8 +231,11 @@ function calculateDeukji(evidence: UsefulGodPreparationEvidence) {
     rootRaw += positionWeight * strongestRoot;
   }
 
+  // 뿌리가 없다는 사실은 강한 약화 신호지만 '0점'을 뜻하지 않는다.
+  // 得地(득지) 축은 30을 하한으로 두고 뿌리의 위치·본기/중기/여기 강도로 100까지 상승한다.
+  const rootRatio = rootMax === 0 ? 0.5 : clamp(rootRaw / rootMax, 0, 1);
   return {
-    score: rootMax === 0 ? 50 : round1(clamp((rootRaw / rootMax) * 100, 0, 100)),
+    score: round1(30 + rootRatio * 70),
     rootRaw: round1(rootRaw),
     rootMax: round1(rootMax),
   };
@@ -297,11 +301,12 @@ export function calculateStrengthCandidate(
   const deukse = calculateDeukse(snapshot, evidence);
 
   const score = round1(
-    deukryeong.score * 0.4 + deukji.score * 0.3 + deukse.score * 0.3,
+    deukryeong.score * 0.35 + deukji.score * 0.3 + deukse.score * 0.35,
   );
   const notes = [
     "이 결과는 Day 6 보정용 shadow 점수이며 아직 고객 점수에 사용하지 않습니다.",
-    "得令(득령) 40% + 得地(득지) 30% + 得勢(득세) 30%의 제품용 재현 규칙입니다.",
+    "得令(득령) 35% + 得地(득지) 30% + 得勢(득세) 35%의 제품용 재현 규칙입니다.",
+    "각 축은 50을 중립 기준으로 해석하며, 단일 결손이 전체 점수를 0에 가깝게 만들지 않도록 설계했습니다.",
     "十二運星(십이운성), 원국 합화, 從格(종격), 調候(조후), 通關(통관)은 아직 최종 판정에 넣지 않았습니다.",
   ];
   if (!person.birthTimeKnown) {
@@ -311,7 +316,7 @@ export function calculateStrengthCandidate(
   }
 
   return {
-    version: "strength-shadow-v1",
+    version: "strength-shadow-v2",
     status: "SHADOW_ONLY",
     productionScoringEnabled: false,
     score,
@@ -321,7 +326,7 @@ export function calculateStrengthCandidate(
       deukryeong: {
         label: "得令(득령)",
         score: deukryeong.score,
-        weight: 0.4,
+        weight: 0.35,
         monthBranchRelation: deukryeong.monthBranchRelation,
         commanderRelation: deukryeong.commanderRelation,
       },
@@ -335,7 +340,7 @@ export function calculateStrengthCandidate(
       deukse: {
         label: "得勢(득세)",
         score: deukse.score,
-        weight: 0.3,
+        weight: 0.35,
         supportPower: deukse.supportPower,
         pressurePower: deukse.pressurePower,
       },
