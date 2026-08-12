@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import type { CompatibilityCalculationSnapshot } from "@/lib/compatibility/engine";
 import type { CompatibilityDimension } from "@/lib/compatibility/types";
-import type { CompatibilityNarrative } from "@/lib/narrative/engine";
+import type { CompatibilityNarrative } from "@/lib/narrative/report-engine";
 import { loadOrderDraft } from "@/lib/order-storage";
 import type { OneToOneOrderDraft } from "@/lib/orders";
 import { RELATIONSHIP_LABELS, type RelationshipType } from "@/lib/report-input";
@@ -98,6 +98,19 @@ function MissingOrderState() {
   );
 }
 
+function TextCards({ cards }: { cards: Array<{ title: string; body: string }> }) {
+  return (
+    <div className="flow-grid">
+      {cards.map((card, index) => (
+        <article className="flow-card" key={`${index}-${card.title}`}>
+          <strong>{card.title}</strong>
+          <p>{card.body}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 function ResultContent() {
   const params = useSearchParams();
   const paymentId = params.get("paymentId");
@@ -126,10 +139,7 @@ function ResultContent() {
         : fetch("/api/compatibility/one-to-one", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              paymentId: draft.paymentId,
-              input: draft.inputSnapshot,
-            }),
+            body: JSON.stringify({ paymentId: draft.paymentId, input: draft.inputSnapshot }),
           });
 
       void request
@@ -154,9 +164,7 @@ function ResultContent() {
         });
     });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [isDemo, paymentId]);
 
   const visibleDimensions = useMemo(() => {
@@ -167,18 +175,11 @@ function ResultContent() {
     ]>).filter(([, value]) => value.maxPoints > 0);
   }, [snapshot]);
 
-  if ((!isDemo && !paymentId) || status === "missing") {
-    return <MissingOrderState />;
-  }
-
+  if ((!isDemo && !paymentId) || status === "missing") return <MissingOrderState />;
   if (status === "loading") {
-    return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>궁합을 계산하고 있어요.</h1><p>결제 상태를 확인한 뒤 두 사람의 명식을 비교하고 리포트를 정리하고 있어요.</p></div>;
+    return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>궁합을 계산하고 있어요.</h1><p>결제 상태를 확인한 뒤 두 사람의 명식을 비교하고 상세 리포트를 정리하고 있어요.</p></div>;
   }
-
-  if (!order) {
-    return <MissingOrderState />;
-  }
-
+  if (!order) return <MissingOrderState />;
   if (status === "error" || !snapshot || !narrative) {
     return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>결과를 열 수 없어요.</h1><p>{errorMessage ?? "결제 상태와 입력 정보를 다시 확인해 주세요."}</p><Link href="/one-to-one" className="primary-link">입력 화면으로 돌아가기</Link></div>;
   }
@@ -187,18 +188,8 @@ function ResultContent() {
   const hasUnknownTime = !personA.birthTimeKnown || !personB.birthTimeKnown;
   const grade = gradeFor(snapshot.score);
   const flowTitles = FLOW_TITLES[relationshipType];
-  const flowCards = [
-    { title: flowTitles[0], body: narrative.flow.primary },
-    { title: flowTitles[1], body: narrative.flow.secondary },
-    { title: flowTitles[2], body: narrative.flow.caution },
-  ];
   const strengthCopies = [narrative.strengths.first, narrative.strengths.second];
   const adjustmentCopies = [narrative.adjustments.first, narrative.adjustments.second];
-  const practicalGuides = [
-    narrative.practicalGuide.first,
-    narrative.practicalGuide.second,
-    narrative.practicalGuide.third,
-  ];
 
   return (
     <main className="report-page">
@@ -229,19 +220,47 @@ function ResultContent() {
 
         <section className="report-section">
           <div className="section-heading">
+            <p className="card-label">Personal relationship profile</p>
+            <h2>각자의 관계 원국</h2>
+            <p>개인의 원국을 관계 관점에서 요약한 뒤 두 사람이 서로에게 어떤 영향을 주는지 연결해 봐요.</p>
+          </div>
+          <div className="insight-section">
+            <article className="insight-card strength-card">
+              <p className="card-label">{personA.displayName}</p>
+              <h2>나의 관계 성향</h2>
+              <div className="insight-list">
+                <div><strong>기본 기운</strong><span>{narrative.personA.core}</span></div>
+                <div><strong>오행 균형</strong><span>{narrative.personA.elementBalance}</span></div>
+                <div><strong>필요한 기운</strong><span>{narrative.personA.relationshipNeed}</span></div>
+                <div><strong>강약 신호</strong><span>{narrative.personA.strength}</span></div>
+                <div><strong>주의점</strong><span>{narrative.personA.caution}</span></div>
+              </div>
+            </article>
+            <article className="insight-card adjustment-card">
+              <p className="card-label">{personB.displayName}</p>
+              <h2>상대의 관계 성향</h2>
+              <div className="insight-list">
+                <div><strong>기본 기운</strong><span>{narrative.personB.core}</span></div>
+                <div><strong>오행 균형</strong><span>{narrative.personB.elementBalance}</span></div>
+                <div><strong>필요한 기운</strong><span>{narrative.personB.relationshipNeed}</span></div>
+                <div><strong>강약 신호</strong><span>{narrative.personB.strength}</span></div>
+                <div><strong>주의점</strong><span>{narrative.personB.caution}</span></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section className="report-section">
+          <div className="section-heading">
             <p className="card-label">Compatibility breakdown</p>
             <h2>9개 항목으로 본 두 사람</h2>
             <p>카드 점수는 각 항목을 0~100으로 정규화한 값이고, 종합점수에는 관계 유형별 배점이 따로 적용돼요.</p>
           </div>
-
           <div className="score-card-grid">
             {visibleDimensions.map(([dimension, value]) => (
               <article className="dimension-card" key={dimension}>
                 <div className="dimension-card-head">
-                  <div>
-                    <span>{DIMENSION_LABELS[dimension]}</span>
-                    <strong>{Math.round(value.normalizedScore)}</strong>
-                  </div>
+                  <div><span>{DIMENSION_LABELS[dimension]}</span><strong>{Math.round(value.normalizedScore)}</strong></div>
                   <small>배점 {value.weightedPoints.toFixed(1)} / {value.maxPoints}</small>
                 </div>
                 <div className="score-track" aria-hidden="true"><span style={{ width: `${Math.max(0, Math.min(100, value.normalizedScore))}%` }} /></div>
@@ -252,66 +271,97 @@ function ResultContent() {
         </section>
 
         <section className="report-section">
-          <div className="section-heading">
-            <p className="card-label">Relationship flow</p>
-            <h2>{RELATIONSHIP_LABELS[relationshipType]} 관계의 흐름</h2>
-            <p>서버가 확정한 계산값을 바꾸지 않고, 계산 근거를 읽기 쉬운 문장으로 정리한 영역이에요.</p>
-          </div>
-          <div className="flow-grid">
-            {flowCards.map((card) => (
-              <article className="flow-card" key={card.title}>
-                <strong>{card.title}</strong>
-                <p>{card.body}</p>
-              </article>
+          <div className="section-heading"><p className="card-label">Basic chemistry</p><h2>두 사람의 기본 케미</h2></div>
+          <TextCards cards={[
+            { title: "일간", body: narrative.basicChemistry.dayMaster },
+            { title: "일지", body: narrative.basicChemistry.dayBranch },
+            { title: "음양", body: narrative.basicChemistry.yinYang },
+            { title: "오행 균형", body: narrative.basicChemistry.elementBalance },
+          ]} />
+        </section>
+
+        <section className="report-section">
+          <div className="section-heading"><p className="card-label">Bond & friction</p><h2>둘 사이의 결속과 마찰</h2></div>
+          <TextCards cards={[
+            { title: "천간 합충", body: narrative.bondAndFriction.heavenlyStems },
+            { title: "지지 형충파해", body: narrative.bondAndFriction.earthlyBranches },
+            { title: "귀인·특수 신호", body: narrative.bondAndFriction.specialSignals },
+          ]} />
+        </section>
+
+        <section className="report-section">
+          <div className="section-heading"><p className="card-label">Directional impact</p><h2>누가 누구에게 어떤 영향을 주나</h2></div>
+          <TextCards cards={[
+            { title: `${personA.displayName} → ${personB.displayName}`, body: narrative.directionalImpact.aToB },
+            { title: `${personB.displayName} → ${personA.displayName}`, body: narrative.directionalImpact.bToA },
+            { title: "관계의 균형", body: narrative.directionalImpact.balance },
+          ]} />
+        </section>
+
+        <section className="report-section">
+          <div className="section-heading"><p className="card-label">Relationship flow</p><h2>{RELATIONSHIP_LABELS[relationshipType]} 관계의 흐름</h2></div>
+          <TextCards cards={[
+            { title: flowTitles[0], body: narrative.flow.primary },
+            { title: flowTitles[1], body: narrative.flow.secondary },
+            { title: flowTitles[2], body: narrative.flow.caution },
+          ]} />
+        </section>
+
+        <section className="report-section">
+          <div className="section-heading"><p className="card-label">Relationship-specific</p><h2>{RELATIONSHIP_LABELS[relationshipType]}라서 특히 볼 점</h2></div>
+          <div className="guide-list">
+            {[narrative.relationshipSpecific.first, narrative.relationshipSpecific.second, narrative.relationshipSpecific.third].map((text, index) => (
+              <div key={`${index}-${text}`}><span>{String(index + 1).padStart(2, "0")}</span><p>{text}</p></div>
             ))}
           </div>
         </section>
 
         <section className="report-section insight-section">
           <div className="insight-card strength-card">
-            <p className="card-label">Strength</p>
-            <h2>두 사람의 강점</h2>
+            <p className="card-label">Strength</p><h2>두 사람의 강점</h2>
             <div className="insight-list">
               {snapshot.strengths.map((dimension, index) => (
-                <div key={dimension}>
-                  <strong>{DIMENSION_LABELS[dimension]}</strong>
-                  <span>{strengthCopies[index] ?? DIMENSION_COPY[dimension]}</span>
-                </div>
+                <div key={dimension}><strong>{DIMENSION_LABELS[dimension]}</strong><span>{strengthCopies[index] ?? DIMENSION_COPY[dimension]}</span></div>
               ))}
             </div>
           </div>
           <div className="insight-card adjustment-card">
-            <p className="card-label">Adjustment</p>
-            <h2>조율하면 좋은 지점</h2>
+            <p className="card-label">Risk & adjustment</p><h2>조율할 점과 위험 신호</h2>
             <div className="insight-list">
               {snapshot.adjustmentPoints.map((dimension, index) => (
-                <div key={dimension}>
-                  <strong>{DIMENSION_LABELS[dimension]}</strong>
-                  <span>{adjustmentCopies[index] ?? "서로의 차이를 의식하고 구체적인 기대치를 맞춰 보세요."}</span>
-                </div>
+                <div key={dimension}><strong>{DIMENSION_LABELS[dimension]}</strong><span>{adjustmentCopies[index] ?? "서로의 차이를 의식하고 구체적인 기대치를 맞춰 보세요."}</span></div>
               ))}
+              <div><strong>레드 플래그</strong><span>{narrative.adjustments.redFlag}</span></div>
             </div>
           </div>
         </section>
 
         <section className="report-section">
-          <div className="section-heading">
-            <p className="card-label">Practical guide</p>
-            <h2>지금 관계에 써먹는 가이드</h2>
-          </div>
+          <div className="section-heading"><p className="card-label">Practical manual</p><h2>지금 관계에 써먹는 실전 매뉴얼</h2></div>
           <div className="guide-list">
-            {practicalGuides.map((guide, index) => (
-              <div key={`${index}-${guide}`}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <p>{guide}</p>
-              </div>
+            {[
+              narrative.practicalGuide.first,
+              narrative.practicalGuide.second,
+              narrative.practicalGuide.third,
+              `피할 것: ${narrative.practicalGuide.avoid}`,
+              `갈등 시: ${narrative.practicalGuide.conflictAction}`,
+            ].map((guide, index) => (
+              <div key={`${index}-${guide}`}><span>{String(index + 1).padStart(2, "0")}</span><p>{guide}</p></div>
             ))}
           </div>
         </section>
 
+        <section className="report-section">
+          <div className="section-heading"><p className="card-label">Timing</p><h2>관계 타이밍</h2></div>
+          <TextCards cards={[
+            { title: "현재 신호", body: narrative.timing.currentSignal },
+            { title: "정밀 타이밍 한계", body: narrative.timing.limitation },
+          ]} />
+        </section>
+
         <section className="report-method-note">
-          <strong>점수는 어떻게 만들었나요?</strong>
-          <p>만세력과 궁합 점수는 서버의 규칙 엔진이 계산하며 AI가 점수를 바꾸지 않아요. AI는 확정된 점수와 핵심 근거를 사용자용 문장으로 정리하는 역할만 해요. AI가 실패해도 같은 계산값을 사용하는 기본 템플릿으로 자동 전환돼요.</p>
+          <strong>점수와 문장은 어떻게 만들었나요?</strong>
+          <p>만세력과 9개 궁합 점수는 서버의 규칙 엔진이 확정하며 AI가 점수나 순위를 바꾸지 않아요. AI는 개인정보를 제외한 ReportEvidencePack을 바탕으로 개인화된 설명만 작성하고, 실패 시 같은 계산값의 상세 템플릿으로 자동 전환돼요.</p>
           <small>scoring {snapshot.scoringVersion} · engine {snapshot.engineVersion}</small>
         </section>
 
