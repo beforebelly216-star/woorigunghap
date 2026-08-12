@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import type { CompatibilityCalculationSnapshot } from "@/lib/compatibility/engine";
 import type { CompatibilityDimension } from "@/lib/compatibility/types";
+import type { CompatibilityNarrative } from "@/lib/narrative/engine";
 import { loadOrderDraft } from "@/lib/order-storage";
 import type { OneToOneOrderDraft } from "@/lib/orders";
 import { RELATIONSHIP_LABELS, type RelationshipType } from "@/lib/report-input";
@@ -39,34 +40,6 @@ const FLOW_TITLES: Record<RelationshipType, [string, string, string]> = {
   lover: ["관계의 중심축", "서로를 채우는 방식", "갈등 조율 포인트"],
   friend: ["친구 케미", "함께할 때 좋은 점", "주의할 지점"],
   coworker: ["협업 흐름", "업무 시너지", "조율할 지점"],
-};
-
-const PRACTICAL_GUIDES: Record<RelationshipType, [string, string, string]> = {
-  crush: [
-    "상대의 마음을 미리 단정하기보다 실제 대화 반응을 보면서 속도를 조절해요.",
-    "공통 관심사를 중심으로 짧고 편한 접점을 반복해서 만드는 방식이 좋아요.",
-    "점수가 낮은 영역에서는 상대의 표현방식을 내 기준으로 해석하지 않는 게 중요해요.",
-  ],
-  flirting: [
-    "호감 확인을 서두르기보다 서로 편하게 반응하는 대화 패턴을 먼저 만들어 보세요.",
-    "둘 다 부담 없는 활동을 반복하면서 관계의 리듬을 확인하는 게 좋아요.",
-    "엇갈리는 지점은 연락 빈도나 표현 방식처럼 구체적인 행동 기준으로 맞춰 보세요.",
-  ],
-  lover: [
-    "잘 맞는 영역은 당연하게 여기지 말고 서로가 좋아하는 방식으로 자주 확인해 주세요.",
-    "갈등이 생기면 성격을 평가하기보다 어떤 상황에서 반복되는지 먼저 정리하는 게 좋아요.",
-    "생활 리듬과 의사결정 방식은 작은 규칙을 합의해 두면 관계 피로를 줄일 수 있어요.",
-  ],
-  friend: [
-    "점수가 높은 영역과 연결되는 취미나 공동 활동을 자주 활용해 보세요.",
-    "친하다는 이유로 기대치를 생략하지 말고 약속·시간·연락 기준은 필요한 만큼 말해 주세요.",
-    "서로 다른 영역은 설득보다 각자의 방식을 인정하는 편이 관계 유지에 유리해요.",
-  ],
-  coworker: [
-    "업무 시작 전에 역할·마감·결정권을 명확히 나누면 궁합의 장점을 살리기 좋아요.",
-    "서로 잘 맞는 영역에서는 아이디어와 실행 역할을 적극적으로 연결해 보세요.",
-    "마찰 가능성이 있는 영역은 구두 합의보다 기준과 진행상황을 문서로 맞추는 게 안전해요.",
-  ],
 };
 
 const DEMO_ORDER: OneToOneOrderDraft = {
@@ -110,14 +83,6 @@ function gradeFor(score: number) {
   return "F";
 }
 
-function summaryFor(score: number) {
-  if (score >= 85) return "서로의 강점을 자연스럽게 살리기 좋은 조합이에요.";
-  if (score >= 75) return "전반적인 호흡이 좋은 편이고, 몇 가지 차이만 조율하면 좋아요.";
-  if (score >= 65) return "잘 맞는 지점과 조율할 지점이 함께 있는 균형형 궁합이에요.";
-  if (score >= 55) return "차이가 분명하지만 서로의 방식을 이해하면 관계의 여지가 있어요.";
-  return "마찰 가능성이 비교적 커서 관계의 규칙과 거리 조절이 중요해요.";
-}
-
 function confidenceLabel(value: CompatibilityCalculationSnapshot["confidence"]) {
   return value === "high" ? "높음" : value === "medium" ? "보통" : "낮음";
 }
@@ -139,6 +104,7 @@ function ResultContent() {
   const isDemo = params.get("demo") === "1";
   const [order, setOrder] = useState<OneToOneOrderDraft | null>(null);
   const [snapshot, setSnapshot] = useState<CompatibilityCalculationSnapshot | null>(null);
+  const [narrative, setNarrative] = useState<CompatibilityNarrative | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "missing" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -170,13 +136,15 @@ function ResultContent() {
         .then(async (response) => {
           const payload = await response.json() as {
             snapshot?: CompatibilityCalculationSnapshot;
+            narrative?: CompatibilityNarrative;
             error?: string;
           };
-          if (!response.ok || !payload.snapshot) {
+          if (!response.ok || !payload.snapshot || !payload.narrative) {
             throw new Error(payload.error ?? "궁합 결과를 계산하지 못했어요.");
           }
           if (cancelled) return;
           setSnapshot(payload.snapshot);
+          setNarrative(payload.narrative);
           setStatus("ready");
         })
         .catch((error: unknown) => {
@@ -204,14 +172,14 @@ function ResultContent() {
   }
 
   if (status === "loading") {
-    return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>궁합을 계산하고 있어요.</h1><p>결제 상태를 확인한 뒤 두 사람의 명식을 비교하고 있어요.</p></div>;
+    return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>궁합을 계산하고 있어요.</h1><p>결제 상태를 확인한 뒤 두 사람의 명식을 비교하고 리포트를 정리하고 있어요.</p></div>;
   }
 
   if (!order) {
     return <MissingOrderState />;
   }
 
-  if (status === "error" || !snapshot) {
+  if (status === "error" || !snapshot || !narrative) {
     return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>결과를 열 수 없어요.</h1><p>{errorMessage ?? "결제 상태와 입력 정보를 다시 확인해 주세요."}</p><Link href="/one-to-one" className="primary-link">입력 화면으로 돌아가기</Link></div>;
   }
 
@@ -219,31 +187,26 @@ function ResultContent() {
   const hasUnknownTime = !personA.birthTimeKnown || !personB.birthTimeKnown;
   const grade = gradeFor(snapshot.score);
   const flowTitles = FLOW_TITLES[relationshipType];
-  const bestDimension = snapshot.strengths[0];
-  const secondDimension = snapshot.strengths[1] ?? bestDimension;
-  const lowestDimension = snapshot.adjustmentPoints[0];
   const flowCards = [
-    {
-      title: flowTitles[0],
-      body: `${DIMENSION_LABELS[bestDimension]} ${Math.round(snapshot.dimensions[bestDimension].normalizedScore)}점이 현재 두 사람의 가장 강한 축이에요. ${DIMENSION_COPY[bestDimension]}`,
-    },
-    {
-      title: flowTitles[1],
-      body: `${DIMENSION_LABELS[secondDimension]} ${Math.round(snapshot.dimensions[secondDimension].normalizedScore)}점도 강점으로 잡혀요. 잘 맞는 방식을 실제 관계에서 반복할수록 장점을 쓰기 쉬워요.`,
-    },
-    {
-      title: flowTitles[2],
-      body: `${DIMENSION_LABELS[lowestDimension]} ${Math.round(snapshot.dimensions[lowestDimension].normalizedScore)}점은 상대적으로 조율이 필요한 영역이에요. 낮은 점수는 관계 실패를 뜻하지 않고, 차이가 반복될 가능성을 먼저 확인하라는 신호로 봐요.`,
-    },
+    { title: flowTitles[0], body: narrative.flow.primary },
+    { title: flowTitles[1], body: narrative.flow.secondary },
+    { title: flowTitles[2], body: narrative.flow.caution },
+  ];
+  const strengthCopies = [narrative.strengths.first, narrative.strengths.second];
+  const adjustmentCopies = [narrative.adjustments.first, narrative.adjustments.second];
+  const practicalGuides = [
+    narrative.practicalGuide.first,
+    narrative.practicalGuide.second,
+    narrative.practicalGuide.third,
   ];
 
   return (
     <main className="report-page">
       <div className="report-shell">
         <header className="report-hero">
-          <p className="eyebrow">{isDemo ? "Day 7 샘플 · " : ""}{RELATIONSHIP_LABELS[relationshipType]} 궁합 리포트</p>
+          <p className="eyebrow">{isDemo ? "샘플 · " : ""}{RELATIONSHIP_LABELS[relationshipType]} 궁합 리포트</p>
           <h1>{personA.displayName} <span>×</span> {personB.displayName}</h1>
-          <p className="report-summary">{summaryFor(snapshot.score)}</p>
+          <p className="report-summary"><strong>{narrative.headline}</strong><br />{narrative.summary}</p>
 
           <div className="score-hero-card">
             <div>
@@ -292,7 +255,7 @@ function ResultContent() {
           <div className="section-heading">
             <p className="card-label">Relationship flow</p>
             <h2>{RELATIONSHIP_LABELS[relationshipType]} 관계의 흐름</h2>
-            <p>현재는 계산점수에 직접 연결된 간단한 템플릿이에요. 관계유형별 상세 문구는 Day 10에서 더 깊게 나눠요.</p>
+            <p>서버가 확정한 계산값을 바꾸지 않고, 계산 근거를 읽기 쉬운 문장으로 정리한 영역이에요.</p>
           </div>
           <div className="flow-grid">
             {flowCards.map((card) => (
@@ -309,10 +272,10 @@ function ResultContent() {
             <p className="card-label">Strength</p>
             <h2>두 사람의 강점</h2>
             <div className="insight-list">
-              {snapshot.strengths.map((dimension) => (
+              {snapshot.strengths.map((dimension, index) => (
                 <div key={dimension}>
                   <strong>{DIMENSION_LABELS[dimension]}</strong>
-                  <span>{DIMENSION_COPY[dimension]}</span>
+                  <span>{strengthCopies[index] ?? DIMENSION_COPY[dimension]}</span>
                 </div>
               ))}
             </div>
@@ -321,10 +284,10 @@ function ResultContent() {
             <p className="card-label">Adjustment</p>
             <h2>조율하면 좋은 지점</h2>
             <div className="insight-list">
-              {snapshot.adjustmentPoints.map((dimension) => (
+              {snapshot.adjustmentPoints.map((dimension, index) => (
                 <div key={dimension}>
                   <strong>{DIMENSION_LABELS[dimension]}</strong>
-                  <span>이 영역은 서로의 차이를 의식하고 대화의 규칙을 만들수록 관계가 편해져요.</span>
+                  <span>{adjustmentCopies[index] ?? "서로의 차이를 의식하고 구체적인 기대치를 맞춰 보세요."}</span>
                 </div>
               ))}
             </div>
@@ -337,8 +300,8 @@ function ResultContent() {
             <h2>지금 관계에 써먹는 가이드</h2>
           </div>
           <div className="guide-list">
-            {PRACTICAL_GUIDES[relationshipType].map((guide, index) => (
-              <div key={guide}>
+            {practicalGuides.map((guide, index) => (
+              <div key={`${index}-${guide}`}>
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 <p>{guide}</p>
               </div>
@@ -348,7 +311,7 @@ function ResultContent() {
 
         <section className="report-method-note">
           <strong>점수는 어떻게 만들었나요?</strong>
-          <p>만세력과 궁합 점수는 서버의 규칙 엔진이 계산하며 AI가 점수를 바꾸지 않아요. 이 점수는 관계의 성공확률이 아니라 사주 원국 규칙에 따른 참고용 관계 적합도예요.</p>
+          <p>만세력과 궁합 점수는 서버의 규칙 엔진이 계산하며 AI가 점수를 바꾸지 않아요. AI는 확정된 점수와 핵심 근거를 사용자용 문장으로 정리하는 역할만 해요. AI가 실패해도 같은 계산값을 사용하는 기본 템플릿으로 자동 전환돼요.</p>
           <small>scoring {snapshot.scoringVersion} · engine {snapshot.engineVersion}</small>
         </section>
 
