@@ -45,6 +45,8 @@ jobs:
         run: npm run test:compatibility:useful-god-prep
       - name: Run Day 6 strength shadow calibration
         run: npm run test:compatibility:strength-shadow
+      - name: Run Day 6 full compatibility engine validation
+        run: npm run test:compatibility:engine
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi
