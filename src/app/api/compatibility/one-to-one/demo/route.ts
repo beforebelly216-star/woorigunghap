@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
+import { generateCompatibilityNarrative } from "@/lib/narrative/engine";
 import type { OneToOneReportInput } from "@/lib/report-input";
 
 export const runtime = "nodejs";
@@ -27,8 +28,13 @@ const DEMO_INPUT: OneToOneReportInput = {
 };
 
 export async function GET() {
+  const snapshot = calculateOneToOneCompatibility(DEMO_INPUT);
+  const narrative = await generateCompatibilityNarrative(snapshot, { modeOverride: "template" });
+
   return NextResponse.json({
-    snapshot: calculateOneToOneCompatibility(DEMO_INPUT),
+    snapshot,
+    narrative: narrative.narrative,
+    narrativeMeta: narrative.meta,
     demo: true,
   });
 }
