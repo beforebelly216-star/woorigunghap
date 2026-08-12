@@ -9,6 +9,7 @@ on:
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
       - "scripts/day8-*.ts"
+      - "scripts/day9-*.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/manse-validation.yml"
@@ -18,6 +19,7 @@ on:
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
       - "scripts/day8-*.ts"
+      - "scripts/day9-*.ts"
       - "package.json"
       - "package-lock.json"
 
@@ -51,6 +53,8 @@ jobs:
         run: npm run test:compatibility:engine
       - name: Run Day 8 payment gate regression checks
         run: npm run test:day8:payment-gate
+      - name: Run Day 9 narrative privacy and fallback checks
+        run: npm run test:day9:narrative-boundary
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi
