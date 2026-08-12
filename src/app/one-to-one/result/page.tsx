@@ -55,6 +55,17 @@ function confidenceLabel(value: CompatibilityCalculationSnapshot["confidence"]) 
   return value === "high" ? "높음" : value === "medium" ? "보통" : "낮음";
 }
 
+function MissingOrderState() {
+  return (
+    <div className="report-state">
+      <p className="eyebrow">우리궁합</p>
+      <h1>주문 정보를 찾지 못했어요.</h1>
+      <p>같은 브라우저 탭에서 입력 화면부터 다시 시작해 주세요.</p>
+      <Link href="/one-to-one" className="primary-link">1:1 궁합 다시 입력하기</Link>
+    </div>
+  );
+}
+
 function ResultContent() {
   const params = useSearchParams();
   const paymentId = params.get("paymentId");
@@ -64,38 +75,45 @@ function ResultContent() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!paymentId) {
-      setStatus("missing");
-      return;
-    }
+    if (!paymentId) return;
 
-    const draft = loadOrderDraft(paymentId);
-    if (!draft) {
-      setStatus("missing");
-      return;
-    }
-    setOrder(draft);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      const draft = loadOrderDraft(paymentId);
+      if (!draft) {
+        setStatus("missing");
+        return;
+      }
+      setOrder(draft);
 
-    void fetch("/api/compatibility/one-to-one", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(draft.inputSnapshot),
-    })
-      .then(async (response) => {
-        const payload = await response.json() as {
-          snapshot?: CompatibilityCalculationSnapshot;
-          error?: string;
-        };
-        if (!response.ok || !payload.snapshot) {
-          throw new Error(payload.error ?? "궁합 결과를 계산하지 못했어요.");
-        }
-        setSnapshot(payload.snapshot);
-        setStatus("ready");
+      void fetch("/api/compatibility/one-to-one", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(draft.inputSnapshot),
       })
-      .catch((error: unknown) => {
-        setErrorMessage(error instanceof Error ? error.message : "궁합 결과를 계산하지 못했어요.");
-        setStatus("error");
-      });
+        .then(async (response) => {
+          const payload = await response.json() as {
+            snapshot?: CompatibilityCalculationSnapshot;
+            error?: string;
+          };
+          if (!response.ok || !payload.snapshot) {
+            throw new Error(payload.error ?? "궁합 결과를 계산하지 못했어요.");
+          }
+          if (cancelled) return;
+          setSnapshot(payload.snapshot);
+          setStatus("ready");
+        })
+        .catch((error: unknown) => {
+          if (cancelled) return;
+          setErrorMessage(error instanceof Error ? error.message : "궁합 결과를 계산하지 못했어요.");
+          setStatus("error");
+        });
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [paymentId]);
 
   const visibleDimensions = useMemo(() => {
@@ -106,12 +124,16 @@ function ResultContent() {
     ]>).filter(([, value]) => value.maxPoints > 0);
   }, [snapshot]);
 
+  if (!paymentId || status === "missing") {
+    return <MissingOrderState />;
+  }
+
   if (status === "loading") {
     return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>궁합을 계산하고 있어요.</h1><p>두 사람의 명식을 비교해 9개 항목을 정리하는 중이에요.</p></div>;
   }
 
-  if (status === "missing" || !order) {
-    return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>주문 정보를 찾지 못했어요.</h1><p>같은 브라우저 탭에서 입력 화면부터 다시 시작해 주세요.</p><Link href="/one-to-one" className="primary-link">1:1 궁합 다시 입력하기</Link></div>;
+  if (!order) {
+    return <MissingOrderState />;
   }
 
   if (status === "error" || !snapshot) {
