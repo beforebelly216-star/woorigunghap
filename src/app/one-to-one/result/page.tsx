@@ -7,7 +7,7 @@ import type { CompatibilityCalculationSnapshot } from "@/lib/compatibility/engin
 import type { CompatibilityDimension } from "@/lib/compatibility/types";
 import { loadOrderDraft } from "@/lib/order-storage";
 import type { OneToOneOrderDraft } from "@/lib/orders";
-import { RELATIONSHIP_LABELS } from "@/lib/report-input";
+import { RELATIONSHIP_LABELS, type RelationshipType } from "@/lib/report-input";
 
 const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
   dayMaster: "일간 상성",
@@ -31,6 +31,73 @@ const DIMENSION_COPY: Record<CompatibilityDimension, string> = {
   specialStars: "MVP에서는 천을귀인 신호를 보수적으로 반영해요.",
   spouseStarRealization: "연애 관계에서 서로의 관계 역할 기운이 얼마나 맞물리는지 봐요.",
   luckCycleAlignment: "대운 계산은 후속 버전에서 정밀화하며 현재는 중립값을 사용해요.",
+};
+
+const FLOW_TITLES: Record<RelationshipType, [string, string, string]> = {
+  crush: ["끌림 포인트", "다가가는 흐름", "주의할 지점"],
+  flirting: ["썸의 흐름", "거리 좁히는 포인트", "주의할 지점"],
+  lover: ["관계의 중심축", "서로를 채우는 방식", "갈등 조율 포인트"],
+  friend: ["친구 케미", "함께할 때 좋은 점", "주의할 지점"],
+  coworker: ["협업 흐름", "업무 시너지", "조율할 지점"],
+};
+
+const PRACTICAL_GUIDES: Record<RelationshipType, [string, string, string]> = {
+  crush: [
+    "상대의 마음을 미리 단정하기보다 실제 대화 반응을 보면서 속도를 조절해요.",
+    "공통 관심사를 중심으로 짧고 편한 접점을 반복해서 만드는 방식이 좋아요.",
+    "점수가 낮은 영역에서는 상대의 표현방식을 내 기준으로 해석하지 않는 게 중요해요.",
+  ],
+  flirting: [
+    "호감 확인을 서두르기보다 서로 편하게 반응하는 대화 패턴을 먼저 만들어 보세요.",
+    "둘 다 부담 없는 활동을 반복하면서 관계의 리듬을 확인하는 게 좋아요.",
+    "엇갈리는 지점은 연락 빈도나 표현 방식처럼 구체적인 행동 기준으로 맞춰 보세요.",
+  ],
+  lover: [
+    "잘 맞는 영역은 당연하게 여기지 말고 서로가 좋아하는 방식으로 자주 확인해 주세요.",
+    "갈등이 생기면 성격을 평가하기보다 어떤 상황에서 반복되는지 먼저 정리하는 게 좋아요.",
+    "생활 리듬과 의사결정 방식은 작은 규칙을 합의해 두면 관계 피로를 줄일 수 있어요.",
+  ],
+  friend: [
+    "점수가 높은 영역과 연결되는 취미나 공동 활동을 자주 활용해 보세요.",
+    "친하다는 이유로 기대치를 생략하지 말고 약속·시간·연락 기준은 필요한 만큼 말해 주세요.",
+    "서로 다른 영역은 설득보다 각자의 방식을 인정하는 편이 관계 유지에 유리해요.",
+  ],
+  coworker: [
+    "업무 시작 전에 역할·마감·결정권을 명확히 나누면 궁합의 장점을 살리기 좋아요.",
+    "서로 잘 맞는 영역에서는 아이디어와 실행 역할을 적극적으로 연결해 보세요.",
+    "마찰 가능성이 있는 영역은 구두 합의보다 기준과 진행상황을 문서로 맞추는 게 안전해요.",
+  ],
+};
+
+const DEMO_ORDER: OneToOneOrderDraft = {
+  version: "order-draft-v1",
+  orderId: "day7-demo-order",
+  paymentId: "day7-demo-payment",
+  product: "oneToOne",
+  amount: 1000,
+  status: "draft",
+  createdAt: "2026-08-12T00:00:00.000Z",
+  inputSnapshot: {
+    relationshipType: "lover",
+    personA: {
+      displayName: "나",
+      gender: "male",
+      calendarType: "solar",
+      birthDate: "1990-05-15",
+      birthTimeKnown: true,
+      birthTime: "14:30",
+      isLeapMonth: false,
+    },
+    personB: {
+      displayName: "상대",
+      gender: "female",
+      calendarType: "solar",
+      birthDate: "1992-10-24",
+      birthTimeKnown: true,
+      birthTime: "05:30",
+      isLeapMonth: false,
+    },
+  },
 };
 
 function gradeFor(score: number) {
@@ -69,18 +136,19 @@ function MissingOrderState() {
 function ResultContent() {
   const params = useSearchParams();
   const paymentId = params.get("paymentId");
+  const isDemo = params.get("demo") === "1";
   const [order, setOrder] = useState<OneToOneOrderDraft | null>(null);
   const [snapshot, setSnapshot] = useState<CompatibilityCalculationSnapshot | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "missing" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!paymentId) return;
+    if (!isDemo && !paymentId) return;
 
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
-      const draft = loadOrderDraft(paymentId);
+      const draft = isDemo ? DEMO_ORDER : loadOrderDraft(paymentId!);
       if (!draft) {
         setStatus("missing");
         return;
@@ -114,7 +182,7 @@ function ResultContent() {
     return () => {
       cancelled = true;
     };
-  }, [paymentId]);
+  }, [isDemo, paymentId]);
 
   const visibleDimensions = useMemo(() => {
     if (!snapshot) return [];
@@ -124,7 +192,7 @@ function ResultContent() {
     ]>).filter(([, value]) => value.maxPoints > 0);
   }, [snapshot]);
 
-  if (!paymentId || status === "missing") {
+  if ((!isDemo && !paymentId) || status === "missing") {
     return <MissingOrderState />;
   }
 
@@ -137,18 +205,36 @@ function ResultContent() {
   }
 
   if (status === "error" || !snapshot) {
-    return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>결과 계산에 실패했어요.</h1><p>{errorMessage ?? "잠시 후 다시 시도해 주세요."}</p><Link href={`/one-to-one/checkout?paymentId=${encodeURIComponent(order.paymentId)}`} className="primary-link">주문 확인으로 돌아가기</Link></div>;
+    return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>결과 계산에 실패했어요.</h1><p>{errorMessage ?? "잠시 후 다시 시도해 주세요."}</p><Link href="/one-to-one" className="primary-link">입력 화면으로 돌아가기</Link></div>;
   }
 
   const { personA, personB, relationshipType } = order.inputSnapshot;
   const hasUnknownTime = !personA.birthTimeKnown || !personB.birthTimeKnown;
   const grade = gradeFor(snapshot.score);
+  const flowTitles = FLOW_TITLES[relationshipType];
+  const bestDimension = snapshot.strengths[0];
+  const secondDimension = snapshot.strengths[1] ?? bestDimension;
+  const lowestDimension = snapshot.adjustmentPoints[0];
+  const flowCards = [
+    {
+      title: flowTitles[0],
+      body: `${DIMENSION_LABELS[bestDimension]} ${Math.round(snapshot.dimensions[bestDimension].normalizedScore)}점이 현재 두 사람의 가장 강한 축이에요. ${DIMENSION_COPY[bestDimension]}`,
+    },
+    {
+      title: flowTitles[1],
+      body: `${DIMENSION_LABELS[secondDimension]} ${Math.round(snapshot.dimensions[secondDimension].normalizedScore)}점도 강점으로 잡혀요. 잘 맞는 방식을 실제 관계에서 반복할수록 장점을 쓰기 쉬워요.`,
+    },
+    {
+      title: flowTitles[2],
+      body: `${DIMENSION_LABELS[lowestDimension]} ${Math.round(snapshot.dimensions[lowestDimension].normalizedScore)}점은 상대적으로 조율이 필요한 영역이에요. 낮은 점수는 관계 실패를 뜻하지 않고, 차이가 반복될 가능성을 먼저 확인하라는 신호로 봐요.`,
+    },
+  ];
 
   return (
     <main className="report-page">
       <div className="report-shell">
         <header className="report-hero">
-          <p className="eyebrow">{RELATIONSHIP_LABELS[relationshipType]} 궁합 리포트</p>
+          <p className="eyebrow">{isDemo ? "Day 7 샘플 · " : ""}{RELATIONSHIP_LABELS[relationshipType]} 궁합 리포트</p>
           <h1>{personA.displayName} <span>×</span> {personB.displayName}</h1>
           <p className="report-summary">{summaryFor(snapshot.score)}</p>
 
@@ -195,6 +281,22 @@ function ResultContent() {
           </div>
         </section>
 
+        <section className="report-section">
+          <div className="section-heading">
+            <p className="card-label">Relationship flow</p>
+            <h2>{RELATIONSHIP_LABELS[relationshipType]} 관계의 흐름</h2>
+            <p>현재는 계산점수에 직접 연결된 간단한 템플릿이에요. 관계유형별 상세 문구는 Day 10에서 더 깊게 나눠요.</p>
+          </div>
+          <div className="flow-grid">
+            {flowCards.map((card) => (
+              <article className="flow-card" key={card.title}>
+                <strong>{card.title}</strong>
+                <p>{card.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="report-section insight-section">
           <div className="insight-card strength-card">
             <p className="card-label">Strength</p>
@@ -219,6 +321,21 @@ function ResultContent() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="report-section">
+          <div className="section-heading">
+            <p className="card-label">Practical guide</p>
+            <h2>지금 관계에 써먹는 가이드</h2>
+          </div>
+          <div className="guide-list">
+            {PRACTICAL_GUIDES[relationshipType].map((guide, index) => (
+              <div key={guide}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <p>{guide}</p>
+              </div>
+            ))}
           </div>
         </section>
 
