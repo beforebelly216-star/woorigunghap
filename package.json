@@ -15,7 +15,8 @@
     "test:compatibility:useful-god-prep": "tsx scripts/compatibility-useful-god-evidence-test.ts",
     "test:compatibility:strength-shadow": "tsx scripts/compatibility-strength-shadow-test.ts",
     "test:compatibility:engine": "tsx scripts/compatibility-engine-test.ts",
-    "test:day8:payment-gate": "tsx scripts/day8-payment-gate-test.ts"
+    "test:day8:payment-gate": "tsx scripts/day8-payment-gate-test.ts",
+    "test:day9:narrative-boundary": "tsx scripts/day9-narrative-boundary-test.ts"
   },
   "dependencies": {
     "@portone/browser-sdk": "^0.1.9",
