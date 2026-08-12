@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 type State = "checking" | "success" | "failed" | "cancelled";
 
 function PaymentResult() {
   const params = useSearchParams();
+  const router = useRouter();
   const paymentId = params.get("paymentId");
   const code = params.get("code");
   const [state, setState] = useState<State>(code ? "cancelled" : "checking");
@@ -15,18 +16,34 @@ function PaymentResult() {
   useEffect(() => {
     if (!paymentId || code) return;
 
+    let cancelled = false;
     void fetch("/api/payments/verify", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ paymentId }),
     })
-      .then((response) => setState(response.ok ? "success" : "failed"))
-      .catch(() => setState("failed"));
-  }, [code, paymentId]);
+      .then(async (response) => {
+        if (cancelled) return;
+        if (!response.ok) {
+          setState("failed");
+          return;
+        }
+
+        setState("success");
+        router.replace(`/one-to-one/result?paymentId=${encodeURIComponent(paymentId)}`);
+      })
+      .catch(() => {
+        if (!cancelled) setState("failed");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [code, paymentId, router]);
 
   const copy = {
-    checking: ["결제를 확인하고 있어요", "잠시만 기다려 주세요."],
-    success: ["결제가 확인됐어요", "두 사람의 궁합 결과를 확인할 수 있어요."],
+    checking: ["결제를 확인하고 있어요", "확인되면 궁합 결과로 바로 이동해요."],
+    success: ["결제가 확인됐어요", "궁합 결과를 여는 중이에요."],
     failed: ["결제 확인에 실패했어요", "결제 상태와 금액을 다시 확인해 주세요."],
     cancelled: [
       "결제가 완료되지 않았어요",
@@ -44,7 +61,7 @@ function PaymentResult() {
           href={`/one-to-one/result?paymentId=${encodeURIComponent(paymentId)}`}
           className="primary-link"
         >
-          궁합 결과 보기
+          바로 결과 보기
         </Link>
       ) : (
         <Link href="/" className="back-link">
