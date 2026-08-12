@@ -24,7 +24,7 @@ import {
   getCompatibilityDimensionWeight,
 } from "./weights";
 
-export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.2.1";
+export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.2.2";
 
 const DIMENSIONS: CompatibilityDimension[] = [
   "dayMaster",
@@ -38,7 +38,6 @@ const DIMENSIONS: CompatibilityDimension[] = [
   "luckCycleAlignment",
 ];
 
-// 子~亥 12개 시지의 대표 시각. 절입 경계일은 00:01/23:59 상태를 추가한다.
 const UNKNOWN_TIME_SCENARIOS = [
   "00:30", "02:30", "04:30", "06:30", "08:30", "10:30",
   "12:30", "14:30", "16:30", "18:30", "20:30", "22:30",
@@ -50,11 +49,17 @@ type DimensionResult = {
   maxPoints: number;
   evidence: unknown;
 };
+
 type ScenarioResult = {
   labelA: string;
   labelB: string;
   dimensions: Record<CompatibilityDimension, DimensionResult>;
   rawTotal: number;
+};
+
+type BirthScenario = {
+  label: string;
+  input: PersonBirthInput;
 };
 
 export type CompatibilityCalculationSnapshot = {
@@ -79,6 +84,8 @@ export type CompatibilityCalculationSnapshot = {
   score: number;
   uncertaintyRange: { min: number; max: number; width: number };
   confidence: "high" | "medium" | "low";
+  strengths: CompatibilityDimension[];
+  adjustmentPoints: CompatibilityDimension[];
   representativeEvidence: Record<CompatibilityDimension, unknown>;
   aiBoundary: { scoreMutableByAi: false; rankingMutableByAi: false };
 };
@@ -86,18 +93,22 @@ export type CompatibilityCalculationSnapshot = {
 function round1(value: number) {
   return Math.round(value * 10) / 10;
 }
+
 function round4(value: number) {
   return Math.round(value * 10_000) / 10_000;
 }
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
+
 function median(values: number[]) {
   if (!values.length) throw new RangeError("중앙값을 계산할 값이 없습니다.");
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
+
 function pillarBoundaryKey(person: PersonBirthInput) {
   const snapshot = calculateManseSnapshot(person);
   return `${snapshot.pillars.year?.korean ?? "null"}|${snapshot.pillars.month?.korean ?? "null"}`;
@@ -105,21 +116,26 @@ function pillarBoundaryKey(person: PersonBirthInput) {
 
 function expandPersonScenarios(person: PersonBirthInput) {
   if (person.birthTimeKnown) {
-    return { boundaryStatesAdded: false, scenarios: [{ label: person.birthTime ?? "known", input: person }] };
+    return {
+      boundaryStatesAdded: false,
+      scenarios: [{ label: person.birthTime ?? "known", input: person }] as BirthScenario[],
+    };
   }
 
-  const scenarios = UNKNOWN_TIME_SCENARIOS.map((time) => ({
+  const scenarios: BirthScenario[] = UNKNOWN_TIME_SCENARIOS.map((time) => ({
     label: `unknown:${time}`,
-    input: { ...person, birthTimeKnown: true, birthTime: time } satisfies PersonBirthInput,
+    input: { ...person, birthTimeKnown: true, birthTime: time },
   }));
 
-  const start = { ...person, birthTimeKnown: true, birthTime: "00:01" } satisfies PersonBirthInput;
-  const end = { ...person, birthTimeKnown: true, birthTime: "23:59" } satisfies PersonBirthInput;
+  const start: PersonBirthInput = { ...person, birthTimeKnown: true, birthTime: "00:01" };
+  const end: PersonBirthInput = { ...person, birthTimeKnown: true, birthTime: "23:59" };
   const boundaryStatesAdded = pillarBoundaryKey(start) !== pillarBoundaryKey(end);
+
   if (boundaryStatesAdded) {
     scenarios.push({ label: "boundary:00:01", input: start });
     scenarios.push({ label: "boundary:23:59", input: end });
   }
+
   return { boundaryStatesAdded, scenarios };
 }
 
@@ -188,6 +204,7 @@ function scorePreparedPair(
     (sum, dimension) => sum + dimension.weightedPoints,
     0,
   ));
+
   return { labelA, labelB, dimensions, rawTotal };
 }
 
@@ -195,6 +212,30 @@ function confidenceForRange(width: number) {
   if (width <= 3) return "high" as const;
   if (width <= 8) return "medium" as const;
   return "low" as const;
+}
+
+function summarizeDimensions(
+  dimensions: CompatibilityCalculationSnapshot["dimensions"],
+) {
+  const scored = DIMENSIONS
+    .filter((dimension) => dimensions[dimension].maxPoints > 0)
+    .filter((dimension) => dimension !== "luckCycleAlignment")
+    .map((dimension) => ({
+      dimension,
+      score: dimensions[dimension].normalizedScore,
+    }));
+
+  const strengths = [...scored]
+    .sort((a, b) => b.score - a.score || DIMENSIONS.indexOf(a.dimension) - DIMENSIONS.indexOf(b.dimension))
+    .slice(0, 2)
+    .map((item) => item.dimension);
+
+  const adjustmentPoints = [...scored]
+    .sort((a, b) => a.score - b.score || DIMENSIONS.indexOf(a.dimension) - DIMENSIONS.indexOf(b.dimension))
+    .slice(0, 2)
+    .map((item) => item.dimension);
+
+  return { strengths, adjustmentPoints };
 }
 
 export function calculateOneToOneCompatibility(
@@ -243,11 +284,13 @@ export function calculateOneToOneCompatibility(
     representativeEvidence[dimension] = representative.dimensions[dimension].evidence;
   }
 
-  const weightTotal = Object.values(COMPATIBILITY_SCORE_WEIGHTS[profile]).reduce(
-    (sum, value) => sum + value,
-    0,
-  );
-  if (weightTotal !== 100) throw new Error(`${profile} 궁합 배점 합계가 100이 아닙니다: ${weightTotal}`);
+  const weightValues: number[] = Object.values(COMPATIBILITY_SCORE_WEIGHTS[profile]);
+  const weightTotal = weightValues.reduce((sum, value) => sum + value, 0);
+  if (weightTotal !== 100) {
+    throw new Error(`${profile} 궁합 배점 합계가 100이 아닙니다: ${weightTotal}`);
+  }
+
+  const summary = summarizeDimensions(dimensions);
 
   return {
     engineVersion: COMPATIBILITY_ENGINE_VERSION,
@@ -267,6 +310,8 @@ export function calculateOneToOneCompatibility(
     score,
     uncertaintyRange: { min, max, width },
     confidence: confidenceForRange(width),
+    strengths: summary.strengths,
+    adjustmentPoints: summary.adjustmentPoints,
     representativeEvidence,
     aiBoundary: { scoreMutableByAi: false, rankingMutableByAi: false },
   };
