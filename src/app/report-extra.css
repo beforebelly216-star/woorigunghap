@@ -1,0 +1,11 @@
+.flow-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.flow-card { border: 1px solid #dfd8ce; border-radius: 20px; padding: 22px; background: #fffdf9; }
+.flow-card strong { display: block; margin-bottom: 10px; font-size: 1rem; }
+.flow-card p { margin: 0; color: #6f7871; font-size: .9rem; line-height: 1.65; }
+.guide-list { overflow: hidden; border: 1px solid #dfd8ce; border-radius: 22px; background: #fffdf9; }
+.guide-list > div { display: grid; grid-template-columns: 46px 1fr; gap: 16px; align-items: start; padding: 20px 22px; }
+.guide-list > div + div { border-top: 1px solid #ebe5dc; }
+.guide-list span { color: #9a876b; font-family: Georgia, serif; font-size: 1.15rem; }
+.guide-list p { margin: 0; color: #59655d; line-height: 1.65; }
+@media (max-width: 760px) { .flow-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .guide-list > div { grid-template-columns: 36px 1fr; padding: 18px; } }
