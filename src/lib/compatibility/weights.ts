@@ -49,8 +49,9 @@ export function getCompatibilityDimensionWeight(
 }
 
 export function getCompatibilityProfileTotal(profile: CompatibilityProfile) {
-  return Object.values(COMPATIBILITY_SCORE_WEIGHTS[profile]).reduce(
-    (sum, value) => sum + value,
-    0,
-  );
+  let total = 0;
+  for (const value of Object.values(COMPATIBILITY_SCORE_WEIGHTS[profile])) {
+    total += value;
+  }
+  return total;
 }
