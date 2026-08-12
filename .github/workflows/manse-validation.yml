@@ -8,6 +8,7 @@ on:
       - "src/**"
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
+      - "scripts/day8-*.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/manse-validation.yml"
@@ -16,6 +17,7 @@ on:
       - "src/**"
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
+      - "scripts/day8-*.ts"
       - "package.json"
       - "package-lock.json"
 
@@ -47,6 +49,8 @@ jobs:
         run: npm run test:compatibility:strength-shadow
       - name: Run Day 6 full compatibility engine validation
         run: npm run test:compatibility:engine
+      - name: Run Day 8 payment gate regression checks
+        run: npm run test:day8:payment-gate
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi
