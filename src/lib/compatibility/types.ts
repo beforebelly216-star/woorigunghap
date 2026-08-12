@@ -36,3 +36,26 @@ export type DayMasterCompatibilityScore = {
   maxPoints: number;
   weightedPoints: number;
 };
+
+export type DayBranchPrimaryRelation =
+  | "SIX_HARMONY"
+  | "NEUTRAL"
+  | "HARM"
+  | "PUNISHMENT"
+  | "CLASH";
+
+export type DayBranchEvidenceRelation = Exclude<DayBranchPrimaryRelation, "NEUTRAL">;
+
+export type DayBranchCompatibilityScore = {
+  dimension: "dayBranch";
+  branchA: string;
+  branchB: string;
+  canonicalBranchA: string;
+  canonicalBranchB: string;
+  evidenceRelations: DayBranchEvidenceRelation[];
+  primaryRelation: DayBranchPrimaryRelation;
+  normalizedScore: 45 | 55 | 60 | 70 | 90;
+  profile: CompatibilityProfile;
+  maxPoints: number;
+  weightedPoints: number;
+};

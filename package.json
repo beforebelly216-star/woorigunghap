@@ -10,7 +10,8 @@
     "test:manse": "tsx scripts/manse-golden-test.ts",
     "test:manse:boundaries": "tsx scripts/manse-boundary-invariants.ts",
     "test:manse:kasi": "tsx scripts/manse-kasi-crosscheck.ts",
-    "test:compatibility:day-master": "tsx scripts/compatibility-day-master-test.ts"
+    "test:compatibility:day-master": "tsx scripts/compatibility-day-master-test.ts",
+    "test:compatibility:day-branch": "tsx scripts/compatibility-day-branch-test.ts"
   },
   "dependencies": {
     "@portone/browser-sdk": "^0.1.9",

@@ -39,6 +39,8 @@ jobs:
         run: npm run test:manse:boundaries
       - name: Run Day 6 day-master compatibility validation
         run: npm run test:compatibility:day-master
+      - name: Run Day 6 day-branch compatibility validation
+        run: npm run test:compatibility:day-branch
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi
