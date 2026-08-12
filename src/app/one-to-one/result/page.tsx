@@ -155,11 +155,18 @@ function ResultContent() {
       }
       setOrder(draft);
 
-      void fetch("/api/compatibility/one-to-one", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(draft.inputSnapshot),
-      })
+      const request = isDemo
+        ? fetch("/api/compatibility/one-to-one/demo")
+        : fetch("/api/compatibility/one-to-one", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              paymentId: draft.paymentId,
+              input: draft.inputSnapshot,
+            }),
+          });
+
+      void request
         .then(async (response) => {
           const payload = await response.json() as {
             snapshot?: CompatibilityCalculationSnapshot;
@@ -197,7 +204,7 @@ function ResultContent() {
   }
 
   if (status === "loading") {
-    return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>궁합을 계산하고 있어요.</h1><p>두 사람의 명식을 비교해 9개 항목을 정리하는 중이에요.</p></div>;
+    return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>궁합을 계산하고 있어요.</h1><p>결제 상태를 확인한 뒤 두 사람의 명식을 비교하고 있어요.</p></div>;
   }
 
   if (!order) {
@@ -205,7 +212,7 @@ function ResultContent() {
   }
 
   if (status === "error" || !snapshot) {
-    return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>결과 계산에 실패했어요.</h1><p>{errorMessage ?? "잠시 후 다시 시도해 주세요."}</p><Link href="/one-to-one" className="primary-link">입력 화면으로 돌아가기</Link></div>;
+    return <div className="report-state"><p className="eyebrow">우리궁합</p><h1>결과를 열 수 없어요.</h1><p>{errorMessage ?? "결제 상태와 입력 정보를 다시 확인해 주세요."}</p><Link href="/one-to-one" className="primary-link">입력 화면으로 돌아가기</Link></div>;
   }
 
   const { personA, personB, relationshipType } = order.inputSnapshot;
