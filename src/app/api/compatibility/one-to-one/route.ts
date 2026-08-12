@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
-import { generateCompatibilityNarrative } from "@/lib/narrative/engine";
+import { generateCompatibilityNarrative } from "@/lib/narrative/report-engine";
 import {
   PaymentVerificationError,
   verifyPaidPayment,
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
   try {
     const payment = await verifyPaidPayment(paymentId, "oneToOne");
     const snapshot = calculateOneToOneCompatibility(input);
-    const narrative = await generateCompatibilityNarrative(snapshot);
+    const narrative = await generateCompatibilityNarrative(snapshot, input);
 
     return NextResponse.json({
       snapshot,
