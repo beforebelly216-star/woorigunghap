@@ -20,7 +20,6 @@ function person(
 
 const a = person("A", "1990-05-15", "14:30");
 const b = person("B", "1992-10-24", "05:30");
-
 const base: OneToOneReportInput = {
   relationshipType: "lover",
   personA: a,
@@ -37,6 +36,10 @@ assert.equal(first.scenarioPolicy.pairScenarios, 1);
 assert.equal(first.aiBoundary.scoreMutableByAi, false);
 assert.equal(first.aiBoundary.rankingMutableByAi, false);
 assert.equal(first.dimensions.luckCycleAlignment.normalizedScore, 70);
+assert.equal(first.strengths.length, 2);
+assert.equal(first.adjustmentPoints.length, 2);
+assert.ok(!first.strengths.includes("luckCycleAlignment"));
+assert.ok(!first.adjustmentPoints.includes("luckCycleAlignment"));
 
 const weightTotal = Object.values(first.dimensions).reduce(
   (sum, dimension) => sum + dimension.maxPoints,
@@ -62,7 +65,10 @@ assert.equal(oneUnknown.profile, "friend");
 assert.equal(oneUnknown.scenarioPolicy.personAScenarios, 12);
 assert.equal(oneUnknown.scenarioPolicy.personBScenarios, 1);
 assert.equal(oneUnknown.scenarioPolicy.pairScenarios, 12);
+assert.equal(oneUnknown.scenarioPolicy.boundaryStatesAdded, false);
 assert.ok(oneUnknown.uncertaintyRange.min <= oneUnknown.uncertaintyRange.max);
+assert.ok(!oneUnknown.strengths.includes("spouseStarRealization"), "friend의 0점 배우자성은 강점 요약에서 제외해야 합니다.");
+assert.ok(!oneUnknown.adjustmentPoints.includes("spouseStarRealization"), "friend의 0점 배우자성은 조정점 요약에서 제외해야 합니다.");
 
 const unknownB = person("B-unknown", "1992-10-24", null);
 const bothUnknown = calculateOneToOneCompatibility({
@@ -76,7 +82,16 @@ assert.equal(bothUnknown.scenarioPolicy.personBScenarios, 12);
 assert.equal(bothUnknown.scenarioPolicy.pairScenarios, 144);
 assert.ok(bothUnknown.score >= 30 && bothUnknown.score <= 100);
 
-for (const result of [first, oneUnknown, bothUnknown]) {
+const boundaryUnknown = person("boundary", "2024-02-04", null);
+const boundaryResult = calculateOneToOneCompatibility({
+  relationshipType: "lover",
+  personA: boundaryUnknown,
+  personB: b,
+});
+assert.equal(boundaryResult.scenarioPolicy.boundaryStatesAdded, true, "입춘 당일 시간 미상은 경계 상태를 추가해야 합니다.");
+assert.ok(boundaryResult.scenarioPolicy.personAScenarios > 12);
+
+for (const result of [first, oneUnknown, bothUnknown, boundaryResult]) {
   for (const [dimension, score] of Object.entries(result.dimensions)) {
     assert.ok(Number.isFinite(score.normalizedScore), `${dimension} normalizedScore must be finite`);
     assert.ok(score.normalizedScore >= 0 && score.normalizedScore <= 100, `${dimension} normalizedScore out of range`);
@@ -85,5 +100,5 @@ for (const result of [first, oneUnknown, bothUnknown]) {
 }
 
 console.log(
-  `Compatibility engine validation passed: known=${first.score}, oneUnknown=${oneUnknown.score} (${oneUnknown.uncertaintyRange.min}-${oneUnknown.uncertaintyRange.max}), bothUnknown=${bothUnknown.score} (${bothUnknown.uncertaintyRange.min}-${bothUnknown.uncertaintyRange.max})`,
+  `Compatibility engine validation passed: known=${first.score}, oneUnknown=${oneUnknown.score} (${oneUnknown.uncertaintyRange.min}-${oneUnknown.uncertaintyRange.max}), bothUnknown=${bothUnknown.score} (${bothUnknown.uncertaintyRange.min}-${bothUnknown.uncertaintyRange.max}), boundaryScenarios=${boundaryResult.scenarioPolicy.personAScenarios}`,
 );
