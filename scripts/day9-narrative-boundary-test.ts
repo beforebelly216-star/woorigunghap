@@ -40,12 +40,14 @@ async function main() {
   const pack = buildReportEvidencePack(snapshot, input);
   const serialized = JSON.stringify(pack);
 
-  for (const forbidden of [
-    "테스트A", "테스트B", "1990-05-15", "1992-10-24", "14:17", "05:43",
-    "paymentId", "orderId", "birthDate", "birthTime", "sourceDate", "solarDate",
-  ]) {
-    assert(!serialized.includes(forbidden), `ReportEvidencePack 개인정보 경계 실패: ${forbidden}`);
+  for (const forbiddenValue of ["테스트A", "테스트B", "1990-05-15", "1992-10-24", "14:17", "05:43"]) {
+    assert(!serialized.includes(forbiddenValue), `ReportEvidencePack 개인정보 값 노출: ${forbiddenValue}`);
   }
+  for (const forbiddenKey of ["displayName", "paymentId", "orderId", "birthDate", "sourceDate", "solarDate"]) {
+    assert(!serialized.includes(`\"${forbiddenKey}\":`), `ReportEvidencePack 개인정보 키 노출: ${forbiddenKey}`);
+  }
+  assert(!serialized.includes("\"birthTime\":"), "원본 birthTime 키는 AI payload에 포함되면 안 됩니다.");
+  assert(serialized.includes("\"birthTimeKnown\":"), "시간 미상 여부 플래그는 신뢰도 설명을 위해 유지합니다.");
 
   assert(pack.payloadVersion === REPORT_EVIDENCE_PACK_VERSION, "payload version이 다릅니다.");
   assert(pack.persons.A.dayMaster.stem.length > 0, "A 개인 분석용 일간이 필요합니다.");
