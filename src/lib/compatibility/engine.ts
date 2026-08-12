@@ -3,8 +3,9 @@ import {
   type OneToOneReportInput,
   type PersonBirthInput,
 } from "@/lib/report-input";
-import { scoreDayMasterCompatibility } from "./day-master";
+import { calculateManseSnapshot } from "@/lib/manseryeok/engine";
 import { scoreDayBranchCompatibility } from "./day-branch";
+import { scoreDayMasterCompatibility } from "./day-master";
 import {
   prepareCompatibilityPerson,
   scoreEarthlyBranchInteraction,
@@ -23,7 +24,7 @@ import {
   getCompatibilityDimensionWeight,
 } from "./weights";
 
-export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.2.0";
+export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.2.1";
 
 const DIMENSIONS: CompatibilityDimension[] = [
   "dayMaster",
@@ -37,20 +38,10 @@ const DIMENSIONS: CompatibilityDimension[] = [
   "luckCycleAlignment",
 ];
 
-// 각 지지 시각대의 중앙에 가까운 대표 시각. 원본 시주는 저장하지 않고 계산 시나리오에서만 사용한다.
+// 子~亥 12개 시지의 대표 시각. 절입 경계일은 00:01/23:59 상태를 추가한다.
 const UNKNOWN_TIME_SCENARIOS = [
-  "00:30",
-  "02:30",
-  "04:30",
-  "06:30",
-  "08:30",
-  "10:30",
-  "12:30",
-  "14:30",
-  "16:30",
-  "18:30",
-  "20:30",
-  "22:30",
+  "00:30", "02:30", "04:30", "06:30", "08:30", "10:30",
+  "12:30", "14:30", "16:30", "18:30", "20:30", "22:30",
 ] as const;
 
 type DimensionResult = {
@@ -59,7 +50,6 @@ type DimensionResult = {
   maxPoints: number;
   evidence: unknown;
 };
-
 type ScenarioResult = {
   labelA: string;
   labelB: string;
@@ -77,72 +67,71 @@ export type CompatibilityCalculationSnapshot = {
     personBScenarios: number;
     pairScenarios: number;
     unknownTimeRepresentativeHours: readonly string[];
+    boundaryStatesAdded: boolean;
     aggregation: "DIMENSION_MEDIAN";
   };
-  dimensions: Record<
-    CompatibilityDimension,
-    {
-      normalizedScore: number;
-      maxPoints: number;
-      weightedPoints: number;
-    }
-  >;
+  dimensions: Record<CompatibilityDimension, {
+    normalizedScore: number;
+    maxPoints: number;
+    weightedPoints: number;
+  }>;
   rawTotal: number;
   score: number;
-  uncertaintyRange: {
-    min: number;
-    max: number;
-    width: number;
-  };
+  uncertaintyRange: { min: number; max: number; width: number };
   confidence: "high" | "medium" | "low";
   representativeEvidence: Record<CompatibilityDimension, unknown>;
-  aiBoundary: {
-    scoreMutableByAi: false;
-    rankingMutableByAi: false;
-  };
+  aiBoundary: { scoreMutableByAi: false; rankingMutableByAi: false };
 };
-
-function round4(value: number) {
-  return Math.round(value * 10_000) / 10_000;
-}
 
 function round1(value: number) {
   return Math.round(value * 10) / 10;
 }
-
+function round4(value: number) {
+  return Math.round(value * 10_000) / 10_000;
+}
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
-
 function median(values: number[]) {
-  if (values.length === 0) throw new RangeError("중앙값을 계산할 값이 없습니다.");
+  if (!values.length) throw new RangeError("중앙값을 계산할 값이 없습니다.");
   const sorted = [...values].sort((a, b) => a - b);
-  const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 1
-    ? sorted[middle]
-    : (sorted[middle - 1] + sorted[middle]) / 2;
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+function pillarBoundaryKey(person: PersonBirthInput) {
+  const snapshot = calculateManseSnapshot(person);
+  return `${snapshot.pillars.year?.korean ?? "null"}|${snapshot.pillars.month?.korean ?? "null"}`;
 }
 
 function expandPersonScenarios(person: PersonBirthInput) {
   if (person.birthTimeKnown) {
-    return [{ label: person.birthTime ?? "known", input: person }];
+    return { boundaryStatesAdded: false, scenarios: [{ label: person.birthTime ?? "known", input: person }] };
   }
 
-  return UNKNOWN_TIME_SCENARIOS.map((time) => ({
+  const scenarios = UNKNOWN_TIME_SCENARIOS.map((time) => ({
     label: `unknown:${time}`,
-    input: {
-      ...person,
-      birthTimeKnown: true,
-      birthTime: time,
-    } satisfies PersonBirthInput,
+    input: { ...person, birthTimeKnown: true, birthTime: time } satisfies PersonBirthInput,
   }));
+
+  const start = { ...person, birthTimeKnown: true, birthTime: "00:01" } satisfies PersonBirthInput;
+  const end = { ...person, birthTimeKnown: true, birthTime: "23:59" } satisfies PersonBirthInput;
+  const boundaryStatesAdded = pillarBoundaryKey(start) !== pillarBoundaryKey(end);
+  if (boundaryStatesAdded) {
+    scenarios.push({ label: "boundary:00:01", input: start });
+    scenarios.push({ label: "boundary:23:59", input: end });
+  }
+  return { boundaryStatesAdded, scenarios };
 }
 
 function prepareScenarios(person: PersonBirthInput) {
-  return expandPersonScenarios(person).map((scenario) => ({
-    ...scenario,
-    prepared: prepareCompatibilityPerson(scenario.input),
-  }));
+  const expanded = expandPersonScenarios(person);
+  return {
+    boundaryStatesAdded: expanded.boundaryStatesAdded,
+    scenarios: expanded.scenarios.map((scenario) => ({
+      ...scenario,
+      prepared: prepareCompatibilityPerson(scenario.input),
+    })),
+  };
 }
 
 function scorePreparedPair(
@@ -162,13 +151,15 @@ function scorePreparedPair(
     b.snapshot.pillars.day.earthlyBranch,
     profile,
   );
-  const usefulGodFit = scoreUsefulGodFit(a, b, profile);
-  const elementComplementarity = scoreElementComplementarity(a, b, profile);
-  const heavenlyStemInteraction = scoreHeavenlyStemInteraction(a, b, profile);
-  const earthlyBranchInteraction = scoreEarthlyBranchInteraction(a, b, profile);
-  const specialStars = scoreSpecialStars(a, b, profile);
-  const spouseStarRealization = scoreSpouseStarRealization(a, b, profile);
-  const luckCycleAlignment = scoreLuckCycleAlignment(profile);
+  const rest = {
+    usefulGodFit: scoreUsefulGodFit(a, b, profile),
+    elementComplementarity: scoreElementComplementarity(a, b, profile),
+    heavenlyStemInteraction: scoreHeavenlyStemInteraction(a, b, profile),
+    earthlyBranchInteraction: scoreEarthlyBranchInteraction(a, b, profile),
+    specialStars: scoreSpecialStars(a, b, profile),
+    spouseStarRealization: scoreSpouseStarRealization(a, b, profile),
+    luckCycleAlignment: scoreLuckCycleAlignment(profile),
+  };
 
   const dimensions: Record<CompatibilityDimension, DimensionResult> = {
     dayMaster: {
@@ -183,54 +174,20 @@ function scorePreparedPair(
       maxPoints: dayBranch.maxPoints,
       evidence: dayBranch,
     },
-    usefulGodFit: {
-      normalizedScore: usefulGodFit.normalizedScore,
-      weightedPoints: usefulGodFit.weightedPoints,
-      maxPoints: usefulGodFit.maxPoints,
-      evidence: usefulGodFit.evidence,
-    },
-    elementComplementarity: {
-      normalizedScore: elementComplementarity.normalizedScore,
-      weightedPoints: elementComplementarity.weightedPoints,
-      maxPoints: elementComplementarity.maxPoints,
-      evidence: elementComplementarity.evidence,
-    },
-    heavenlyStemInteraction: {
-      normalizedScore: heavenlyStemInteraction.normalizedScore,
-      weightedPoints: heavenlyStemInteraction.weightedPoints,
-      maxPoints: heavenlyStemInteraction.maxPoints,
-      evidence: heavenlyStemInteraction.evidence,
-    },
-    earthlyBranchInteraction: {
-      normalizedScore: earthlyBranchInteraction.normalizedScore,
-      weightedPoints: earthlyBranchInteraction.weightedPoints,
-      maxPoints: earthlyBranchInteraction.maxPoints,
-      evidence: earthlyBranchInteraction.evidence,
-    },
-    specialStars: {
-      normalizedScore: specialStars.normalizedScore,
-      weightedPoints: specialStars.weightedPoints,
-      maxPoints: specialStars.maxPoints,
-      evidence: specialStars.evidence,
-    },
-    spouseStarRealization: {
-      normalizedScore: spouseStarRealization.normalizedScore,
-      weightedPoints: spouseStarRealization.weightedPoints,
-      maxPoints: spouseStarRealization.maxPoints,
-      evidence: spouseStarRealization.evidence,
-    },
-    luckCycleAlignment: {
-      normalizedScore: luckCycleAlignment.normalizedScore,
-      weightedPoints: luckCycleAlignment.weightedPoints,
-      maxPoints: luckCycleAlignment.maxPoints,
-      evidence: luckCycleAlignment.evidence,
-    },
+    ...Object.fromEntries(
+      Object.entries(rest).map(([dimension, result]) => [dimension, {
+        normalizedScore: result.normalizedScore,
+        weightedPoints: result.weightedPoints,
+        maxPoints: result.maxPoints,
+        evidence: result.evidence,
+      }]),
+    ) as Record<Exclude<CompatibilityDimension, "dayMaster" | "dayBranch">, DimensionResult>,
   };
 
-  const rawTotal = round4(
-    Object.values(dimensions).reduce((sum, dimension) => sum + dimension.weightedPoints, 0),
-  );
-
+  const rawTotal = round4(Object.values(dimensions).reduce(
+    (sum, dimension) => sum + dimension.weightedPoints,
+    0,
+  ));
   return { labelA, labelB, dimensions, rawTotal };
 }
 
@@ -244,21 +201,21 @@ export function calculateOneToOneCompatibility(
   input: OneToOneReportInput,
 ): CompatibilityCalculationSnapshot {
   const profile = getRelationshipCalculationProfile(input.relationshipType);
-  const aScenarios = prepareScenarios(input.personA);
-  const bScenarios = prepareScenarios(input.personB);
+  const preparedA = prepareScenarios(input.personA);
+  const preparedB = prepareScenarios(input.personB);
   const scenarioResults: ScenarioResult[] = [];
 
-  for (const a of aScenarios) {
-    for (const b of bScenarios) {
+  for (const a of preparedA.scenarios) {
+    for (const b of preparedB.scenarios) {
       scenarioResults.push(scorePreparedPair(a.prepared, b.prepared, profile, a.label, b.label));
     }
   }
 
   const dimensions = {} as CompatibilityCalculationSnapshot["dimensions"];
   for (const dimension of DIMENSIONS) {
-    const normalizedScore = round1(
-      median(scenarioResults.map((scenario) => scenario.dimensions[dimension].normalizedScore)),
-    );
+    const normalizedScore = round1(median(
+      scenarioResults.map((scenario) => scenario.dimensions[dimension].normalizedScore),
+    ));
     const maxPoints = getCompatibilityDimensionWeight(profile, dimension);
     dimensions[dimension] = {
       normalizedScore,
@@ -267,16 +224,15 @@ export function calculateOneToOneCompatibility(
     };
   }
 
-  const rawTotal = round4(
-    clamp(
-      Object.values(dimensions).reduce((sum, dimension) => sum + dimension.weightedPoints, 0),
-      30,
-      100,
-    ),
-  );
+  const rawTotal = round4(clamp(
+    Object.values(dimensions).reduce((sum, dimension) => sum + dimension.weightedPoints, 0),
+    30,
+    100,
+  ));
   const score = Math.round(rawTotal);
-  const min = Math.round(Math.min(...scenarioResults.map((scenario) => clamp(scenario.rawTotal, 30, 100))));
-  const max = Math.round(Math.max(...scenarioResults.map((scenario) => clamp(scenario.rawTotal, 30, 100))));
+  const totals = scenarioResults.map((scenario) => clamp(scenario.rawTotal, 30, 100));
+  const min = Math.round(Math.min(...totals));
+  const max = Math.round(Math.max(...totals));
   const width = max - min;
 
   const representative = [...scenarioResults].sort(
@@ -287,13 +243,11 @@ export function calculateOneToOneCompatibility(
     representativeEvidence[dimension] = representative.dimensions[dimension].evidence;
   }
 
-  const configuredWeightTotal = Object.values(COMPATIBILITY_SCORE_WEIGHTS[profile]).reduce(
+  const weightTotal = Object.values(COMPATIBILITY_SCORE_WEIGHTS[profile]).reduce(
     (sum, value) => sum + value,
     0,
   );
-  if (configuredWeightTotal !== 100) {
-    throw new Error(`${profile} 궁합 배점 합계가 100이 아닙니다: ${configuredWeightTotal}`);
-  }
+  if (weightTotal !== 100) throw new Error(`${profile} 궁합 배점 합계가 100이 아닙니다: ${weightTotal}`);
 
   return {
     engineVersion: COMPATIBILITY_ENGINE_VERSION,
@@ -301,10 +255,11 @@ export function calculateOneToOneCompatibility(
     relationshipType: input.relationshipType,
     profile,
     scenarioPolicy: {
-      personAScenarios: aScenarios.length,
-      personBScenarios: bScenarios.length,
+      personAScenarios: preparedA.scenarios.length,
+      personBScenarios: preparedB.scenarios.length,
       pairScenarios: scenarioResults.length,
       unknownTimeRepresentativeHours: UNKNOWN_TIME_SCENARIOS,
+      boundaryStatesAdded: preparedA.boundaryStatesAdded || preparedB.boundaryStatesAdded,
       aggregation: "DIMENSION_MEDIAN",
     },
     dimensions,
@@ -313,9 +268,6 @@ export function calculateOneToOneCompatibility(
     uncertaintyRange: { min, max, width },
     confidence: confidenceForRange(width),
     representativeEvidence,
-    aiBoundary: {
-      scoreMutableByAi: false,
-      rankingMutableByAi: false,
-    },
+    aiBoundary: { scoreMutableByAi: false, rankingMutableByAi: false },
   };
 }
