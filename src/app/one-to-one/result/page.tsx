@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import "../../report-v2-base.css";
+import "../../report-v2-detail.css";
 import ResultV2 from "./result-v2";
 
 export default function OneToOneResultPage() {
