@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
-import { generateCompatibilityNarrative } from "@/lib/narrative/report-engine";
+import { generateCompatibilityNarrativeV4 } from "@/lib/narrative/report-engine-v4";
 import {
   PaymentVerificationError,
   verifyPaidPayment,
@@ -13,6 +13,7 @@ import {
 } from "@/lib/report-input";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
 
 function parsePerson(value: unknown): PersonBirthInput | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
   try {
     const payment = await verifyPaidPayment(paymentId, "oneToOne");
     const snapshot = calculateOneToOneCompatibility(input);
-    const narrative = await generateCompatibilityNarrative(snapshot, input);
+    const narrative = await generateCompatibilityNarrativeV4(snapshot, input);
 
     return NextResponse.json({
       snapshot,
