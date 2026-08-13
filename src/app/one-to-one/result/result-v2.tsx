@@ -44,31 +44,34 @@ export default function ResultV2() {
   const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
-    if (!paymentId) { setStatus("missing"); return; }
-    const draft = loadOrderDraft(paymentId);
-    if (!draft) { setStatus("missing"); return; }
-    setOrder(draft);
-    setStatus("loading");
-    setErrorMessage(null);
     let cancelled = false;
-    void fetch("/api/compatibility/one-to-one", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ paymentId: draft.paymentId, input: draft.inputSnapshot }),
-    }).then(async (response) => {
-      const payload = await response.json() as {
-        snapshot?: CompatibilityCalculationSnapshot;
-        reportContent?: DetailedReportContent;
-        reportFacts?: PaidReportFacts;
-        reportMeta?: DetailedReportMeta;
-        error?: string;
-      };
-      if (!response.ok || !payload.snapshot || !payload.reportContent || !payload.reportFacts) throw new Error(payload.error ?? "상세 리포트를 생성하지 못했어요.");
+    queueMicrotask(() => {
       if (cancelled) return;
-      setSnapshot(payload.snapshot); setContent(payload.reportContent); setFacts(payload.reportFacts); setMeta(payload.reportMeta ?? null); setStatus("ready");
-    }).catch((error: unknown) => {
-      if (cancelled) return;
-      setErrorMessage(error instanceof Error ? error.message : "상세 리포트를 생성하지 못했어요."); setStatus("error");
+      if (!paymentId) { setStatus("missing"); return; }
+      const draft = loadOrderDraft(paymentId);
+      if (!draft) { setStatus("missing"); return; }
+      setOrder(draft);
+      setStatus("loading");
+      setErrorMessage(null);
+      void fetch("/api/compatibility/one-to-one", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ paymentId: draft.paymentId, input: draft.inputSnapshot }),
+      }).then(async (response) => {
+        const payload = await response.json() as {
+          snapshot?: CompatibilityCalculationSnapshot;
+          reportContent?: DetailedReportContent;
+          reportFacts?: PaidReportFacts;
+          reportMeta?: DetailedReportMeta;
+          error?: string;
+        };
+        if (!response.ok || !payload.snapshot || !payload.reportContent || !payload.reportFacts) throw new Error(payload.error ?? "상세 리포트를 생성하지 못했어요.");
+        if (cancelled) return;
+        setSnapshot(payload.snapshot); setContent(payload.reportContent); setFacts(payload.reportFacts); setMeta(payload.reportMeta ?? null); setStatus("ready");
+      }).catch((error: unknown) => {
+        if (cancelled) return;
+        setErrorMessage(error instanceof Error ? error.message : "상세 리포트를 생성하지 못했어요."); setStatus("error");
+      });
     });
     return () => { cancelled = true; };
   }, [paymentId, retryKey]);
