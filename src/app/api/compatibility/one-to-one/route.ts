@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
-import { generateCompatibilityNarrativeV4 } from "@/lib/narrative/report-engine-v4";
+import { generateDetailedPaidReport } from "@/lib/narrative/report-engine-v5";
 import {
   PaymentVerificationError,
   verifyPaidPayment,
@@ -91,12 +91,13 @@ export async function POST(request: NextRequest) {
   try {
     const payment = await verifyPaidPayment(paymentId, "oneToOne");
     const snapshot = calculateOneToOneCompatibility(input);
-    const narrative = await generateCompatibilityNarrativeV4(snapshot, input);
+    const report = await generateDetailedPaidReport(snapshot, input);
 
     return NextResponse.json({
       snapshot,
-      narrative: narrative.narrative,
-      narrativeMeta: narrative.meta,
+      reportContent: report.content,
+      reportFacts: report.facts,
+      reportMeta: report.meta,
       payment: {
         verified: true,
         paymentId: payment.paymentId,
@@ -113,6 +114,15 @@ export async function POST(request: NextRequest) {
     }
 
     const message = error instanceof Error ? error.message : "궁합 계산에 실패했습니다.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    if (message.startsWith("DETAILED_REPORT_GENERATION_FAILED") || message.includes("ANTHROPIC")) {
+      return NextResponse.json(
+        {
+          error: "상세 리포트 생성이 지연되고 있어요. 결제는 유지되며 같은 결과 화면에서 다시 시도할 수 있습니다.",
+          code: "REPORT_GENERATION_FAILED",
+        },
+        { status: 503 },
+      );
+    }
+    return NextResponse.json({ error: "궁합 계산에 실패했습니다." }, { status: 500 });
   }
 }
