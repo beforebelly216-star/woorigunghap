@@ -76,7 +76,7 @@ function CheckoutContent() {
 
       <PaymentButton product="oneToOne" paymentId={order.paymentId} />
       <Link href="/one-to-one" className="back-link checkout-back">입력 수정하기</Link>
-      <p className="checkout-note">현재 개발 단계에서는 주문 입력값을 같은 브라우저 탭에 임시 보관합니다. DB 저장은 후속 단계에서 연결합니다.</p>
+      <p className="checkout-note">현재 개발 단계에서는 입력값을 같은 브라우저 프로필에 임시 보관합니다. 새 탭에서도 복원할 수 있고, 저장값이 사라져도 기존 결제를 다시 청구하지 않고 입력정보만 재입력해 결과를 복구할 수 있습니다. 서버 영구 저장은 후속 단계에서 연결합니다.</p>
     </>
   );
 }
