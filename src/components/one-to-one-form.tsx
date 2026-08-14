@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   CALENDAR_TYPES,
   GENDER_LABELS,
@@ -14,7 +14,10 @@ import {
   type RelationshipType,
   validateOneToOneReportInput,
 } from "@/lib/report-input";
-import { createOneToOneOrderDraft } from "@/lib/orders";
+import {
+  createOneToOneOrderDraft,
+  createRecoveredOneToOneOrderDraft,
+} from "@/lib/orders";
 import { saveOrderDraft } from "@/lib/order-storage";
 
 type PersonFormState = Omit<PersonBirthInput, "gender"> & { gender: Gender | "" };
@@ -178,6 +181,8 @@ function PersonFields({
 
 export function OneToOneForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const recoveryPaymentId = searchParams.get("recoverPaymentId");
   const [form, setForm] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isContinuing, setIsContinuing] = useState(false);
@@ -206,6 +211,19 @@ export function OneToOneForm() {
     if (!result.valid) return;
 
     setIsContinuing(true);
+
+    if (recoveryPaymentId) {
+      try {
+        const recovered = createRecoveredOneToOneOrderDraft(input, recoveryPaymentId);
+        saveOrderDraft(recovered);
+        router.push(`/one-to-one/result?paymentId=${encodeURIComponent(recovered.paymentId)}&recovered=1`);
+      } catch {
+        setErrors({ form: "기존 결제번호를 복구하지 못했어요. 결과 화면에서 다시 복구를 시작해 주세요." });
+        setIsContinuing(false);
+      }
+      return;
+    }
+
     const order = createOneToOneOrderDraft(input);
     saveOrderDraft(order);
     router.push(`/one-to-one/checkout?paymentId=${encodeURIComponent(order.paymentId)}`);
@@ -213,6 +231,15 @@ export function OneToOneForm() {
 
   return (
     <form className="compatibility-form" onSubmit={submit} noValidate>
+      {recoveryPaymentId ? (
+        <div className="checkout-state">
+          <strong>기존 결제 복구 중</strong>
+          <p>결제는 다시 하지 않아요. 아래 두 사람의 정보를 다시 입력하면 기존 결제를 확인한 뒤 결과만 재생성합니다.</p>
+        </div>
+      ) : null}
+
+      {errors.form ? <p className="field-error">{errors.form}</p> : null}
+
       <section className="form-section relationship-section">
         <h2>어떤 관계를 보고 싶나요?</h2>
         <div className="relationship-options" role="radiogroup" aria-label="관계 유형">
@@ -250,7 +277,9 @@ export function OneToOneForm() {
       </div>
 
       <button type="submit" className="primary-action" disabled={isContinuing}>
-        {isContinuing ? "결제 단계로 이동 중..." : "입력 확인하고 계속하기"}
+        {isContinuing
+          ? recoveryPaymentId ? "기존 결제로 결과 복구 중..." : "결제 단계로 이동 중..."
+          : recoveryPaymentId ? "결제 없이 결과 다시 생성하기" : "입력 확인하고 계속하기"}
       </button>
     </form>
   );
