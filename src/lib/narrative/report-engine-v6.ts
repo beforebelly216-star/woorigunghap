@@ -129,8 +129,8 @@ function validAction(value: unknown): value is ActionSegment {
 
 function compactLength(value: unknown): number {
   if (typeof value === "string") return value.replace(/\s/g, "").length;
-  if (Array.isArray(value)) return value.reduce((sum, child) => sum + compactLength(child), 0);
-  if (isObject(value)) return Object.values(value).reduce((sum, child) => sum + compactLength(child), 0);
+  if (Array.isArray(value)) return value.reduce<number>((sum, child) => sum + compactLength(child), 0);
+  if (isObject(value)) return Object.values(value).reduce<number>((sum, child) => sum + compactLength(child), 0);
   return 0;
 }
 
