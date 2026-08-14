@@ -115,10 +115,10 @@ export async function requestStructuredSegment<T>(args: {
   qualityIssues: (value: T) => string[];
   label: string;
 }): Promise<{ best: SegmentAttempt<T>; attempts: number; allUsage: AnthropicRawUsage[] }> {
-  const timeoutMs = args.timeoutMs ?? 60_000;
+  const timeoutMs = Math.max(args.timeoutMs ?? 60_000, 60_000);
   const allUsage: AnthropicRawUsage[] = [];
   let lastFailure = "UNKNOWN";
-  let structuredRejected = args.preferStructured === false;
+  let structuredRejected = args.preferStructured !== true;
 
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     const controller = new AbortController();
