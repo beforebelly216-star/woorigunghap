@@ -20,6 +20,19 @@ const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
   spouseStarRealization: "관계 역할 맞물림", luckCycleAlignment: "관계 타이밍",
 };
 
+const FAILURE_LABELS: Record<string, string> = {
+  API_AUTH: "Claude API 키 인증을 확인해야 해요.",
+  API_BILLING: "Claude API 사용 크레딧을 확인해야 해요.",
+  API_PERMISSION: "현재 API 키의 모델 사용 권한을 확인해야 해요.",
+  API_RATE_LIMIT: "Claude API 호출 한도에 잠시 걸렸어요.",
+  API_TIMEOUT: "상세 해설 생성 시간이 서버 제한을 넘었어요.",
+  AI_FORMAT: "Claude 응답 형식을 변환하는 과정에서 문제가 생겼어요.",
+  AI_MODE: "AI 서술 모드 설정을 확인해야 해요.",
+  API_KEY_MISSING: "Claude API 키 설정을 확인해야 해요.",
+  API_NETWORK: "Claude API 연결 중 네트워크 오류가 발생했어요.",
+  AI_GENERATION: "Claude 상세 해설 생성 과정에서 오류가 발생했어요.",
+};
+
 function gradeFor(score: number) {
   if (score >= 90) return "S";
   if (score >= 80) return "A";
@@ -58,14 +71,19 @@ export default function ResultV2() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ paymentId: draft.paymentId, input: draft.inputSnapshot }),
       }).then(async (response) => {
-        const payload = await response.json() as {
+        const payload = await response.json().catch(() => null) as {
           snapshot?: CompatibilityCalculationSnapshot;
           reportContent?: DetailedReportContent;
           reportFacts?: PaidReportFacts;
           reportMeta?: DetailedReportMeta;
           error?: string;
-        };
-        if (!response.ok || !payload.snapshot || !payload.reportContent || !payload.reportFacts) throw new Error(payload.error ?? "상세 리포트를 생성하지 못했어요.");
+          reason?: string;
+        } | null;
+        if (!payload) throw new Error("서버 응답이 중간에 끊겼어요. 잠시 후 같은 결제로 다시 시도해 주세요.");
+        if (!response.ok || !payload.snapshot || !payload.reportContent || !payload.reportFacts) {
+          const reasonText = payload.reason ? FAILURE_LABELS[payload.reason] : null;
+          throw new Error(reasonText ?? payload.error ?? "상세 리포트를 생성하지 못했어요.");
+        }
         if (cancelled) return;
         setSnapshot(payload.snapshot); setContent(payload.reportContent); setFacts(payload.reportFacts); setMeta(payload.reportMeta ?? null); setStatus("ready");
       }).catch((error: unknown) => {
