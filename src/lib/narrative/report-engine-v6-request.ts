@@ -41,7 +41,14 @@ function parseJsonText(text: string): unknown {
   const unfenced = trimmed.startsWith("```")
     ? trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "")
     : trimmed;
-  return JSON.parse(unfenced);
+  try {
+    return JSON.parse(unfenced);
+  } catch {
+    const first = unfenced.indexOf("{");
+    const last = unfenced.lastIndexOf("}");
+    if (first >= 0 && last > first) return JSON.parse(unfenced.slice(first, last + 1));
+    throw new Error("INVALID_JSON");
+  }
 }
 
 function collectCharacters(value: unknown): number {
@@ -69,7 +76,7 @@ async function callAnthropic(args: {
 }) {
   const plainJsonRule = args.structured
     ? ""
-    : `\n\n[JSON 출력 규칙] 아래 JSON Schema와 정확히 같은 구조의 JSON 객체만 출력하세요. 마크다운 코드펜스나 설명 문장은 넣지 마세요.\n${JSON.stringify(args.schema)}`;
+    : `\n\n[JSON 출력 규칙]\n아래 JSON Schema와 정확히 같은 키 구조의 JSON 객체 하나만 출력하세요. 마크다운 코드펜스와 앞뒤 설명은 넣지 마세요. 문자열 값은 충분히 자세한 한국어로 작성하세요.\n${JSON.stringify(args.schema)}`;
 
   const requestBody: Record<string, unknown> = {
     model: args.model,
@@ -103,15 +110,15 @@ export async function requestStructuredSegment<T>(args: {
   user: string;
   maxTokens: number;
   timeoutMs?: number;
+  preferStructured?: boolean;
   validate: (value: unknown) => value is T;
   qualityIssues: (value: T) => string[];
   label: string;
 }): Promise<{ best: SegmentAttempt<T>; attempts: number; allUsage: AnthropicRawUsage[] }> {
-  const timeoutMs = args.timeoutMs ?? 45_000;
-  let best: SegmentAttempt<T> | null = null;
+  const timeoutMs = args.timeoutMs ?? 60_000;
   const allUsage: AnthropicRawUsage[] = [];
   let lastFailure = "UNKNOWN";
-  let structuredRejected = false;
+  let structuredRejected = args.preferStructured === false;
 
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     const controller = new AbortController();
@@ -119,7 +126,8 @@ export async function requestStructuredSegment<T>(args: {
     try {
       const expandedSystem = attempt === 1
         ? args.system
-        : `${args.system}\n\n[재작성 지시] 직전 생성이 목표 분량 또는 세부성에 부족했습니다. 같은 계산 근거 안에서 설명을 더 구체화하고, 실제 관계에서 체감되는 장면과 행동 기준을 충분히 풀어 쓰세요.`;
+        : `${args.system}\n\n[재시도 지시] 직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고, 중간에 끊기지 않도록 완결된 객체를 출력하세요.`;
+      const attemptMaxTokens = attempt === 1 ? args.maxTokens : Math.min(12_000, Math.ceil(args.maxTokens * 1.5));
 
       let result = await callAnthropic({
         apiKey: args.apiKey,
@@ -127,7 +135,7 @@ export async function requestStructuredSegment<T>(args: {
         schema: args.schema,
         system: expandedSystem,
         user: args.user,
-        maxTokens: args.maxTokens,
+        maxTokens: attemptMaxTokens,
         signal: controller.signal,
         structured: !structuredRejected,
       });
@@ -141,7 +149,7 @@ export async function requestStructuredSegment<T>(args: {
           schema: args.schema,
           system: expandedSystem,
           user: args.user,
-          maxTokens: args.maxTokens,
+          maxTokens: attemptMaxTokens,
           signal: controller.signal,
           structured: false,
         });
@@ -151,14 +159,20 @@ export async function requestStructuredSegment<T>(args: {
       if (body?.usage) allUsage.push(body.usage);
       if (!response.ok) {
         lastFailure = `HTTP_${response.status}_${safeError(body)}`;
-        console.warn("[woorigunghap:v6-segment-http]", JSON.stringify({ label: args.label, attempt, status: response.status, reason: safeError(body), structured: !structuredRejected }));
+        console.warn("[woorigunghap:v6-segment-http]", JSON.stringify({ label: args.label, attempt, status: response.status, reason: safeError(body) }));
         if ((response.status === 429 || response.status === 529) && attempt < 2) {
           const retryAfterSeconds = Number(response.headers.get("retry-after"));
           const waitMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
             ? Math.min(8_000, retryAfterSeconds * 1000)
-            : 2_000 * attempt;
+            : 2_000;
           await sleep(waitMs);
         }
+        continue;
+      }
+
+      if (body?.stop_reason === "max_tokens") {
+        lastFailure = "MAX_TOKENS";
+        console.warn("[woorigunghap:v6-segment-truncated]", JSON.stringify({ label: args.label, attempt, maxTokens: attemptMaxTokens }));
         continue;
       }
 
@@ -187,9 +201,10 @@ export async function requestStructuredSegment<T>(args: {
         characters: collectCharacters(parsed),
         qualityIssues: issues,
       };
-      if (!best || candidate.characters > best.characters) best = candidate;
-      if (issues.length === 0) return { best: candidate, attempts: attempt, allUsage };
-      console.warn("[woorigunghap:v6-segment-quality]", JSON.stringify({ label: args.label, attempt, characters: candidate.characters, issues }));
+      if (issues.length > 0) {
+        console.warn("[woorigunghap:v6-segment-quality]", JSON.stringify({ label: args.label, attempt, characters: candidate.characters, issues }));
+      }
+      return { best: candidate, attempts: attempt, allUsage };
     } catch (error) {
       lastFailure = error instanceof Error && error.name === "AbortError" ? "TIMEOUT" : "REQUEST_FAILED";
       console.warn("[woorigunghap:v6-segment-request]", JSON.stringify({ label: args.label, attempt, reason: lastFailure }));
@@ -198,7 +213,6 @@ export async function requestStructuredSegment<T>(args: {
     }
   }
 
-  if (best) return { best, attempts: 2, allUsage };
   throw new Error(`ANTHROPIC_SEGMENT_${args.label}_${lastFailure}`);
 }
 
