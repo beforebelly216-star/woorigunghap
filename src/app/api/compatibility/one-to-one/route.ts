@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
-import { generateDetailedPaidReport } from "@/lib/narrative/report-engine-v5";
+import { generateDetailedPaidReportV6 } from "@/lib/narrative/report-engine-v6";
 import {
   PaymentVerificationError,
   verifyPaidPayment,
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
   try {
     const payment = await verifyPaidPayment(paymentId, "oneToOne");
     const snapshot = calculateOneToOneCompatibility(input);
-    const report = await generateDetailedPaidReport(snapshot, input);
+    const report = await generateDetailedPaidReportV6(snapshot, input);
 
     return NextResponse.json({
       snapshot,
@@ -115,10 +115,16 @@ export async function POST(request: NextRequest) {
 
     const message = error instanceof Error ? error.message : "궁합 계산에 실패했습니다.";
     if (message.startsWith("DETAILED_REPORT_GENERATION_FAILED") || message.includes("ANTHROPIC")) {
+      const safeReason = message.includes("HTTP_401") ? "API_AUTH"
+        : message.includes("HTTP_402") || message.includes("HTTP_429") ? "API_BILLING_OR_LIMIT"
+        : message.includes("TIMEOUT") ? "API_TIMEOUT"
+        : message.includes("SCHEMA") || message.includes("INVALID_JSON") ? "AI_FORMAT"
+        : "AI_GENERATION";
       return NextResponse.json(
         {
           error: "상세 리포트 생성이 지연되고 있어요. 결제는 유지되며 같은 결과 화면에서 다시 시도할 수 있습니다.",
           code: "REPORT_GENERATION_FAILED",
+          reason: safeReason,
         },
         { status: 503 },
       );
