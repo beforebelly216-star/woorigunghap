@@ -17,7 +17,7 @@ import {
   type AnthropicRawUsage,
 } from "@/lib/narrative/report-engine-v6-request";
 
-export const PAID_REPORT_V6_PROMPT_VERSION = "paid-report-v6-segmented-longform" as const;
+export const PAID_REPORT_V6_PROMPT_VERSION = "paid-report-v6-segmented-longform-sequential" as const;
 export const PAID_REPORT_V6_PAYLOAD_VERSION = "paid-report-evidence-v3" as const;
 
 const STRING_ARRAY = { type: "array", items: { type: "string" } } as const;
@@ -192,23 +192,26 @@ export async function generateDetailedPaidReportV6(
   const payloadBytes = Buffer.byteLength(payloadText, "utf8");
 
   try {
-    const [intro, dynamics, action] = await Promise.all([
-      requestStructuredSegment<IntroSegment>({
-        apiKey, model, schema: INTRO_SCHEMA, maxTokens: 3200, label: "INTRO", validate: validIntro, qualityIssues: introIssues,
-        system: `${BASE_RULES}\n\n[담당 범위] 첫 화면 총평과 두 사람 각각의 관계 원국을 작성합니다. 총평은 4~5문장으로 강점·마찰·실전 의미를 연결하세요. 나와 상대의 개인 해설은 각각 기본 성향, 오행 과부족의 의미, 관계에서 필요한 기운, 장점과 주의점을 합쳐 충분한 단락으로 작성하세요.`,
-        user: `다음 계산 근거만 사용해 리포트의 1~3장을 작성하세요.\n${payloadText}`,
-      }),
-      requestStructuredSegment<DynamicsSegment>({
-        apiKey, model, schema: DYNAMICS_SCHEMA, maxTokens: 3200, label: "DYNAMICS", validate: validDynamics, qualityIssues: dynamicsIssues,
-        system: `${BASE_RULES}\n\n[담당 범위] 두 사람의 기본 케미, 실제 결속과 마찰, 양방향 영향을 작성합니다. 일간·일지·음양·오행은 각각 계산 의미와 현실 체감을 연결하세요. 천간·지지의 합충형해파 및 귀인 신호는 evidence에 실제로 있는 것만 언급하고 대화·생활리듬·약속·감정표현·의사결정 중 어디서 드러날 수 있는지 구체화하세요. 나→상대와 상대→나는 반드시 따로 설명하세요.`,
-        user: `다음 계산 근거만 사용해 리포트의 4~6장을 작성하세요.\n${payloadText}`,
-      }),
-      requestStructuredSegment<ActionSegment>({
-        apiKey, model, schema: ACTION_SCHEMA, maxTokens: 3800, label: "ACTION", validate: validAction, qualityIssues: actionIssues,
-        system: `${BASE_RULES}\n\n[담당 범위] 관계 흐름, 관계유형 전용 분석, 강점·위험신호, 실전 매뉴얼을 작성합니다. 최소 2개의 현실 갈등 시나리오를 상황→반복 패턴→대응 순서로 쓰세요. 관계유형 전용 포인트는 최소 3개, 하면 좋은 것은 최소 3개, 피할 것 최소 2개, 갈등 해결 단계 최소 3개, 추천 활동 최소 3개를 구체적으로 제시하세요.`,
-        user: `다음 계산 근거만 사용해 리포트의 7~10장을 작성하세요.\n${payloadText}`,
-      }),
-    ]);
+    const intro = await requestStructuredSegment<IntroSegment>({
+      apiKey, model, schema: INTRO_SCHEMA, maxTokens: 2800, timeoutMs: 45_000,
+      label: "INTRO", validate: validIntro, qualityIssues: introIssues,
+      system: `${BASE_RULES}\n\n[담당 범위] 첫 화면 총평과 두 사람 각각의 관계 원국을 작성합니다. 총평은 4~5문장으로 강점·마찰·실전 의미를 연결하세요. 나와 상대의 개인 해설은 각각 기본 성향, 오행 과부족의 의미, 관계에서 필요한 기운, 장점과 주의점을 합쳐 충분한 단락으로 작성하세요.`,
+      user: `다음 계산 근거만 사용해 리포트의 1~3장을 작성하세요.\n${payloadText}`,
+    });
+
+    const dynamics = await requestStructuredSegment<DynamicsSegment>({
+      apiKey, model, schema: DYNAMICS_SCHEMA, maxTokens: 2800, timeoutMs: 45_000,
+      label: "DYNAMICS", validate: validDynamics, qualityIssues: dynamicsIssues,
+      system: `${BASE_RULES}\n\n[담당 범위] 두 사람의 기본 케미, 실제 결속과 마찰, 양방향 영향을 작성합니다. 일간·일지·음양·오행은 각각 계산 의미와 현실 체감을 연결하세요. 천간·지지의 합충형해파 및 귀인 신호는 evidence에 실제로 있는 것만 언급하고 대화·생활리듬·약속·감정표현·의사결정 중 어디서 드러날 수 있는지 구체화하세요. 나→상대와 상대→나는 반드시 따로 설명하세요.`,
+      user: `다음 계산 근거만 사용해 리포트의 4~6장을 작성하세요.\n${payloadText}`,
+    });
+
+    const action = await requestStructuredSegment<ActionSegment>({
+      apiKey, model, schema: ACTION_SCHEMA, maxTokens: 3400, timeoutMs: 45_000,
+      label: "ACTION", validate: validAction, qualityIssues: actionIssues,
+      system: `${BASE_RULES}\n\n[담당 범위] 관계 흐름, 관계유형 전용 분석, 강점·위험신호, 실전 매뉴얼을 작성합니다. 최소 2개의 현실 갈등 시나리오를 상황→반복 패턴→대응 순서로 쓰세요. 관계유형 전용 포인트는 최소 3개, 하면 좋은 것은 최소 3개, 피할 것 최소 2개, 갈등 해결 단계 최소 3개, 추천 활동 최소 3개를 구체적으로 제시하세요.`,
+      user: `다음 계산 근거만 사용해 리포트의 7~10장을 작성하세요.\n${payloadText}`,
+    });
 
     const content: DetailedReportContent = {
       ...intro.best.value,
