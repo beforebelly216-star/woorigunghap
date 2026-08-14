@@ -53,6 +53,10 @@ function collectCharacters(value: unknown): number {
   return 0;
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function callAnthropic(args: {
   apiKey: string;
   model: string;
@@ -103,7 +107,7 @@ export async function requestStructuredSegment<T>(args: {
   qualityIssues: (value: T) => string[];
   label: string;
 }): Promise<{ best: SegmentAttempt<T>; attempts: number; allUsage: AnthropicRawUsage[] }> {
-  const timeoutMs = args.timeoutMs ?? 90_000;
+  const timeoutMs = args.timeoutMs ?? 45_000;
   let best: SegmentAttempt<T> | null = null;
   const allUsage: AnthropicRawUsage[] = [];
   let lastFailure = "UNKNOWN";
@@ -148,6 +152,13 @@ export async function requestStructuredSegment<T>(args: {
       if (!response.ok) {
         lastFailure = `HTTP_${response.status}_${safeError(body)}`;
         console.warn("[woorigunghap:v6-segment-http]", JSON.stringify({ label: args.label, attempt, status: response.status, reason: safeError(body), structured: !structuredRejected }));
+        if ((response.status === 429 || response.status === 529) && attempt < 2) {
+          const retryAfterSeconds = Number(response.headers.get("retry-after"));
+          const waitMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+            ? Math.min(8_000, retryAfterSeconds * 1000)
+            : 2_000 * attempt;
+          await sleep(waitMs);
+        }
         continue;
       }
 
