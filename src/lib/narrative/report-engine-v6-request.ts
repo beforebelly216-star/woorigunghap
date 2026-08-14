@@ -38,9 +38,9 @@ function extractText(body: AnthropicBody) {
 
 function collectCharacters(value: unknown): number {
   if (typeof value === "string") return value.replace(/\s/g, "").length;
-  if (Array.isArray(value)) return value.reduce((sum, item) => sum + collectCharacters(item), 0);
+  if (Array.isArray(value)) return value.reduce<number>((sum, item) => sum + collectCharacters(item), 0);
   if (value && typeof value === "object") {
-    return Object.values(value as Record<string, unknown>).reduce((sum, item) => sum + collectCharacters(item), 0);
+    return Object.values(value as Record<string, unknown>).reduce<number>((sum, item) => sum + collectCharacters(item), 0);
   }
   return 0;
 }
@@ -133,7 +133,8 @@ export async function requestStructuredSegment<T>(args: {
 
 export function combineAnthropicUsage(usages: AnthropicRawUsage[]): NarrativeUsage | null {
   if (!usages.length) return null;
-  const sum = usages.reduce((acc, usage) => ({
+  type UsageSum = Required<AnthropicRawUsage>;
+  const sum = usages.reduce<UsageSum>((acc, usage) => ({
     input_tokens: acc.input_tokens + (usage.input_tokens ?? 0),
     output_tokens: acc.output_tokens + (usage.output_tokens ?? 0),
     cache_creation_input_tokens: acc.cache_creation_input_tokens + (usage.cache_creation_input_tokens ?? 0),
