@@ -33,3 +33,24 @@ export function createOneToOneOrderDraft(input: OneToOneReportInput): OneToOneOr
     inputSnapshot: structuredClone(input),
   };
 }
+
+export function createRecoveredOneToOneOrderDraft(
+  input: OneToOneReportInput,
+  paymentId: string,
+): OneToOneOrderDraft {
+  const prefix = "woori-oneToOne-";
+  if (!paymentId.startsWith(prefix) || paymentId.length <= prefix.length) {
+    throw new Error("INVALID_RECOVERY_PAYMENT_ID");
+  }
+
+  return {
+    version: ORDER_DRAFT_VERSION,
+    orderId: paymentId.slice(prefix.length),
+    paymentId,
+    product: "oneToOne",
+    amount: PRODUCTS.oneToOne.amount,
+    status: "paid",
+    createdAt: new Date().toISOString(),
+    inputSnapshot: structuredClone(input),
+  };
+}
