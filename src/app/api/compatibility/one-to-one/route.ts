@@ -13,7 +13,7 @@ import {
 } from "@/lib/report-input";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 function parsePerson(value: unknown): PersonBirthInput | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -55,6 +55,19 @@ function parseInput(value: unknown): OneToOneReportInput | null {
     personA,
     personB,
   };
+}
+
+function classifyReportFailure(message: string) {
+  if (message.includes("HTTP_401")) return "API_AUTH";
+  if (message.includes("HTTP_402")) return "API_BILLING";
+  if (message.includes("HTTP_403")) return "API_PERMISSION";
+  if (message.includes("HTTP_429")) return "API_RATE_LIMIT";
+  if (message.includes("TIMEOUT")) return "API_TIMEOUT";
+  if (message.includes("SCHEMA") || message.includes("INVALID_JSON")) return "AI_FORMAT";
+  if (message.includes("MODE_NOT_ANTHROPIC")) return "AI_MODE";
+  if (message.includes("API_KEY_MISSING")) return "API_KEY_MISSING";
+  if (message.includes("REQUEST_FAILED")) return "API_NETWORK";
+  return "AI_GENERATION";
 }
 
 export async function POST(request: NextRequest) {
@@ -115,16 +128,11 @@ export async function POST(request: NextRequest) {
 
     const message = error instanceof Error ? error.message : "궁합 계산에 실패했습니다.";
     if (message.startsWith("DETAILED_REPORT_GENERATION_FAILED") || message.includes("ANTHROPIC")) {
-      const safeReason = message.includes("HTTP_401") ? "API_AUTH"
-        : message.includes("HTTP_402") || message.includes("HTTP_429") ? "API_BILLING_OR_LIMIT"
-        : message.includes("TIMEOUT") ? "API_TIMEOUT"
-        : message.includes("SCHEMA") || message.includes("INVALID_JSON") ? "AI_FORMAT"
-        : "AI_GENERATION";
       return NextResponse.json(
         {
           error: "상세 리포트 생성이 지연되고 있어요. 결제는 유지되며 같은 결과 화면에서 다시 시도할 수 있습니다.",
           code: "REPORT_GENERATION_FAILED",
-          reason: safeReason,
+          reason: classifyReportFailure(message),
         },
         { status: 503 },
       );
