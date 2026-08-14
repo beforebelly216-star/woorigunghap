@@ -2,12 +2,11 @@ import type { OneToOneOrderDraft } from "@/lib/orders";
 
 const ORDER_STORAGE_PREFIX = "woorigunghap:order:";
 
-export function saveOrderDraft(order: OneToOneOrderDraft) {
-  sessionStorage.setItem(`${ORDER_STORAGE_PREFIX}${order.paymentId}`, JSON.stringify(order));
+function storageKey(paymentId: string) {
+  return `${ORDER_STORAGE_PREFIX}${paymentId}`;
 }
 
-export function loadOrderDraft(paymentId: string): OneToOneOrderDraft | null {
-  const raw = sessionStorage.getItem(`${ORDER_STORAGE_PREFIX}${paymentId}`);
+function parseOrderDraft(raw: string | null, paymentId: string): OneToOneOrderDraft | null {
   if (!raw) return null;
 
   try {
@@ -25,4 +24,28 @@ export function loadOrderDraft(paymentId: string): OneToOneOrderDraft | null {
   } catch {
     return null;
   }
+}
+
+export function saveOrderDraft(order: OneToOneOrderDraft) {
+  const serialized = JSON.stringify(order);
+  const key = storageKey(order.paymentId);
+
+  // sessionStorage keeps compatibility with the original checkout flow.
+  sessionStorage.setItem(key, serialized);
+  // localStorage lets the same paid result survive new tabs and browser restarts
+  // on the same browser profile until server-side order storage is introduced.
+  localStorage.setItem(key, serialized);
+}
+
+export function loadOrderDraft(paymentId: string): OneToOneOrderDraft | null {
+  const key = storageKey(paymentId);
+
+  const fromSession = parseOrderDraft(sessionStorage.getItem(key), paymentId);
+  if (fromSession) {
+    // Opportunistically migrate old session-only drafts to localStorage.
+    localStorage.setItem(key, JSON.stringify(fromSession));
+    return fromSession;
+  }
+
+  return parseOrderDraft(localStorage.getItem(key), paymentId);
 }
