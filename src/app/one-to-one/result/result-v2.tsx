@@ -100,7 +100,7 @@ export default function ResultV2() {
       .filter(([dimension, value]) => value.maxPoints > 0 && dimension !== "luckCycleAlignment");
   }, [snapshot]);
 
-  if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 찾지 못했어요.</h1><p>결제했던 같은 브라우저에서 결과 링크를 다시 열어 주세요.</p><Link href="/one-to-one">1:1 궁합으로 돌아가기</Link></div></main>;
+  if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 불러올 입력정보가 없어요.</h1><p>결제 자체는 사라지지 않았어요. 같은 브라우저의 원래 결제 탭이 있으면 그 탭을 다시 열어 주세요. 없으면 아래에서 두 사람의 정보만 다시 입력해 기존 결제로 결과를 복구할 수 있어요.</p>{paymentId ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력정보 다시 넣기</Link> : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}</div></main>;
   if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>두 사람의 상세 리포트를 쓰고 있어요.</h1><p>점수 계산을 확인한 뒤 개인화된 긴 해설을 구성하고 있어요. 첫 생성은 잠시 걸릴 수 있습니다.</p></div></main>;
   if (status === "error" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>상세 해설 생성이 지연되고 있어요.</h1><p>{errorMessage ?? "잠시 후 다시 시도해 주세요."}</p><button type="button" onClick={() => setRetryKey((value) => value + 1)}>같은 결제로 다시 생성하기</button></div></main>;
 
