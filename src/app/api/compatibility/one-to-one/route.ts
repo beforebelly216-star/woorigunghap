@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
+import { buildPaidReportFacts } from "@/lib/narrative/report-engine-v5";
 import { generateDetailedPaidReportV6 } from "@/lib/narrative/report-engine-v6";
+import {
+  PAID_REPORT_SEGMENTS,
+  generatePaidReportSegmentV7,
+  type PaidReportSegmentName,
+} from "@/lib/narrative/report-engine-v7";
 import {
   PaymentVerificationError,
   verifyPaidPayment,
@@ -13,8 +19,10 @@ import {
 } from "@/lib/report-input";
 
 export const runtime = "nodejs";
-export const maxDuration = 300;
-const REPORT_RUNTIME_VERSION = "paid-report-v6-plain-json-20260815";
+export const maxDuration = 240;
+const REPORT_RUNTIME_VERSION = "paid-report-v7-resumable-20260815";
+const PHASES = ["prepare", ...PAID_REPORT_SEGMENTS] as const;
+type ReportPhase = (typeof PHASES)[number];
 
 function parsePerson(value: unknown): PersonBirthInput | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -58,6 +66,13 @@ function parseInput(value: unknown): OneToOneReportInput | null {
   };
 }
 
+function parsePhase(value: unknown): ReportPhase | "legacy" | null {
+  if (value === undefined || value === null) return "legacy";
+  return typeof value === "string" && PHASES.includes(value as ReportPhase)
+    ? value as ReportPhase
+    : null;
+}
+
 function classifyReportFailure(message: string) {
   if (message.includes("HTTP_401")) return "API_AUTH";
   if (message.includes("HTTP_402")) return "API_BILLING";
@@ -73,20 +88,26 @@ function classifyReportFailure(message: string) {
   return "AI_GENERATION";
 }
 
+function retryableReportReason(reason: string) {
+  return [
+    "API_RATE_LIMIT",
+    "API_OVERLOADED",
+    "API_TIMEOUT",
+    "AI_OUTPUT_TRUNCATED",
+    "AI_FORMAT",
+    "API_NETWORK",
+    "AI_GENERATION",
+  ].includes(reason);
+}
+
 function failureMessage(reason: string) {
   switch (reason) {
-    case "API_AUTH": return "Claude API 인증 오류가 발생했어요.";
-    case "API_BILLING": return "Claude API 사용 크레딧을 확인해야 해요.";
-    case "API_PERMISSION": return "Claude 모델 사용 권한을 확인해야 해요.";
-    case "API_RATE_LIMIT": return "Claude API 호출 한도에 잠시 걸렸어요.";
-    case "API_OVERLOADED": return "Claude 서버가 일시적으로 혼잡해요.";
-    case "API_TIMEOUT": return "Claude 장문 생성 응답 시간이 제한을 넘었어요.";
-    case "AI_OUTPUT_TRUNCATED": return "Claude 응답이 길이 제한에서 잘렸어요.";
-    case "AI_FORMAT": return "Claude 응답을 리포트 형식으로 변환하지 못했어요.";
-    case "AI_MODE": return "AI 서술 모드 설정을 확인해야 해요.";
-    case "API_KEY_MISSING": return "Claude API 키 설정을 확인해야 해요.";
-    case "API_NETWORK": return "Claude API 연결 중 네트워크 오류가 발생했어요.";
-    default: return "Claude 상세 해설 생성 과정에서 오류가 발생했어요.";
+    case "API_AUTH": return "Claude API 인증 설정을 확인해야 합니다.";
+    case "API_BILLING": return "Claude API 사용 크레딧을 확인해야 합니다.";
+    case "API_PERMISSION": return "Claude 모델 사용 권한을 확인해야 합니다.";
+    case "AI_MODE": return "AI 서술 모드 설정을 확인해야 합니다.";
+    case "API_KEY_MISSING": return "Claude API 키 설정을 확인해야 합니다.";
+    default: return "상세 해설 생성 요청을 다시 시도할 수 있습니다.";
   }
 }
 
@@ -102,13 +123,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "궁합 계산 요청 형식이 올바르지 않습니다.", reportRuntimeVersion: REPORT_RUNTIME_VERSION }, { status: 400 });
   }
 
-  const candidate = body as { paymentId?: unknown; input?: unknown };
+  const candidate = body as { paymentId?: unknown; input?: unknown; phase?: unknown };
   const paymentId = typeof candidate.paymentId === "string" ? candidate.paymentId : null;
   const input = parseInput(candidate.input);
+  const phase = parsePhase(candidate.phase);
 
-  if (!paymentId || !input) {
+  if (!paymentId || !input || !phase) {
     return NextResponse.json(
-      { error: "결제번호 또는 궁합 계산 입력값이 올바르지 않습니다.", reportRuntimeVersion: REPORT_RUNTIME_VERSION },
+      { error: "결제번호, 궁합 입력값 또는 생성 단계가 올바르지 않습니다.", reportRuntimeVersion: REPORT_RUNTIME_VERSION },
       { status: 400 },
     );
   }
@@ -122,44 +144,95 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const payment = await verifyPaidPayment(paymentId, "oneToOne");
+    const payment = await verifyPaidPayment(paymentId, "oneToOne", input);
     const snapshot = calculateOneToOneCompatibility(input);
-    const report = await generateDetailedPaidReportV6(snapshot, input);
 
+    if (phase === "prepare") {
+      return NextResponse.json({
+        phase,
+        snapshot,
+        reportFacts: buildPaidReportFacts(input),
+        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+        payment: {
+          verified: true,
+          paymentId: payment.paymentId,
+          product: payment.product,
+          amount: payment.amount,
+          inputBound: payment.inputBound,
+        },
+      });
+    }
+
+    if (phase === "legacy") {
+      const report = await generateDetailedPaidReportV6(snapshot, input);
+      return NextResponse.json({
+        snapshot,
+        reportContent: report.content,
+        reportFacts: report.facts,
+        reportMeta: report.meta,
+        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+        payment: {
+          verified: true,
+          paymentId: payment.paymentId,
+          product: payment.product,
+          amount: payment.amount,
+          inputBound: payment.inputBound,
+        },
+      });
+    }
+
+    const generated = await generatePaidReportSegmentV7(snapshot, input, phase as PaidReportSegmentName);
     return NextResponse.json({
-      snapshot,
-      reportContent: report.content,
-      reportFacts: report.facts,
-      reportMeta: report.meta,
+      phase,
+      segmentContent: generated.content,
+      segmentMeta: generated.meta,
       reportRuntimeVersion: REPORT_RUNTIME_VERSION,
       payment: {
         verified: true,
         paymentId: payment.paymentId,
         product: payment.product,
         amount: payment.amount,
+        inputBound: payment.inputBound,
       },
     });
   } catch (error) {
     if (error instanceof PaymentVerificationError) {
+      const retryable = error.code === "PORTONE_LOOKUP_FAILED" || error.code === "PAYMENT_NOT_PAID";
       return NextResponse.json(
-        { error: error.message, code: error.code, reportRuntimeVersion: REPORT_RUNTIME_VERSION },
+        {
+          error: error.message,
+          code: error.code,
+          retryable,
+          reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+        },
         { status: error.status },
       );
     }
 
     const message = error instanceof Error ? error.message : "궁합 계산에 실패했습니다.";
-    if (message.startsWith("DETAILED_REPORT_GENERATION_FAILED") || message.includes("ANTHROPIC")) {
+    if (
+      message.startsWith("PAID_REPORT_SEGMENT_FAILED")
+      || message.startsWith("DETAILED_REPORT_GENERATION_FAILED")
+      || message.includes("ANTHROPIC")
+    ) {
       const reason = classifyReportFailure(message);
       return NextResponse.json(
         {
           error: failureMessage(reason),
-          code: "REPORT_GENERATION_FAILED",
+          code: "REPORT_GENERATION_RETRY",
           reason,
+          retryable: retryableReportReason(reason),
           reportRuntimeVersion: REPORT_RUNTIME_VERSION,
         },
-        { status: 503 },
+        { status: retryableReportReason(reason) ? 503 : 500 },
       );
     }
-    return NextResponse.json({ error: "궁합 계산에 실패했습니다.", reportRuntimeVersion: REPORT_RUNTIME_VERSION }, { status: 500 });
+
+    return NextResponse.json({
+      error: "궁합 계산에 실패했습니다.",
+      code: "UNEXPECTED_SERVER_ERROR",
+      retryable: false,
+      reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+    }, { status: 500 });
   }
 }
