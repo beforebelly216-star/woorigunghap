@@ -116,6 +116,8 @@ async function main() {
 
   assertCondition(!existsSync("src/app/api/compatibility/one-to-one-v4/route.ts"), "구형 공개 v4 궁합 API가 다시 생기면 안 됩니다.");
   assertCondition(!existsSync("src/app/api-route-upgrade.tsx"), "브라우저 fetch를 구형 API로 재작성하는 컴포넌트가 다시 생기면 안 됩니다.");
+  assertCondition(!existsSync("src/instrumentation-client.ts"), "instrumentation-client에서 구형 API로 fetch를 전역 재작성하면 안 됩니다.");
+  assertCondition(!existsSync("src/app/api/narrative/status/route.ts"), "임시 공개 narrative 상태 API를 운영 배포에 남기면 안 됩니다.");
 
   const conservativeCost = calculateAnthropicUsageCost({ input_tokens: 7000, output_tokens: 4000 }, 1450);
   assertCondition(conservativeCost.estimatedUsd === 0.027, `Haiku 원가 계산 오류(USD): ${conservativeCost.estimatedUsd}`);
