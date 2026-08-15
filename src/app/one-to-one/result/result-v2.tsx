@@ -5,9 +5,22 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { CompatibilityCalculationSnapshot } from "@/lib/compatibility/engine";
 import type { CompatibilityDimension } from "@/lib/compatibility/types";
-import type { DetailedReportContent, DetailedReportMeta, PaidReportFacts } from "@/lib/narrative/report-engine-v5";
+import type { DetailedReportContent, PaidReportFacts } from "@/lib/narrative/report-engine-v5";
+import type {
+  ActionSegment,
+  DynamicsSegment,
+  IntroSegment,
+  PaidReportSegmentMeta,
+  PaidReportSegmentName,
+} from "@/lib/narrative/report-engine-v7";
 import { loadOrderDraft } from "@/lib/order-storage";
 import type { OneToOneOrderDraft } from "@/lib/orders";
+import {
+  emptyReportProgress,
+  loadReportProgress,
+  saveReportProgress,
+  type ReportProgress,
+} from "@/lib/report-progress-storage";
 import { RELATIONSHIP_LABELS } from "@/lib/report-input";
 import { ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
 import ReportChaptersA from "./report-v2-chapters-a";
@@ -20,18 +33,20 @@ const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
   spouseStarRealization: "관계 역할 맞물림", luckCycleAlignment: "관계 타이밍",
 };
 
-const FAILURE_LABELS: Record<string, string> = {
-  API_AUTH: "Claude API 키 인증을 확인해야 해요.",
-  API_BILLING: "Claude API 사용 크레딧을 확인해야 해요.",
-  API_PERMISSION: "현재 API 키의 모델 사용 권한을 확인해야 해요.",
-  API_RATE_LIMIT: "Claude API 호출 한도에 잠시 걸렸어요.",
-  API_TIMEOUT: "상세 해설 생성 시간이 서버 제한을 넘었어요.",
-  AI_FORMAT: "Claude 응답 형식을 변환하는 과정에서 문제가 생겼어요.",
-  AI_MODE: "AI 서술 모드 설정을 확인해야 해요.",
-  API_KEY_MISSING: "Claude API 키 설정을 확인해야 해요.",
-  API_NETWORK: "Claude API 연결 중 네트워크 오류가 발생했어요.",
-  AI_GENERATION: "Claude 상세 해설 생성 과정에서 오류가 발생했어요.",
+const SEGMENTS: PaidReportSegmentName[] = ["intro", "dynamics", "action"];
+const STAGE_COPY: Record<"prepare" | PaidReportSegmentName, string> = {
+  prepare: "결제와 궁합 점수를 확인하고 있어요.",
+  intro: "1~3장 · 두 사람의 사주와 관계 성향을 풀어 쓰고 있어요.",
+  dynamics: "4~6장 · 기본 케미와 실제 결속·마찰을 분석하고 있어요.",
+  action: "7~10장 · 관계 흐름과 갈등 대응·실전 매뉴얼을 만들고 있어요.",
 };
+
+class FatalGenerationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FatalGenerationError";
+  }
+}
 
 function gradeFor(score: number) {
   if (score >= 90) return "S";
@@ -43,6 +58,20 @@ function gradeFor(score: number) {
   return "F";
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function retryDelay(attempt: number) {
+  return Math.min(20_000, 1_500 * 2 ** Math.min(4, Math.max(0, attempt - 1)));
+}
+
+function completeContent(progress: ReportProgress): DetailedReportContent | null {
+  const { intro, dynamics, action } = progress.segments;
+  if (!intro || !dynamics || !action) return null;
+  return { ...intro, ...dynamics, ...action };
+}
+
 export default function ResultV2() {
   const params = useSearchParams();
   const paymentId = params.get("paymentId");
@@ -51,48 +80,185 @@ export default function ResultV2() {
   const [snapshot, setSnapshot] = useState<CompatibilityCalculationSnapshot | null>(null);
   const [content, setContent] = useState<DetailedReportContent | null>(null);
   const [facts, setFacts] = useState<PaidReportFacts | null>(null);
-  const [meta, setMeta] = useState<DetailedReportMeta | null>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "missing" | "error">("loading");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [retryKey, setRetryKey] = useState(0);
+  const [segmentMetas, setSegmentMetas] = useState<Partial<Record<PaidReportSegmentName, PaidReportSegmentMeta>>>({});
+  const [status, setStatus] = useState<"loading" | "ready" | "missing" | "fatal">("loading");
+  const [fatalMessage, setFatalMessage] = useState<string | null>(null);
+  const [stage, setStage] = useState<"prepare" | PaidReportSegmentName>("prepare");
+  const [stageAttempt, setStageAttempt] = useState(1);
+  const [completedSegments, setCompletedSegments] = useState(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    if (status !== "loading") return;
+    const startedAt = Date.now();
+    setElapsedSeconds(0);
+    const timer = window.setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [status]);
 
   useEffect(() => {
     let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      if (!paymentId) { setStatus("missing"); return; }
+
+    async function postPhase<T>(
+      draft: OneToOneOrderDraft,
+      phase: "prepare" | PaidReportSegmentName,
+    ): Promise<T> {
+      let attempt = 0;
+
+      while (!cancelled) {
+        attempt += 1;
+        setStage(phase);
+        setStageAttempt(attempt);
+
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 210_000);
+        try {
+          const response = await fetch("/api/compatibility/one-to-one", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              paymentId: draft.paymentId,
+              input: draft.inputSnapshot,
+              phase,
+            }),
+            signal: controller.signal,
+            cache: "no-store",
+          });
+          const payload = await response.json().catch(() => null) as ({
+            error?: string;
+            code?: string;
+            reason?: string;
+            retryable?: boolean;
+          } & T) | null;
+
+          if (response.ok && payload) return payload;
+
+          const transient = payload?.retryable === true
+            || response.status === 429
+            || response.status === 502
+            || response.status === 503
+            || response.status === 504;
+
+          if (!transient) {
+            throw new FatalGenerationError(payload?.error ?? "상세 리포트 생성 설정을 확인해야 합니다.");
+          }
+        } catch (error) {
+          if (error instanceof FatalGenerationError) throw error;
+          // Network interruption, browser timeout, Claude congestion and server timeout are retried here.
+        } finally {
+          window.clearTimeout(timeout);
+        }
+
+        if (cancelled) throw new Error("CANCELLED");
+        await wait(retryDelay(attempt));
+      }
+
+      throw new Error("CANCELLED");
+    }
+
+    async function run() {
+      if (!paymentId) {
+        setStatus("missing");
+        return;
+      }
+
       const draft = loadOrderDraft(paymentId);
-      if (!draft) { setStatus("missing"); return; }
+      if (!draft) {
+        setStatus("missing");
+        return;
+      }
       setOrder(draft);
       setStatus("loading");
-      setErrorMessage(null);
-      void fetch("/api/compatibility/one-to-one", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ paymentId: draft.paymentId, input: draft.inputSnapshot }),
-      }).then(async (response) => {
-        const payload = await response.json().catch(() => null) as {
-          snapshot?: CompatibilityCalculationSnapshot;
-          reportContent?: DetailedReportContent;
-          reportFacts?: PaidReportFacts;
-          reportMeta?: DetailedReportMeta;
-          error?: string;
-          reason?: string;
-        } | null;
-        if (!payload) throw new Error("서버 응답이 중간에 끊겼어요. 잠시 후 같은 결제로 다시 시도해 주세요.");
-        if (!response.ok || !payload.snapshot || !payload.reportContent || !payload.reportFacts) {
-          const reasonText = payload.reason ? FAILURE_LABELS[payload.reason] : null;
-          throw new Error(reasonText ?? payload.error ?? "상세 리포트를 생성하지 못했어요.");
+      setFatalMessage(null);
+
+      let progress = loadReportProgress(draft.paymentId, draft.createdAt)
+        ?? emptyReportProgress(draft.paymentId, draft.createdAt);
+
+      const cachedContent = completeContent(progress);
+      if (progress.snapshot && progress.facts && cachedContent) {
+        setSnapshot(progress.snapshot);
+        setFacts(progress.facts);
+        setContent(cachedContent);
+        setSegmentMetas(progress.metas);
+        setCompletedSegments(3);
+        setStatus("ready");
+        return;
+      }
+
+      try {
+        if (!progress.snapshot || !progress.facts) {
+          const prepared = await postPhase<{
+            snapshot: CompatibilityCalculationSnapshot;
+            reportFacts: PaidReportFacts;
+          }>(draft, "prepare");
+          if (cancelled) return;
+          progress = {
+            ...progress,
+            snapshot: prepared.snapshot,
+            facts: prepared.reportFacts,
+          };
+          saveReportProgress(progress);
         }
+
         if (cancelled) return;
-        setSnapshot(payload.snapshot); setContent(payload.reportContent); setFacts(payload.reportFacts); setMeta(payload.reportMeta ?? null); setStatus("ready");
-      }).catch((error: unknown) => {
-        if (cancelled) return;
-        setErrorMessage(error instanceof Error ? error.message : "상세 리포트를 생성하지 못했어요."); setStatus("error");
-      });
+        setSnapshot(progress.snapshot);
+        setFacts(progress.facts);
+
+        for (const segment of SEGMENTS) {
+          if (progress.segments[segment]) {
+            setCompletedSegments((current) => Math.max(current, SEGMENTS.indexOf(segment) + 1));
+            continue;
+          }
+
+          const generated = await postPhase<{
+            segmentContent: IntroSegment | DynamicsSegment | ActionSegment;
+            segmentMeta: PaidReportSegmentMeta;
+          }>(draft, segment);
+          if (cancelled) return;
+
+          if (segment === "intro") progress.segments.intro = generated.segmentContent as IntroSegment;
+          if (segment === "dynamics") progress.segments.dynamics = generated.segmentContent as DynamicsSegment;
+          if (segment === "action") progress.segments.action = generated.segmentContent as ActionSegment;
+          progress.metas[segment] = generated.segmentMeta;
+          saveReportProgress(progress);
+          setCompletedSegments(SEGMENTS.indexOf(segment) + 1);
+          setSegmentMetas({ ...progress.metas });
+        }
+
+        const finalContent = completeContent(progress);
+        if (!finalContent || !progress.snapshot || !progress.facts) {
+          throw new FatalGenerationError("완성된 리포트를 조립하지 못했습니다.");
+        }
+
+        setSnapshot(progress.snapshot);
+        setFacts(progress.facts);
+        setContent(finalContent);
+        setSegmentMetas(progress.metas);
+        setStatus("ready");
+      } catch (error) {
+        if (cancelled || (error instanceof Error && error.message === "CANCELLED")) return;
+        if (error instanceof FatalGenerationError) {
+          setFatalMessage(error.message);
+          setStatus("fatal");
+          return;
+        }
+        // Any unknown transport-level issue should keep waiting rather than show a delay error.
+        setStageAttempt((current) => current + 1);
+        await wait(3_000);
+        if (!cancelled) void run();
+      }
+    }
+
+    queueMicrotask(() => {
+      if (!cancelled) void run();
     });
-    return () => { cancelled = true; };
-  }, [paymentId, retryKey]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [paymentId]);
 
   const visibleDimensions = useMemo(() => {
     if (!snapshot) return [];
@@ -101,8 +267,10 @@ export default function ResultV2() {
   }, [snapshot]);
 
   if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 불러올 입력정보가 없어요.</h1><p>결제 자체는 사라지지 않았어요. 같은 브라우저의 원래 결제 탭이 있으면 그 탭을 다시 열어 주세요. 없으면 아래에서 두 사람의 정보만 다시 입력해 기존 결제로 결과를 복구할 수 있어요.</p>{paymentId ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력정보 다시 넣기</Link> : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}</div></main>;
-  if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>두 사람의 상세 리포트를 쓰고 있어요.</h1><p>점수 계산을 확인한 뒤 개인화된 긴 해설을 구성하고 있어요. 첫 생성은 잠시 걸릴 수 있습니다.</p></div></main>;
-  if (status === "error" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>상세 해설 생성이 지연되고 있어요.</h1><p>{errorMessage ?? "잠시 후 다시 시도해 주세요."}</p><button type="button" onClick={() => setRetryKey((value) => value + 1)}>같은 결제로 다시 생성하기</button></div></main>;
+
+  if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>상세 리포트를 만들고 있어요.</h1><p>{STAGE_COPY[stage]}</p><p>{completedSegments}/3개 해설 묶음 완료 · {elapsedSeconds}초 경과</p>{stageAttempt > 1 ? <p>응답이 늦어 자동으로 다시 연결하고 있어요. 이 화면은 오류로 전환되지 않고 완료될 때까지 계속 시도합니다.</p> : <p>첫 장문 생성은 시간이 걸릴 수 있어요. 창을 그대로 열어두면 자동으로 이어서 진행합니다.</p>}</div></main>;
+
+  if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>자동 대기로 해결할 수 없는 설정 문제가 있어요.</h1><p>{fatalMessage ?? "결제 또는 API 설정을 확인해 주세요."}</p><p>결제는 다시 하지 않아도 됩니다.</p></div></main>;
 
   const { personA, personB, relationshipType } = order.inputSnapshot;
   const relationshipLabel = RELATIONSHIP_LABELS[relationshipType];
@@ -132,7 +300,7 @@ export default function ResultV2() {
     <ReportChaptersA content={content} personAName={personA.displayName} personBName={personB.displayName} />
     <ReportChaptersB content={content} personAName={personA.displayName} personBName={personB.displayName} relationshipLabel={relationshipLabel} />
 
-    {debug && meta && <section className="v2-debug"><strong>QA debug</strong><pre>{JSON.stringify({ meta, scoringVersion: snapshot.scoringVersion, engineVersion: snapshot.engineVersion }, null, 2)}</pre></section>}
+    {debug && <section className="v2-debug"><strong>QA debug</strong><pre>{JSON.stringify({ segmentMetas, scoringVersion: snapshot.scoringVersion, engineVersion: snapshot.engineVersion }, null, 2)}</pre></section>}
     <footer className="v2-footer"><Link href="/one-to-one">다른 사람과 다시 보기</Link><Link href="/">처음으로</Link></footer>
   </div></main>;
 }
