@@ -26,26 +26,42 @@ function parseOrderDraft(raw: string | null, paymentId: string): OneToOneOrderDr
   }
 }
 
+function safeGet(storage: Storage, key: string) {
+  try {
+    return storage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSet(storage: Storage, key: string, value: string) {
+  try {
+    storage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function saveOrderDraft(order: OneToOneOrderDraft) {
+  if (typeof window === "undefined") return;
   const serialized = JSON.stringify(order);
   const key = storageKey(order.paymentId);
 
-  // sessionStorage keeps compatibility with the original checkout flow.
-  sessionStorage.setItem(key, serialized);
-  // localStorage lets the same paid result survive new tabs and browser restarts
-  // on the same browser profile until server-side order storage is introduced.
-  localStorage.setItem(key, serialized);
+  // Keep both stores when available. Either store may be unavailable in restrictive browser modes.
+  safeSet(window.sessionStorage, key, serialized);
+  safeSet(window.localStorage, key, serialized);
 }
 
 export function loadOrderDraft(paymentId: string): OneToOneOrderDraft | null {
+  if (typeof window === "undefined") return null;
   const key = storageKey(paymentId);
 
-  const fromSession = parseOrderDraft(sessionStorage.getItem(key), paymentId);
+  const fromSession = parseOrderDraft(safeGet(window.sessionStorage, key), paymentId);
   if (fromSession) {
-    // Opportunistically migrate old session-only drafts to localStorage.
-    localStorage.setItem(key, JSON.stringify(fromSession));
+    safeSet(window.localStorage, key, JSON.stringify(fromSession));
     return fromSession;
   }
 
-  return parseOrderDraft(localStorage.getItem(key), paymentId);
+  return parseOrderDraft(safeGet(window.localStorage, key), paymentId);
 }
