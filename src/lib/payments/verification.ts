@@ -1,6 +1,11 @@
 import { PaymentClient } from "@portone/server-sdk";
 import { PRODUCTS, type ProductKey } from "@/lib/catalog";
-import { ORDER_BINDING_VERSION, hashOneToOneInput } from "@/lib/order-binding";
+import {
+  LEGACY_ORDER_BINDING_VERSION,
+  ORDER_BINDING_VERSION,
+  hashOneToOneInput,
+  type OrderBindingVersion,
+} from "@/lib/order-binding";
 import type { OneToOneReportInput } from "@/lib/report-input";
 
 export class PaymentVerificationError extends Error {
@@ -33,6 +38,10 @@ function parseCustomData(value: unknown): Record<string, unknown> | null {
   } catch {
     return null;
   }
+}
+
+function isBindingVersion(value: unknown): value is OrderBindingVersion {
+  return value === ORDER_BINDING_VERSION || value === LEGACY_ORDER_BINDING_VERSION;
 }
 
 export async function verifyPaidPayment(
@@ -107,8 +116,8 @@ export async function verifyPaidPayment(
   if (expectedInput) {
     const bindingVersion = customData?.bindingVersion;
     const paidInputHash = customData?.inputHash;
-    if (bindingVersion === ORDER_BINDING_VERSION && typeof paidInputHash === "string") {
-      const expectedInputHash = await hashOneToOneInput(expectedInput);
+    if (isBindingVersion(bindingVersion) && typeof paidInputHash === "string") {
+      const expectedInputHash = await hashOneToOneInput(expectedInput, bindingVersion);
       if (paidInputHash !== expectedInputHash) {
         throw new PaymentVerificationError(
           "결제 당시 입력정보와 현재 요청한 입력정보가 일치하지 않습니다.",
