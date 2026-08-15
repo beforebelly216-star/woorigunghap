@@ -3,13 +3,17 @@
 import * as PortOne from "@portone/browser-sdk/v2";
 import { useState } from "react";
 import { PRODUCTS, type ProductKey } from "@/lib/catalog";
+import { ORDER_BINDING_VERSION, hashOneToOneInput } from "@/lib/order-binding";
+import type { OneToOneReportInput } from "@/lib/report-input";
 
 export function PaymentButton({
   product,
   paymentId,
+  inputSnapshot,
 }: {
   product: ProductKey;
   paymentId?: string;
+  inputSnapshot?: OneToOneReportInput;
 }) {
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,21 +29,38 @@ export function PaymentButton({
 
     setIsLoading(true);
     setMessage(null);
-    const resolvedPaymentId = paymentId ?? `woori-${product}-${crypto.randomUUID()}`;
-    const response = await PortOne.requestPayment({
-      storeId,
-      channelKey,
-      paymentId: resolvedPaymentId,
-      orderName: item.orderName,
-      totalAmount: item.amount,
-      currency: "CURRENCY_KRW",
-      payMethod: "CARD",
-      redirectUrl: `${window.location.origin}/payment/redirect`,
-      forceRedirect: true,
-    });
 
-    if (response?.code) {
-      setMessage(response.message ?? "결제를 완료하지 못했어요. 다시 시도해 주세요.");
+    try {
+      const resolvedPaymentId = paymentId ?? `woori-${product}-${crypto.randomUUID()}`;
+      const inputHash = product === "oneToOne" && inputSnapshot
+        ? await hashOneToOneInput(inputSnapshot)
+        : null;
+
+      const response = await PortOne.requestPayment({
+        storeId,
+        channelKey,
+        paymentId: resolvedPaymentId,
+        orderName: item.orderName,
+        totalAmount: item.amount,
+        currency: "CURRENCY_KRW",
+        payMethod: "CARD",
+        redirectUrl: `${window.location.origin}/payment/redirect`,
+        forceRedirect: true,
+        customData: inputHash
+          ? {
+              product,
+              bindingVersion: ORDER_BINDING_VERSION,
+              inputHash,
+            }
+          : { product },
+      });
+
+      if (response?.code) {
+        setMessage(response.message ?? "결제를 완료하지 못했어요. 다시 시도해 주세요.");
+        setIsLoading(false);
+      }
+    } catch {
+      setMessage("결제창을 여는 과정에서 문제가 생겼어요. 잠시 후 다시 시도해 주세요.");
       setIsLoading(false);
     }
   }
