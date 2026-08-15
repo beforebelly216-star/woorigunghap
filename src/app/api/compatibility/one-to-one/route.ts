@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
 import { buildPaidReportFacts } from "@/lib/narrative/report-engine-v5";
-import { generateDetailedPaidReportV6 } from "@/lib/narrative/report-engine-v6";
 import {
   PAID_REPORT_SEGMENTS,
   generatePaidReportSegmentV7,
@@ -66,8 +65,7 @@ function parseInput(value: unknown): OneToOneReportInput | null {
   };
 }
 
-function parsePhase(value: unknown): ReportPhase | "legacy" | null {
-  if (value === undefined || value === null) return "legacy";
+function parsePhase(value: unknown): ReportPhase | null {
   return typeof value === "string" && PHASES.includes(value as ReportPhase)
     ? value as ReportPhase
     : null;
@@ -130,7 +128,12 @@ export async function POST(request: NextRequest) {
 
   if (!paymentId || !input || !phase) {
     return NextResponse.json(
-      { error: "결제번호, 궁합 입력값 또는 생성 단계가 올바르지 않습니다.", reportRuntimeVersion: REPORT_RUNTIME_VERSION },
+      {
+        error: "결제번호, 궁합 입력값 또는 생성 단계가 올바르지 않습니다. 페이지를 새로고침해 주세요.",
+        code: "REPORT_PHASE_REQUIRED",
+        retryable: false,
+        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+      },
       { status: 400 },
     );
   }
@@ -152,24 +155,6 @@ export async function POST(request: NextRequest) {
         phase,
         snapshot,
         reportFacts: buildPaidReportFacts(input),
-        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
-        payment: {
-          verified: true,
-          paymentId: payment.paymentId,
-          product: payment.product,
-          amount: payment.amount,
-          inputBound: payment.inputBound,
-        },
-      });
-    }
-
-    if (phase === "legacy") {
-      const report = await generateDetailedPaidReportV6(snapshot, input);
-      return NextResponse.json({
-        snapshot,
-        reportContent: report.content,
-        reportFacts: report.facts,
-        reportMeta: report.meta,
         reportRuntimeVersion: REPORT_RUNTIME_VERSION,
         payment: {
           verified: true,
@@ -210,11 +195,7 @@ export async function POST(request: NextRequest) {
     }
 
     const message = error instanceof Error ? error.message : "궁합 계산에 실패했습니다.";
-    if (
-      message.startsWith("PAID_REPORT_SEGMENT_FAILED")
-      || message.startsWith("DETAILED_REPORT_GENERATION_FAILED")
-      || message.includes("ANTHROPIC")
-    ) {
+    if (message.startsWith("PAID_REPORT_SEGMENT_FAILED") || message.includes("ANTHROPIC")) {
       const reason = classifyReportFailure(message);
       return NextResponse.json(
         {
