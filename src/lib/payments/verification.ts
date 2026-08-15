@@ -44,7 +44,7 @@ function isBindingVersion(value: unknown): value is OrderBindingVersion {
   return value === ORDER_BINDING_VERSION || value === LEGACY_ORDER_BINDING_VERSION;
 }
 
-function isTerminalPaymentStatus(status: string) {
+function isTerminalPaymentStatus(status: unknown) {
   return status === "FAILED" || status === "CANCELLED" || status === "PARTIAL_CANCELLED";
 }
 
