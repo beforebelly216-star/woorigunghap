@@ -1,5 +1,7 @@
 import { PaymentClient } from "@portone/server-sdk";
 import { PRODUCTS, type ProductKey } from "@/lib/catalog";
+import { ORDER_BINDING_VERSION, hashOneToOneInput } from "@/lib/order-binding";
+import type { OneToOneReportInput } from "@/lib/report-input";
 
 export class PaymentVerificationError extends Error {
   constructor(
@@ -19,9 +21,24 @@ export function productFromPaymentId(paymentId: string): ProductKey | null {
   return null;
 }
 
+function parseCustomData(value: unknown): Record<string, unknown> | null {
+  if (!value) return null;
+  if (typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
+  if (typeof value !== "string") return null;
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function verifyPaidPayment(
   paymentId: string,
   expectedProduct?: ProductKey,
+  expectedInput?: OneToOneReportInput,
 ) {
   const secret = process.env.PORTONE_API_SECRET;
   if (!secret) {
@@ -77,10 +94,37 @@ export async function verifyPaidPayment(
     );
   }
 
+  const customData = parseCustomData((payment as unknown as { customData?: unknown }).customData);
+  if (customData?.product && customData.product !== product) {
+    throw new PaymentVerificationError(
+      "결제 상품 정보가 요청한 리포트와 일치하지 않습니다.",
+      400,
+      "PAYMENT_CUSTOM_DATA_MISMATCH",
+    );
+  }
+
+  let inputBound = false;
+  if (expectedInput) {
+    const bindingVersion = customData?.bindingVersion;
+    const paidInputHash = customData?.inputHash;
+    if (bindingVersion === ORDER_BINDING_VERSION && typeof paidInputHash === "string") {
+      const expectedInputHash = await hashOneToOneInput(expectedInput);
+      if (paidInputHash !== expectedInputHash) {
+        throw new PaymentVerificationError(
+          "결제 당시 입력정보와 현재 요청한 입력정보가 일치하지 않습니다.",
+          409,
+          "PAYMENT_INPUT_MISMATCH",
+        );
+      }
+      inputBound = true;
+    }
+  }
+
   return {
     paymentId,
     product,
     amount: expected.amount,
     status: payment.status,
+    inputBound,
   } as const;
 }
