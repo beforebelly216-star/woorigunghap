@@ -36,7 +36,7 @@ function PaymentResult() {
 
   useEffect(() => {
     if (!paymentId || code) return;
-
+    const verifiedPaymentId = paymentId;
     let cancelled = false;
 
     async function verifyUntilReady() {
@@ -49,7 +49,7 @@ function PaymentResult() {
           const response = await fetch("/api/payments/verify", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ paymentId }),
+            body: JSON.stringify({ paymentId: verifiedPaymentId }),
             cache: "no-store",
           });
           const payload = await response.json().catch(() => null) as VerifyPayload | null;
@@ -57,7 +57,7 @@ function PaymentResult() {
 
           if (response.ok && payload?.verified) {
             setState("success");
-            router.replace(`/one-to-one/result?paymentId=${encodeURIComponent(paymentId)}`);
+            router.replace(`/one-to-one/result?paymentId=${encodeURIComponent(verifiedPaymentId)}`);
             return;
           }
 
