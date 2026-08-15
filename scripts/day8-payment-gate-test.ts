@@ -20,6 +20,10 @@ assert.match(verification, /PAYMENT_INPUT_MISMATCH/);
 assert.match(verification, /hashOneToOneInput\(expectedInput, bindingVersion\)/);
 assert.match(verification, /LEGACY_ORDER_BINDING_VERSION/);
 assert.match(verification, /isBindingVersion\(bindingVersion\)/);
+assert.match(verification, /PAYMENT_TERMINAL/);
+assert.match(verification, /status === "FAILED"/);
+assert.match(verification, /status === "CANCELLED"/);
+assert.match(verification, /status === "PARTIAL_CANCELLED"/);
 
 const binding = readFileSync("src/lib/order-binding.ts", "utf8");
 assert.match(binding, /input-sha256-v2/);
