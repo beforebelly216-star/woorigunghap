@@ -91,7 +91,6 @@ export default function ResultV2() {
   useEffect(() => {
     if (status !== "loading") return;
     const startedAt = Date.now();
-    setElapsedSeconds(0);
     const timer = window.setInterval(() => {
       setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
     }, 1000);
