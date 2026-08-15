@@ -11,7 +11,10 @@ import {
   type DetailedReportContent,
   type PaidReportFacts,
 } from "@/lib/narrative/report-engine-v5";
-import { requestStructuredSegment } from "@/lib/narrative/report-engine-v6-request";
+import {
+  combineAnthropicUsage,
+  requestStructuredSegment,
+} from "@/lib/narrative/report-engine-v6-request";
 
 export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-resumable-segments" as const;
 export const PAID_REPORT_V7_PAYLOAD_VERSION = "paid-report-evidence-v3" as const;
@@ -289,9 +292,7 @@ export async function generatePaidReportSegmentV7(
         ? await generateDynamics(apiKey, model, payloadText)
         : await generateAction(apiKey, model, payloadText);
 
-    const usage = generated.best.usage
-      ? (await import("@/lib/narrative/report-engine")).calculateAnthropicUsageCost(generated.best.usage)
-      : null;
+    const usage = combineAnthropicUsage(generated.allUsage);
 
     console.info("[woorigunghap:paid-report-v7-segment]", JSON.stringify({
       segment,
