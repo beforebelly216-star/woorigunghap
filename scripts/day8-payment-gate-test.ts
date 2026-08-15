@@ -12,11 +12,20 @@ assert.match(liveRoute, /verifyPaidPayment\(paymentId,\s*"oneToOne",\s*input\)/)
 assert.match(liveRoute, /phase === "prepare"/);
 assert.match(liveRoute, /generatePaidReportSegmentV7/);
 assert.match(liveRoute, /retryable:/);
+assert.doesNotMatch(liveRoute, /generateDetailedPaidReportV6/);
+assert.doesNotMatch(liveRoute, /phase === "legacy"/);
 
 const verification = readFileSync("src/lib/payments/verification.ts", "utf8");
 assert.match(verification, /PAYMENT_INPUT_MISMATCH/);
-assert.match(verification, /hashOneToOneInput\(expectedInput\)/);
-assert.match(verification, /bindingVersion === ORDER_BINDING_VERSION/);
+assert.match(verification, /hashOneToOneInput\(expectedInput, bindingVersion\)/);
+assert.match(verification, /LEGACY_ORDER_BINDING_VERSION/);
+assert.match(verification, /isBindingVersion\(bindingVersion\)/);
+
+const binding = readFileSync("src/lib/order-binding.ts", "utf8");
+assert.match(binding, /input-sha256-v2/);
+assert.match(binding, /input-sha256-v1/);
+assert.match(binding, /displayName: value\.displayName/);
+assert.match(binding, /version === LEGACY_ORDER_BINDING_VERSION/);
 
 const paymentButton = readFileSync("src/components/payment-button.tsx", "utf8");
 assert.match(paymentButton, /customData:/);
@@ -27,6 +36,11 @@ const resultPage = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8
 assert.match(resultPage, /paymentId: draft\.paymentId/);
 assert.match(resultPage, /input: draft\.inputSnapshot/);
 assert.match(resultPage, /phase,/);
+
+const redirectPage = readFileSync("src/app/payment/redirect/page.tsx", "utf8");
+assert.match(redirectPage, /while \(!cancelled\)/);
+assert.match(redirectPage, /PORTONE_LOOKUP_FAILED/);
+assert.match(redirectPage, /PAYMENT_NOT_PAID/);
 
 const demoRoute = readFileSync("src/app/api/compatibility/one-to-one/demo/route.ts", "utf8");
 assert.doesNotMatch(demoRoute, /request\.json\(/);
