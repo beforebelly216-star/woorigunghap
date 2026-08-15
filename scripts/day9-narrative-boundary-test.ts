@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { calculateOneToOneCompatibility } from "../src/lib/compatibility/engine";
 import {
   buildReportEvidencePack,
@@ -9,6 +9,7 @@ import {
   REPORT_EVIDENCE_PACK_VERSION,
   REPORT_PROMPT_VERSION,
 } from "../src/lib/narrative/report-engine";
+import { buildPaidReportFacts } from "../src/lib/narrative/report-engine-v5";
 import type { OneToOneReportInput } from "../src/lib/report-input";
 
 const input: OneToOneReportInput = {
@@ -40,16 +41,22 @@ function assertCondition(condition: unknown, message: string): asserts condition
 async function main() {
   const snapshot = calculateOneToOneCompatibility(input);
   const pack = buildReportEvidencePack(snapshot, input);
+  const facts = buildPaidReportFacts(input);
   const serialized = JSON.stringify(pack);
+  const fullAiPayload = JSON.stringify({ facts, evidence: pack });
 
   for (const forbiddenValue of ["테스트A", "테스트B", "1990-05-15", "1992-10-24", "14:17", "05:43"]) {
     assertCondition(!serialized.includes(forbiddenValue), `ReportEvidencePack 개인정보 값 노출: ${forbiddenValue}`);
+    assertCondition(!fullAiPayload.includes(forbiddenValue), `실제 AI payload 개인정보 값 노출: ${forbiddenValue}`);
   }
   for (const forbiddenKey of ["displayName", "paymentId", "orderId", "birthDate", "sourceDate", "solarDate"]) {
     assertCondition(!serialized.includes(`\"${forbiddenKey}\":`), `ReportEvidencePack 개인정보 키 노출: ${forbiddenKey}`);
+    assertCondition(!fullAiPayload.includes(`\"${forbiddenKey}\":`), `실제 AI payload 개인정보 키 노출: ${forbiddenKey}`);
   }
-  assertCondition(!serialized.includes("\"birthTime\":"), "원본 birthTime 키는 AI payload에 포함되면 안 됩니다.");
-  assertCondition(serialized.includes("\"birthTimeKnown\":"), "시간 미상 여부 플래그는 신뢰도 설명을 위해 유지합니다.");
+  assertCondition(!fullAiPayload.includes("\"birthTime\":"), "원본 birthTime 키는 AI payload에 포함되면 안 됩니다.");
+  assertCondition(fullAiPayload.includes("\"birthTimeKnown\":"), "시간 미상 여부 플래그는 신뢰도 설명을 위해 유지합니다.");
+  assertCondition(fullAiPayload.includes("\"pillars\":"), "유료 리포트 AI payload에는 비식별 사주팔자 facts가 필요합니다.");
+  assertCondition(fullAiPayload.includes("\"visibleElementCounts\":"), "유료 리포트 AI payload에는 오행 개수 facts가 필요합니다.");
 
   assertCondition(pack.payloadVersion === REPORT_EVIDENCE_PACK_VERSION, "payload version이 다릅니다.");
   assertCondition(pack.persons.A.dayMaster.stem.length > 0, "A 개인 분석용 일간이 필요합니다.");
@@ -61,7 +68,7 @@ async function main() {
   assertCondition(pack.directionalSignals.bReceivesUsefulFit !== null, "B←A 방향성 근거가 필요합니다.");
   assertCondition(pack.aiBoundary.scoreMutableByAi === false, "AI가 점수를 변경할 수 없어야 합니다.");
   assertCondition(pack.aiBoundary.rankingMutableByAi === false, "AI가 순위를 변경할 수 없어야 합니다.");
-  assertCondition(serialized.length < 20_000, `ReportEvidencePack이 과도하게 큽니다: ${serialized.length} chars`);
+  assertCondition(fullAiPayload.length < 25_000, `유료 리포트 AI payload가 과도하게 큽니다: ${fullAiPayload.length} chars`);
 
   const template = buildTemplateNarrative(snapshot, input);
   assertCondition(template.headline.length > 0 && template.summary.length > 0, "요약 서술이 비어 있습니다.");
@@ -101,18 +108,22 @@ async function main() {
   assert.match(v7Engine, /PAID_REPORT_SEGMENTS = \["intro", "dynamics", "action"\]/);
   assert.match(v7Engine, /대운·세운·특정 연도·월의 관계 타이밍은 작성하지 마세요/);
   assert.match(v7Engine, /preferStructured: false/);
+  assert.match(v7Engine, /combineAnthropicUsage\(generated\.allUsage\)/);
 
   const progressStore = readFileSync("src/lib/report-progress-storage.ts", "utf8");
   assert.match(progressStore, /window\.localStorage/);
   assert.match(progressStore, /report-progress-v7-1/);
 
+  assertCondition(!existsSync("src/app/api/compatibility/one-to-one-v4/route.ts"), "구형 공개 v4 궁합 API가 다시 생기면 안 됩니다.");
+  assertCondition(!existsSync("src/app/api-route-upgrade.tsx"), "브라우저 fetch를 구형 API로 재작성하는 컴포넌트가 다시 생기면 안 됩니다.");
+
   const conservativeCost = calculateAnthropicUsageCost({ input_tokens: 7000, output_tokens: 4000 }, 1450);
   assertCondition(conservativeCost.estimatedUsd === 0.027, `Haiku 원가 계산 오류(USD): ${conservativeCost.estimatedUsd}`);
   assertCondition(conservativeCost.estimatedKrw === 39.15, `Haiku 원가 계산 오류(KRW): ${conservativeCost.estimatedKrw}`);
 
-  console.log("Day 9 personalized ReportEvidencePack + resumable report checks: PASS");
+  console.log("Day 9 full AI payload privacy + resumable report checks: PASS");
   console.log(
-    `score=${snapshot.score}, prompt=${REPORT_PROMPT_VERSION}, payload=${serialized.length} chars, ` +
+    `score=${snapshot.score}, prompt=${REPORT_PROMPT_VERSION}, aiPayload=${fullAiPayload.length} chars, ` +
     `conservativeCost=${conservativeCost.estimatedKrw} KRW`,
   );
 }
