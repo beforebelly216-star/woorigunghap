@@ -44,6 +44,10 @@ function isBindingVersion(value: unknown): value is OrderBindingVersion {
   return value === ORDER_BINDING_VERSION || value === LEGACY_ORDER_BINDING_VERSION;
 }
 
+function isTerminalPaymentStatus(status: string) {
+  return status === "FAILED" || status === "CANCELLED" || status === "PARTIAL_CANCELLED";
+}
+
 export async function verifyPaidPayment(
   paymentId: string,
   expectedProduct?: ProductKey,
@@ -88,8 +92,15 @@ export async function verifyPaidPayment(
 
   const expected = PRODUCTS[product];
   if (payment.status !== "PAID") {
+    if (isTerminalPaymentStatus(payment.status)) {
+      throw new PaymentVerificationError(
+        "결제가 실패했거나 취소된 주문입니다.",
+        402,
+        "PAYMENT_TERMINAL",
+      );
+    }
     throw new PaymentVerificationError(
-      "결제가 완료된 주문만 결과를 계산할 수 있습니다.",
+      "결제 승인 상태가 아직 반영되지 않았습니다.",
       402,
       "PAYMENT_NOT_PAID",
     );
