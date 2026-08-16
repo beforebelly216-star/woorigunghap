@@ -10,7 +10,7 @@ import {
 } from "@/lib/report-input";
 
 export const runtime = "nodejs";
-export const maxDuration = 150;
+export const maxDuration = 300;
 const RUNTIME_VERSION = "paid-report-v7-resumable-20260816";
 
 function parsePerson(value: unknown): PersonBirthInput | null {
