@@ -1,0 +1,36 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createOneToOneOrderDraft } from "@/lib/orders";
+import { parseOneToOneReportInput, validateOneToOneReportInput } from "@/lib/report-input";
+import { isServerReportStoreConfigured, saveServerOrderDraft } from "@/lib/server-report-store";
+
+export const runtime = "nodejs";
+
+export async function POST(request: NextRequest) {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "JSON 요청 형식이 올바르지 않습니다." }, { status: 400 });
+  }
+
+  const input = parseOneToOneReportInput(
+    body && typeof body === "object" && !Array.isArray(body)
+      ? (body as { input?: unknown }).input
+      : null,
+  );
+  if (!input) return NextResponse.json({ error: "궁합 입력값 형식이 올바르지 않습니다." }, { status: 400 });
+
+  const validation = validateOneToOneReportInput(input);
+  if (!validation.valid) return NextResponse.json({ error: "궁합 입력값을 다시 확인해 주세요.", fieldErrors: validation.errors }, { status: 400 });
+
+  const order = createOneToOneOrderDraft(input);
+  try {
+    const persisted = await saveServerOrderDraft(order);
+    return NextResponse.json({ order, persisted });
+  } catch (error) {
+    console.error("[woorigunghap:order-store]", error);
+    // The browser keeps a local recovery copy. Checkout should not be blocked by
+    // a temporarily unavailable database, but the response makes that explicit.
+    return NextResponse.json({ order, persisted: false, serverStorageConfigured: isServerReportStoreConfigured() });
+  }
+}

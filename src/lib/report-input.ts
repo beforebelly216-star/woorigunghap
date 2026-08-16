@@ -55,6 +55,38 @@ export type OneToOneReportInput = {
   personB: PersonBirthInput;
 };
 
+/**
+ * Accept an untrusted JSON candidate only after checking the complete input
+ * shape. Route handlers use this before the detailed validation below so a
+ * malformed request cannot reach date or string operations.
+ */
+export function parseOneToOneReportInput(value: unknown): OneToOneReportInput | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const candidate = value as Record<string, unknown>;
+
+  function parsePerson(person: unknown): PersonBirthInput | null {
+    if (!person || typeof person !== "object" || Array.isArray(person)) return null;
+    const item = person as Record<string, unknown>;
+    if (
+      typeof item.displayName !== "string"
+      || !GENDERS.includes(item.gender as Gender)
+      || !CALENDAR_TYPES.includes(item.calendarType as CalendarType)
+      || typeof item.birthDate !== "string"
+      || typeof item.birthTimeKnown !== "boolean"
+      || !(typeof item.birthTime === "string" || item.birthTime === null)
+      || typeof item.isLeapMonth !== "boolean"
+    ) return null;
+    return item as PersonBirthInput;
+  }
+
+  if (!RELATIONSHIP_TYPES.includes(candidate.relationshipType as RelationshipType)) return null;
+  const personA = parsePerson(candidate.personA);
+  const personB = parsePerson(candidate.personB);
+  return personA && personB
+    ? { relationshipType: candidate.relationshipType as RelationshipType, personA, personB }
+    : null;
+}
+
 export type InputFieldErrors = Record<string, string>;
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
