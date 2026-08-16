@@ -10,60 +10,28 @@ import {
   PaymentVerificationError,
   verifyPaidPayment,
 } from "@/lib/payments/verification";
+import { createRecoveredOneToOneOrderDraft } from "@/lib/orders";
 import {
-  RELATIONSHIP_TYPES,
+  parseOneToOneReportInput,
   validateOneToOneReportInput,
   type OneToOneReportInput,
-  type PersonBirthInput,
 } from "@/lib/report-input";
+import {
+  hasServerOrder,
+  isServerReportStoreConfigured,
+  loadServerReportProgress,
+  markServerOrderPaid,
+  saveServerOrderDraft,
+  saveServerReportPrepared,
+  saveServerReportSegment,
+  type ServerReportProgress,
+} from "@/lib/server-report-store";
 
 export const runtime = "nodejs";
 export const maxDuration = 240;
-const REPORT_RUNTIME_VERSION = "paid-report-v7-resumable-20260816";
+const REPORT_RUNTIME_VERSION = "paid-report-v7-editorial-server-store-20260816";
 const PHASES = ["prepare", ...PAID_REPORT_SEGMENTS] as const;
 type ReportPhase = (typeof PHASES)[number];
-
-function parsePerson(value: unknown): PersonBirthInput | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const candidate = value as Record<string, unknown>;
-
-  if (
-    typeof candidate.displayName !== "string" ||
-    (candidate.gender !== "male" && candidate.gender !== "female") ||
-    (candidate.calendarType !== "solar" && candidate.calendarType !== "lunar") ||
-    typeof candidate.birthDate !== "string" ||
-    typeof candidate.birthTimeKnown !== "boolean" ||
-    !(typeof candidate.birthTime === "string" || candidate.birthTime === null) ||
-    typeof candidate.isLeapMonth !== "boolean"
-  ) {
-    return null;
-  }
-
-  return candidate as PersonBirthInput;
-}
-
-function parseInput(value: unknown): OneToOneReportInput | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const candidate = value as Record<string, unknown>;
-  const relationshipType = candidate.relationshipType;
-
-  if (
-    typeof relationshipType !== "string" ||
-    !RELATIONSHIP_TYPES.includes(relationshipType as OneToOneReportInput["relationshipType"])
-  ) {
-    return null;
-  }
-
-  const personA = parsePerson(candidate.personA);
-  const personB = parsePerson(candidate.personB);
-  if (!personA || !personB) return null;
-
-  return {
-    relationshipType: relationshipType as OneToOneReportInput["relationshipType"],
-    personA,
-    personB,
-  };
-}
 
 function parsePhase(value: unknown): ReportPhase | null {
   return typeof value === "string" && PHASES.includes(value as ReportPhase)
@@ -109,6 +77,34 @@ function failureMessage(reason: string) {
   }
 }
 
+async function readOrCreateServerProgress(
+  paymentId: string,
+  input: OneToOneReportInput,
+): Promise<ServerReportProgress | null> {
+  if (!isServerReportStoreConfigured()) return null;
+  try {
+    if (!await hasServerOrder(paymentId)) {
+      await saveServerOrderDraft(createRecoveredOneToOneOrderDraft(input, paymentId));
+    }
+    await markServerOrderPaid(paymentId);
+    return await loadServerReportProgress(paymentId);
+  } catch (error) {
+    // A live paid report must remain usable if the optional persistence layer
+    // is temporarily unavailable. Browser storage still resumes this request.
+    console.error("[woorigunghap:server-report-store-read]", error);
+    return null;
+  }
+}
+
+async function persistWithoutBlocking(label: string, task: () => Promise<unknown>) {
+  if (!isServerReportStoreConfigured()) return;
+  try {
+    await task();
+  } catch (error) {
+    console.error(`[woorigunghap:server-report-store-${label}]`, error);
+  }
+}
+
 export async function POST(request: NextRequest) {
   let body: unknown;
   try {
@@ -123,7 +119,7 @@ export async function POST(request: NextRequest) {
 
   const candidate = body as { paymentId?: unknown; input?: unknown; phase?: unknown };
   const paymentId = typeof candidate.paymentId === "string" ? candidate.paymentId : null;
-  const input = parseInput(candidate.input);
+  const input = parseOneToOneReportInput(candidate.input);
   const phase = parsePhase(candidate.phase);
 
   if (!paymentId || !input || !phase) {
@@ -148,13 +144,36 @@ export async function POST(request: NextRequest) {
 
   try {
     const payment = await verifyPaidPayment(paymentId, "oneToOne", input);
-    const snapshot = calculateOneToOneCompatibility(input);
+    const storedProgress = await readOrCreateServerProgress(paymentId, input);
+    const snapshot = storedProgress?.snapshot ?? calculateOneToOneCompatibility(input);
+    const reportFacts = storedProgress?.facts ?? buildPaidReportFacts(input);
 
     if (phase === "prepare") {
+      if (!storedProgress?.snapshot || !storedProgress.facts) {
+        await persistWithoutBlocking("prepare", () => saveServerReportPrepared(paymentId, snapshot, reportFacts));
+      }
       return NextResponse.json({
         phase,
         snapshot,
-        reportFacts: buildPaidReportFacts(input),
+        reportFacts,
+        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+        payment: {
+          verified: true,
+          paymentId: payment.paymentId,
+          product: payment.product,
+          amount: payment.amount,
+          inputBound: payment.inputBound,
+        },
+      });
+    }
+
+    const storedSegment = storedProgress?.segments[phase as PaidReportSegmentName];
+    const storedMeta = storedProgress?.metas[phase as PaidReportSegmentName];
+    if (storedSegment && storedMeta) {
+      return NextResponse.json({
+        phase,
+        segmentContent: storedSegment,
+        segmentMeta: storedMeta,
         reportRuntimeVersion: REPORT_RUNTIME_VERSION,
         payment: {
           verified: true,
@@ -167,6 +186,12 @@ export async function POST(request: NextRequest) {
     }
 
     const generated = await generatePaidReportSegmentV7(snapshot, input, phase as PaidReportSegmentName);
+    await persistWithoutBlocking("segment", () => saveServerReportSegment(
+      paymentId,
+      phase as PaidReportSegmentName,
+      generated.content,
+      generated.meta,
+    ));
     return NextResponse.json({
       phase,
       segmentContent: generated.content,

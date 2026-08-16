@@ -17,6 +17,7 @@ import {
 import {
   createOneToOneOrderDraft,
   createRecoveredOneToOneOrderDraft,
+  type OneToOneOrderDraft,
 } from "@/lib/orders";
 import { saveOrderDraft } from "@/lib/order-storage";
 
@@ -274,7 +275,7 @@ export function OneToOneForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isContinuing, setIsContinuing] = useState(false);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsContinuing(false);
 
@@ -313,7 +314,21 @@ export function OneToOneForm() {
       return;
     }
 
-    const order = createOneToOneOrderDraft(input);
+    let order: OneToOneOrderDraft;
+    try {
+      const response = await fetch("/api/orders/one-to-one", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ input }),
+      });
+      const payload = await response.json().catch(() => null) as { order?: OneToOneOrderDraft } | null;
+      if (!response.ok || !payload?.order) throw new Error("ORDER_DRAFT_UNAVAILABLE");
+      order = payload.order;
+    } catch {
+      // The original browser-only draft remains a safe checkout fallback when
+      // a first database connection is not yet configured or is transiently down.
+      order = createOneToOneOrderDraft(input);
+    }
     saveOrderDraft(order);
     router.push(`/one-to-one/checkout?paymentId=${encodeURIComponent(order.paymentId)}`);
   }

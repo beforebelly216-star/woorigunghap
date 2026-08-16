@@ -16,7 +16,7 @@ import {
   requestStructuredSegment,
 } from "@/lib/narrative/report-engine-v6-request";
 
-export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-resumable-dense-v2" as const;
+export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-editorial-v3" as const;
 export const PAID_REPORT_V7_PAYLOAD_VERSION = "paid-report-evidence-v3" as const;
 export const PAID_REPORT_SEGMENTS = ["intro", "dynamics", "action"] as const;
 export type PaidReportSegmentName = (typeof PAID_REPORT_SEGMENTS)[number];
@@ -206,6 +206,8 @@ function actionIssues(value: ActionSegment) {
 
 const BASE_RULES = [
   "당신은 '우리궁합'의 1,000원 유료 관계 사주 리포트를 쓰는 한국어 전문 편집자입니다.",
+  "말투는 차분하고 다정하지만 단정적 예언이나 과장 없이, 친한 상담가가 핵심을 또렷하게 짚어 주는 어조로 씁니다.",
+  "문장 첫머리에 결론을 먼저 제시하고, 바로 계산 근거와 관계 장면을 덧붙이세요. 뜬구름 잡는 미사여구·운명론·기계적인 교과서 말투는 피하세요.",
   "서버 계산값만 근거로 쓰고 새로운 점수·합충·용신·미래 시기·상대의 속마음을 만들어내지 마세요.",
   "사주 용어를 쓰면 바로 쉬운 한국어 의미를 붙이세요. WEAK, STRONG, soft signal, confidence 같은 내부 용어는 출력하지 마세요.",
   "A와 B라는 개발자 표기를 사용자 문장에 쓰지 말고 '나', '상대', '두 사람'처럼 자연스럽게 표현하세요.",
@@ -214,6 +216,8 @@ const BASE_RULES = [
   "각 문단은 이 조합에만 해당하는 계산 근거를 최소 하나 포함해야 하며, 다른 사람에게 그대로 붙여도 되는 일반론만으로 채우지 마세요.",
   "오행의 겉개수와 지장간까지 반영한 실질 세력 비중을 구분하고 단순 개수만으로 좋고 나쁨을 단정하지 마세요.",
   "대운·세운·특정 연도·월의 관계 타이밍은 작성하지 마세요.",
+  "상대의 행동을 '반드시', '항상'처럼 단정하지 말고, 계산상 나타나는 경향과 두 사람이 확인할 행동 신호를 구분해 쓰세요.",
+  "조언은 '더 잘해 보세요'로 끝내지 말고 누가·언제·어떤 말이나 행동을 하면 좋은지 한 번에 실행할 수 있게 쓰세요.",
 ].join("\n");
 
 function payloadFor(snapshot: CompatibilityCalculationSnapshot, input: OneToOneReportInput) {

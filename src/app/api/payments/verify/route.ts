@@ -3,6 +3,7 @@ import {
   PaymentVerificationError,
   verifyPaidPayment,
 } from "@/lib/payments/verification";
+import { markServerOrderPaid } from "@/lib/server-report-store";
 
 export const runtime = "nodejs";
 
@@ -33,6 +34,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const verified = await verifyPaidPayment(paymentId);
+    try {
+      await markServerOrderPaid(paymentId);
+    } catch (error) {
+      console.error("[woorigunghap:payment-store-mark]", error);
+    }
     return NextResponse.json({ verified: true, ...verified });
   } catch (error) {
     if (error instanceof PaymentVerificationError) {
