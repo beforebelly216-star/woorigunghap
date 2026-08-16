@@ -17,7 +17,7 @@ assert.doesNotMatch(liveRoute, /phase === "legacy"/);
 
 const verification = readFileSync("src/lib/payments/verification.ts", "utf8");
 assert.match(verification, /PAYMENT_INPUT_MISMATCH/);
-assert.match(verification, /hashOneToOneInput\(expectedInput, bindingVersion\)/);
+assert.match(verification, /hashOneToOneInput\(expectedInput as OneToOneReportInput, bindingVersion\)/);
 assert.match(verification, /LEGACY_ORDER_BINDING_VERSION/);
 assert.match(verification, /isBindingVersion\(bindingVersion\)/);
 assert.match(verification, /PAYMENT_TERMINAL/);
@@ -34,7 +34,7 @@ assert.match(binding, /version === LEGACY_ORDER_BINDING_VERSION/);
 const paymentButton = readFileSync("src/components/payment-button.tsx", "utf8");
 assert.match(paymentButton, /customData:/);
 assert.match(paymentButton, /inputHash/);
-assert.match(paymentButton, /hashOneToOneInput\(inputSnapshot\)/);
+assert.match(paymentButton, /hashOneToOneInput\(inputSnapshot as OneToOneReportInput\)/);
 
 const resultPage = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
 assert.match(resultPage, /paymentId: draft\.paymentId/);

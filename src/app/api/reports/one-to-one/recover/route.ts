@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const recovered = await loadServerReportForAccess(paymentId, accessToken);
-    if (!recovered) {
+    if (!recovered || recovered.order.product !== "oneToOne") {
       return NextResponse.json({ error: "복구할 수 있는 결제 결과를 찾지 못했습니다." }, {
         status: 404,
         headers: privateHeaders,

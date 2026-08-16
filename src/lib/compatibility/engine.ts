@@ -26,7 +26,7 @@ import {
 
 export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.2.2";
 
-const DIMENSIONS: CompatibilityDimension[] = [
+export const COMPATIBILITY_DIMENSIONS = [
   "dayMaster",
   "dayBranch",
   "usefulGodFit",
@@ -36,7 +36,7 @@ const DIMENSIONS: CompatibilityDimension[] = [
   "specialStars",
   "spouseStarRealization",
   "luckCycleAlignment",
-];
+] as const satisfies readonly CompatibilityDimension[];
 
 const UNKNOWN_TIME_SCENARIOS = [
   "00:30", "02:30", "04:30", "06:30", "08:30", "10:30",
@@ -217,7 +217,7 @@ function confidenceForRange(width: number) {
 function summarizeDimensions(
   dimensions: CompatibilityCalculationSnapshot["dimensions"],
 ) {
-  const scored = DIMENSIONS
+  const scored = COMPATIBILITY_DIMENSIONS
     .filter((dimension) => dimensions[dimension].maxPoints > 0)
     .filter((dimension) => dimension !== "luckCycleAlignment")
     .map((dimension) => ({
@@ -226,12 +226,12 @@ function summarizeDimensions(
     }));
 
   const strengths = [...scored]
-    .sort((a, b) => b.score - a.score || DIMENSIONS.indexOf(a.dimension) - DIMENSIONS.indexOf(b.dimension))
+    .sort((a, b) => b.score - a.score || COMPATIBILITY_DIMENSIONS.indexOf(a.dimension) - COMPATIBILITY_DIMENSIONS.indexOf(b.dimension))
     .slice(0, 2)
     .map((item) => item.dimension);
 
   const adjustmentPoints = [...scored]
-    .sort((a, b) => a.score - b.score || DIMENSIONS.indexOf(a.dimension) - DIMENSIONS.indexOf(b.dimension))
+    .sort((a, b) => a.score - b.score || COMPATIBILITY_DIMENSIONS.indexOf(a.dimension) - COMPATIBILITY_DIMENSIONS.indexOf(b.dimension))
     .slice(0, 2)
     .map((item) => item.dimension);
 
@@ -253,7 +253,7 @@ export function calculateOneToOneCompatibility(
   }
 
   const dimensions = {} as CompatibilityCalculationSnapshot["dimensions"];
-  for (const dimension of DIMENSIONS) {
+  for (const dimension of COMPATIBILITY_DIMENSIONS) {
     const normalizedScore = round1(median(
       scenarioResults.map((scenario) => scenario.dimensions[dimension].normalizedScore),
     ));
@@ -280,7 +280,7 @@ export function calculateOneToOneCompatibility(
     (x, y) => Math.abs(x.rawTotal - rawTotal) - Math.abs(y.rawTotal - rawTotal),
   )[0];
   const representativeEvidence = {} as Record<CompatibilityDimension, unknown>;
-  for (const dimension of DIMENSIONS) {
+  for (const dimension of COMPATIBILITY_DIMENSIONS) {
     representativeEvidence[dimension] = representative.dimensions[dimension].evidence;
   }
 

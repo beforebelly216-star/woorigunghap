@@ -17,3 +17,10 @@ export function buildOneToOneResultUrl(paymentId: string, accessToken?: string) 
   return `/one-to-one/result?${query.toString()}${fragment}`;
 }
 
+export function buildOneToManyResultUrl(paymentId: string, accessToken?: string) {
+  const query = new URLSearchParams({ paymentId });
+  const fragment = accessToken && isResultAccessToken(accessToken)
+    ? `#${new URLSearchParams({ accessToken }).toString()}`
+    : "";
+  return `/one-to-many/result?${query.toString()}${fragment}`;
+}

@@ -55,6 +55,30 @@ export type OneToOneReportInput = {
   personB: PersonBirthInput;
 };
 
+export const ONE_TO_MANY_MIN_CANDIDATES = 2;
+export const ONE_TO_MANY_MAX_CANDIDATES = 5;
+
+export type OneToManyReportInput = {
+  relationshipType: RelationshipType;
+  referencePerson: PersonBirthInput;
+  candidates: PersonBirthInput[];
+};
+
+function parsePersonBirthInput(person: unknown): PersonBirthInput | null {
+  if (!person || typeof person !== "object" || Array.isArray(person)) return null;
+  const item = person as Record<string, unknown>;
+  if (
+    typeof item.displayName !== "string"
+    || !GENDERS.includes(item.gender as Gender)
+    || !CALENDAR_TYPES.includes(item.calendarType as CalendarType)
+    || typeof item.birthDate !== "string"
+    || typeof item.birthTimeKnown !== "boolean"
+    || !(typeof item.birthTime === "string" || item.birthTime === null)
+    || typeof item.isLeapMonth !== "boolean"
+  ) return null;
+  return item as PersonBirthInput;
+}
+
 /**
  * Accept an untrusted JSON candidate only after checking the complete input
  * shape. Route handlers use this before the detailed validation below so a
@@ -64,27 +88,29 @@ export function parseOneToOneReportInput(value: unknown): OneToOneReportInput | 
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const candidate = value as Record<string, unknown>;
 
-  function parsePerson(person: unknown): PersonBirthInput | null {
-    if (!person || typeof person !== "object" || Array.isArray(person)) return null;
-    const item = person as Record<string, unknown>;
-    if (
-      typeof item.displayName !== "string"
-      || !GENDERS.includes(item.gender as Gender)
-      || !CALENDAR_TYPES.includes(item.calendarType as CalendarType)
-      || typeof item.birthDate !== "string"
-      || typeof item.birthTimeKnown !== "boolean"
-      || !(typeof item.birthTime === "string" || item.birthTime === null)
-      || typeof item.isLeapMonth !== "boolean"
-    ) return null;
-    return item as PersonBirthInput;
-  }
-
   if (!RELATIONSHIP_TYPES.includes(candidate.relationshipType as RelationshipType)) return null;
-  const personA = parsePerson(candidate.personA);
-  const personB = parsePerson(candidate.personB);
+  const personA = parsePersonBirthInput(candidate.personA);
+  const personB = parsePersonBirthInput(candidate.personB);
   return personA && personB
     ? { relationshipType: candidate.relationshipType as RelationshipType, personA, personB }
     : null;
+}
+
+export function parseOneToManyReportInput(value: unknown): OneToManyReportInput | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const candidate = value as Record<string, unknown>;
+  if (!RELATIONSHIP_TYPES.includes(candidate.relationshipType as RelationshipType)) return null;
+  if (!Array.isArray(candidate.candidates)) return null;
+
+  const referencePerson = parsePersonBirthInput(candidate.referencePerson);
+  const candidates = candidate.candidates.map(parsePersonBirthInput);
+  if (!referencePerson || candidates.some((person) => !person)) return null;
+
+  return {
+    relationshipType: candidate.relationshipType as RelationshipType,
+    referencePerson,
+    candidates: candidates as PersonBirthInput[],
+  };
 }
 
 export type InputFieldErrors = Record<string, string>;
@@ -116,7 +142,7 @@ function isValidLunarDateShape(value: string) {
   return parts.month >= 1 && parts.month <= 12 && parts.day >= 1 && parts.day <= 30;
 }
 
-function validatePerson(person: PersonBirthInput, prefix: "personA" | "personB") {
+function validatePerson(person: PersonBirthInput, prefix: string) {
   const errors: InputFieldErrors = {};
   const name = person.displayName.trim();
 
@@ -170,6 +196,31 @@ export function validateOneToOneReportInput(input: OneToOneReportInput) {
 
   Object.assign(errors, validatePerson(input.personA, "personA"));
   Object.assign(errors, validatePerson(input.personB, "personB"));
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  };
+}
+
+export function validateOneToManyReportInput(input: OneToManyReportInput) {
+  const errors: InputFieldErrors = {};
+
+  if (!RELATIONSHIP_TYPES.includes(input.relationshipType)) {
+    errors.relationshipType = "관계 유형을 선택해 주세요.";
+  }
+
+  if (
+    input.candidates.length < ONE_TO_MANY_MIN_CANDIDATES
+    || input.candidates.length > ONE_TO_MANY_MAX_CANDIDATES
+  ) {
+    errors.candidates = `비교 대상은 ${ONE_TO_MANY_MIN_CANDIDATES}명부터 ${ONE_TO_MANY_MAX_CANDIDATES}명까지 입력해 주세요.`;
+  }
+
+  Object.assign(errors, validatePerson(input.referencePerson, "referencePerson"));
+  input.candidates.forEach((person, index) => {
+    Object.assign(errors, validatePerson(person, `candidates.${index}`));
+  });
 
   return {
     valid: Object.keys(errors).length === 0,

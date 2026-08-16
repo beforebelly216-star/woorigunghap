@@ -16,11 +16,11 @@ export default function Home() {
         <Link href="/one-to-one" className="product-action">정보 입력하고 시작하기</Link>
       </article>
       <article className="product-card muted">
-        <p className="card-label">준비 중</p>
+        <p className="card-label">입력 베타 오픈</p>
         <h2>1:다 비교 궁합</h2>
         <p>여러 관계의 흐름을 한눈에 비교하고<br />나에게 맞는 관계 포인트를 찾아보세요.</p>
         <strong>3,000원</strong>
-        <button disabled>곧 오픈할게요</button>
+        <Link href="/one-to-many" className="product-action">비교 정보 입력해 보기</Link>
       </article>
     </section>
     <p className="notice">이 리포트는 전통 명리 해석을 바탕으로 관계의 흐름을 가볍게 살펴보는 참고용 콘텐츠입니다.</p>

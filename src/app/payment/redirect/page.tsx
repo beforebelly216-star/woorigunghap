@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { loadOrderDraft } from "@/lib/order-storage";
-import { buildOneToOneResultUrl } from "@/lib/result-access-token";
+import { buildOneToManyResultUrl, buildOneToOneResultUrl } from "@/lib/result-access-token";
+import { productFromPaymentId } from "@/lib/payments/verification";
 
 type State = "checking" | "success" | "failed" | "cancelled";
 
@@ -60,7 +61,10 @@ function PaymentResult() {
           if (response.ok && payload?.verified) {
             setState("success");
             const order = loadOrderDraft(verifiedPaymentId);
-            router.replace(buildOneToOneResultUrl(verifiedPaymentId, order?.resultAccessToken));
+            const resultUrl = productFromPaymentId(verifiedPaymentId) === "oneToMany"
+              ? buildOneToManyResultUrl(verifiedPaymentId, order?.resultAccessToken)
+              : buildOneToOneResultUrl(verifiedPaymentId, order?.resultAccessToken);
+            router.replace(resultUrl);
             return;
           }
 
@@ -110,7 +114,9 @@ function PaymentResult() {
       <p>{copy[1]}</p>
       {state === "success" && paymentId ? (
         <Link
-          href={buildOneToOneResultUrl(paymentId)}
+          href={productFromPaymentId(paymentId) === "oneToMany"
+            ? buildOneToManyResultUrl(paymentId)
+            : buildOneToOneResultUrl(paymentId)}
           className="primary-link"
         >
           바로 결과 보기

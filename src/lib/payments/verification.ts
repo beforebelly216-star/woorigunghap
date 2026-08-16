@@ -4,9 +4,10 @@ import {
   LEGACY_ORDER_BINDING_VERSION,
   ORDER_BINDING_VERSION,
   hashOneToOneInput,
+  hashOneToManyInput,
   type OrderBindingVersion,
 } from "@/lib/order-binding";
-import type { OneToOneReportInput } from "@/lib/report-input";
+import type { OneToManyReportInput, OneToOneReportInput } from "@/lib/report-input";
 
 export class PaymentVerificationError extends Error {
   constructor(
@@ -51,7 +52,7 @@ function isTerminalPaymentStatus(status: unknown) {
 export async function verifyPaidPayment(
   paymentId: string,
   expectedProduct?: ProductKey,
-  expectedInput?: OneToOneReportInput,
+  expectedInput?: OneToOneReportInput | OneToManyReportInput,
 ) {
   const secret = process.env.PORTONE_API_SECRET;
   if (!secret) {
@@ -128,7 +129,9 @@ export async function verifyPaidPayment(
     const bindingVersion = customData?.bindingVersion;
     const paidInputHash = customData?.inputHash;
     if (isBindingVersion(bindingVersion) && typeof paidInputHash === "string") {
-      const expectedInputHash = await hashOneToOneInput(expectedInput, bindingVersion);
+      const expectedInputHash = expectedProduct === "oneToMany"
+        ? await hashOneToManyInput(expectedInput as OneToManyReportInput)
+        : await hashOneToOneInput(expectedInput as OneToOneReportInput, bindingVersion);
       if (paidInputHash !== expectedInputHash) {
         throw new PaymentVerificationError(
           "결제 당시 입력정보와 현재 요청한 입력정보가 일치하지 않습니다.",
