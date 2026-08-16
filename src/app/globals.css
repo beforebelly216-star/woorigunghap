@@ -264,3 +264,140 @@ button, input, select { font: inherit; }
   .comparison-actions { flex-direction: column; }
   .comparison-actions a, .comparison-actions button { width: 100%; text-align: center; }
 }
+/* Day 17 account shell. Day 19 will replace this functional styling with the
+   full 우리궁합 design system. */
+.site-header {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 14px 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  position: relative;
+  z-index: 5;
+}
+
+.site-brand {
+  color: inherit;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-decoration: none;
+}
+
+.auth-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-status,
+.auth-logout-button {
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.auth-status {
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.76);
+  color: #4b4037;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(62, 48, 37, 0.08);
+}
+
+.auth-login-link {
+  font-weight: 700;
+}
+
+.auth-status-loading {
+  color: #8a8179;
+}
+
+.auth-logout-button {
+  padding: 9px 10px;
+  background: transparent;
+  color: #6f665f;
+  cursor: pointer;
+}
+
+.login-page {
+  flex: 1;
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 56px 20px 80px;
+  display: grid;
+  place-items: start center;
+}
+
+.login-card {
+  width: min(100%, 500px);
+  padding: clamp(28px, 7vw, 48px);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 24px 70px rgba(58, 45, 34, 0.12);
+}
+
+.login-card h1 {
+  margin: 10px 0 18px;
+  font-size: clamp(2rem, 8vw, 3.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.06em;
+}
+
+.login-card > p:not(.eyebrow) {
+  color: #6e655e;
+  line-height: 1.7;
+}
+
+.login-error {
+  margin: 18px 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff0ec;
+  color: #a23927 !important;
+}
+
+.kakao-login-button,
+.login-back-link {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.kakao-login-button {
+  margin-top: 26px;
+  background: #fee500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.login-back-link {
+  margin-top: 10px;
+  color: #675d55;
+  background: #f5f1ed;
+}
+
+.login-privacy {
+  margin: 18px 0 0;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 520px) {
+  .site-header {
+    padding-inline: 16px;
+  }
+
+  .auth-status {
+    padding-inline: 10px;
+  }
+
+  .login-page {
+    padding: 34px 14px 64px;
+  }
+}
