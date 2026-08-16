@@ -1,4 +1,5 @@
 import type { OneToOneOrderDraft } from "@/lib/orders";
+import { createResultAccessToken, isResultAccessToken } from "@/lib/result-access-token";
 
 const ORDER_STORAGE_PREFIX = "woorigunghap:order:";
 
@@ -20,7 +21,12 @@ function parseOrderDraft(raw: string | null, paymentId: string): OneToOneOrderDr
     ) {
       return null;
     }
-    return parsed as OneToOneOrderDraft;
+    return {
+      ...parsed,
+      resultAccessToken: isResultAccessToken(parsed.resultAccessToken)
+        ? parsed.resultAccessToken
+        : createResultAccessToken(),
+    } as OneToOneOrderDraft;
   } catch {
     return null;
   }
@@ -59,9 +65,13 @@ export function loadOrderDraft(paymentId: string): OneToOneOrderDraft | null {
 
   const fromSession = parseOrderDraft(safeGet(window.sessionStorage, key), paymentId);
   if (fromSession) {
-    safeSet(window.localStorage, key, JSON.stringify(fromSession));
+    const serialized = JSON.stringify(fromSession);
+    safeSet(window.sessionStorage, key, serialized);
+    safeSet(window.localStorage, key, serialized);
     return fromSession;
   }
 
-  return parseOrderDraft(safeGet(window.localStorage, key), paymentId);
+  const fromLocal = parseOrderDraft(safeGet(window.localStorage, key), paymentId);
+  if (fromLocal) saveOrderDraft(fromLocal);
+  return fromLocal;
 }

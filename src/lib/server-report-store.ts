@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createHash, timingSafeEqual } from "node:crypto";
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 import type { CompatibilityCalculationSnapshot } from "@/lib/compatibility/engine";
 import type { PaidReportFacts } from "@/lib/narrative/report-engine-v5";
@@ -11,6 +12,7 @@ import type {
   PaidReportSegmentName,
 } from "@/lib/narrative/report-engine-v7";
 import type { OneToOneOrderDraft } from "@/lib/orders";
+import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const SERVER_REPORT_STORE_VERSION = "server-report-store-v1" as const;
 
@@ -43,12 +45,18 @@ async function ensureSchema() {
       CREATE TABLE IF NOT EXISTS woorigunghap_order_records (
         payment_id TEXT PRIMARY KEY,
         order_json TEXT NOT NULL,
+        access_token_hash TEXT,
         report_json TEXT,
         payment_status TEXT NOT NULL DEFAULT 'draft',
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
-    `.then(() => undefined).catch((error) => {
+    `.then(async () => {
+      await sql`
+        ALTER TABLE woorigunghap_order_records
+        ADD COLUMN IF NOT EXISTS access_token_hash TEXT
+      `;
+    }).catch((error) => {
       schemaPromise = null;
       throw error;
     });
@@ -86,6 +94,35 @@ function emptyProgress(paymentId: string): ServerReportProgress {
   };
 }
 
+type StoredOrderDraft = Omit<OneToOneOrderDraft, "resultAccessToken">;
+
+function hashAccessToken(accessToken: string) {
+  return createHash("sha256").update(accessToken).digest("hex");
+}
+
+function stripAccessToken(order: OneToOneOrderDraft): StoredOrderDraft {
+  const storedOrder = { ...order } as Partial<OneToOneOrderDraft>;
+  delete storedOrder.resultAccessToken;
+  return storedOrder as StoredOrderDraft;
+}
+
+function parseStoredOrder(raw: unknown): StoredOrderDraft | null {
+  if (typeof raw !== "string") return null;
+  try {
+    const order = JSON.parse(raw) as Partial<StoredOrderDraft>;
+    if (
+      order.version !== "order-draft-v1"
+      || typeof order.paymentId !== "string"
+      || typeof order.orderId !== "string"
+      || order.product !== "oneToOne"
+      || !order.inputSnapshot
+    ) return null;
+    return order as StoredOrderDraft;
+  } catch {
+    return null;
+  }
+}
+
 export function isServerReportStoreConfigured() {
   return Boolean(process.env.DATABASE_URL);
 }
@@ -96,14 +133,71 @@ export async function saveServerOrderDraft(order: OneToOneOrderDraft) {
   if (!sql) return false;
 
   await sql`
-    INSERT INTO woorigunghap_order_records (payment_id, order_json, payment_status)
-    VALUES (${order.paymentId}, ${JSON.stringify(order)}, ${order.status})
+    INSERT INTO woorigunghap_order_records (
+      payment_id, order_json, access_token_hash, payment_status
+    )
+    VALUES (
+      ${order.paymentId},
+      ${JSON.stringify(stripAccessToken(order))},
+      ${hashAccessToken(order.resultAccessToken)},
+      ${order.status}
+    )
     ON CONFLICT (payment_id) DO UPDATE SET
       order_json = EXCLUDED.order_json,
-      payment_status = EXCLUDED.payment_status,
+      access_token_hash = COALESCE(
+        woorigunghap_order_records.access_token_hash,
+        EXCLUDED.access_token_hash
+      ),
+      payment_status = CASE
+        WHEN woorigunghap_order_records.payment_status = 'paid' THEN 'paid'
+        ELSE EXCLUDED.payment_status
+      END,
       updated_at = NOW()
   `;
   return true;
+}
+
+export async function ensureServerOrderAccessToken(paymentId: string, accessToken: string) {
+  if (!isResultAccessToken(accessToken) || !await ensureSchema()) return false;
+  const sql = getQuery();
+  if (!sql) return false;
+  const result = await sql`
+    UPDATE woorigunghap_order_records
+    SET access_token_hash = ${hashAccessToken(accessToken)},
+        updated_at = NOW()
+    WHERE payment_id = ${paymentId}
+    RETURNING payment_id
+  `;
+  return result.length > 0;
+}
+
+export async function loadServerReportForAccess(paymentId: string, accessToken: string) {
+  if (!isResultAccessToken(accessToken) || !await ensureSchema()) return null;
+  const sql = getQuery();
+  if (!sql) return null;
+  const rows = await sql`
+    SELECT order_json, report_json, access_token_hash
+    FROM woorigunghap_order_records
+    WHERE payment_id = ${paymentId}
+      AND payment_status = 'paid'
+    LIMIT 1
+  `;
+  const row = rows[0];
+  const storedHash = typeof row?.access_token_hash === "string"
+    ? row.access_token_hash
+    : "";
+  const candidateHash = hashAccessToken(accessToken);
+  if (
+    storedHash.length !== candidateHash.length
+    || !timingSafeEqual(Buffer.from(storedHash), Buffer.from(candidateHash))
+  ) return null;
+
+  const storedOrder = parseStoredOrder(row?.order_json);
+  if (!storedOrder || storedOrder.paymentId !== paymentId) return null;
+  return {
+    order: { ...storedOrder, resultAccessToken: accessToken } as OneToOneOrderDraft,
+    progress: parseProgress(row?.report_json, paymentId),
+  };
 }
 
 export async function markServerOrderPaid(paymentId: string) {
