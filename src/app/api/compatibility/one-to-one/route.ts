@@ -19,7 +19,7 @@ import {
 
 export const runtime = "nodejs";
 export const maxDuration = 240;
-const REPORT_RUNTIME_VERSION = "paid-report-v7-resumable-20260815";
+const REPORT_RUNTIME_VERSION = "paid-report-v7-resumable-20260816";
 const PHASES = ["prepare", ...PAID_REPORT_SEGMENTS] as const;
 type ReportPhase = (typeof PHASES)[number];
 
@@ -209,11 +209,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.error("[woorigunghap:paid-report-unexpected]", error);
     return NextResponse.json({
-      error: "궁합 계산에 실패했습니다.",
+      error: "일시적인 서버 오류로 상세 해설 생성을 다시 시도합니다.",
       code: "UNEXPECTED_SERVER_ERROR",
-      retryable: false,
+      retryable: true,
       reportRuntimeVersion: REPORT_RUNTIME_VERSION,
-    }, { status: 500 });
+    }, { status: 503 });
   }
 }
