@@ -125,14 +125,35 @@
   - 6점 이상: 의미 있는 차이
 - 화면에 점수와 순위를 함께 제공하되, 근소 차이를 과장하지 않는다.
 - `uncertaintyRange`가 겹치는 후보는 차이가 확정적인 것처럼 서술하지 않는다.
+- 0~2점 동급 그룹은 그룹 최고점을 기준으로 묶는다. 연쇄 비교로 3점 이상 떨어진 후보가 같은 그룹에 포함되지 않게 한다.
+- 동급 후보의 표시 순서는 입력 순서로 고정하며, 다음 순위는 공동 순위 인원만큼 건너뛴다. 예: 1위·1위·3위.
+- 불확실성 범위 겹침은 순위를 바꾸지 않지만, 확정적 우열 문구 사용을 금지하는 경고로 저장한다.
 
-## AI 서술 출력 구조
-AI 호출 시 원본 이름/생년월일시 대신 서버가 만든 익명화된 대상 ID와 계산 결과를 전달한다.
+## Day 14 비교 계산 JSON
+- `candidate_1`부터 입력 순서 기반 익명 ID를 부여한다.
+- 원본 이름·생년월일시는 계산 JSON에 포함하지 않는다.
+- 후보별 1:1 `calculationSnapshot`, 서버 순위 그룹, 선두와의 점수 차이, 불확실성 범위 겹침을 고정한다.
+- 비교 매트릭스는 9항목 정규화 점수를 담고, 종합 순위는 최종 정수 점수만 사용한다.
+- `scoreMutableByAi=false`, `rankingMutableByAi=false`, `explanationOnly=true`를 저장한다.
+
+## Day 15 AI 서술 계약
+AI 호출 시 원본 이름/생년월일시 대신 서버가 만든 익명화된 대상 ID와 최소 계산 근거만 전달한다.
+
+- AI payload에는 `candidate_1` 같은 입력 순서 기반 익명 ID, 서버가 확정한 순위·점수·점수 차이·불확실성 범위·9항목 표시 점수·강점/주의 축만 넣는다.
+- 이름/별칭, 성별, 양·음력 구분, 생년월일·출생시간, 주문/결제 ID, 세부 원시 evidence는 넣지 않는다.
+- 후보 ID와 사용자 별칭의 대응은 결제 뒤 결과 화면에서만 서버 주문 스냅샷을 이용해 적용한다.
+- AI가 순위·점수·동점 그룹을 변경할 수 없으며, `0~2점 동급` 또는 불확실성 범위 중첩 후보에는 확정적 우열 표현을 금지한다.
+- 출력 JSON은 순위 요약, 후보별 한 줄·강점 2개 이상·주의점 1개 이상·실용 팁, 소통/정서 안정/장기 지속/갈등 관리별 추천, 최종 비교 요약으로 고정한다.
+- 문체는 `결론 → 계산 근거 → 관계에서의 체감 → 실행할 행동` 순서를 지키고, 미래 예언·상대의 속마음 단정·"누가 더 좋은 사람"이라는 표현을 금지한다.
 
 예시 출력 JSON 구조:
 ```json
 {
-  "rankingSummary": "...",
+  "rankingSummary": {
+    "headline": "...",
+    "summary": "...",
+    "closenessNotice": "..."
+  },
   "candidates": [
     {
       "candidateId": "candidate_1",
@@ -143,9 +164,10 @@ AI 호출 시 원본 이름/생년월일시 대신 서버가 만든 익명화된
     }
   ],
   "situationalWinners": {
-    "communication": "candidate_2",
-    "emotionalStability": "candidate_1",
-    "longTerm": "candidate_3"
+    "communication": { "candidateId": "candidate_2", "reason": "..." },
+    "emotionalStability": { "candidateId": "candidate_1", "reason": "..." },
+    "longTerm": { "candidateId": "candidate_3", "reason": "..." },
+    "conflictManagement": { "candidateId": "candidate_1", "reason": "..." }
   },
   "finalSummary": "..."
 }

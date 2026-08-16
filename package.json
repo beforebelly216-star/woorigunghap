@@ -19,7 +19,10 @@
     "test:day9:narrative-boundary": "tsx scripts/day9-narrative-boundary-test.ts",
     "test:day9:schema-guard": "tsx scripts/day9-json-schema-guard-test.ts",
     "test:day10:editorial": "tsx scripts/day10-editorial-policy-test.ts",
-    "test:day11:server-store": "tsx scripts/day11-server-store-contract-test.ts"
+    "test:day11:server-store": "tsx scripts/day11-server-store-contract-test.ts",
+    "test:day13:one-to-many-input": "tsx scripts/day13-one-to-many-input-contract-test.ts",
+    "test:day14:one-to-many-calculation": "tsx scripts/day14-one-to-many-calculation-test.ts",
+    "test:day15:one-to-many-narrative": "tsx scripts/day15-one-to-many-narrative-boundary-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

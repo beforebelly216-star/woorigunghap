@@ -38,6 +38,7 @@ button, input, select { font: inherit; }
 .form-section, .person-panel { border: 1px solid #ded7cc; border-radius: 22px; background: #fffdf9; }
 .form-section { padding: 26px; }
 .form-section h2 { margin: 0 0 18px; font-family: Georgia, serif; font-size: 1.5rem; font-weight: 500; }
+.section-copy { margin: -8px 0 18px; color: #717a73; line-height: 1.55; }
 .relationship-options, .segmented-control { display: flex; flex-wrap: wrap; gap: 10px; }
 .relationship-options label, .segmented-control label { position: relative; cursor: pointer; }
 .relationship-options input, .segmented-control input { position: absolute; opacity: 0; pointer-events: none; }
@@ -63,6 +64,16 @@ button, input, select { font: inherit; }
 .form-success { border: 1px solid #b9c8bb; border-radius: 16px; padding: 18px 20px; background: #eef4ee; }
 .form-success strong { display: block; margin-bottom: 5px; }
 .form-success p { margin: 0; color: #58635b; line-height: 1.5; }
+.one-to-many-group { display: grid; gap: 16px; }
+.group-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+.group-heading h2 { margin: 5px 0 0; font-family: Georgia, serif; font-size: 1.7rem; font-weight: 500; }
+.group-heading p:not(.card-label) { margin: 8px 0 0; color: #707971; line-height: 1.5; }
+.candidate-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.candidate-card { position: relative; min-width: 0; }
+.candidate-card .person-panel { height: 100%; }
+.candidate-remove { position: absolute; z-index: 1; top: 16px; right: 18px; border: 0; background: transparent; color: #8d554c; cursor: pointer; font-size: .86rem; font-weight: 700; }
+.secondary-action { flex: 0 0 auto; border: 1px solid #bdb4a8; border-radius: 12px; padding: 11px 15px; background: #fffdf9; color: #334038; cursor: pointer; font-weight: 700; }
+.secondary-action:disabled { cursor: not-allowed; opacity: .45; }
 .checkout-shell { max-width: 640px; margin: 0 auto; }
 .checkout-header { margin-bottom: 28px; }
 .checkout-header h1, .checkout-state h1 { margin: 10px 0; font-family: Georgia, serif; font-size: clamp(2.2rem, 7vw, 3.6rem); font-weight: 500; line-height: 1.08; letter-spacing: -.035em; }
@@ -81,8 +92,8 @@ button, input, select { font: inherit; }
 .checkout-note { margin: 22px 0 0; color: #858a85; font-size: .8rem; line-height: 1.55; text-align: center; }
 .checkout-state { padding-top: 18vh; text-align: center; }
 .primary-link { display: inline-block; margin-top: 16px; border-radius: 12px; padding: 13px 18px; background: #273b31; color: #fffaf1; text-decoration: none; font-weight: 700; }
-@media (max-width: 760px) { .people-grid { grid-template-columns: 1fr; } .person-panel { padding: 22px; } }
-@media (max-width: 640px) { .landing-page, .result-page, .input-page { padding-top: 48px; } .hero { margin-bottom: 42px; } .product-grid { grid-template-columns: 1fr; } .product-card { min-height: 290px; } .relationship-options label, .segmented-control label { flex: 1 1 auto; text-align: center; } .time-input-row { grid-template-columns: 1fr; } .checkout-card { padding: 20px; } }
+@media (max-width: 760px) { .people-grid, .candidate-grid { grid-template-columns: 1fr; } .person-panel { padding: 22px; } }
+@media (max-width: 640px) { .landing-page, .result-page, .input-page { padding-top: 48px; } .hero { margin-bottom: 42px; } .product-grid { grid-template-columns: 1fr; } .product-card { min-height: 290px; } .relationship-options label, .segmented-control label { flex: 1 1 auto; text-align: center; } .time-input-row { grid-template-columns: 1fr; } .checkout-card { padding: 20px; } .group-heading { align-items: stretch; flex-direction: column; } .secondary-action { width: 100%; } }
 
 .report-page { min-height: 100vh; padding: 52px 24px 72px; }
 .report-shell { width: min(100%, 980px); margin: 0 auto; }
