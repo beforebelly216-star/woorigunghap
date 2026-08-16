@@ -16,7 +16,7 @@ import {
   requestStructuredSegment,
 } from "@/lib/narrative/report-engine-v6-request";
 
-export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-resumable-segments" as const;
+export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-resumable-dense-v2" as const;
 export const PAID_REPORT_V7_PAYLOAD_VERSION = "paid-report-evidence-v3" as const;
 export const PAID_REPORT_SEGMENTS = ["intro", "dynamics", "action"] as const;
 export type PaidReportSegmentName = (typeof PAID_REPORT_SEGMENTS)[number];
@@ -210,6 +210,8 @@ const BASE_RULES = [
   "사주 용어를 쓰면 바로 쉬운 한국어 의미를 붙이세요. WEAK, STRONG, soft signal, confidence 같은 내부 용어는 출력하지 마세요.",
   "A와 B라는 개발자 표기를 사용자 문장에 쓰지 말고 '나', '상대', '두 사람'처럼 자연스럽게 표현하세요.",
   "짧은 카드 문구처럼 끝내지 말고 계산 사실 → 관계에서의 체감 → 실제 장면 또는 행동 기준 순서로 충분히 풀어 쓰세요.",
+  "한 문장으로 끝낼 수 있는 내용도 근거와 체감이 다르면 두세 문장으로 나누어 설명하세요. 단, 같은 말을 반복해서 분량만 늘리지 마세요.",
+  "각 문단은 이 조합에만 해당하는 계산 근거를 최소 하나 포함해야 하며, 다른 사람에게 그대로 붙여도 되는 일반론만으로 채우지 마세요.",
   "오행의 겉개수와 지장간까지 반영한 실질 세력 비중을 구분하고 단순 개수만으로 좋고 나쁨을 단정하지 마세요.",
   "대운·세운·특정 연도·월의 관계 타이밍은 작성하지 마세요.",
 ].join("\n");
@@ -227,13 +229,13 @@ async function generateIntro(apiKey: string, model: string, payloadText: string)
     apiKey,
     model,
     schema: INTRO_SCHEMA,
-    maxTokens: 3200,
+    maxTokens: 3600,
     timeoutMs: 90_000,
     preferStructured: false,
     label: "INTRO",
     validate: validIntro,
     qualityIssues: introIssues,
-    system: `${BASE_RULES}\n\n[담당 범위] 첫 화면 총평과 두 사람 각각의 관계 원국을 작성합니다. 총평은 4~5개의 완결된 문장으로 강점·마찰·양방향 영향·실전 의미를 연결하세요. 나와 상대의 개인 해설은 각각 기본 성향, 오행 과부족의 의미, 관계에서 필요한 기운, 장점과 주의점을 합쳐 충분한 단락으로 작성하세요. 두 사람의 문장 구조를 복사하지 마세요.`,
+    system: `${BASE_RULES}\n\n[담당 범위: 1~3장]\n- overview.detailedSummary: 4~5개의 완결된 문장. 강점, 마찰, 양방향 영향, 실제 관계에서의 핵심 조언을 모두 포함하세요.\n- personA.overallProfile / personB.overallProfile: 각각 4~6문장. 일간 성향과 전체 세력 구조를 관계 행동으로 연결하세요. 두 사람의 문장 구조를 복사하지 마세요.\n- elementAnalysis: 각각 3~5문장. 겉오행 개수와 실질 세력 비중을 구분하고, 과잉·부족이 관계에서 어떤 체감으로 이어지는지 설명하세요.\n- relationshipNeeds: 각각 2~4문장. 필요한 기운이 상대와의 관계에서 어떻게 채워지거나 부담이 되는지 설명하세요.\n- strengths / cautions: 각각 최소 2개. 항목 하나당 한두 문장 분량의 구체적인 관계 행동으로 쓰세요.`,
     user: `다음 계산 근거만 사용해 리포트의 1~3장을 작성하세요.\n${payloadText}`,
   });
 }
@@ -243,13 +245,13 @@ async function generateDynamics(apiKey: string, model: string, payloadText: stri
     apiKey,
     model,
     schema: DYNAMICS_SCHEMA,
-    maxTokens: 3200,
+    maxTokens: 3600,
     timeoutMs: 90_000,
     preferStructured: false,
     label: "DYNAMICS",
     validate: validDynamics,
     qualityIssues: dynamicsIssues,
-    system: `${BASE_RULES}\n\n[담당 범위] 두 사람의 기본 케미, 실제 결속과 마찰, 양방향 영향을 작성합니다. 일간·일지·음양·오행은 각각 계산 의미와 현실 체감을 연결하세요. 천간·지지의 합충형해파 및 귀인 신호는 evidence에 실제로 있는 것만 언급하고 대화·생활리듬·약속·감정표현·의사결정 중 어디서 드러날 수 있는지 구체화하세요. 나→상대와 상대→나는 반드시 따로 설명하세요.`,
+    system: `${BASE_RULES}\n\n[담당 범위: 4~6장]\n- chemistry.overview는 3~4문장, dayMaster/dayBranch/yinYang/elements는 각각 2~3문장으로 계산 의미와 현실 체감을 연결하세요.\n- bondAndFriction.overview는 3~4문장. positiveInteractions와 frictionInteractions는 실제 evidence가 있는 것만 최소 2개씩 우선 작성하고, 각 항목은 한두 문장으로 풀이하세요. 근거가 부족하면 억지로 개수를 채우지 마세요.\n- realLifeManifestations는 최소 2개이며, 연락·약속·감정표현·생활리듬·의사결정 중 실제 장면으로 구체화하세요.\n- directionalImpact의 overview/aToB/bToA/beneficialSupply/burdenSupply/asymmetry는 각각 2~3문장. 나→상대와 상대→나를 반드시 구분하고 같은 문장을 뒤집어 쓰지 마세요.`,
     user: `다음 계산 근거만 사용해 리포트의 4~6장을 작성하세요.\n${payloadText}`,
   });
 }
@@ -259,13 +261,13 @@ async function generateAction(apiKey: string, model: string, payloadText: string
     apiKey,
     model,
     schema: ACTION_SCHEMA,
-    maxTokens: 4200,
+    maxTokens: 4800,
     timeoutMs: 90_000,
     preferStructured: false,
     label: "ACTION",
     validate: validAction,
     qualityIssues: actionIssues,
-    system: `${BASE_RULES}\n\n[담당 범위] 관계 흐름, 관계유형 전용 분석, 강점·위험신호, 실전 매뉴얼을 작성합니다. 최소 2개의 현실 갈등 시나리오를 상황→반복 패턴→대응 순서로 쓰세요. 관계유형 전용 포인트는 최소 3개, 하면 좋은 것은 최소 3개, 피할 것은 최소 2개, 갈등 해결 단계는 최소 3개, 추천 활동은 최소 3개를 구체적으로 제시하세요.`,
+    system: `${BASE_RULES}\n\n[담당 범위: 7~10장]\n- relationshipFlow.overview/roles/initiative/intimacy는 각각 2~4문장. 관계유형에 맞는 역할과 친밀해진 뒤의 변화를 현실적으로 설명하세요.\n- conflictScenarios는 최소 2개. 각 시나리오의 situation, likelyPattern, response를 각각 충분히 구체적으로 써서 상황→반복 패턴→대응 순서가 읽히게 하세요.\n- relationshipSpecific.overview는 3~4문장, points는 최소 3개이며 각 detail은 2~3문장으로 관계유형에만 해당하는 분석을 쓰세요.\n- strengthsAndRisks.strengths와 repeatedFrictions는 각각 최소 2개를 우선하고 항목별로 한두 문장. redFlag와 warning은 과장 없이 2~3문장으로 쓰세요.\n- practicalManual.do는 최소 4개, dont는 최소 3개, conflictProtocol은 최소 4단계, recommendedActivities는 최소 3개를 목표로 하되 근거가 없는 조언을 억지로 만들지 마세요. 각 항목은 사용자가 바로 행동으로 옮길 수 있을 정도로 구체적으로 작성하세요.`,
     user: `다음 계산 근거만 사용해 리포트의 7~10장을 작성하세요.\n${payloadText}`,
   });
 }
