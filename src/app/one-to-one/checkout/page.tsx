@@ -25,7 +25,8 @@ function CheckoutContent() {
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
-      setOrder(paymentId ? loadOrderDraft(paymentId) : null);
+      const stored = paymentId ? loadOrderDraft(paymentId) : null;
+      setOrder(stored?.product === "oneToOne" ? stored : null);
       setLoaded(true);
     });
     return () => {

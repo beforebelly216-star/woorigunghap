@@ -193,7 +193,8 @@ export default function ResultV2() {
         return;
       }
 
-      let draft = loadOrderDraft(paymentId);
+      const storedDraft = loadOrderDraft(paymentId);
+      let draft: OneToOneOrderDraft | null = storedDraft?.product === "oneToOne" ? storedDraft : null;
       if (!draft) {
         const accessToken = accessTokenFromFragment();
         if (accessToken) {

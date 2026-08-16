@@ -23,7 +23,8 @@
     "test:day13:one-to-many-input": "tsx scripts/day13-one-to-many-input-contract-test.ts",
     "test:day14:one-to-many-calculation": "tsx scripts/day14-one-to-many-calculation-test.ts",
     "test:day15:one-to-many-narrative": "tsx scripts/day15-one-to-many-narrative-boundary-test.ts",
-    "test:day15:one-to-many-result-ui": "tsx scripts/day15-one-to-many-result-ui-test.ts"
+    "test:day15:one-to-many-result-ui": "tsx scripts/day15-one-to-many-result-ui-test.ts",
+    "test:day16:one-to-many-paid-e2e": "tsx scripts/day16-one-to-many-paid-e2e-contract-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

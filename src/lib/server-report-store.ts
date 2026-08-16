@@ -3,6 +3,8 @@ import "server-only";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 import type { CompatibilityCalculationSnapshot } from "@/lib/compatibility/engine";
+import type { OneToManyCalculationSnapshot } from "@/lib/compatibility/one-to-many";
+import type { OneToManyNarrativeContent, OneToManyNarrativeMeta } from "@/lib/narrative/one-to-many-report-engine";
 import type { PaidReportFacts } from "@/lib/narrative/report-engine-v5";
 import type {
   ActionSegment,
@@ -11,10 +13,11 @@ import type {
   PaidReportSegmentMeta,
   PaidReportSegmentName,
 } from "@/lib/narrative/report-engine-v7";
-import type { OneToOneOrderDraft } from "@/lib/orders";
+import type { OrderDraft, OneToManyOrderDraft } from "@/lib/orders";
 import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const SERVER_REPORT_STORE_VERSION = "server-report-store-v1" as const;
+export const ONE_TO_MANY_STORED_REPORT_VERSION = "one-to-many-stored-report-v1" as const;
 
 export type ServerReportProgress = {
   version: typeof SERVER_REPORT_STORE_VERSION;
@@ -23,6 +26,15 @@ export type ServerReportProgress = {
   facts: PaidReportFacts | null;
   segments: Partial<Record<PaidReportSegmentName, IntroSegment | DynamicsSegment | ActionSegment>>;
   metas: Partial<Record<PaidReportSegmentName, PaidReportSegmentMeta>>;
+  updatedAt: string;
+};
+
+export type OneToManyStoredReport = {
+  version: typeof ONE_TO_MANY_STORED_REPORT_VERSION;
+  paymentId: string;
+  snapshot: OneToManyCalculationSnapshot;
+  narrative: OneToManyNarrativeContent;
+  meta: OneToManyNarrativeMeta;
   updatedAt: string;
 };
 
@@ -48,6 +60,8 @@ async function ensureSchema() {
         access_token_hash TEXT,
         report_json TEXT,
         payment_status TEXT NOT NULL DEFAULT 'draft',
+        generation_status TEXT NOT NULL DEFAULT 'idle',
+        generation_started_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
@@ -55,6 +69,24 @@ async function ensureSchema() {
       await sql`
         ALTER TABLE woorigunghap_order_records
         ADD COLUMN IF NOT EXISTS access_token_hash TEXT
+      `;
+      await sql`
+        ALTER TABLE woorigunghap_order_records
+        ADD COLUMN IF NOT EXISTS generation_status TEXT NOT NULL DEFAULT 'idle'
+      `;
+      await sql`
+        ALTER TABLE woorigunghap_order_records
+        ADD COLUMN IF NOT EXISTS generation_started_at TIMESTAMPTZ
+      `;
+      await sql`
+        CREATE TABLE IF NOT EXISTS woorigunghap_webhook_events (
+          webhook_id TEXT PRIMARY KEY,
+          payment_id TEXT NOT NULL,
+          event_type TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'processing',
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
       `;
     }).catch((error) => {
       schemaPromise = null;
@@ -94,14 +126,14 @@ function emptyProgress(paymentId: string): ServerReportProgress {
   };
 }
 
-type StoredOrderDraft = Omit<OneToOneOrderDraft, "resultAccessToken">;
+type StoredOrderDraft = Omit<OrderDraft, "resultAccessToken">;
 
 function hashAccessToken(accessToken: string) {
   return createHash("sha256").update(accessToken).digest("hex");
 }
 
-function stripAccessToken(order: OneToOneOrderDraft): StoredOrderDraft {
-  const storedOrder = { ...order } as Partial<OneToOneOrderDraft>;
+function stripAccessToken(order: OrderDraft): StoredOrderDraft {
+  const storedOrder = { ...order } as Partial<OrderDraft>;
   delete storedOrder.resultAccessToken;
   return storedOrder as StoredOrderDraft;
 }
@@ -114,7 +146,7 @@ function parseStoredOrder(raw: unknown): StoredOrderDraft | null {
       order.version !== "order-draft-v1"
       || typeof order.paymentId !== "string"
       || typeof order.orderId !== "string"
-      || order.product !== "oneToOne"
+      || (order.product !== "oneToOne" && order.product !== "oneToMany")
       || !order.inputSnapshot
     ) return null;
     return order as StoredOrderDraft;
@@ -127,7 +159,7 @@ export function isServerReportStoreConfigured() {
   return Boolean(process.env.DATABASE_URL);
 }
 
-export async function saveServerOrderDraft(order: OneToOneOrderDraft) {
+export async function saveServerOrderDraft(order: OrderDraft) {
   if (!await ensureSchema()) return false;
   const sql = getQuery();
   if (!sql) return false;
@@ -171,6 +203,40 @@ export async function ensureServerOrderAccessToken(paymentId: string, accessToke
   return result.length > 0;
 }
 
+export async function hasServerOrderAccess(
+  paymentId: string,
+  accessToken: string,
+  product?: OrderDraft["product"],
+) {
+  return Boolean(await loadServerOrderForAccess(paymentId, accessToken, product));
+}
+
+export async function loadServerOrderForAccess(
+  paymentId: string,
+  accessToken: string,
+  product?: OrderDraft["product"],
+) {
+  if (!isResultAccessToken(accessToken) || !await ensureSchema()) return null;
+  const sql = getQuery();
+  if (!sql) return null;
+  const rows = await sql`
+    SELECT order_json, access_token_hash
+    FROM woorigunghap_order_records
+    WHERE payment_id = ${paymentId}
+    LIMIT 1
+  `;
+  const row = rows[0];
+  const storedHash = typeof row?.access_token_hash === "string" ? row.access_token_hash : "";
+  const candidateHash = hashAccessToken(accessToken);
+  if (
+    storedHash.length !== candidateHash.length
+    || !timingSafeEqual(Buffer.from(storedHash), Buffer.from(candidateHash))
+  ) return null;
+  const order = parseStoredOrder(row?.order_json);
+  if (!order || order.paymentId !== paymentId || (product && order.product !== product)) return null;
+  return { ...order, resultAccessToken: accessToken } as OrderDraft;
+}
+
 export async function loadServerReportForAccess(paymentId: string, accessToken: string) {
   if (!isResultAccessToken(accessToken) || !await ensureSchema()) return null;
   const sql = getQuery();
@@ -195,9 +261,169 @@ export async function loadServerReportForAccess(paymentId: string, accessToken: 
   const storedOrder = parseStoredOrder(row?.order_json);
   if (!storedOrder || storedOrder.paymentId !== paymentId) return null;
   return {
-    order: { ...storedOrder, resultAccessToken: accessToken } as OneToOneOrderDraft,
+    order: { ...storedOrder, resultAccessToken: accessToken } as OrderDraft,
     progress: parseProgress(row?.report_json, paymentId),
   };
+}
+
+function parseOneToManyStoredReport(raw: unknown, paymentId: string): OneToManyStoredReport | null {
+  if (typeof raw !== "string") return null;
+  try {
+    const value = JSON.parse(raw) as Partial<OneToManyStoredReport>;
+    if (
+      value.version !== ONE_TO_MANY_STORED_REPORT_VERSION
+      || value.paymentId !== paymentId
+      || !value.snapshot
+      || !value.narrative
+      || !value.meta
+    ) return null;
+    return value as OneToManyStoredReport;
+  } catch {
+    return null;
+  }
+}
+
+export async function loadOneToManyReportForAccess(paymentId: string, accessToken: string) {
+  const recovered = await loadServerReportForAccess(paymentId, accessToken);
+  if (!recovered || recovered.order.product !== "oneToMany") return null;
+  const report = await loadOneToManyStoredReport(paymentId);
+  return { order: recovered.order as OneToManyOrderDraft, report };
+}
+
+export async function loadOneToManyStoredReport(paymentId: string) {
+  if (!await ensureSchema()) return null;
+  const sql = getQuery();
+  if (!sql) return null;
+  const rows = await sql`
+    SELECT report_json
+    FROM woorigunghap_order_records
+    WHERE payment_id = ${paymentId}
+      AND payment_status = 'paid'
+    LIMIT 1
+  `;
+  return parseOneToManyStoredReport(rows[0]?.report_json, paymentId);
+}
+
+/**
+ * Claims the single paid 1:N generation slot atomically. A stale claim may be
+ * reclaimed after five minutes so an interrupted function does not lock a paid
+ * order forever.
+ */
+export async function claimOneToManyGeneration(paymentId: string) {
+  if (!await ensureSchema()) return false;
+  const sql = getQuery();
+  if (!sql) return false;
+  const rows = await sql`
+    UPDATE woorigunghap_order_records
+    SET generation_status = 'generating', generation_started_at = NOW(), updated_at = NOW()
+    WHERE payment_id = ${paymentId}
+      AND payment_status = 'paid'
+      AND report_json IS NULL
+      AND (
+        generation_status <> 'generating'
+        OR generation_started_at IS NULL
+        OR generation_started_at < NOW() - INTERVAL '5 minutes'
+      )
+    RETURNING payment_id
+  `;
+  return rows.length > 0;
+}
+
+export async function saveOneToManyStoredReport(
+  paymentId: string,
+  snapshot: OneToManyCalculationSnapshot,
+  narrative: OneToManyNarrativeContent,
+  meta: OneToManyNarrativeMeta,
+) {
+  if (!await ensureSchema()) return false;
+  const sql = getQuery();
+  if (!sql) return false;
+  const report: OneToManyStoredReport = {
+    version: ONE_TO_MANY_STORED_REPORT_VERSION,
+    paymentId,
+    snapshot,
+    narrative,
+    meta,
+    updatedAt: new Date().toISOString(),
+  };
+  const rows = await sql`
+    UPDATE woorigunghap_order_records
+    SET report_json = ${JSON.stringify(report)},
+        generation_status = 'complete',
+        updated_at = NOW()
+    WHERE payment_id = ${paymentId}
+      AND payment_status = 'paid'
+    RETURNING payment_id
+  `;
+  return rows.length > 0;
+}
+
+export async function releaseOneToManyGeneration(paymentId: string) {
+  if (!await ensureSchema()) return false;
+  const sql = getQuery();
+  if (!sql) return false;
+  await sql`
+    UPDATE woorigunghap_order_records
+    SET generation_status = 'idle', generation_started_at = NULL, updated_at = NOW()
+    WHERE payment_id = ${paymentId}
+      AND report_json IS NULL
+  `;
+  return true;
+}
+
+export async function claimPaymentWebhook(webhookId: string, paymentId: string, eventType: string) {
+  if (!await ensureSchema()) return "unavailable" as const;
+  const sql = getQuery();
+  if (!sql) return "unavailable" as const;
+  const inserted = await sql`
+    INSERT INTO woorigunghap_webhook_events (webhook_id, payment_id, event_type, status)
+    VALUES (${webhookId}, ${paymentId}, ${eventType}, 'processing')
+    ON CONFLICT (webhook_id) DO NOTHING
+    RETURNING webhook_id
+  `;
+  if (inserted.length > 0) return "claimed" as const;
+  const rows = await sql`
+    SELECT status FROM woorigunghap_webhook_events
+    WHERE webhook_id = ${webhookId}
+    LIMIT 1
+  `;
+  if (rows[0]?.status === "processed") return "processed" as const;
+  if (rows[0]?.status === "failed") {
+    const reclaimed = await sql`
+      UPDATE woorigunghap_webhook_events
+      SET status = 'processing', updated_at = NOW()
+      WHERE webhook_id = ${webhookId}
+        AND status = 'failed'
+      RETURNING webhook_id
+    `;
+    if (reclaimed.length > 0) return "claimed" as const;
+  }
+  return "in_progress" as const;
+}
+
+export async function completePaymentWebhook(webhookId: string) {
+  if (!await ensureSchema()) return false;
+  const sql = getQuery();
+  if (!sql) return false;
+  await sql`
+    UPDATE woorigunghap_webhook_events
+    SET status = 'processed', updated_at = NOW()
+    WHERE webhook_id = ${webhookId}
+  `;
+  return true;
+}
+
+export async function failPaymentWebhook(webhookId: string) {
+  if (!await ensureSchema()) return false;
+  const sql = getQuery();
+  if (!sql) return false;
+  await sql`
+    UPDATE woorigunghap_webhook_events
+    SET status = 'failed', updated_at = NOW()
+    WHERE webhook_id = ${webhookId}
+      AND status = 'processing'
+  `;
+  return true;
 }
 
 export async function markServerOrderPaid(paymentId: string) {

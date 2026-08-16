@@ -9,5 +9,5 @@ import { buildOneToManyResultView } from "@/lib/compatibility/one-to-many-view";
 export default function OneToManyDemoResultPage() {
   const snapshot = calculateOneToManyCompatibility(ONE_TO_MANY_DEMO_INPUT);
   const view = buildOneToManyResultView(snapshot, ONE_TO_MANY_DEMO_NAMES);
-  return <OneToManyResult view={view} />;
+  return <OneToManyResult view={view} demo />;
 }

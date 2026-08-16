@@ -3,8 +3,8 @@
 import * as PortOne from "@portone/browser-sdk/v2";
 import { useState } from "react";
 import { PRODUCTS, type ProductKey } from "@/lib/catalog";
-import { ORDER_BINDING_VERSION, hashOneToOneInput } from "@/lib/order-binding";
-import type { OneToOneReportInput } from "@/lib/report-input";
+import { ORDER_BINDING_VERSION, hashOneToManyInput, hashOneToOneInput } from "@/lib/order-binding";
+import type { OneToManyReportInput, OneToOneReportInput } from "@/lib/report-input";
 
 export function PaymentButton({
   product,
@@ -13,7 +13,7 @@ export function PaymentButton({
 }: {
   product: ProductKey;
   paymentId?: string;
-  inputSnapshot?: OneToOneReportInput;
+  inputSnapshot?: OneToOneReportInput | OneToManyReportInput;
 }) {
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,8 +32,10 @@ export function PaymentButton({
 
     try {
       const resolvedPaymentId = paymentId ?? `woori-${product}-${crypto.randomUUID()}`;
-      const inputHash = product === "oneToOne" && inputSnapshot
-        ? await hashOneToOneInput(inputSnapshot)
+      const inputHash = inputSnapshot
+        ? product === "oneToMany"
+          ? await hashOneToManyInput(inputSnapshot as OneToManyReportInput)
+          : await hashOneToOneInput(inputSnapshot as OneToOneReportInput)
         : null;
 
       const response = await PortOne.requestPayment({

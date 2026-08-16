@@ -1,5 +1,5 @@
 import { PRODUCTS, type ProductKey } from "@/lib/catalog";
-import type { OneToOneReportInput } from "@/lib/report-input";
+import type { OneToManyReportInput, OneToOneReportInput } from "@/lib/report-input";
 import { createResultAccessToken } from "@/lib/result-access-token";
 
 export const ORDER_DRAFT_VERSION = "order-draft-v1" as const;
@@ -18,6 +18,13 @@ export type OneToOneOrderDraft = {
   inputSnapshot: OneToOneReportInput;
 };
 
+export type OneToManyOrderDraft = Omit<OneToOneOrderDraft, "product" | "inputSnapshot"> & {
+  product: "oneToMany";
+  inputSnapshot: OneToManyReportInput;
+};
+
+export type OrderDraft = OneToOneOrderDraft | OneToManyOrderDraft;
+
 export function buildPaymentId(product: ProductKey, orderId: string) {
   return `woori-${product}-${orderId}`;
 }
@@ -30,6 +37,21 @@ export function createOneToOneOrderDraft(input: OneToOneReportInput): OneToOneOr
     paymentId: buildPaymentId("oneToOne", orderId),
     product: "oneToOne",
     amount: PRODUCTS.oneToOne.amount,
+    status: "draft",
+    createdAt: new Date().toISOString(),
+    resultAccessToken: createResultAccessToken(),
+    inputSnapshot: structuredClone(input),
+  };
+}
+
+export function createOneToManyOrderDraft(input: OneToManyReportInput): OneToManyOrderDraft {
+  const orderId = crypto.randomUUID();
+  return {
+    version: ORDER_DRAFT_VERSION,
+    orderId,
+    paymentId: buildPaymentId("oneToMany", orderId),
+    product: "oneToMany",
+    amount: PRODUCTS.oneToMany.amount,
     status: "draft",
     createdAt: new Date().toISOString(),
     resultAccessToken: createResultAccessToken(),

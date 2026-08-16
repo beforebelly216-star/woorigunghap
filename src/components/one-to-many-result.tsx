@@ -5,14 +5,14 @@ function formatScore(score: number) {
   return Number.isInteger(score) ? String(score) : score.toFixed(1);
 }
 
-export function OneToManyResult({ view }: { view: OneToManyResultView }) {
+export function OneToManyResult({ view, demo = false }: { view: OneToManyResultView; demo?: boolean }) {
   return (
     <main className="comparison-report-page">
       <div className="comparison-report-shell">
         <Link href="/one-to-many" className="back-link compact">← 비교 정보 다시 입력</Link>
 
         <header className="comparison-hero">
-          <div className="demo-badge">Day 15 결과 UI · 고정 데모</div>
+          <div className="demo-badge">{demo ? "결과 UI · 고정 데모" : "결제 완료 · 저장된 1:다 리포트"}</div>
           <p className="eyebrow">1:다 {view.relationshipLabel} 비교</p>
           <h1>{view.headline}</h1>
           <p className="comparison-summary">{view.summary}</p>
@@ -111,6 +111,7 @@ export function OneToManyResult({ view }: { view: OneToManyResultView }) {
                   <strong>{candidate.score}점</strong>
                 </summary>
                 <div className="candidate-insight-body">
+                  <p className="comparison-summary">{candidate.oneLine}</p>
                   <div className="candidate-insight-column strength-tone">
                     <h3>잘 맞는 지점</h3>
                     {candidate.strengths.map((strength) => (
@@ -170,13 +171,21 @@ export function OneToManyResult({ view }: { view: OneToManyResultView }) {
           </details>
         </section>
 
+        <section className="comparison-section" aria-labelledby="final-summary-title">
+          <div className="comparison-section-heading">
+            <p className="card-label">마무리 안내</p>
+            <h2 id="final-summary-title">비교 결과를 관계에 쓰는 방법</h2>
+            <p>{view.finalSummary}</p>
+          </div>
+        </section>
+
         <aside className="comparison-method-note">
-          <strong>이 화면은 결과 구조 검증용 고정 데모예요.</strong>
-          <p>실제 입력값의 계산·결과 생성은 Day 16에서 3,000원 결제 검증 이후에만 연결합니다. 이름은 화면 표시 단계에서만 다시 붙고, 계산·AI 설명에는 생년월일시와 이름을 보내지 않아요.</p>
+          <strong>{demo ? "이 화면은 결과 구조 검증용 고정 데모예요." : "점수와 순위는 서버 계산 결과예요."}</strong>
+          <p>{demo ? "실제 결과는 3,000원 결제 검증 이후에만 생성합니다." : "AI는 익명화된 계산 근거의 설명만 작성하며 점수·순위·공동 추천 대상을 바꿀 수 없습니다. 이 결과는 복구키로 다시 열 수 있어요."}</p>
         </aside>
 
         <div className="comparison-actions">
-          <Link href="/one-to-many" className="primary-link">내 비교 정보 입력하기</Link>
+          <Link href="/one-to-many" className="primary-link">새 비교 시작하기</Link>
           <Link href="/" className="secondary-link">홈으로</Link>
         </div>
       </div>

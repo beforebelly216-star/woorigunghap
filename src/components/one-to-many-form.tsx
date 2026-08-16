@@ -1,7 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { OneToManyOrderDraft } from "@/lib/orders";
+import { saveOrderDraft } from "@/lib/order-storage";
 import {
   ONE_TO_MANY_MAX_CANDIDATES,
   ONE_TO_MANY_MIN_CANDIDATES,
@@ -80,9 +82,11 @@ function toReportInput(form: FormState) {
 }
 
 export function OneToManyForm() {
+  const router = useRouter();
   const [form, setForm] = useState<FormState>(createInitialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState(false);
+  const [isContinuing, setIsContinuing] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -130,7 +134,7 @@ export function OneToManyForm() {
       : { ...current, candidates: current.candidates.filter((_, itemIndex) => itemIndex !== index) });
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaved(false);
 
@@ -160,6 +164,23 @@ export function OneToManyForm() {
       return;
     }
     setSaved(true);
+    setIsContinuing(true);
+    try {
+      const response = await fetch("/api/orders/one-to-many", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ input: normalized.input }),
+      });
+      const payload = await response.json().catch(() => null) as { order?: OneToManyOrderDraft; error?: string } | null;
+      if (!response.ok || !payload?.order) throw new Error(payload?.error ?? "ORDER_DRAFT_UNAVAILABLE");
+      saveOrderDraft(payload.order);
+      router.push(`/one-to-many/checkout?paymentId=${encodeURIComponent(payload.order.paymentId)}`);
+    } catch (error) {
+      setErrors({ form: error instanceof Error && !error.message.includes("ORDER_DRAFT")
+        ? error.message
+        : "안전한 주문 저장소를 확인하지 못했어요. 잠시 후 다시 시도해 주세요." });
+      setIsContinuing(false);
+    }
   }
 
   return (
@@ -253,15 +274,16 @@ export function OneToManyForm() {
         </div>
       </section>
 
-      {saved ? (
+      {saved && !isContinuing ? (
         <div className="form-success" role="status">
-          <strong>Day 13 입력 확인 완료</strong>
-          <p>기준자 1명과 후보 {form.candidates.length}명의 입력을 이 브라우저에 임시 저장했어요. 실제 입력 결과는 Day 16 결제 검증 뒤에 연결됩니다.</p>
-          <Link href="/one-to-many/result/demo" className="form-preview-link">Day 15 고정 결과 화면 보기 →</Link>
+          <strong>입력 확인 완료</strong>
+          <p>기준자 1명과 후보 {form.candidates.length}명의 입력을 확인했어요.</p>
         </div>
       ) : null}
 
-      <button type="submit" className="primary-action">입력 검증하고 임시 저장하기</button>
+      <button type="submit" className="primary-action" disabled={isContinuing}>
+        {isContinuing ? "안전한 결제 단계로 이동 중..." : "입력 확인하고 3,000원 결제로 계속하기"}
+      </button>
     </form>
   );
 }

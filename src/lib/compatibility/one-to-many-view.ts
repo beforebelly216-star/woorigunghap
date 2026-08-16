@@ -5,6 +5,7 @@ import {
   type OneToManyCandidateId,
 } from "./one-to-many";
 import type { CompatibilityDimension, CompatibilityProfile } from "./types";
+import type { OneToManyNarrativeContent } from "@/lib/narrative/one-to-many-report-engine";
 
 export const ONE_TO_MANY_VIEW_VERSION = "one-to-many-view-v1.0.0" as const;
 
@@ -111,6 +112,7 @@ export type OneToManyResultView = {
   headline: string;
   summary: string;
   closenessNotice: string;
+  finalSummary: string;
   rankings: Array<{
     candidateId: OneToManyCandidateId;
     displayName: string;
@@ -133,6 +135,7 @@ export type OneToManyResultView = {
     displayName: string;
     rank: number;
     score: number;
+    oneLine: string;
     strengths: Array<{ label: string; copy: string }>;
     cautions: Array<{ label: string; copy: string }>;
     practicalTip: string;
@@ -290,6 +293,7 @@ function recommendationReason(basis: SituationalRecommendation["basis"]) {
 export function buildOneToManyResultView(
   snapshot: OneToManyCalculationSnapshot,
   names: Record<string, string>,
+  narrative?: OneToManyNarrativeContent,
 ): OneToManyResultView {
   const summaryMetrics = buildSummaryMetrics(snapshot);
   const recommendations = buildSituationalRecommendations(snapshot, summaryMetrics);
@@ -305,11 +309,12 @@ export function buildOneToManyResultView(
   return {
     viewVersion: ONE_TO_MANY_VIEW_VERSION,
     relationshipLabel: RELATIONSHIP_LABELS[snapshot.relationshipType],
-    headline: topNames.length > 1
+    headline: narrative?.rankingSummary.headline ?? (topNames.length > 1
       ? `${topNames.join("·")}님이 종합 공동 1위예요.`
-      : `${topNames[0]}님이 종합 점수에서는 가장 앞서요.`,
-    summary: `같은 ${RELATIONSHIP_LABELS[snapshot.relationshipType]} 기준으로 ${snapshot.candidateCount}명을 비교했어요. 종합 순위만 보지 않고 소통, 정서 안정, 갈등 관리, 지속성과 관계 목적별 강점을 함께 확인해 보세요.`,
-    closenessNotice,
+      : `${topNames[0]}님이 종합 점수에서는 가장 앞서요.`),
+    summary: narrative?.rankingSummary.summary ?? `같은 ${RELATIONSHIP_LABELS[snapshot.relationshipType]} 기준으로 ${snapshot.candidateCount}명을 비교했어요. 종합 순위만 보지 않고 소통, 정서 안정, 갈등 관리, 지속성과 관계 목적별 강점을 함께 확인해 보세요.`,
+    closenessNotice: narrative?.rankingSummary.closenessNotice ?? closenessNotice,
+    finalSummary: narrative?.finalSummary ?? "이 비교는 사람의 우열을 정하는 답이 아니라, 각 관계에서 잘 맞는 지점과 확인할 대화를 찾는 기준이에요. 점수와 상황별 강점을 함께 보고 실제 관계의 경험과 대화로 확인해 보세요.",
     rankings: snapshot.candidates.map((candidate) => ({
       candidateId: candidate.candidateId,
       displayName: displayNameFor(candidate.candidateId, names),
@@ -332,25 +337,33 @@ export function buildOneToManyResultView(
     recommendations: recommendations.map((recommendation) => ({
       ...recommendation,
       displayNames: recommendation.candidateIds.map((id) => displayNameFor(id, names)),
-      reason: recommendationReason(recommendation.basis),
+      reason: narrative?.situationalRecommendations[recommendation.id].reason ?? recommendationReason(recommendation.basis),
     })),
     candidateInsights: snapshot.candidates.map((candidate) => {
       const strengths = candidate.calculationSnapshot.strengths.slice(0, 2);
       const cautions = candidate.calculationSnapshot.adjustmentPoints.slice(0, 2);
+      const generated = narrative?.candidates.find((item) => item.candidateId === candidate.candidateId);
       return {
         candidateId: candidate.candidateId,
         displayName: displayNameFor(candidate.candidateId, names),
         rank: candidate.rank,
         score: candidate.score,
-        strengths: strengths.map((dimension) => ({
+        oneLine: generated?.oneLine ?? `${displayNameFor(candidate.candidateId, names)}님과의 관계에서 강점과 조율 지점을 함께 확인해 보세요.`,
+        strengths: generated ? generated.strengths.map((copy, index) => ({
+          label: `강점 ${index + 1}`,
+          copy,
+        })) : strengths.map((dimension) => ({
           label: DIMENSION_LABELS[dimension],
           copy: DIMENSION_GUIDES[dimension].strength,
         })),
-        cautions: cautions.map((dimension) => ({
+        cautions: generated ? generated.cautions.map((copy, index) => ({
+          label: `조율 ${index + 1}`,
+          copy,
+        })) : cautions.map((dimension) => ({
           label: DIMENSION_LABELS[dimension],
           copy: DIMENSION_GUIDES[dimension].caution,
         })),
-        practicalTip: DIMENSION_GUIDES[cautions[0] ?? strengths[0]].action,
+        practicalTip: generated?.practicalTip ?? DIMENSION_GUIDES[cautions[0] ?? strengths[0]].action,
       };
     }),
     detailedDimensions: COMPATIBILITY_DIMENSIONS.map((dimension) => ({

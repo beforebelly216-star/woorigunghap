@@ -44,7 +44,8 @@ for (const rawBirthValue of ["1990-05-15", "1992-10-24", "14:30", "05:30"]) {
 }
 
 const resultSource = readFileSync("src/components/one-to-many-result.tsx", "utf8");
-const emptySource = readFileSync("src/app/one-to-many/result/page.tsx", "utf8");
+const paidSource = readFileSync("src/app/one-to-many/result/page.tsx", "utf8");
+const demoSource = readFileSync("src/app/one-to-many/result/demo/page.tsx", "utf8");
 const errorSource = readFileSync("src/app/one-to-many/result/demo/error.tsx", "utf8");
 const formSource = readFileSync("src/components/one-to-many-form.tsx", "utf8");
 assert.match(resultSource, /한눈에 보는 순위/);
@@ -52,8 +53,9 @@ assert.match(resultSource, /공동 추천/);
 assert.match(resultSource, /명리 9개 항목 상세 점수/);
 assert.match(resultSource, /<details/);
 assert.match(resultSource, /<table/);
-assert.match(emptySource, /아직 표시할 결과가 없어요/);
+assert.match(paidSource, /OneToManyPaidResult/);
+assert.match(demoSource, /demo/);
 assert.match(errorSource, /reset/);
-assert.match(formSource, /href="\/one-to-many\/result\/demo"/);
+assert.match(formSource, /3,000원 결제로 계속하기/);
 
 console.log("Day 15 one-to-many result UI checks: PASS");
