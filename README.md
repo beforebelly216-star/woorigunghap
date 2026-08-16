@@ -9,8 +9,17 @@ cp .env.example .env.local
 npm run dev
 ```
 
-`.env.local`에 PortOne 콘솔에서 확보한 값을 입력합니다. `PORTONE_API_SECRET`과
-`PORTONE_WEBHOOK_SECRET`은 서버 전용 값이므로 절대 브라우저 코드나 깃 저장소에 넣지 않습니다.
+`.env.local`에 PortOne·Kakao Developers에서 확보한 값을 입력합니다. 아래 값은 모두
+서버 전용이므로 절대 브라우저 코드나 깃 저장소에 넣지 않습니다.
+
+- `PORTONE_API_SECRET`
+- `PORTONE_WEBHOOK_SECRET`
+- `KAKAO_REST_API_KEY`
+- `KAKAO_CLIENT_SECRET`
+
+카카오 개발자 콘솔에는 실제 서비스 주소와 정확히 일치하는 콜백 주소를 등록합니다.
+운영 예시는 `https://서비스주소/api/auth/kakao/callback`이며, 이 전체 주소를
+`KAKAO_REDIRECT_URI`에도 동일하게 설정합니다.
 
 ## 현재 포함된 흐름
 
@@ -35,6 +44,8 @@ npm run dev
 - 1:N 결과 UI: 순위 카드, 쉬운 6개 요약 지표, 공동 상황 추천, 후보별 강점·주의, 접힌 9개 상세 점수표
 - 1:N 유료 흐름: 결제 입력 해시 검증 뒤에만 서버 계산·통합 AI 1회 생성, 원자적 중복 방지, Neon 스냅샷 저장·복구
 - PortOne 웹훅 ID를 먼저 저장해 중복 승인 이벤트를 멱등 처리하고, 서버 조회로 금액·상품을 재검증
+- 비회원 결제 흐름을 유지하는 선택형 카카오 로그인, OAuth `state` 검증, 서버 DB 세션, 로그아웃
+- 카카오 회원번호만 계정 식별에 사용하고 이메일·전화번호·생년정보와 카카오 토큰은 저장하지 않음
 
 현재 1:1 사용자 흐름:
 
@@ -98,11 +109,11 @@ AI는 사주를 계산하거나 결제 여부를 판단하지 않습니다. 서�
 - Day 13: 1:N 데이터 계약·기준자 1명 + 후보 2~5명 입력·검증 ✅
 - Day 14: 1:N 후보별 계산·서버 랭킹·동률/불확실성·비교 JSON ✅
 - Day 15: 1:N 결과 UI·익명 AI 콘텐츠 계약·공동 추천·순위 불변 검증 ✅
-- Day 16: 1:N 주문·3,000원 결제 게이트·통합 AI 1회·Neon 저장/복구·멱등 코드 및 회귀 검증 ✅ (운영 테스트 결제 E2E 대기)
+- Day 16: 1:N 주문·3,000원 결제 게이트·통합 AI 1회·Neon 저장/복구·멱등 코드 및 회귀 검증 ✅
+- Day 17: 카카오 OAuth 콜백·세션·계정 식별·로그아웃·보안 경계 코드/회귀 검증 ✅ (카카오 앱 설정·운영 OAuth E2E 대기)
 
 ## 다음 구현 순서 (Day 17~24)
 
-- Day 17: 카카오 OAuth 콜백·세션·계정 식별·로그아웃·보안 경계
 - Day 18: 유료 결과의 계정 귀속·목록·재열람·비회원 결과 연결·권한 검증
 - Day 19: 청월당의 정보 위계와 흐름을 참고한 우리궁합 고유 UI 시스템
 - Day 20: 모바일 실기기 입력·결제·결과·보관함 UX와 접근성·오류 복구
@@ -123,6 +134,7 @@ npm run test:day14:one-to-many-calculation
 npm run test:day15:one-to-many-narrative
 npm run test:day15:one-to-many-result-ui
 npm run test:day16:one-to-many-paid-e2e
+npm run test:day17:kakao-auth
 npm run lint
 npm run build
 ```
