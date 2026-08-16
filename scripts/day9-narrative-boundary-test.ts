@@ -97,12 +97,22 @@ async function main() {
   const resultUi = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
   assert.doesNotMatch(resultUi, /상세 해설 생성이 지연되고 있어요/);
   assert.doesNotMatch(resultUi, /같은 결제로 다시 생성하기/);
+  assert.doesNotMatch(resultUi, /AbortController/);
+  assert.doesNotMatch(resultUi, /210_000/);
   assert.match(resultUi, /while \(!cancelled\)/);
   assert.match(resultUi, /retryDelay\(attempt\)/);
+  assert.match(resultUi, /response\.status >= 500/);
   assert.match(resultUi, /saveReportProgress\(progress\)/);
   assert.match(resultUi, /loadReportProgress\(draft\.paymentId, draft\.createdAt\)/);
   assert.match(resultUi, /dimension !== "luckCycleAlignment"/);
-  assert.match(resultUi, /완료될 때까지 계속 시도합니다/);
+  assert.match(resultUi, /완료될 때까지 계속 기다립니다/);
+
+  const apiRoute = readFileSync("src/app/api/compatibility/one-to-one/route.ts", "utf8");
+  assert.match(apiRoute, /PHASES = \["prepare", \.\.\.PAID_REPORT_SEGMENTS\]/);
+  assert.match(apiRoute, /retryableReportReason/);
+  assert.match(apiRoute, /API_TIMEOUT/);
+  assert.match(apiRoute, /API_OVERLOADED/);
+  assert.match(apiRoute, /AI_OUTPUT_TRUNCATED/);
 
   const v7Engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
   assert.match(v7Engine, /PAID_REPORT_SEGMENTS = \["intro", "dynamics", "action"\]/);
