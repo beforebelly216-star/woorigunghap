@@ -10,6 +10,7 @@ import type {
   ActionSegment,
   DynamicsSegment,
   IntroSegment,
+  PaidReportSegmentContent,
   PaidReportSegmentMeta,
   PaidReportSegmentName,
 } from "@/lib/narrative/report-engine-v7";
@@ -34,19 +35,13 @@ const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
 };
 
 const SEGMENTS: PaidReportSegmentName[] = ["intro", "dynamics", "action"];
-const STAGE_COPY: Record<"prepare" | PaidReportSegmentName, string> = {
-  prepare: "결제와 궁합 점수를 확인하고 있어요.",
-  intro: "1~3장 · 두 사람의 사주와 관계 성향을 풀어 쓰고 있어요.",
-  dynamics: "4~6장 · 기본 케미와 실제 결속·마찰을 분석하고 있어요.",
-  action: "7~10장 · 관계 흐름과 갈등 대응·실전 매뉴얼을 만들고 있어요.",
+const PERMANENT_FAILURE_LABELS: Record<string, string> = {
+  API_AUTH: "Claude API 키 인증 설정을 확인해야 해요.",
+  API_BILLING: "Claude API 사용 크레딧을 확인해야 해요.",
+  API_PERMISSION: "현재 API 키의 모델 사용 권한을 확인해야 해요.",
+  AI_MODE: "AI 서술 모드 설정을 확인해야 해요.",
+  API_KEY_MISSING: "Claude API 키 설정을 확인해야 해요.",
 };
-
-class FatalGenerationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "FatalGenerationError";
-  }
-}
 
 function gradeFor(score: number) {
   if (score >= 90) return "S";
@@ -58,19 +53,40 @@ function gradeFor(score: number) {
   return "F";
 }
 
-function wait(ms: number) {
+function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-function retryDelay(attempt: number) {
-  return Math.min(20_000, 1_500 * 2 ** Math.min(4, Math.max(0, attempt - 1)));
+function completedCount(progress: ReportProgress) {
+  return Number(!!progress.segments.intro) + Number(!!progress.segments.dynamics) + Number(!!progress.segments.action);
 }
 
-function completeContent(progress: ReportProgress): DetailedReportContent | null {
+function assembleContent(progress: ReportProgress): DetailedReportContent | null {
   const { intro, dynamics, action } = progress.segments;
   if (!intro || !dynamics || !action) return null;
   return { ...intro, ...dynamics, ...action };
 }
+
+function assignSegment(progress: ReportProgress, segment: PaidReportSegmentName, content: PaidReportSegmentContent, meta: PaidReportSegmentMeta | null) {
+  if (segment === "intro") progress.segments.intro = content as IntroSegment;
+  if (segment === "dynamics") progress.segments.dynamics = content as DynamicsSegment;
+  if (segment === "action") progress.segments.action = content as ActionSegment;
+  if (meta) progress.metas[segment] = meta;
+  progress.updatedAt = new Date().toISOString();
+}
+
+type SegmentApiPayload = {
+  ok?: boolean;
+  segment?: PaidReportSegmentName;
+  segmentContent?: PaidReportSegmentContent;
+  segmentMeta?: PaidReportSegmentMeta;
+  reportFacts?: PaidReportFacts;
+  snapshot?: CompatibilityCalculationSnapshot;
+  error?: string;
+  reason?: string;
+  retryable?: boolean;
+  runtimeVersion?: string;
+};
 
 export default function ResultV2() {
   const params = useSearchParams();
@@ -80,176 +96,102 @@ export default function ResultV2() {
   const [snapshot, setSnapshot] = useState<CompatibilityCalculationSnapshot | null>(null);
   const [content, setContent] = useState<DetailedReportContent | null>(null);
   const [facts, setFacts] = useState<PaidReportFacts | null>(null);
-  const [segmentMetas, setSegmentMetas] = useState<Partial<Record<PaidReportSegmentName, PaidReportSegmentMeta>>>({});
-  const [status, setStatus] = useState<"loading" | "ready" | "missing" | "fatal">("loading");
-  const [fatalMessage, setFatalMessage] = useState<string | null>(null);
-  const [stage, setStage] = useState<"prepare" | PaidReportSegmentName>("prepare");
-  const [stageAttempt, setStageAttempt] = useState(1);
-  const [completedSegments, setCompletedSegments] = useState(0);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-
-  useEffect(() => {
-    if (status !== "loading") return;
-    const startedAt = Date.now();
-    const timer = window.setInterval(() => {
-      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [status]);
+  const [progressMeta, setProgressMeta] = useState<ReportProgress["metas"] | null>(null);
+  const [status, setStatus] = useState<"loading" | "ready" | "missing" | "error">("loading");
+  const [progressStep, setProgressStep] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function postPhase<T>(
-      draft: OneToOneOrderDraft,
-      phase: "prepare" | PaidReportSegmentName,
-    ): Promise<T> {
-      let attempt = 0;
-
-      while (!cancelled) {
-        attempt += 1;
-        setStage(phase);
-        setStageAttempt(attempt);
-
-        try {
-          const response = await fetch("/api/compatibility/one-to-one", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              paymentId: draft.paymentId,
-              input: draft.inputSnapshot,
-              phase,
-            }),
-            cache: "no-store",
-          });
-          const payload = await response.json().catch(() => null) as ({
-            error?: string;
-            code?: string;
-            reason?: string;
-            retryable?: boolean;
-          } & T) | null;
-
-          if (response.ok && payload) return payload;
-
-          const transient = payload?.retryable === true
-            || response.status === 429
-            || response.status >= 500;
-
-          if (!transient) {
-            throw new FatalGenerationError(payload?.error ?? "상세 리포트 생성 설정을 확인해야 합니다.");
-          }
-        } catch (error) {
-          if (error instanceof FatalGenerationError) throw error;
-          // Network interruption or a platform/server timeout is retried indefinitely.
-        }
-
-        if (cancelled) throw new Error("CANCELLED");
-        await wait(retryDelay(attempt));
-      }
-
-      throw new Error("CANCELLED");
-    }
-
-    async function run() {
-      if (!paymentId) {
-        setStatus("missing");
-        return;
-      }
-
+    queueMicrotask(() => {
+      if (cancelled) return;
+      if (!paymentId) { setStatus("missing"); return; }
       const draft = loadOrderDraft(paymentId);
-      if (!draft) {
-        setStatus("missing");
-        return;
-      }
+      if (!draft) { setStatus("missing"); return; }
       setOrder(draft);
       setStatus("loading");
-      setFatalMessage(null);
+      setErrorMessage(null);
 
-      let progress = loadReportProgress(draft.paymentId, draft.createdAt)
-        ?? emptyReportProgress(draft.paymentId, draft.createdAt);
+      void (async () => {
+        let progress = loadReportProgress(paymentId, draft.createdAt) ?? emptyReportProgress(paymentId, draft.createdAt);
+        setProgressStep(completedCount(progress));
 
-      const cachedContent = completeContent(progress);
-      if (progress.snapshot && progress.facts && cachedContent) {
-        setSnapshot(progress.snapshot);
-        setFacts(progress.facts);
-        setContent(cachedContent);
-        setSegmentMetas(progress.metas);
-        setCompletedSegments(3);
-        setStatus("ready");
-        return;
-      }
-
-      try {
-        if (!progress.snapshot || !progress.facts) {
-          const prepared = await postPhase<{
-            snapshot: CompatibilityCalculationSnapshot;
-            reportFacts: PaidReportFacts;
-          }>(draft, "prepare");
+        const cachedContent = assembleContent(progress);
+        if (cachedContent && progress.snapshot && progress.facts) {
           if (cancelled) return;
-          progress = {
-            ...progress,
-            snapshot: prepared.snapshot,
-            facts: prepared.reportFacts,
-          };
-          saveReportProgress(progress);
+          setSnapshot(progress.snapshot);
+          setFacts(progress.facts);
+          setProgressMeta(progress.metas);
+          setContent(cachedContent);
+          setStatus("ready");
+          return;
         }
 
-        if (cancelled) return;
-        setSnapshot(progress.snapshot);
-        setFacts(progress.facts);
-
         for (const segment of SEGMENTS) {
+          if (cancelled) return;
           if (progress.segments[segment]) {
-            setCompletedSegments((current) => Math.max(current, SEGMENTS.indexOf(segment) + 1));
+            setProgressStep(completedCount(progress));
             continue;
           }
 
-          const generated = await postPhase<{
-            segmentContent: IntroSegment | DynamicsSegment | ActionSegment;
-            segmentMeta: PaidReportSegmentMeta;
-          }>(draft, segment);
-          if (cancelled) return;
+          let attempts = 0;
+          while (!cancelled && !progress.segments[segment]) {
+            attempts += 1;
+            try {
+              const response = await fetch("/api/compatibility/one-to-one/segment", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                cache: "no-store",
+                body: JSON.stringify({ paymentId: draft.paymentId, input: draft.inputSnapshot, segment }),
+              });
+              const payload = await response.json().catch(() => null) as SegmentApiPayload | null;
 
-          if (segment === "intro") progress.segments.intro = generated.segmentContent as IntroSegment;
-          if (segment === "dynamics") progress.segments.dynamics = generated.segmentContent as DynamicsSegment;
-          if (segment === "action") progress.segments.action = generated.segmentContent as ActionSegment;
-          progress.metas[segment] = generated.segmentMeta;
-          saveReportProgress(progress);
-          setCompletedSegments(SEGMENTS.indexOf(segment) + 1);
-          setSegmentMetas({ ...progress.metas });
+              if (response.ok && payload?.ok && payload.segmentContent && payload.snapshot && payload.reportFacts) {
+                assignSegment(progress, segment, payload.segmentContent, payload.segmentMeta ?? null);
+                progress.snapshot = payload.snapshot;
+                progress.facts = payload.reportFacts;
+                saveReportProgress(progress);
+                setProgressStep(completedCount(progress));
+                setRetryCount(0);
+                break;
+              }
+
+              if (payload && payload.retryable === false) {
+                const permanentMessage = payload.reason ? PERMANENT_FAILURE_LABELS[payload.reason] : null;
+                throw new Error(`PERMANENT:${permanentMessage ?? payload.error ?? "리포트 생성 설정을 확인해야 해요."}`);
+              }
+            } catch (error) {
+              const message = error instanceof Error ? error.message : "";
+              if (message.startsWith("PERMANENT:")) {
+                if (cancelled) return;
+                setErrorMessage(message.slice("PERMANENT:".length));
+                setStatus("error");
+                return;
+              }
+            }
+
+            if (cancelled) return;
+            setRetryCount((value) => value + 1);
+            const backoff = Math.min(30_000, 2_000 * Math.max(1, Math.min(attempts, 15)));
+            await sleep(backoff);
+          }
         }
 
-        const finalContent = completeContent(progress);
-        if (!finalContent || !progress.snapshot || !progress.facts) {
-          throw new FatalGenerationError("완성된 리포트를 조립하지 못했습니다.");
-        }
-
+        if (cancelled) return;
+        progress = loadReportProgress(paymentId, draft.createdAt) ?? progress;
+        const finalContent = assembleContent(progress);
+        if (!finalContent || !progress.snapshot || !progress.facts) return;
         setSnapshot(progress.snapshot);
         setFacts(progress.facts);
+        setProgressMeta(progress.metas);
         setContent(finalContent);
-        setSegmentMetas(progress.metas);
         setStatus("ready");
-      } catch (error) {
-        if (cancelled || (error instanceof Error && error.message === "CANCELLED")) return;
-        if (error instanceof FatalGenerationError) {
-          setFatalMessage(error.message);
-          setStatus("fatal");
-          return;
-        }
-        // Any unknown transport-level issue should keep waiting rather than show a delay error.
-        setStageAttempt((current) => current + 1);
-        await wait(3_000);
-        if (!cancelled) void run();
-      }
-    }
-
-    queueMicrotask(() => {
-      if (!cancelled) void run();
+      })();
     });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [paymentId]);
 
   const visibleDimensions = useMemo(() => {
@@ -258,11 +200,13 @@ export default function ResultV2() {
       .filter(([dimension, value]) => value.maxPoints > 0 && dimension !== "luckCycleAlignment");
   }, [snapshot]);
 
-  if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 불러올 입력정보가 없어요.</h1><p>결제 자체는 사라지지 않았어요. 같은 브라우저의 원래 결제 탭이 있으면 그 탭을 다시 열어 주세요. 없으면 아래에서 두 사람의 정보만 다시 입력해 기존 결제로 결과를 복구할 수 있어요.</p>{paymentId ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력정보 다시 넣기</Link> : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}</div></main>;
+  if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 불러올 입력정보가 없어요.</h1><p>결제 자체는 사라지지 않았어요. 아래에서 두 사람의 정보만 다시 입력하면 기존 결제로 결과를 복구할 수 있어요.</p>{paymentId ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력정보 다시 넣기</Link> : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}</div></main>;
 
-  if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>상세 리포트를 만들고 있어요.</h1><p>{STAGE_COPY[stage]}</p><p>{completedSegments}/3개 해설 묶음 완료 · {elapsedSeconds}초 경과</p>{stageAttempt > 1 ? <p>연결이 끊겨도 자동으로 이어서 시도하고 있어요. 이 화면은 완료될 때까지 계속 기다립니다.</p> : <p>첫 장문 생성은 시간이 걸릴 수 있어요. 창을 그대로 열어두면 완료될 때까지 이어서 진행합니다.</p>}</div></main>;
+  if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>두 사람의 상세 리포트를 계속 작성하고 있어요.</h1><p>전체 3단계 중 <strong>{progressStep}단계</strong>가 완료됐어요. 오래 걸려도 완료된 구간은 저장되며, 일시적인 지연이나 네트워크 오류가 생기면 자동으로 다시 이어서 작성합니다.</p><p>새로고침하거나 다시 들어와도 같은 브라우저에서는 완료된 단계부터 이어집니다.{retryCount > 0 ? ` 현재 자동 재시도 ${retryCount}회째예요.` : ""}</p></div></main>;
 
-  if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>자동 대기로 해결할 수 없는 설정 문제가 있어요.</h1><p>{fatalMessage ?? "결제 또는 API 설정을 확인해 주세요."}</p><p>결제는 다시 하지 않아도 됩니다.</p></div></main>;
+  if (status === "error" || !order) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>리포트 생성 설정을 확인해야 해요.</h1><p>{errorMessage ?? "결제·API 설정처럼 자동 재시도로 해결되지 않는 문제가 확인됐어요."}</p></div></main>;
+
+  if (!snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>두 사람의 상세 리포트를 계속 작성하고 있어요.</h1><p>완료된 부분부터 이어서 작성 중입니다.</p></div></main>;
 
   const { personA, personB, relationshipType } = order.inputSnapshot;
   const relationshipLabel = RELATIONSHIP_LABELS[relationshipType];
@@ -292,7 +236,7 @@ export default function ResultV2() {
     <ReportChaptersA content={content} personAName={personA.displayName} personBName={personB.displayName} />
     <ReportChaptersB content={content} personAName={personA.displayName} personBName={personB.displayName} relationshipLabel={relationshipLabel} />
 
-    {debug && <section className="v2-debug"><strong>QA debug</strong><pre>{JSON.stringify({ segmentMetas, scoringVersion: snapshot.scoringVersion, engineVersion: snapshot.engineVersion }, null, 2)}</pre></section>}
+    {debug && progressMeta && <section className="v2-debug"><strong>QA debug</strong><pre>{JSON.stringify({ segmentMeta: progressMeta, scoringVersion: snapshot.scoringVersion, engineVersion: snapshot.engineVersion }, null, 2)}</pre></section>}
     <footer className="v2-footer"><Link href="/one-to-one">다른 사람과 다시 보기</Link><Link href="/">처음으로</Link></footer>
   </div></main>;
 }
