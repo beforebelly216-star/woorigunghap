@@ -24,6 +24,14 @@ export type SegmentAttempt<T> = {
   qualityIssues: string[];
 };
 
+type JsonSchemaShape = {
+  type?: unknown;
+  properties?: unknown;
+  required?: unknown;
+  additionalProperties?: unknown;
+  items?: unknown;
+};
+
 function safeError(body: unknown) {
   if (!body || typeof body !== "object" || Array.isArray(body)) return "UNKNOWN";
   const error = (body as { error?: unknown }).error;
@@ -49,6 +57,54 @@ function parseJsonText(text: string): unknown {
     if (first >= 0 && last > first) return JSON.parse(unfenced.slice(first, last + 1));
     throw new Error("INVALID_JSON");
   }
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * Lightweight recursive validator for the JSON-Schema subset used by the paid report.
+ * It intentionally validates on our server even when Claude is asked for plain JSON,
+ * so malformed nested arrays/objects can never reach the React renderer.
+ */
+export function matchesJsonSchema(value: unknown, schema: unknown): boolean {
+  if (!isPlainObject(schema)) return false;
+  const shape = schema as JsonSchemaShape;
+
+  if (shape.type === "string") return typeof value === "string";
+
+  if (shape.type === "array") {
+    if (!Array.isArray(value) || !shape.items) return false;
+    return value.every((item) => matchesJsonSchema(item, shape.items));
+  }
+
+  if (shape.type === "object") {
+    if (!isPlainObject(value) || !isPlainObject(shape.properties)) return false;
+    const properties = shape.properties;
+    const required = Array.isArray(shape.required)
+      ? shape.required.filter((key): key is string => typeof key === "string")
+      : [];
+
+    if (!required.every((key) => Object.prototype.hasOwnProperty.call(value, key))) return false;
+
+    if (shape.additionalProperties === false) {
+      const allowed = new Set(Object.keys(properties));
+      if (Object.keys(value).some((key) => !allowed.has(key))) return false;
+    }
+
+    for (const [key, child] of Object.entries(value)) {
+      const childSchema = properties[key];
+      if (childSchema === undefined) {
+        if (shape.additionalProperties === false) return false;
+        continue;
+      }
+      if (!matchesJsonSchema(child, childSchema)) return false;
+    }
+    return true;
+  }
+
+  return false;
 }
 
 function collectCharacters(value: unknown): number {
@@ -189,8 +245,9 @@ export async function requestStructuredSegment<T>(args: {
         lastFailure = "INVALID_JSON";
         continue;
       }
-      if (!args.validate(parsed)) {
+      if (!matchesJsonSchema(parsed, args.schema) || !args.validate(parsed)) {
         lastFailure = "SCHEMA_MISMATCH";
+        console.warn("[woorigunghap:v6-segment-schema]", JSON.stringify({ label: args.label, attempt }));
         continue;
       }
 
