@@ -111,8 +111,6 @@ export default function ResultV2() {
         setStage(phase);
         setStageAttempt(attempt);
 
-        const controller = new AbortController();
-        const timeout = window.setTimeout(() => controller.abort(), 210_000);
         try {
           const response = await fetch("/api/compatibility/one-to-one", {
             method: "POST",
@@ -122,7 +120,6 @@ export default function ResultV2() {
               input: draft.inputSnapshot,
               phase,
             }),
-            signal: controller.signal,
             cache: "no-store",
           });
           const payload = await response.json().catch(() => null) as ({
@@ -136,18 +133,14 @@ export default function ResultV2() {
 
           const transient = payload?.retryable === true
             || response.status === 429
-            || response.status === 502
-            || response.status === 503
-            || response.status === 504;
+            || response.status >= 500;
 
           if (!transient) {
             throw new FatalGenerationError(payload?.error ?? "상세 리포트 생성 설정을 확인해야 합니다.");
           }
         } catch (error) {
           if (error instanceof FatalGenerationError) throw error;
-          // Network interruption, browser timeout, Claude congestion and server timeout are retried here.
-        } finally {
-          window.clearTimeout(timeout);
+          // Network interruption or a platform/server timeout is retried indefinitely.
         }
 
         if (cancelled) throw new Error("CANCELLED");
@@ -267,7 +260,7 @@ export default function ResultV2() {
 
   if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 불러올 입력정보가 없어요.</h1><p>결제 자체는 사라지지 않았어요. 같은 브라우저의 원래 결제 탭이 있으면 그 탭을 다시 열어 주세요. 없으면 아래에서 두 사람의 정보만 다시 입력해 기존 결제로 결과를 복구할 수 있어요.</p>{paymentId ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력정보 다시 넣기</Link> : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}</div></main>;
 
-  if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>상세 리포트를 만들고 있어요.</h1><p>{STAGE_COPY[stage]}</p><p>{completedSegments}/3개 해설 묶음 완료 · {elapsedSeconds}초 경과</p>{stageAttempt > 1 ? <p>응답이 늦어 자동으로 다시 연결하고 있어요. 이 화면은 오류로 전환되지 않고 완료될 때까지 계속 시도합니다.</p> : <p>첫 장문 생성은 시간이 걸릴 수 있어요. 창을 그대로 열어두면 자동으로 이어서 진행합니다.</p>}</div></main>;
+  if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>상세 리포트를 만들고 있어요.</h1><p>{STAGE_COPY[stage]}</p><p>{completedSegments}/3개 해설 묶음 완료 · {elapsedSeconds}초 경과</p>{stageAttempt > 1 ? <p>연결이 끊겨도 자동으로 이어서 시도하고 있어요. 이 화면은 완료될 때까지 계속 기다립니다.</p> : <p>첫 장문 생성은 시간이 걸릴 수 있어요. 창을 그대로 열어두면 완료될 때까지 이어서 진행합니다.</p>}</div></main>;
 
   if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>자동 대기로 해결할 수 없는 설정 문제가 있어요.</h1><p>{fatalMessage ?? "결제 또는 API 설정을 확인해 주세요."}</p><p>결제는 다시 하지 않아도 됩니다.</p></div></main>;
 
