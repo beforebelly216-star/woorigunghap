@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
-import { generatePaidReportSegmentV7, type PaidReportSegmentName } from "@/lib/narrative/report-engine-v7-segments";
+import { generatePaidReportSegmentV7, PAID_REPORT_SEGMENTS, type PaidReportSegmentName } from "@/lib/narrative/report-engine-v7";
 import { PaymentVerificationError, verifyPaidPayment } from "@/lib/payments/verification";
 import {
   RELATIONSHIP_TYPES,
@@ -12,7 +12,6 @@ import {
 export const runtime = "nodejs";
 export const maxDuration = 150;
 const RUNTIME_VERSION = "paid-report-v7-resumable-20260816";
-const SEGMENTS: PaidReportSegmentName[] = ["intro", "dynamics", "action"];
 
 function parsePerson(value: unknown): PersonBirthInput | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -49,8 +48,8 @@ function classify(error: unknown) {
   if (message.includes("HTTP_429")) return { reason: "API_RATE_LIMIT", retryable: true };
   if (message.includes("HTTP_529")) return { reason: "API_OVERLOADED", retryable: true };
   if (message.includes("TIMEOUT")) return { reason: "API_TIMEOUT", retryable: true };
-  if (message.includes("TRUNCATED")) return { reason: "AI_OUTPUT_TRUNCATED", retryable: true };
-  if (message.includes("FORMAT") || message.includes("SCHEMA")) return { reason: "AI_FORMAT", retryable: true };
+  if (message.includes("MAX_TOKENS")) return { reason: "AI_OUTPUT_TRUNCATED", retryable: true };
+  if (message.includes("FORMAT") || message.includes("SCHEMA") || message.includes("INVALID_JSON")) return { reason: "AI_FORMAT", retryable: true };
   if (message.includes("EMPTY")) return { reason: "AI_EMPTY", retryable: true };
   return { reason: "API_NETWORK", retryable: true };
 }
@@ -66,7 +65,7 @@ export async function POST(request: NextRequest) {
   const candidate = body as { paymentId?: unknown; input?: unknown; segment?: unknown };
   const paymentId = typeof candidate.paymentId === "string" ? candidate.paymentId : null;
   const input = parseInput(candidate.input);
-  const segment = typeof candidate.segment === "string" && SEGMENTS.includes(candidate.segment as PaidReportSegmentName)
+  const segment = typeof candidate.segment === "string" && PAID_REPORT_SEGMENTS.includes(candidate.segment as PaidReportSegmentName)
     ? candidate.segment as PaidReportSegmentName
     : null;
   if (!paymentId || !input || !segment) {
