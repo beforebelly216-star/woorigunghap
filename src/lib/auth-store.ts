@@ -60,6 +60,10 @@ async function ensureAuthSchema() {
   return true;
 }
 
+export async function ensureAuthStoreSchema() {
+  return ensureAuthSchema();
+}
+
 export function isAuthStoreConfigured() {
   return Boolean(process.env.DATABASE_URL);
 }

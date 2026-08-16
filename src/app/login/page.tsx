@@ -24,7 +24,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <section className="login-card">
       <p className="eyebrow">선택 로그인</p>
       <h1>구매한 리포트를<br />카카오 계정에 모아보세요.</h1>
-      <p>로그인하지 않아도 결제와 결과 확인은 그대로 이용할 수 있어요. 로그인하면 다음 단계에서 구매 리포트를 계정 보관함에 연결할 수 있습니다.</p>
+      <p>로그인하지 않아도 결제와 결과 확인은 그대로 이용할 수 있어요. 결과 화면에서 로그인하면 구매 리포트를 계정 보관함에 안전하게 연결합니다.</p>
       {ERROR_MESSAGES[errorKey] ? <p className="login-error" role="alert">{ERROR_MESSAGES[errorKey]}</p> : null}
       <a className="kakao-login-button" href={loginUrl}>카카오로 계속하기</a>
       <Link className="login-back-link" href={returnTo}>로그인 없이 돌아가기</Link>
