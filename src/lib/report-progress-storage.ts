@@ -7,7 +7,7 @@ import type {
   PaidReportSegmentMeta,
 } from "@/lib/narrative/report-engine-v7";
 
-export const REPORT_PROGRESS_VERSION = "report-progress-v7-1" as const;
+export const REPORT_PROGRESS_VERSION = "report-progress-v7-2" as const;
 const PREFIX = "woorigunghap:report-progress:";
 
 export type ReportProgress = {
