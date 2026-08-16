@@ -21,7 +21,8 @@ npm run dev
 - 출생시간 모름 처리 및 음력 윤달 입력
 - 입력값 검증 후 `orderId`·`paymentId`와 묶은 주문 초안 생성
 - 결제 전 입력 요약/금액 확인 화면
-- 주문 초안은 현재 `sessionStorage` 임시 저장이며 Day 11에서 DB로 교체 예정
+- 주문 초안과 유료 리포트 진행 상태를 Neon 서버 저장소에 보존하고 브라우저에도 복구 사본 저장
+- 결제 결과 공유 링크의 256비트 접근 토큰으로 새 브라우저·새 기기에서 결과 복구
 - PortOne V2 브라우저 결제 요청 및 서버 결제 검증
 - PortOne 웹훅 원문·서명 검증 엔드포인트
 - `manseryeok 2.0.0` 기반 서버 만세력 계산
@@ -32,7 +33,7 @@ npm run dev
 현재 1:1 사용자 흐름:
 
 ```text
-홈 → 1:1 정보 입력 → 입력 검증 → 주문 초안 생성 → 결제 전 확인 → PortOne 결제
+홈 → 1:1 정보 입력 → 주문 저장 → 결제 전 확인 → PortOne 결제 → 서버 리포트 생성·복구
 ```
 
 ## 입력 데이터 원칙
@@ -40,7 +41,8 @@ npm run dev
 - `birthTimeKnown=false`이면 출생시간을 모르는 입력으로 명시적으로 저장합니다.
 - 음력 날짜는 양력 달력 유효성 규칙을 그대로 적용하지 않고, 음력 날짜 형태와 윤달 여부를 별도로 보관합니다.
 - 이름/별칭은 화면 표시용이며 AI 생성 단계에는 원문을 전달하지 않습니다.
-- 현재 `sessionStorage`는 개발용 임시 저장소입니다. 운영 전에는 서버 DB 주문 레코드로 교체해야 합니다.
+- 브라우저 저장소에는 빠른 재개용 사본을, 서버 DB에는 주문·결제 상태·완성 구간을 저장합니다.
+- 결과 접근 토큰 원문은 브라우저의 URL fragment와 로컬 사본에만 두고 서버에는 SHA-256 해시만 저장합니다.
 
 ## 만세력 및 궁합 계산 정책
 
@@ -65,8 +67,7 @@ AI는 사주를 계산하거나 결제 여부를 판단하지 않습니다. 서�
                               └── 원본 생년월일시·이름은 AI에 전달하지 않음
 ```
 
-- 기본값 `REPORT_NARRATIVE_MODE=template`: API 비용 없이 기작성 기본 문구를 사용합니다.
-- `REPORT_NARRATIVE_MODE=openai`: `OPENAI_API_KEY`와 `OPENAI_MODEL`을 설정하면 OpenAI Responses API가 고정 JSON 형식으로 서술을 생성합니다.
+- `REPORT_NARRATIVE_MODE=anthropic`과 `ANTHROPIC_API_KEY`를 설정하면 Claude가 고정 JSON 형식으로 서술을 생성합니다.
 - 생성된 문구, 모델명, 프롬프트 버전, 계산 결과 버전을 함께 `report_json`에 저장해 기존 구매 결과가 바뀌지 않게 합니다.
 - AI 호출은 서버에서 PortOne 결제가 검증된 뒤에만 실행합니다.
 
@@ -77,7 +78,11 @@ AI는 사주를 계산하거나 결제 여부를 판단하지 않습니다. 서�
 - Day 3: 1:1 입력·주문 뼈대 ✅
 - Day 4: 만세력 계산 모듈 ✅
 - Day 5: 골든 30/30 + 경계 8/8 + KASI live 10/10 ✅
-- Day 6: 1:1 궁합 계산 엔진 — 정책 확정 + 항목 1 일간 상성 구현, 나머지 산식 승인/구현 진행 중
+- Day 6~7: 1:1 궁합 계산 엔진·검증 ✅
+- Day 8: PortOne 결제 게이트 ✅
+- Day 9~10: 유료 AI 리포트·편집 품질 ✅
+- Day 11: 서버 저장·안전한 결과 복구 코드/회귀 검증 ✅
+- Day 11 운영 확인: Vercel `DATABASE_URL` 연결 및 새 기기 E2E 확인 대기
 
 ## 검증
 
@@ -85,6 +90,7 @@ AI는 사주를 계산하거나 결제 여부를 판단하지 않습니다. 서�
 npm run test:manse
 npm run test:manse:boundaries
 npm run test:compatibility:day-master
+npm run test:day11:server-store
 npm run lint
 npm run build
 ```

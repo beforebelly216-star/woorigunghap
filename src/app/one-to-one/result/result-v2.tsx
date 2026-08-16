@@ -13,7 +13,7 @@ import type {
   PaidReportSegmentMeta,
   PaidReportSegmentName,
 } from "@/lib/narrative/report-engine-v7";
-import { loadOrderDraft } from "@/lib/order-storage";
+import { loadOrderDraft, saveOrderDraft } from "@/lib/order-storage";
 import type { OneToOneOrderDraft } from "@/lib/orders";
 import {
   emptyReportProgress,
@@ -22,6 +22,10 @@ import {
   type ReportProgress,
 } from "@/lib/report-progress-storage";
 import { RELATIONSHIP_LABELS } from "@/lib/report-input";
+import {
+  buildOneToOneResultUrl,
+  isResultAccessToken,
+} from "@/lib/result-access-token";
 import { ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
 import ReportChaptersA from "./report-v2-chapters-a";
 import ReportChaptersB from "./report-v2-chapters-b";
@@ -72,6 +76,38 @@ function completeContent(progress: ReportProgress): DetailedReportContent | null
   return { ...intro, ...dynamics, ...action };
 }
 
+type RecoveryPayload = {
+  order?: OneToOneOrderDraft;
+  progress?: {
+    paymentId: string;
+    snapshot: CompatibilityCalculationSnapshot | null;
+    facts: PaidReportFacts | null;
+    segments: ReportProgress["segments"];
+    metas: ReportProgress["metas"];
+    updatedAt: string;
+  } | null;
+};
+
+function accessTokenFromFragment() {
+  if (typeof window === "undefined") return null;
+  const token = new URLSearchParams(window.location.hash.slice(1)).get("accessToken");
+  return isResultAccessToken(token) ? token : null;
+}
+
+function saveRecoveredProgress(order: OneToOneOrderDraft, payload: RecoveryPayload) {
+  if (!payload.progress) return;
+  saveReportProgress({
+    version: "report-progress-v7-1",
+    paymentId: order.paymentId,
+    orderCreatedAt: order.createdAt,
+    snapshot: payload.progress.snapshot,
+    facts: payload.progress.facts,
+    segments: payload.progress.segments,
+    metas: payload.progress.metas,
+    updatedAt: payload.progress.updatedAt,
+  });
+}
+
 export default function ResultV2() {
   const params = useSearchParams();
   const paymentId = params.get("paymentId");
@@ -117,6 +153,7 @@ export default function ResultV2() {
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
               paymentId: draft.paymentId,
+              accessToken: draft.resultAccessToken,
               input: draft.inputSnapshot,
               phase,
             }),
@@ -156,11 +193,35 @@ export default function ResultV2() {
         return;
       }
 
-      const draft = loadOrderDraft(paymentId);
+      let draft = loadOrderDraft(paymentId);
       if (!draft) {
-        setStatus("missing");
-        return;
+        const accessToken = accessTokenFromFragment();
+        if (accessToken) {
+          try {
+            const response = await fetch("/api/reports/one-to-one/recover", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ paymentId, accessToken }),
+              cache: "no-store",
+              referrerPolicy: "no-referrer",
+            });
+            const payload = await response.json().catch(() => null) as RecoveryPayload | null;
+            if (response.ok && payload?.order) {
+              draft = payload.order;
+              saveOrderDraft(draft);
+              saveRecoveredProgress(draft, payload);
+            }
+          } catch {
+            // The manual paid-order recovery path remains available below.
+          }
+        }
+        if (!draft) {
+          setStatus("missing");
+          return;
+        }
       }
+      const shareableUrl = buildOneToOneResultUrl(draft.paymentId, draft.resultAccessToken);
+      window.history.replaceState(null, "", shareableUrl);
       setOrder(draft);
       setStatus("loading");
       setFatalMessage(null);

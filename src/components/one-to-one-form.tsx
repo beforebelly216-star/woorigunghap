@@ -20,6 +20,7 @@ import {
   type OneToOneOrderDraft,
 } from "@/lib/orders";
 import { saveOrderDraft } from "@/lib/order-storage";
+import { buildOneToOneResultUrl } from "@/lib/result-access-token";
 
 type Meridiem = "am" | "pm";
 type PersonFormState = {
@@ -306,7 +307,7 @@ export function OneToOneForm() {
       try {
         const recovered = createRecoveredOneToOneOrderDraft(input, recoveryPaymentId);
         saveOrderDraft(recovered);
-        router.push(`/one-to-one/result?paymentId=${encodeURIComponent(recovered.paymentId)}&recovered=1`);
+        router.push(buildOneToOneResultUrl(recovered.paymentId, recovered.resultAccessToken));
       } catch {
         setErrors({ form: "기존 결제번호를 복구하지 못했어요. 결과 화면에서 다시 복구를 시작해 주세요." });
         setIsContinuing(false);

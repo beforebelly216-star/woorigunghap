@@ -17,6 +17,7 @@ import {
   type OneToOneReportInput,
 } from "@/lib/report-input";
 import {
+  ensureServerOrderAccessToken,
   hasServerOrder,
   isServerReportStoreConfigured,
   loadServerReportProgress,
@@ -26,6 +27,7 @@ import {
   saveServerReportSegment,
   type ServerReportProgress,
 } from "@/lib/server-report-store";
+import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const runtime = "nodejs";
 export const maxDuration = 240;
@@ -80,11 +82,14 @@ function failureMessage(reason: string) {
 async function readOrCreateServerProgress(
   paymentId: string,
   input: OneToOneReportInput,
+  accessToken: string,
 ): Promise<ServerReportProgress | null> {
   if (!isServerReportStoreConfigured()) return null;
   try {
     if (!await hasServerOrder(paymentId)) {
-      await saveServerOrderDraft(createRecoveredOneToOneOrderDraft(input, paymentId));
+      await saveServerOrderDraft(createRecoveredOneToOneOrderDraft(input, paymentId, accessToken));
+    } else {
+      await ensureServerOrderAccessToken(paymentId, accessToken);
     }
     await markServerOrderPaid(paymentId);
     return await loadServerReportProgress(paymentId);
@@ -117,12 +122,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "궁합 계산 요청 형식이 올바르지 않습니다.", reportRuntimeVersion: REPORT_RUNTIME_VERSION }, { status: 400 });
   }
 
-  const candidate = body as { paymentId?: unknown; input?: unknown; phase?: unknown };
+  const candidate = body as {
+    paymentId?: unknown;
+    accessToken?: unknown;
+    input?: unknown;
+    phase?: unknown;
+  };
   const paymentId = typeof candidate.paymentId === "string" ? candidate.paymentId : null;
+  const accessToken = isResultAccessToken(candidate.accessToken) ? candidate.accessToken : null;
   const input = parseOneToOneReportInput(candidate.input);
   const phase = parsePhase(candidate.phase);
 
-  if (!paymentId || !input || !phase) {
+  if (!paymentId || !accessToken || !input || !phase) {
     return NextResponse.json(
       {
         error: "결제번호, 궁합 입력값 또는 생성 단계가 올바르지 않습니다. 페이지를 새로고침해 주세요.",
@@ -144,7 +155,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const payment = await verifyPaidPayment(paymentId, "oneToOne", input);
-    const storedProgress = await readOrCreateServerProgress(paymentId, input);
+    const storedProgress = await readOrCreateServerProgress(paymentId, input, accessToken);
     const snapshot = storedProgress?.snapshot ?? calculateOneToOneCompatibility(input);
     const reportFacts = storedProgress?.facts ?? buildPaidReportFacts(input);
 

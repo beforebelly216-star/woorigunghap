@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { loadOrderDraft } from "@/lib/order-storage";
+import { buildOneToOneResultUrl } from "@/lib/result-access-token";
 
 type State = "checking" | "success" | "failed" | "cancelled";
 
@@ -57,7 +59,8 @@ function PaymentResult() {
 
           if (response.ok && payload?.verified) {
             setState("success");
-            router.replace(`/one-to-one/result?paymentId=${encodeURIComponent(verifiedPaymentId)}`);
+            const order = loadOrderDraft(verifiedPaymentId);
+            router.replace(buildOneToOneResultUrl(verifiedPaymentId, order?.resultAccessToken));
             return;
           }
 
@@ -107,7 +110,7 @@ function PaymentResult() {
       <p>{copy[1]}</p>
       {state === "success" && paymentId ? (
         <Link
-          href={`/one-to-one/result?paymentId=${encodeURIComponent(paymentId)}`}
+          href={buildOneToOneResultUrl(paymentId)}
           className="primary-link"
         >
           바로 결과 보기
