@@ -8,7 +8,7 @@ import type {
 } from "@/lib/narrative/report-engine-v7";
 
 export const REPORT_PROGRESS_VERSION = "report-progress-v7-1" as const;
-const PREFIX = "woorigunghap:report-progress:v2:";
+const PREFIX = "woorigunghap:report-progress:v3:";
 
 export type ReportProgress = {
   version: typeof REPORT_PROGRESS_VERSION;
