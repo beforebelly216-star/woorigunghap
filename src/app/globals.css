@@ -51,6 +51,9 @@ button, input, select { font: inherit; }
 .field-stack input[type="text"], .field-stack input[type="date"], .field-stack input[type="time"] { width: 100%; border: 1px solid #d8d1c7; border-radius: 12px; background: #fff; padding: 13px 14px; color: #27312a; }
 .field-stack input:focus { outline: 2px solid #bca57e; outline-offset: 1px; border-color: transparent; }
 .field-stack input:disabled { background: #eee9e1; color: #91978f; }
+.time-input-row { display: grid; grid-template-columns: minmax(154px, .8fr) minmax(0, 1fr); gap: 10px; align-items: center; }
+.time-input-row .segmented-control { flex-wrap: nowrap; }
+.time-input-row .segmented-control label { flex: 1 1 0; padding: 13px 12px; text-align: center; }
 .field-hint { color: #7b827c; line-height: 1.4; }
 .check-row { display: flex; align-items: center; gap: 9px; margin-top: 12px; color: #5f6962; font-size: .9rem; }
 .check-row input { width: 17px; height: 17px; }
@@ -79,7 +82,7 @@ button, input, select { font: inherit; }
 .checkout-state { padding-top: 18vh; text-align: center; }
 .primary-link { display: inline-block; margin-top: 16px; border-radius: 12px; padding: 13px 18px; background: #273b31; color: #fffaf1; text-decoration: none; font-weight: 700; }
 @media (max-width: 760px) { .people-grid { grid-template-columns: 1fr; } .person-panel { padding: 22px; } }
-@media (max-width: 640px) { .landing-page, .result-page, .input-page { padding-top: 48px; } .hero { margin-bottom: 42px; } .product-grid { grid-template-columns: 1fr; } .product-card { min-height: 290px; } .relationship-options label, .segmented-control label { flex: 1 1 auto; text-align: center; } .checkout-card { padding: 20px; } }
+@media (max-width: 640px) { .landing-page, .result-page, .input-page { padding-top: 48px; } .hero { margin-bottom: 42px; } .product-grid { grid-template-columns: 1fr; } .product-card { min-height: 290px; } .relationship-options label, .segmented-control label { flex: 1 1 auto; text-align: center; } .time-input-row { grid-template-columns: 1fr; } .checkout-card { padding: 20px; } }
 
 .report-page { min-height: 100vh; padding: 52px 24px 72px; }
 .report-shell { width: min(100%, 980px); margin: 0 auto; }
