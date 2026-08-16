@@ -42,6 +42,17 @@ assert.deepEqual(evidence.aiBoundary, {
   rankingMutableByAi: false,
   explanationOnly: true,
 });
+assert.deepEqual(Object.keys(evidence.situationalRecommendations).sort(), [
+  "communication",
+  "conflictManagement",
+  "emotionalStability",
+  "longTerm",
+  "relationshipPurpose",
+]);
+assert.equal(
+  Object.values(evidence.situationalRecommendations).every((item) => item.candidateIds.length >= 1),
+  true,
+);
 for (const candidate of evidence.candidates) {
   assert.equal(candidate.strengths.length >= 2, true);
   assert.equal(candidate.adjustmentPoints.length >= 1, true);
@@ -63,6 +74,7 @@ assert.match(engineSource, /scoreMutableByAi/);
 assert.match(engineSource, /rankingMutableByAi/);
 assert.match(engineSource, /uncertaintyRangesOverlapLeader/);
 assert.match(engineSource, /동점 그룹/);
+assert.match(engineSource, /candidateIds는 서버가 확정/);
 assert.match(engineSource, /ONE_TO_MANY_REPORT_FAILED_MODE_NOT_ANTHROPIC/);
 assert.match(engineSource, /ONE_TO_MANY_REPORT_PROMPT_VERSION/);
 assert.equal(ONE_TO_MANY_REPORT_PROMPT_VERSION, "one-to-many-report-v1-editorial");

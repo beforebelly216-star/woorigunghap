@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   ONE_TO_MANY_MAX_CANDIDATES,
   ONE_TO_MANY_MIN_CANDIDATES,
@@ -255,7 +256,8 @@ export function OneToManyForm() {
       {saved ? (
         <div className="form-success" role="status">
           <strong>Day 13 입력 확인 완료</strong>
-          <p>기준자 1명과 후보 {form.candidates.length}명의 입력을 이 브라우저에 임시 저장했어요. 계산·순위 생성은 다음 단계에서 연결됩니다.</p>
+          <p>기준자 1명과 후보 {form.candidates.length}명의 입력을 이 브라우저에 임시 저장했어요. 실제 입력 결과는 Day 16 결제 검증 뒤에 연결됩니다.</p>
+          <Link href="/one-to-many/result/demo" className="form-preview-link">Day 15 고정 결과 화면 보기 →</Link>
         </div>
       ) : null}
 

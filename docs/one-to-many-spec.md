@@ -81,6 +81,16 @@
 - 친구: 편안함, 신뢰/의리
 - 직장동료: 협업 효율, 역할 보완성
 
+### Day 15 표시용 6개 요약 지표
+- `overall`: 서버 최종 종합점수
+- `communication`: 일간 상성 + 천간 합충의 평균
+- `emotionalStability`: 일지 상성 + 용신·기신 부합도의 평균
+- `conflictManagement`: 천간 합충 + 지지 형충파해의 평균
+- `longTerm`: 용신·기신 부합도 + 오행 상보성 + 대운 동조의 평균
+- `relationshipPurpose`: romance는 일간·일지·배우자성, friend는 일간·오행·신살, coworker는 일간·오행·천간·지지의 평균
+
+요약 지표는 `one-to-many-view-v1.0.0`의 표시용 projection이다. 종합 순위나 결제·저장 스냅샷의 9개 원시 점수를 대체하지 않는다. 결과 화면은 요약 지표를 먼저 보여주고, 9개 상세 점수는 접힌 분석 근거 영역에 둔다.
+
 ## 1:N 결과 화면 구성
 ### 1. 한눈에 보는 순위
 - 종합 점수 기준 1위~N위
@@ -109,6 +119,8 @@
 - 오래 가기 좋은 사람
 - 갈등 관리가 쉬운 사람
 - 관계 유형별 핵심 목적에 가장 잘 맞는 사람
+
+각 상황의 표시용 지표 최고점을 서버가 찾는다. 최고점과 0~2점 차이이거나 두 후보의 종합 `uncertaintyRange`가 겹치면 한 명을 강제로 고르지 않고 공동 추천한다. AI는 서버가 확정한 추천 후보 배열을 추가·삭제·재정렬할 수 없다.
 
 ### 5. 최종 비교 요약
 - 종합 1위
@@ -143,7 +155,7 @@ AI 호출 시 원본 이름/생년월일시 대신 서버가 만든 익명화된
 - 이름/별칭, 성별, 양·음력 구분, 생년월일·출생시간, 주문/결제 ID, 세부 원시 evidence는 넣지 않는다.
 - 후보 ID와 사용자 별칭의 대응은 결제 뒤 결과 화면에서만 서버 주문 스냅샷을 이용해 적용한다.
 - AI가 순위·점수·동점 그룹을 변경할 수 없으며, `0~2점 동급` 또는 불확실성 범위 중첩 후보에는 확정적 우열 표현을 금지한다.
-- 출력 JSON은 순위 요약, 후보별 한 줄·강점 2개 이상·주의점 1개 이상·실용 팁, 소통/정서 안정/장기 지속/갈등 관리별 추천, 최종 비교 요약으로 고정한다.
+- 출력 JSON은 순위 요약, 후보별 한 줄·강점 2개 이상·주의점 1개 이상·실용 팁, 소통/정서 안정/장기 지속/갈등 관리/관계 목적별 단일·공동 추천, 최종 비교 요약으로 고정한다.
 - 문체는 `결론 → 계산 근거 → 관계에서의 체감 → 실행할 행동` 순서를 지키고, 미래 예언·상대의 속마음 단정·"누가 더 좋은 사람"이라는 표현을 금지한다.
 
 예시 출력 JSON 구조:
@@ -163,11 +175,12 @@ AI 호출 시 원본 이름/생년월일시 대신 서버가 만든 익명화된
       "practicalTip": "..."
     }
   ],
-  "situationalWinners": {
-    "communication": { "candidateId": "candidate_2", "reason": "..." },
-    "emotionalStability": { "candidateId": "candidate_1", "reason": "..." },
-    "longTerm": { "candidateId": "candidate_3", "reason": "..." },
-    "conflictManagement": { "candidateId": "candidate_1", "reason": "..." }
+  "situationalRecommendations": {
+    "communication": { "candidateIds": ["candidate_1", "candidate_2"], "reason": "..." },
+    "emotionalStability": { "candidateIds": ["candidate_1"], "reason": "..." },
+    "longTerm": { "candidateIds": ["candidate_1", "candidate_3"], "reason": "..." },
+    "conflictManagement": { "candidateIds": ["candidate_2"], "reason": "..." },
+    "relationshipPurpose": { "candidateIds": ["candidate_1"], "reason": "..." }
   },
   "finalSummary": "..."
 }
