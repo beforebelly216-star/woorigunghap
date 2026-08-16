@@ -47,8 +47,6 @@ const BRANCH_ELEMENT: Record<string, FiveElement> = {
   해: "water",
 };
 
-// 프로젝트 마스터 지침의 지장간/월령 사령 체계를 그대로 구조화한다.
-// 旺支도 월령 사령의 여기(餘氣)를 보존하기 위해 2개 천간으로 기록한다.
 const HIDDEN_STEMS: Record<string, HiddenStemSpec[]> = {
   자: [
     { stem: "임", role: "RESIDUAL" },
@@ -229,6 +227,7 @@ function parseSolarDate(value: string) {
 }
 
 function kstInstantMs(date: string, time: string) {
+  parseSolarDate(date);
   const instant = Date.parse(`${date}T${time}:00${KST_OFFSET}`);
   if (!Number.isFinite(instant)) {
     throw new RangeError(`KST 날짜/시간을 해석할 수 없습니다: ${date} ${time}`);
@@ -256,7 +255,6 @@ function monthCommandAt(instantMs: number): MonthCommandEvidence {
   }
 
   const rawDay = Math.floor((instantMs - boundary.date.getTime()) / DAY_MS) + 1;
-  // 전통 일수 배분은 30일 합계다. 실제 절기월이 30일을 초과하면 정기(Main)가 이어지는 것으로 처리한다.
   const allocationDay = Math.min(30, Math.max(1, rawDay));
   const schedule = MONTH_COMMAND_DAYS[branch];
   let cumulative = 0;
