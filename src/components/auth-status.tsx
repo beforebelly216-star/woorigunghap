@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type MouseEvent } from "react";
 
@@ -43,6 +44,7 @@ export function AuthStatus() {
     return <a className="auth-status auth-login-link" href="/login" onClick={openLogin}>카카오 로그인</a>;
   }
   return <div className="auth-user">
+    <Link href="/account/reports" className="auth-library-link">보관함</Link>
     <span className="auth-status">{auth.displayName}</span>
     <button type="button" className="auth-logout-button" onClick={logout}>로그아웃</button>
   </div>;

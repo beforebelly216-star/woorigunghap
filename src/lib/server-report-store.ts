@@ -13,7 +13,7 @@ import type {
   PaidReportSegmentMeta,
   PaidReportSegmentName,
 } from "@/lib/narrative/report-engine-v7";
-import type { OrderDraft, OneToManyOrderDraft } from "@/lib/orders";
+import type { OrderDraft, OneToManyOrderDraft, OneToOneOrderDraft } from "@/lib/orders";
 import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const SERVER_REPORT_STORE_VERSION = "server-report-store-v1" as const;
@@ -37,6 +37,22 @@ export type OneToManyStoredReport = {
   meta: OneToManyNarrativeMeta;
   updatedAt: string;
 };
+
+export type StoredOrderDraft =
+  | Omit<OneToOneOrderDraft, "resultAccessToken">
+  | Omit<OneToManyOrderDraft, "resultAccessToken">;
+
+export type CompletedAccountReport =
+  | {
+      product: "oneToOne";
+      order: Omit<OneToOneOrderDraft, "resultAccessToken">;
+      progress: ServerReportProgress;
+    }
+  | {
+      product: "oneToMany";
+      order: Omit<OneToManyOrderDraft, "resultAccessToken">;
+      report: OneToManyStoredReport;
+    };
 
 let query: NeonQueryFunction<false, false> | null = null;
 let schemaPromise: Promise<void> | null = null;
@@ -98,6 +114,10 @@ async function ensureSchema() {
   return true;
 }
 
+export async function ensureServerReportStoreSchema() {
+  return ensureSchema();
+}
+
 function parseProgress(raw: unknown, paymentId: string): ServerReportProgress | null {
   if (typeof raw !== "string") return null;
   try {
@@ -125,8 +145,6 @@ function emptyProgress(paymentId: string): ServerReportProgress {
     updatedAt: new Date().toISOString(),
   };
 }
-
-type StoredOrderDraft = Omit<OrderDraft, "resultAccessToken">;
 
 function hashAccessToken(accessToken: string) {
   return createHash("sha256").update(accessToken).digest("hex");
@@ -281,6 +299,54 @@ function parseOneToManyStoredReport(raw: unknown, paymentId: string): OneToManyS
   } catch {
     return null;
   }
+}
+
+function isCompleteOneToOneProgress(progress: ServerReportProgress | null): progress is ServerReportProgress {
+  return Boolean(
+    progress?.snapshot
+    && progress.facts
+    && progress.segments.intro
+    && progress.segments.dynamics
+    && progress.segments.action,
+  );
+}
+
+export async function loadCompletedServerReport(paymentId: string): Promise<CompletedAccountReport | null> {
+  if (!await ensureSchema()) return null;
+  const sql = getQuery();
+  if (!sql) return null;
+  const rows = await sql`
+    SELECT order_json, report_json
+    FROM woorigunghap_order_records
+    WHERE payment_id = ${paymentId}
+      AND payment_status = 'paid'
+      AND report_json IS NOT NULL
+    LIMIT 1
+  `;
+  const row = rows[0];
+  const order = parseStoredOrder(row?.order_json);
+  if (!order || order.paymentId !== paymentId) return null;
+
+  if (order.product === "oneToOne") {
+    const progress = parseProgress(row?.report_json, paymentId);
+    if (!isCompleteOneToOneProgress(progress)) return null;
+    return { product: "oneToOne", order, progress };
+  }
+
+  const report = parseOneToManyStoredReport(row?.report_json, paymentId);
+  if (!report) return null;
+  return { product: "oneToMany", order, report };
+}
+
+export async function loadCompletedServerReportForAccess(
+  paymentId: string,
+  accessToken: string,
+) {
+  const recovered = await loadServerReportForAccess(paymentId, accessToken);
+  if (!recovered) return null;
+  const completed = await loadCompletedServerReport(paymentId);
+  if (!completed || completed.product !== recovered.order.product) return null;
+  return completed;
 }
 
 export async function loadOneToManyReportForAccess(paymentId: string, accessToken: string) {
