@@ -53,8 +53,10 @@ jobs:
         run: npm run test:compatibility:engine
       - name: Run Day 8 payment gate regression checks
         run: npm run test:day8:payment-gate
-      - name: Run Day 9 narrative privacy and fallback checks
+      - name: Run Day 9 narrative privacy and resumable checks
         run: npm run test:day9:narrative-boundary
+      - name: Run Day 9 recursive Claude JSON schema guard
+        run: npm run test:day9:schema-guard
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi
