@@ -6,13 +6,11 @@ export default function ReportChaptersB({
   personAName,
   personBName,
   relationshipLabel,
-  hasUnknownBirthTime = false,
 }: {
   content: DetailedReportContent;
   personAName: string;
   personBName: string;
   relationshipLabel: string;
-  hasUnknownBirthTime?: boolean;
 }) {
   return <>
     <Chapter
@@ -83,13 +81,11 @@ export default function ReportChaptersB({
       eyebrow="EVIDENCE & LIMITS"
       title="이 리포트를 어디까지 믿고 보면 좋은가"
       intro="점수와 명리 계산은 서버 엔진이 고정하고, AI는 그 계산 결과를 읽기 쉬운 문장으로 풀어씁니다. 저장된 구매 결과를 다시 열 때 계산이나 AI를 다시 실행하지 않습니다."
-      summary={[content.directionalImpact.overview, content.strengthsAndRisks.warning, hasUnknownBirthTime ? "출생시간 미상에 따른 불확실성 범위를 함께 반영했습니다." : "두 사람 모두 입력된 출생시간을 계산에 반영했습니다."]}
+      summary={[content.directionalImpact.overview, content.strengthsAndRisks.warning, "출생시간 미상인 경우 화면 상단의 불확실성 점수 범위를 함께 확인하세요."]}
     >
       <h3>양방향 영향은 따로 계산해 읽습니다</h3><Paragraph>{content.directionalImpact.overview}</Paragraph>
       <h3>확정적으로 말하지 않는 영역</h3><Paragraph>{content.strengthsAndRisks.warning}</Paragraph>
-      <EvidenceBoundary>{hasUnknownBirthTime
-        ? "한 명 이상 출생시간이 입력되지 않아 가능한 시주 시나리오를 함께 비교한 결과입니다. 화면 상단의 점수 범위를 함께 보세요."
-        : "두 사람 모두 입력된 출생시간을 반영했습니다. 그래도 궁합은 관계를 결정하는 판정문이 아니라, 반복 패턴과 대응 방식을 이해하기 위한 참고 자료입니다."}</EvidenceBoundary>
+      <EvidenceBoundary>궁합은 관계를 결정하는 판정문이 아니라 반복 패턴과 대응 방식을 이해하기 위한 참고 자료입니다. 출생시간이 입력되지 않은 사람이 있다면 화면 상단에 표시되는 시주 시나리오와 점수 범위를 함께 보세요.</EvidenceBoundary>
     </Chapter>
   </>;
 }
