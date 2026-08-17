@@ -9,11 +9,16 @@ assert.match(style, /근거/);
 assert.match(style, /체감/);
 assert.match(style, /행동/);
 assert.match(style, /단정/);
-assert.match(engine, /paid-report-v7-editorial-v4/);
+assert.match(engine, /paid-report-v7-editorial-v5-deep/);
 assert.match(engine, /relationshipPromptRules/);
 assert.match(engine, /RELATIONSHIP_EDITORIAL_VERSION/);
 assert.match(engine, /친한 상담가가 핵심을 또렷하게 짚어 주는 어조/);
 assert.match(engine, /계산상 나타나는 경향과 두 사람이 확인할 행동 신호를 구분/);
+assert.match(engine, /상대 분석은 독심술이 아니라/);
 assert.match(engine, /누가·언제·어떤 말이나 행동/);
+assert.match(engine, /partnerDeepDive/);
+assert.match(engine, /personalLeverage/);
+assert.match(engine, /situationStrategy/);
+assert.match(engine, /actionPlan30/);
 
-console.log("Day 10 editorial style policy checks: PASS");
+console.log("Day 10 editorial style + deep narrative policy checks: PASS");
