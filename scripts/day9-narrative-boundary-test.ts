@@ -104,7 +104,8 @@ async function main() {
   assert.match(resultUi, /response\.status >= 500/);
   assert.match(resultUi, /saveReportProgress\(progress\)/);
   assert.match(resultUi, /loadReportProgress\(draft\.paymentId, draft\.createdAt\)/);
-  assert.match(resultUi, /dimension !== "luckCycleAlignment"/);
+  assert.doesNotMatch(resultUi, /dimension !== "luckCycleAlignment"/);
+  assert.match(resultUi, /threeYearTiming=\{snapshot\.threeYearTiming\}/);
   assert.match(resultUi, /완료될 때까지 계속 기다립니다/);
 
   const apiRoute = readFileSync("src/app/api/compatibility/one-to-one/route.ts", "utf8");
