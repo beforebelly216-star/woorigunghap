@@ -18,7 +18,7 @@ import {
   relationshipPromptRules,
 } from "../src/lib/relationship-editorial";
 
-assert.equal(RELATIONSHIP_EDITORIAL_VERSION, "relationship-editorial-v2-coworker-hierarchy");
+assert.equal(RELATIONSHIP_EDITORIAL_VERSION, "relationship-editorial-v3-name-tokens");
 assert.deepEqual(Object.keys(RELATIONSHIP_EDITORIAL).sort(), ["coworker", "crush", "flirting", "friend", "lover"].sort());
 assert.deepEqual(COWORKER_HIERARCHIES, ["boss", "peer", "subordinate"]);
 assert.equal(COWORKER_HIERARCHY_LABELS.boss, "상대가 내 상사");
@@ -41,6 +41,10 @@ assert.match(relationshipPromptRules("coworker", "subordinate"), /지시 명확�
 assert.match(relationshipPromptRules("lover"), /상대 해부 > 이 상대에게 통하는 나의 강점/);
 assert.match(relationshipPromptRules("friend"), /최소 40%는 사용자가 바로 실행할 수 있는 행동 기준/);
 assert.match(relationshipPromptRules("crush"), /공략법이 아니라 배려법/);
+assert.match(relationshipPromptRules("lover"), /\{\{SELF\}\}/);
+assert.match(relationshipPromptRules("lover"), /\{\{PARTNER\}\}/);
+assert.match(relationshipPromptRules("lover"), /\{\{BOTH\}\}/);
+assert.match(relationshipPromptRules("lover"), /실제 이름·별칭은 서버가 응답 뒤에 결합/);
 
 const baseCoworkerInput: OneToOneReportInput = {
   relationshipType: "coworker",
@@ -141,4 +145,4 @@ const resultV2 = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8")
 assert.match(resultV2, /threeYearTiming=\{snapshot\.threeYearTiming\}/);
 assert.doesNotMatch(resultV2, /dimension !== "luckCycleAlignment"/);
 
-console.log("Day 21 relationship editorial + coworker hierarchy + deep content contract checks: PASS");
+console.log("Day 21 relationship editorial + privacy-safe name tokens + coworker hierarchy + deep content contract checks: PASS");
