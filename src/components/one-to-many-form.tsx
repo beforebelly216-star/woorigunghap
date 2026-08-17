@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { OneToManyOrderDraft } from "@/lib/orders";
 import { saveOrderDraft } from "@/lib/order-storage";
+import { focusFirstInvalidField } from "@/lib/form-accessibility";
 import {
   ONE_TO_MANY_MAX_CANDIDATES,
   ONE_TO_MANY_MIN_CANDIDATES,
@@ -112,6 +113,11 @@ export function OneToManyForm() {
     };
   }, []);
 
+  function showErrors(formElement: HTMLFormElement, nextErrors: Record<string, string>) {
+    setErrors(nextErrors);
+    focusFirstInvalidField(formElement);
+  }
+
   function updateCandidate(index: number, candidate: PersonBirthFormState) {
     setSaved(false);
     setForm((current) => ({
@@ -137,6 +143,7 @@ export function OneToManyForm() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaved(false);
+    const formElement = event.currentTarget;
 
     const nextErrors: Record<string, string> = {};
     if (!form.relationshipType) nextErrors.relationshipType = "관계 유형을 선택해 주세요.";
@@ -148,14 +155,17 @@ export function OneToManyForm() {
     const normalized = toReportInput(form);
     Object.assign(nextErrors, normalized.errors);
     if (!normalized.input) {
-      setErrors(nextErrors);
+      showErrors(formElement, nextErrors);
       return;
     }
 
     const result = validateOneToManyReportInput(normalized.input);
     Object.assign(nextErrors, result.errors);
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
+    if (Object.keys(nextErrors).length > 0) {
+      showErrors(formElement, nextErrors);
+      return;
+    }
+    setErrors({});
 
     try {
       window.localStorage.setItem(ONE_TO_MANY_INPUT_DRAFT_KEY, JSON.stringify(normalized.input));
@@ -185,12 +195,18 @@ export function OneToManyForm() {
 
   return (
     <form className="compatibility-form" onSubmit={submit} noValidate>
-      {errors.form ? <p className="field-error">{errors.form}</p> : null}
+      {errors.form ? <p className="field-error form-error-summary" role="alert">{errors.form}</p> : null}
 
       <section className="form-section relationship-section">
-        <h2>모두 어떤 관계로 비교할까요?</h2>
+        <h2 id="one-to-many-relationship-label">모두 어떤 관계로 비교할까요?</h2>
         <p className="section-copy">한 번의 비교에서는 모든 후보에게 같은 관계 유형을 적용해요.</p>
-        <div className="relationship-options" role="radiogroup" aria-label="관계 유형">
+        <div
+          className="relationship-options"
+          role="radiogroup"
+          aria-labelledby="one-to-many-relationship-label"
+          aria-invalid={Boolean(errors.relationshipType)}
+          aria-describedby={errors.relationshipType ? "one-to-many-relationship-error" : undefined}
+        >
           {RELATIONSHIP_TYPES.map((relationshipType) => (
             <label key={relationshipType} className={form.relationshipType === relationshipType ? "selected" : ""}>
               <input
@@ -207,7 +223,7 @@ export function OneToManyForm() {
             </label>
           ))}
         </div>
-        {errors.relationshipType ? <small className="field-error">{errors.relationshipType}</small> : null}
+        {errors.relationshipType ? <small id="one-to-many-relationship-error" className="field-error">{errors.relationshipType}</small> : null}
       </section>
 
       <section className="one-to-many-group" aria-labelledby="reference-person-title">
@@ -275,13 +291,13 @@ export function OneToManyForm() {
       </section>
 
       {saved && !isContinuing ? (
-        <div className="form-success" role="status">
+        <div className="form-success" role="status" aria-live="polite">
           <strong>입력 확인 완료</strong>
           <p>기준자 1명과 후보 {form.candidates.length}명의 입력을 확인했어요.</p>
         </div>
       ) : null}
 
-      <button type="submit" className="primary-action" disabled={isContinuing}>
+      <button type="submit" className="primary-action" disabled={isContinuing} aria-busy={isContinuing}>
         {isContinuing ? "안전한 결제 단계로 이동 중..." : "입력 확인하고 3,000원 결제로 계속하기"}
       </button>
     </form>
