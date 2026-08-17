@@ -284,7 +284,7 @@ export function scoreElementComplementarity(
     ...weightedPoints(profile, "elementComplementarity", normalizedScore),
     evidence: {
       aImbalance: round1(aImbalance),
-      bImbalance: round1(bImbalance),
+      bImbalance: round1(bImalance),
       combinedImbalance: round1(after),
       improvement: round1(improvement),
     },
@@ -342,19 +342,26 @@ export function scoreEarthlyBranchInteraction(
       if (pa.position === "day" && pb.position === "day") continue;
       const key = orderedPair(pa.pillar.earthlyBranch, pb.pillar.earthlyBranch, BRANCH_ORDER);
       const weight = (POSITION_WEIGHT[pa.position] + POSITION_WEIGHT[pb.position]) / 2;
-      const add = (relation: string, value: number) => {
-        delta += value * weight;
-        interactions.push({
-          pair: `${pa.position}:${pa.pillar.earthlyBranch}-${pb.position}:${pb.pillar.earthlyBranch}`,
-          relation,
-          weight: round1(weight),
-        });
-      };
-      if (BRANCH_HARMONY.has(key)) add("六合(육합)", 4);
-      if (BRANCH_CLASH.has(key)) add("沖(충)", -6);
-      if (BRANCH_PUNISHMENT.has(key)) add("刑(형)", -4);
-      if (BRANCH_HARM.has(key)) add("害(해)", -3);
-      if (BRANCH_BREAK.has(key)) add("破(파)", -2);
+      if (BRANCH_HARMONY.has(key)) {
+        delta += 3.5 * weight;
+        interactions.push({ pair: key, relation: "육합", weight: round1(weight) });
+      }
+      if (BRANCH_CLASH.has(key)) {
+        delta -= 3.5 * weight;
+        interactions.push({ pair: key, relation: "충", weight: round1(weight) });
+      }
+      if (BRANCH_HARM.has(key)) {
+        delta -= 2 * weight;
+        interactions.push({ pair: key, relation: "해", weight: round1(weight) });
+      }
+      if (BRANCH_PUNISHMENT.has(key)) {
+        delta -= 2 * weight;
+        interactions.push({ pair: key, relation: "형", weight: round1(weight) });
+      }
+      if (BRANCH_BREAK.has(key)) {
+        delta -= 1 * weight;
+        interactions.push({ pair: key, relation: "파", weight: round1(weight) });
+      }
     }
   }
   const normalizedScore = round1(clamp(70 + delta, 40, 90));
@@ -437,8 +444,8 @@ export function scoreLuckCycleAlignment(
     profile,
     ...weightedPoints(profile, "luckCycleAlignment", normalizedScore),
     evidence: {
-      method: "MVP_NEUTRAL_UNTIL_DAEUN_ENGINE",
-      note: "大運(대운) 계산은 현재 MVP 범위 밖이므로 허위 정밀도를 피하기 위해 중립 처리한다.",
+      method: "SCENARIO_BASELINE_BEFORE_THREE_YEAR_TIMING",
+      note: "출생시간 시나리오 총점 집계를 위한 70점 기준값이며, 최종 스냅샷에서는 검증된 3년 대운·세운 타이밍 점수로 치환한다.",
     },
   };
 }
