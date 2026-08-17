@@ -74,12 +74,39 @@ async function main() {
   const snapshot = calculateOneToOneCompatibility(input);
   const contents: PaidReportSegmentContent[] = [];
   const metas = [];
+  const outputPath = process.env.QA_OUTPUT_PATH;
+
+  function writeProgress(status: "partial" | "complete", error: string | null = null) {
+    if (!outputPath) return;
+    const merged = Object.assign({}, ...contents) as Record<string, unknown>;
+    const personalized = personalizeNarrativeNames(merged, {
+      self: input.personA.displayName,
+      partner: input.personB.displayName,
+    });
+    const absolute = resolve(outputPath);
+    mkdirSync(dirname(absolute), { recursive: true });
+    writeFileSync(absolute, JSON.stringify({
+      status,
+      error,
+      segmentsCompleted: metas.map((meta) => meta.segment),
+      metas,
+      report: personalized,
+    }, null, 2), "utf8");
+    console.log(`[sample-qa] ${status} sample written: ${absolute}`);
+  }
 
   for (const segment of PAID_REPORT_SEGMENTS) {
-    const generated = await generatePaidReportSegmentV7(snapshot, input, segment);
-    contents.push(generated.content);
-    metas.push({ segment, ...generated.meta });
-    console.log(`[sample-qa] ${segment}: ${generated.meta.qualityCharacters} chars, attempts=${generated.meta.attempt}, warnings=${generated.meta.qualityWarnings.join(",") || "none"}`);
+    try {
+      const generated = await generatePaidReportSegmentV7(snapshot, input, segment);
+      contents.push(generated.content);
+      metas.push({ segment, ...generated.meta });
+      console.log(`[sample-qa] ${segment}: ${generated.meta.qualityCharacters} chars, attempts=${generated.meta.attempt}, warnings=${generated.meta.qualityWarnings.join(",") || "none"}`);
+      writeProgress("partial");
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      writeProgress("partial", reason);
+      throw error;
+    }
   }
 
   const merged = Object.assign({}, ...contents) as Record<string, unknown>;
@@ -92,14 +119,6 @@ async function main() {
   const qualityWarnings = metas.flatMap((meta) => meta.qualityWarnings);
   const selfMentions = text.split("지민님").length - 1;
   const partnerMentions = text.split("서윤님").length - 1;
-
-  assert.equal(qualityWarnings.length, 0, `재시도 후에도 품질 경고가 남았습니다: ${qualityWarnings.join(", ")}`);
-  assert.ok(totalCharacters >= 13_000, `전체 상세 해설 최소 분량 미달: ${totalCharacters} chars`);
-  assert.ok(selfMentions > 0, "서버 후처리 후 '지민님' 호칭이 한 번 이상 보여야 합니다.");
-  assert.ok(partnerMentions > 0, "서버 후처리 후 '서윤님' 호칭이 한 번 이상 보여야 합니다.");
-  assert.match(text, /가장 궁금한 점에 대한 답/, "사용자가 질문을 입력한 샘플은 CH4에서 직접 답변 항목을 생성해야 합니다.");
-  assert.doesNotMatch(text, /(^|[^A-Za-z가-힣0-9])[AB]([^A-Za-z가-힣0-9]|$)/, "개발자용 A/B 표기가 사용자 문장에 남으면 안 됩니다.");
-  assert.doesNotMatch(text, /(무조건|100%|틀림없이|운명적으로 정해)/, "단정적·운명론적 표현이 남으면 안 됩니다.");
 
   const summary = {
     qaSample: process.env.QA_SAMPLE === "coworker-boss" ? "coworker-boss" : "lover",
@@ -121,13 +140,20 @@ async function main() {
     })),
   };
 
-  const outputPath = process.env.QA_OUTPUT_PATH;
   if (outputPath) {
     const absolute = resolve(outputPath);
     mkdirSync(dirname(absolute), { recursive: true });
-    writeFileSync(absolute, JSON.stringify({ summary, report: personalized }, null, 2), "utf8");
+    writeFileSync(absolute, JSON.stringify({ status: "complete", summary, report: personalized }, null, 2), "utf8");
     console.log(`[sample-qa] full sample written: ${absolute}`);
   }
+
+  assert.equal(qualityWarnings.length, 0, `재시도 후에도 품질 경고가 남았습니다: ${qualityWarnings.join(", ")}`);
+  assert.ok(totalCharacters >= 13_000, `전체 상세 해설 최소 분량 미달: ${totalCharacters} chars`);
+  assert.ok(selfMentions > 0, "서버 후처리 후 '지민님' 호칭이 한 번 이상 보여야 합니다.");
+  assert.ok(partnerMentions > 0, "서버 후처리 후 '서윤님' 호칭이 한 번 이상 보여야 합니다.");
+  assert.match(text, /가장 궁금한 점에 대한 답/, "사용자가 질문을 입력한 샘플은 CH4에서 직접 답변 항목을 생성해야 합니다.");
+  assert.doesNotMatch(text, /(^|[^A-Za-z가-힣0-9])[AB]([^A-Za-z가-힣0-9]|$)/, "개발자용 A/B 표기가 사용자 문장에 남으면 안 됩니다.");
+  assert.doesNotMatch(text, /(무조건|100%|틀림없이|운명적으로 정해)/, "단정적·운명론적 표현이 남으면 안 됩니다.");
 
   console.log(JSON.stringify(summary, null, 2));
   console.log("1:1 real Anthropic sample QA: PASS");
