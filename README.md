@@ -49,6 +49,8 @@ npm run dev
 - 로그인 후 완료된 유료 결과를 복구키로 계정에 귀속하고, 다른 계정의 중복 귀속을 DB에서 차단
 - 계정 보관함의 요약 목록과 소유권 검증 재열람을 제공하며 계산·AI 생성을 다시 실행하지 않음
 - 1:1 유료 리포트를 기존 저장 JSON과 호환되는 CH0~CH9 장문 정보 위계로 재구성하고, 상대 해부·관계 전략·위험 신호·실행 플랜·근거 경계를 강조
+- 모바일 입력 오류 자동 포커스, 결제 재시도, 보관함 재조회, 44px 터치 타깃, `focus-visible`·`reduced-motion` 등 Day 20 접근성 보강
+- 1:1 새 생성 리포트에 `relationship-editorial-v1`을 적용해 짝사랑·썸·연인·친구·직장동료별 해석 전제·행동 조언·CH4/5/6/8 프레이밍을 분리
 
 현재 1:1 사용자 흐름:
 
@@ -78,8 +80,9 @@ npm run dev
 - Day 5 검증 결과: [`docs/day5-validation-report.md`](./docs/day5-validation-report.md)
 - 궁합 9항목 배점·관계 프로필·시간 미상 처리·항목별 승인 산식: [`docs/compatibility-scoring-policy.md`](./docs/compatibility-scoring-policy.md)
 - 1:N 구현 명세: [`docs/one-to-many-spec.md`](./docs/one-to-many-spec.md)
+- 관계별 편집 계약: [`docs/relationship-editorial-v1.md`](./docs/relationship-editorial-v1.md)
 
-궁합 점수는 사용자 관계 유형에 따라 `romance / friend / coworker` 프로필로 100점 배점을 재분배합니다. 짝사랑·썸·연인은 MVP에서 동일한 `romance` 계산 프로필을 사용하고, 관계 단계별 별도 가중치는 Day 15 이후 백로그입니다.
+궁합 점수는 사용자 관계 유형에 따라 `romance / friend / coworker` 프로필로 100점 배점을 재분배합니다. 짝사랑·썸·연인은 MVP에서 동일한 `romance` 계산 프로필을 사용하되, 새 1:1 리포트 생성 시 관계 단계별 편집 계약으로 해석 전제와 행동 조언을 분리합니다.
 
 출생시간 미상자는 임의 시주나 고정 중립점으로 대체하지 않습니다. 가능한 시주 시나리오를 계산해 항목별 중앙값과 실제 `uncertaintyRange`를 사용합니다.
 
@@ -96,6 +99,7 @@ AI는 사주를 계산하거나 결제 여부를 판단하지 않습니다. 서�
 ```
 
 - `REPORT_NARRATIVE_MODE=anthropic`과 `ANTHROPIC_API_KEY`를 설정하면 Claude가 고정 JSON 형식으로 서술을 생성합니다.
+- 1:1 새 생성분은 `paid-report-v7-editorial-v4` + `relationship-editorial-v1`을 사용합니다.
 - 생성된 문구, 모델명, 프롬프트 버전, 계산 결과 버전을 함께 `report_json`에 저장해 기존 구매 결과가 바뀌지 않게 합니다.
 - AI 호출은 서버에서 PortOne 결제가 검증된 뒤에만 실행합니다.
 
@@ -118,11 +122,11 @@ AI는 사주를 계산하거나 결제 여부를 판단하지 않습니다. 서�
 - Day 17: 카카오 OAuth 콜백·세션·계정 식별·로그아웃·보안 경계·운영 E2E ✅
 - Day 18: 유료 결과 계정 귀속·목록·권한 재열람·보관함 UI·회귀 검증 ✅ (운영 귀속 E2E 대기)
 - Day 19: 1:1 CH0~CH9 상세 리포트 정보 위계·상대 해부 중심 UI·근거 경계·모바일 장문 레이아웃 ✅
+- Day 20: 모바일 입력·결제·결과·보관함 접근성·오류 복구 코드/배포 ✅ (360·390·430px 실기기 전체 E2E 대기)
+- Day 21: 5개 관계 유형별 1:1 편집 계약·AI 프롬프트·CH4/5/6/8 프레이밍 분리 ✅
 
-## 다음 구현 순서 (Day 20~24)
+## 다음 구현 순서 (Day 22~24)
 
-- Day 20: 모바일 실기기 입력·결제·결과·보관함 UX와 접근성·오류 복구
-- Day 21: 5개 관계 유형별 구조·설명·말투 고도화
 - Day 22: 이용약관·개인정보·환불·면책·PG·카카오 동의·탈퇴/삭제 정책
 - Day 23: 로그인·권한·결제·웹훅·AI 실패·성능·원가 종합 QA
 - Day 24: 전체 E2E, 알려진 문제, 버전 태그, 운영 전환 체크 후 베타 동결
@@ -141,6 +145,7 @@ npm run test:day15:one-to-many-result-ui
 npm run test:day16:one-to-many-paid-e2e
 npm run test:day17:kakao-auth
 npm run test:day18:account-report-library
+npm run test:day21:relationship-editorial
 npm run lint
 npm run build
 ```
