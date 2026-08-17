@@ -193,7 +193,10 @@ export async function saveServerOrderDraft(order: OrderDraft) {
       ${order.status}
     )
     ON CONFLICT (payment_id) DO UPDATE SET
-      order_json = EXCLUDED.order_json,
+      order_json = CASE
+        WHEN woorigunghap_order_records.payment_status = 'paid' THEN woorigunghap_order_records.order_json
+        ELSE EXCLUDED.order_json
+      END,
       access_token_hash = COALESCE(
         woorigunghap_order_records.access_token_hash,
         EXCLUDED.access_token_hash
@@ -216,6 +219,7 @@ export async function ensureServerOrderAccessToken(paymentId: string, accessToke
     SET access_token_hash = ${hashAccessToken(accessToken)},
         updated_at = NOW()
     WHERE payment_id = ${paymentId}
+      AND access_token_hash IS NULL
     RETURNING payment_id
   `;
   return result.length > 0;
@@ -370,11 +374,6 @@ export async function loadOneToManyStoredReport(paymentId: string) {
   return parseOneToManyStoredReport(rows[0]?.report_json, paymentId);
 }
 
-/**
- * Claims the single paid 1:N generation slot atomically. A stale claim may be
- * reclaimed after five minutes so an interrupted function does not lock a paid
- * order forever.
- */
 export async function claimOneToManyGeneration(paymentId: string) {
   if (!await ensureSchema()) return false;
   const sql = getQuery();
@@ -448,22 +447,30 @@ export async function claimPaymentWebhook(webhookId: string, paymentId: string, 
     RETURNING webhook_id
   `;
   if (inserted.length > 0) return "claimed" as const;
+
   const rows = await sql`
-    SELECT status FROM woorigunghap_webhook_events
+    SELECT status, payment_id, event_type, updated_at
+    FROM woorigunghap_webhook_events
     WHERE webhook_id = ${webhookId}
     LIMIT 1
   `;
-  if (rows[0]?.status === "processed") return "processed" as const;
-  if (rows[0]?.status === "failed") {
-    const reclaimed = await sql`
-      UPDATE woorigunghap_webhook_events
-      SET status = 'processing', updated_at = NOW()
-      WHERE webhook_id = ${webhookId}
-        AND status = 'failed'
-      RETURNING webhook_id
-    `;
-    if (reclaimed.length > 0) return "claimed" as const;
-  }
+  const row = rows[0];
+  if (row?.payment_id !== paymentId || row?.event_type !== eventType) return "conflict" as const;
+  if (row?.status === "processed") return "processed" as const;
+
+  const reclaimed = await sql`
+    UPDATE woorigunghap_webhook_events
+    SET status = 'processing', updated_at = NOW()
+    WHERE webhook_id = ${webhookId}
+      AND payment_id = ${paymentId}
+      AND event_type = ${eventType}
+      AND (
+        status = 'failed'
+        OR (status = 'processing' AND updated_at < NOW() - INTERVAL '5 minutes')
+      )
+    RETURNING webhook_id
+  `;
+  if (reclaimed.length > 0) return "claimed" as const;
   return "in_progress" as const;
 }
 
