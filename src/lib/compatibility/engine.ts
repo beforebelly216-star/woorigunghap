@@ -310,7 +310,7 @@ export function calculateOneToOneCompatibility(
   const representativeEvidence = {} as Record<CompatibilityDimension, unknown>;
   for (const dimension of COMPATIBILITY_DIMENSIONS) {
     representativeEvidence[dimension] = dimension === "luckCycleAlignment"
-      ? threeYearTiming
+      ? { policy: "SERVER_RENDERED_CH5_ONLY" }
       : representative.dimensions[dimension].evidence;
   }
 
