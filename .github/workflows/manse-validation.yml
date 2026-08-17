@@ -8,8 +8,7 @@ on:
       - "src/**"
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
-      - "scripts/day8-*.ts"
-      - "scripts/day9-*.ts"
+      - "scripts/day*.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/manse-validation.yml"
@@ -18,15 +17,15 @@ on:
       - "src/**"
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
-      - "scripts/day8-*.ts"
-      - "scripts/day9-*.ts"
+      - "scripts/day*.ts"
       - "package.json"
       - "package-lock.json"
+      - ".github/workflows/manse-validation.yml"
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       KASI_SERVICE_KEY: ${{ secrets.KASI_SERVICE_KEY }}
     steps:
@@ -41,22 +40,34 @@ jobs:
         run: npm run test:manse
       - name: Run leap-day and month-end invariants
         run: npm run test:manse:boundaries
-      - name: Run Day 6 day-master compatibility validation
-        run: npm run test:compatibility:day-master
-      - name: Run Day 6 day-branch compatibility validation
-        run: npm run test:compatibility:day-branch
-      - name: Run Day 6 useful-god evidence validation
-        run: npm run test:compatibility:useful-god-prep
-      - name: Run Day 6 strength shadow calibration
-        run: npm run test:compatibility:strength-shadow
-      - name: Run Day 6 full compatibility engine validation
-        run: npm run test:compatibility:engine
-      - name: Run Day 8 payment gate regression checks
-        run: npm run test:day8:payment-gate
-      - name: Run Day 9 narrative privacy and resumable checks
-        run: npm run test:day9:narrative-boundary
-      - name: Run Day 9 recursive Claude JSON schema guard
-        run: npm run test:day9:schema-guard
+      - name: Run Day 6 compatibility validation
+        run: |
+          npm run test:compatibility:day-master
+          npm run test:compatibility:day-branch
+          npm run test:compatibility:useful-god-prep
+          npm run test:compatibility:strength-shadow
+          npm run test:compatibility:engine
+      - name: Run payment and narrative boundaries
+        run: |
+          npm run test:day8:payment-gate
+          npm run test:day9:narrative-boundary
+          npm run test:day9:schema-guard
+          npm run test:day10:editorial
+          npm run test:day11:server-store
+      - name: Run 1:N contracts
+        run: |
+          npm run test:day13:one-to-many-input
+          npm run test:day14:one-to-many-calculation
+          npm run test:day15:one-to-many-narrative
+          npm run test:day15:one-to-many-result-ui
+          npm run test:day16:one-to-many-paid-e2e
+      - name: Run account, editorial, policy and system QA contracts
+        run: |
+          npm run test:day17:kakao-auth
+          npm run test:day18:account-report-library
+          npm run test:day21:relationship-editorial
+          npm run test:day22:operating-policy
+          npm run test:day23:system-qa
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi
