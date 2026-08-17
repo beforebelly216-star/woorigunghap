@@ -19,6 +19,12 @@ function canonicalPerson(value: PersonBirthInput) {
   };
 }
 
+function canonicalPersonForVersion(value: PersonBirthInput, version: OrderBindingVersion) {
+  return version === LEGACY_ORDER_BINDING_VERSION
+    ? { displayName: value.displayName, ...canonicalPerson(value) }
+    : canonicalPerson(value);
+}
+
 function digestCanonical(value: string) {
   const bytes = new TextEncoder().encode(value);
   return globalThis.crypto.subtle.digest("SHA-256", bytes).then((digest) =>
@@ -30,15 +36,11 @@ export function canonicalizeOneToOneInput(
   input: OneToOneReportInput,
   version: OrderBindingVersion = ORDER_BINDING_VERSION,
 ) {
-  const person = (value: OneToOneReportInput["personA"]) => version === LEGACY_ORDER_BINDING_VERSION
-    ? { displayName: value.displayName, ...canonicalPerson(value) }
-    : canonicalPerson(value);
-
   const shared = {
     version,
     relationshipType: input.relationshipType,
-    personA: person(input.personA),
-    personB: person(input.personB),
+    personA: canonicalPersonForVersion(input.personA, version),
+    personB: canonicalPersonForVersion(input.personB, version),
   };
 
   return JSON.stringify(version === ORDER_BINDING_VERSION
@@ -58,15 +60,21 @@ export async function hashOneToOneInput(
   return digestCanonical(canonicalizeOneToOneInput(input, version));
 }
 
-export function canonicalizeOneToManyInput(input: OneToManyReportInput) {
+export function canonicalizeOneToManyInput(
+  input: OneToManyReportInput,
+  version: OrderBindingVersion = ORDER_BINDING_VERSION,
+) {
   return JSON.stringify({
-    version: ORDER_BINDING_VERSION,
+    version,
     relationshipType: input.relationshipType,
-    referencePerson: canonicalPerson(input.referencePerson),
-    candidates: input.candidates.map(canonicalPerson),
+    referencePerson: canonicalPersonForVersion(input.referencePerson, version),
+    candidates: input.candidates.map((person) => canonicalPersonForVersion(person, version)),
   });
 }
 
-export async function hashOneToManyInput(input: OneToManyReportInput) {
-  return digestCanonical(canonicalizeOneToManyInput(input));
+export async function hashOneToManyInput(
+  input: OneToManyReportInput,
+  version: OrderBindingVersion = ORDER_BINDING_VERSION,
+) {
+  return digestCanonical(canonicalizeOneToManyInput(input, version));
 }
