@@ -26,7 +26,7 @@ import {
   relationshipPromptRules,
 } from "@/lib/relationship-editorial";
 
-export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-editorial-v5-deep" as const;
+export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-editorial-v6-coworker-hierarchy" as const;
 export const PAID_REPORT_V7_PAYLOAD_VERSION = "paid-report-evidence-v3" as const;
 export const PAID_REPORT_SEGMENTS = ["intro", "dynamics", "action"] as const;
 export type PaidReportSegmentName = (typeof PAID_REPORT_SEGMENTS)[number];
@@ -412,7 +412,10 @@ export async function generatePaidReportSegmentV7(
   const payload = payloadFor(snapshot, input);
   const payloadText = JSON.stringify(payload);
   const payloadBytes = Buffer.byteLength(payloadText, "utf8");
-  const relationshipRules = relationshipPromptRules(input.relationshipType);
+  const relationshipRules = relationshipPromptRules(
+    input.relationshipType,
+    input.coworkerHierarchy ?? null,
+  );
 
   try {
     const generated = segment === "intro"
@@ -427,6 +430,7 @@ export async function generatePaidReportSegmentV7(
       segment,
       model,
       relationshipType: input.relationshipType,
+      coworkerHierarchy: input.relationshipType === "coworker" ? input.coworkerHierarchy ?? null : null,
       relationshipEditorialVersion: RELATIONSHIP_EDITORIAL_VERSION,
       attempt: generated.attempts,
       qualityCharacters: generated.best.characters,
