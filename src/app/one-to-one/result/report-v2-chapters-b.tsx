@@ -6,13 +6,13 @@ export default function ReportChaptersB({
   personAName,
   personBName,
   relationshipLabel,
-  hasUnknownBirthTime,
+  hasUnknownBirthTime = false,
 }: {
   content: DetailedReportContent;
   personAName: string;
   personBName: string;
   relationshipLabel: string;
-  hasUnknownBirthTime: boolean;
+  hasUnknownBirthTime?: boolean;
 }) {
   return <>
     <Chapter
