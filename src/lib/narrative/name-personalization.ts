@@ -23,17 +23,17 @@ export function narrativeNameReplacements(names: {
   } as const;
 }
 
-export function countNarrativeNameTokens(value: unknown) {
+export function countNarrativeNameTokens(value: unknown): number {
   if (typeof value === "string") {
     return Object.values(NARRATIVE_NAME_TOKENS)
-      .reduce((sum, token) => sum + value.split(token).length - 1, 0);
+      .reduce<number>((sum, token) => sum + value.split(token).length - 1, 0);
   }
   if (Array.isArray(value)) {
-    return value.reduce((sum, child) => sum + countNarrativeNameTokens(child), 0);
+    return value.reduce<number>((sum, child) => sum + countNarrativeNameTokens(child), 0);
   }
   if (value && typeof value === "object") {
     return Object.values(value as Record<string, unknown>)
-      .reduce((sum, child) => sum + countNarrativeNameTokens(child), 0);
+      .reduce<number>((sum, child) => sum + countNarrativeNameTokens(child), 0);
   }
   return 0;
 }
