@@ -16,10 +16,18 @@ npm run dev
 - `PORTONE_WEBHOOK_SECRET`
 - `KAKAO_REST_API_KEY`
 - `KAKAO_CLIENT_SECRET`
+- `KAKAO_ADMIN_KEY`
 
 카카오 개발자 콘솔에는 실제 서비스 주소와 정확히 일치하는 콜백 주소를 등록합니다.
 운영 예시는 `https://서비스주소/api/auth/kakao/callback`이며, 이 전체 주소를
 `KAKAO_REDIRECT_URI`에도 동일하게 설정합니다.
+
+정식 판매 전에는 아래 공개 운영 정보도 Vercel Production 환경에 입력합니다.
+
+- `NEXT_PUBLIC_OPERATOR_NAME`
+- `NEXT_PUBLIC_OPERATOR_EMAIL`
+- `NEXT_PUBLIC_BUSINESS_REGISTRATION_NUMBER`
+- `NEXT_PUBLIC_ECOMMERCE_REGISTRATION_NUMBER`
 
 ## 현재 포함된 흐름
 
@@ -51,19 +59,22 @@ npm run dev
 - 1:1 유료 리포트를 기존 저장 JSON과 호환되는 CH0~CH9 장문 정보 위계로 재구성하고, 상대 해부·관계 전략·위험 신호·실행 플랜·근거 경계를 강조
 - 모바일 입력 오류 자동 포커스, 결제 재시도, 보관함 재조회, 44px 터치 타깃, `focus-visible`·`reduced-motion` 등 Day 20 접근성 보강
 - 1:1 새 생성 리포트에 `relationship-editorial-v1`을 적용해 짝사랑·썸·연인·친구·직장동료별 해석 전제·행동 조언·CH4/5/6/8 프레이밍을 분리
+- 이용약관·개인정보처리방침·환불/청약철회 안내와 전역 푸터, 결제 전 정책 동의, 회원탈퇴·데이터 삭제 동선 구현
+- 탈퇴 시 계정·세션·리포트 원문·출생정보·복구 접근정보를 제거하고 법정 보존이 필요한 최소 거래기록만 분리 보존
+- `KAKAO_ADMIN_KEY`가 설정된 운영 환경에서는 회원탈퇴 시 카카오 서비스 연결 해제 API도 호출
 
 현재 1:1 사용자 흐름:
 
 ```text
-홈 → 1:1 정보 입력 → 주문 저장 → 결제 전 확인 → PortOne 결제 → 서버 리포트 생성·복구
-                                                                    └→ 선택 로그인 → 계정 보관함
+홈 → 1:1 정보 입력 → 주문 저장 → 결제 전 확인·정책 동의 → PortOne 결제 → 서버 리포트 생성·복구
+                                                                                 └→ 선택 로그인 → 계정 보관함 → 탈퇴·데이터 삭제
 ```
 
 현재 1:N 사용자 흐름:
 
 ```text
-홈 → 1:N 정보 입력 → 서버 주문 저장 → 3,000원 결제 → 결제·입력 해시 검증 → 서버 비교 계산 → 통합 AI 해설 1회 → 저장·복구
-                                                                                                      └→ 선택 로그인 → 계정 보관함
+홈 → 1:N 정보 입력 → 서버 주문 저장 → 결제 전 정책 동의 → 3,000원 결제 → 결제·입력 해시 검증 → 서버 비교 계산 → 통합 AI 해설 1회 → 저장·복구
+                                                                                                                          └→ 선택 로그인 → 계정 보관함
 ```
 
 ## 입력 데이터 원칙
@@ -124,11 +135,11 @@ AI는 사주를 계산하거나 결제 여부를 판단하지 않습니다. 서�
 - Day 19: 1:1 CH0~CH9 상세 리포트 정보 위계·상대 해부 중심 UI·근거 경계·모바일 장문 레이아웃 ✅
 - Day 20: 모바일 입력·결제·결과·보관함 접근성·오류 복구 코드/배포 ✅ (360·390·430px 실기기 전체 E2E 대기)
 - Day 21: 5개 관계 유형별 1:1 편집 계약·AI 프롬프트·CH4/5/6/8 프레이밍 분리 ✅
+- Day 22: 운영 정책 페이지·결제 전 동의·개인정보 보유/파기·회원탈퇴/데이터 삭제·카카오 unlink 지원 ✅ (정식 판매 공개정보·운영키 설정 대기)
 
-## 다음 구현 순서 (Day 22~24)
+## 다음 구현 순서 (Day 23~24)
 
-- Day 22: 이용약관·개인정보·환불·면책·PG·카카오 동의·탈퇴/삭제 정책
-- Day 23: 로그인·권한·결제·웹훅·AI 실패·성능·원가 종합 QA
+- Day 23: 로그인·권한·결제·웹훅·AI 실패·성능·원가·삭제 흐름 종합 QA
 - Day 24: 전체 E2E, 알려진 문제, 버전 태그, 운영 전환 체크 후 베타 동결
 
 ## 검증
@@ -146,6 +157,7 @@ npm run test:day16:one-to-many-paid-e2e
 npm run test:day17:kakao-auth
 npm run test:day18:account-report-library
 npm run test:day21:relationship-editorial
+npm run test:day22:operating-policy
 npm run lint
 npm run build
 ```
