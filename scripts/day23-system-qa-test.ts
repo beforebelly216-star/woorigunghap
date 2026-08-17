@@ -60,10 +60,17 @@ assert.match(requestEngine, /MAX_TOKENS/);
 assert.match(requestEngine, /collectPaidNarrativeQualityIssues/);
 assert.match(requestEngine, /EXACT_LONG_TEXT_DUPLICATE/);
 assert.match(requestEngine, /DEVELOPER_LABEL_A_B_EXPOSED/);
+assert.match(requestEngine, /INTERNAL_METRIC_EXPOSED/);
+assert.match(requestEngine, /MIND_READING_CERTAINTY/);
+assert.match(requestEngine, /FUTURE_TIMING_LEAK/);
+assert.match(requestEngine, /DURATION_CAUSAL_OVERREACH/);
+assert.match(requestEngine, /NAME_TOKEN_OVERUSE/);
+assert.match(requestEngine, /QUALITY_CRITICAL/);
 assert.match(requestEngine, /RELATIONSHIP_ROMANCE_LEAK/);
 assert.match(requestEngine, /COWORKER_HIERARCHY_NOT_REFLECTED/);
 assert.match(requestEngine, /INTRO" \? 2600/);
 assert.match(requestEngine, /5200/);
+assert.match(requestEngine, /totalBudgetMs = isLongSegment \? 220_000 : 180_000/);
 
 const repeated = "업무 상황에서는 감정 추정보다 확인 가능한 기준과 책임 범위를 먼저 맞추는 편이 좋습니다.";
 const badCoworkerOutput = {
@@ -82,6 +89,23 @@ assert.ok(badIssues.includes("DEVELOPER_LABEL_A_B_EXPOSED"));
 assert.ok(badIssues.includes("DETERMINISTIC_CERTAINTY"));
 assert.ok(badIssues.includes("RELATIONSHIP_ROMANCE_LEAK"));
 assert.ok(badIssues.includes("COWORKER_HIERARCHY_NOT_REFLECTED"));
+
+const manualQaRegressionIssues = collectPaidNarrativeQualityIssues(
+  {
+    first: "{{SELF}}은 {{PARTNER}}와 2027년 범위값을 보면 관계가 자동으로 좋아질 확률이 높아집니다.",
+    second: "{{PARTNER}}는 내부적으로 사랑받을 자격이 없다고 내면화하며 갈망합니다.",
+    third: "26개월 유지된 것은 이 조합의 강점이 증명합니다. 배우자 역할 점수와 유용신 적합도를 확인하세요.",
+    fourth: Array.from({ length: 80 }, () => "{{SELF}} {{PARTNER}}").join(" "),
+  },
+  "ACTION",
+  '{"relationshipType":"lover","relationshipDurationMonths":26}',
+);
+assert.ok(manualQaRegressionIssues.includes("FUTURE_TIMING_LEAK"));
+assert.ok(manualQaRegressionIssues.includes("INTERNAL_METRIC_EXPOSED"));
+assert.ok(manualQaRegressionIssues.includes("DETERMINISTIC_CERTAINTY"));
+assert.ok(manualQaRegressionIssues.includes("MIND_READING_CERTAINTY"));
+assert.ok(manualQaRegressionIssues.includes("DURATION_CAUSAL_OVERREACH"));
+assert.ok(manualQaRegressionIssues.includes("NAME_TOKEN_OVERUSE"));
 
 const hierarchyAwareText = Array.from(
   { length: 130 },
@@ -106,4 +130,4 @@ assert.match(workflow, /test:day18:account-report-library/);
 assert.match(workflow, /test:day22:operating-policy/);
 assert.match(workflow, /test:day23:system-qa/);
 
-console.log("Day 23 system QA + narrative output quality gate checks: PASS");
+console.log("Day 23 system QA + real-sample narrative quality regression checks: PASS");
