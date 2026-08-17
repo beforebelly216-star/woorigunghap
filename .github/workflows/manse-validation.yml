@@ -70,6 +70,7 @@ jobs:
           npm run test:day21:relationship-editorial
           npm run test:day22:operating-policy
           npm run test:day23:system-qa
+          npm run test:day24:beta-freeze
           npm run test:pending-library-notify
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
