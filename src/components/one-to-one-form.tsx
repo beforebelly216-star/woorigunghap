@@ -23,6 +23,10 @@ import {
 } from "@/lib/orders";
 import { saveOrderDraft } from "@/lib/order-storage";
 import { buildOneToOneResultUrl } from "@/lib/result-access-token";
+import {
+  PARTNER_INFORMATION_LEVEL_COPY,
+  partnerInformationLevelFromPerson,
+} from "@/lib/partner-information-level";
 
 type FormState = {
   relationshipType: RelationshipType | "";
@@ -62,6 +66,8 @@ export function OneToOneForm() {
   const [form, setForm] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isContinuing, setIsContinuing] = useState(false);
+  const partnerInformationLevel = partnerInformationLevelFromPerson(form.personB);
+  const partnerInformationCopy = PARTNER_INFORMATION_LEVEL_COPY[partnerInformationLevel];
 
   function showErrors(formElement: HTMLFormElement, nextErrors: Record<string, string>) {
     setErrors(nextErrors);
@@ -176,6 +182,11 @@ export function OneToOneForm() {
           errors={errors}
           onChange={(personB) => setForm({ ...form, personB })}
         />
+      </div>
+
+      <div className="form-success" role="status" aria-live="polite">
+        <strong>상대 정보 수준 {partnerInformationLevel}</strong>
+        <p>{partnerInformationCopy.short}. {partnerInformationCopy.detail}</p>
       </div>
 
       <button type="submit" className="primary-action" disabled={isContinuing} aria-busy={isContinuing}>
