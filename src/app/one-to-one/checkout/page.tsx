@@ -7,7 +7,7 @@ import { PaymentButton } from "@/components/payment-button";
 import { PurchasePolicyConsent } from "@/components/purchase-policy-consent";
 import { loadOrderDraft } from "@/lib/order-storage";
 import type { OneToOneOrderDraft } from "@/lib/orders";
-import { RELATIONSHIP_LABELS } from "@/lib/report-input";
+import { COWORKER_HIERARCHY_LABELS, RELATIONSHIP_LABELS } from "@/lib/report-input";
 
 function formatBirth(order: OneToOneOrderDraft, person: "personA" | "personB") {
   const value = order.inputSnapshot[person];
@@ -50,6 +50,10 @@ function CheckoutContent() {
     );
   }
 
+  const hierarchy = order.inputSnapshot.relationshipType === "coworker"
+    ? order.inputSnapshot.coworkerHierarchy ?? null
+    : null;
+
   return (
     <>
       <header className="checkout-header">
@@ -63,6 +67,10 @@ function CheckoutContent() {
           <span>관계</span>
           <strong>{RELATIONSHIP_LABELS[order.inputSnapshot.relationshipType]}</strong>
         </div>
+        {hierarchy ? <div className="checkout-row">
+          <span>업무 관계</span>
+          <strong>{COWORKER_HIERARCHY_LABELS[hierarchy]}</strong>
+        </div> : null}
         <div className="checkout-person">
           <strong>{order.inputSnapshot.personA.displayName}</strong>
           <span>{formatBirth(order, "personA")}</span>
