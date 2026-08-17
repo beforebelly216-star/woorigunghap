@@ -23,8 +23,9 @@ const form = readFileSync("src/components/one-to-one-form.tsx", "utf8");
 assert.match(form, /상대 정보 수준/);
 assert.match(form, /PARTNER_INFORMATION_LEVEL_COPY/);
 
-const result = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
-assert.match(result, /상대 정보 수준/);
-assert.match(result, /partnerInformationLevelFromPerson/);
+const reportComponents = readFileSync("src/app/one-to-one/result/report-v2-components.tsx", "utf8");
+assert.match(reportComponents, /정보 수준 \{informationLevel\}/);
+assert.match(reportComponents, /partnerInformationLevelFromFacts/);
+assert.match(reportComponents, /PARTNER_INFORMATION_LEVEL_COPY/);
 
 console.log("1:1 partner information level A/B checks: PASS");
