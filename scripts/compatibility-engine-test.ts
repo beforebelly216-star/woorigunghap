@@ -40,7 +40,12 @@ assert.ok(first.dimensions.luckCycleAlignment.normalizedScore >= 45);
 assert.ok(first.dimensions.luckCycleAlignment.normalizedScore <= 92);
 assert.equal(first.threeYearTiming?.baseYear, 2026);
 assert.deepEqual(first.threeYearTiming?.years.map((year) => year.year), [2026, 2027, 2028]);
-assert.equal(first.representativeEvidence.luckCycleAlignment, first.threeYearTiming);
+assert.deepEqual(
+  first.representativeEvidence.luckCycleAlignment,
+  { policy: "SERVER_RENDERED_CH5_ONLY" },
+  "연도별 타이밍 원자료는 일반 AI evidence로 전달하지 않고 CH5 서버 렌더링에만 사용해야 합니다.",
+);
+assert.ok(first.threeYearTiming, "서버 렌더링용 threeYearTiming은 계산 스냅샷에 그대로 유지되어야 합니다.");
 assert.equal(first.strengths.length, 2);
 assert.equal(first.adjustmentPoints.length, 2);
 
@@ -111,6 +116,7 @@ for (const result of [first, oneUnknown, bothUnknown, boundaryResult]) {
   assert.equal(result.threeYearTiming.years.length, 3);
   assert.ok(result.threeYearTiming.scoreRange.min <= result.threeYearTiming.normalizedScore);
   assert.ok(result.threeYearTiming.normalizedScore <= result.threeYearTiming.scoreRange.max);
+  assert.deepEqual(result.representativeEvidence.luckCycleAlignment, { policy: "SERVER_RENDERED_CH5_ONLY" });
 }
 
 console.log(
