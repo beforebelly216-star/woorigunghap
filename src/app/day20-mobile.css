@@ -1,0 +1,272 @@
+/* Day 20 — mobile interaction, accessibility, and recovery hardening */
+
+html {
+  scroll-padding-top: 88px;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+button,
+a,
+input,
+label {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+[role="radiogroup"]:focus-within {
+  outline: 3px solid #9b7d4f;
+  outline-offset: 3px;
+}
+
+[aria-invalid="true"] {
+  scroll-margin-block: 120px;
+}
+
+.field-stack input[aria-invalid="true"] {
+  border-color: #a3483e;
+  box-shadow: 0 0 0 1px #a3483e;
+}
+
+.segmented-control[aria-invalid="true"],
+.relationship-options[aria-invalid="true"] {
+  border-radius: 16px;
+  box-shadow: 0 0 0 2px rgba(163, 72, 62, .25);
+}
+
+.form-error-summary {
+  margin: 0;
+  border: 1px solid #d6aaa3;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: #fff6f4;
+}
+
+.recovery-state.checkout-state {
+  padding-top: 0;
+  text-align: left;
+}
+
+.recovery-actions {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.payment-result-page .back-link {
+  margin-top: 12px;
+}
+
+.payment-message[role="alert"] {
+  min-height: 1.4em;
+}
+
+.library-card,
+.primary-link,
+.primary-action,
+.payment-button,
+.secondary-action,
+.back-link,
+.site-header a,
+.relationship-options label,
+.segmented-control label,
+.check-row,
+.candidate-remove {
+  min-height: 44px;
+}
+
+.primary-link,
+.back-link,
+.site-header a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-row {
+  padding-block: 8px;
+}
+
+.check-row input {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+}
+
+.candidate-remove {
+  min-width: 44px;
+  padding: 10px;
+}
+
+.v2-page,
+.report-page,
+.library-page,
+.input-page,
+.result-page {
+  overflow-wrap: anywhere;
+}
+
+.v2-score-grid,
+.day19-chapter-map,
+.day19-signal-grid,
+.day19-profile-pair,
+.v2-two-column,
+.v2-detail-grid,
+.library-grid {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .landing-page,
+  .result-page,
+  .input-page,
+  .report-page,
+  .v2-page,
+  .library-page {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .input-page {
+    padding-top: 28px;
+    padding-bottom: max(40px, env(safe-area-inset-bottom));
+  }
+
+  .input-header {
+    margin-bottom: 24px;
+  }
+
+  .input-header h1,
+  .checkout-header h1,
+  .checkout-state h1 {
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+
+  .form-section,
+  .person-panel,
+  .checkout-card {
+    border-radius: 18px;
+    padding: 18px;
+  }
+
+  .person-panel legend {
+    font-size: 1.35rem;
+  }
+
+  .field-stack input[type="text"],
+  .field-stack input[type="date"],
+  .field-stack input[type="time"] {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .relationship-options,
+  .segmented-control {
+    gap: 8px;
+  }
+
+  .relationship-options label,
+  .segmented-control label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 10px 14px;
+  }
+
+  .time-input-row {
+    gap: 8px;
+  }
+
+  .primary-action,
+  .payment-button,
+  .secondary-action,
+  .primary-link {
+    min-height: 50px;
+    padding: 14px 16px;
+  }
+
+  .checkout-row,
+  .checkout-total {
+    align-items: flex-start;
+  }
+
+  .checkout-total strong {
+    white-space: nowrap;
+  }
+
+  .checkout-note {
+    text-align: left;
+  }
+
+  .v2-page {
+    padding-top: 28px;
+    padding-bottom: max(64px, env(safe-area-inset-bottom));
+  }
+
+  .v2-hero h1 {
+    overflow-wrap: anywhere;
+  }
+
+  .v2-state {
+    padding-top: 14vh;
+  }
+
+  .day19-chapter-map,
+  .day19-signal-grid,
+  .day19-profile-pair,
+  .v2-two-column,
+  .v2-detail-grid,
+  .v2-score-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .v2-chapter,
+  .day19-summary-panel,
+  .day19-evidence-boundary {
+    scroll-margin-top: 88px;
+  }
+
+  .library-shell {
+    width: 100%;
+  }
+
+  .library-card {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 390px) {
+  .relationship-options label {
+    flex-basis: calc(50% - 4px);
+  }
+
+  .segmented-control label {
+    min-width: 0;
+  }
+
+  .checkout-row,
+  .checkout-total {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

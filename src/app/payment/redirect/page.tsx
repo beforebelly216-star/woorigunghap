@@ -103,18 +103,23 @@ function PaymentResult() {
     failed: ["결제 정보를 확인해야 해요", fatalMessage ?? "결제 상품 또는 금액을 다시 확인해 주세요."],
     cancelled: [
       "결제가 완료되지 않았어요",
-      params.get("message") ?? "원하면 다시 시도할 수 있어요.",
+      params.get("message") ?? "결제는 승인되지 않았습니다. 입력 내용은 그대로 두고 다시 시도할 수 있어요.",
     ],
   }[state];
 
+  const product = paymentId ? productFromPaymentId(paymentId) : null;
+  const retryHref = paymentId && product
+    ? `${product === "oneToMany" ? "/one-to-many/checkout" : "/one-to-one/checkout"}?paymentId=${encodeURIComponent(paymentId)}`
+    : null;
+
   return (
-    <main className="result-page">
+    <main className="result-page payment-result-page" aria-live="polite" aria-busy={state === "checking"}>
       <p className="eyebrow">우리궁합</p>
       <h1>{copy[0]}</h1>
       <p>{copy[1]}</p>
       {state === "success" && paymentId ? (
         <Link
-          href={productFromPaymentId(paymentId) === "oneToMany"
+          href={product === "oneToMany"
             ? buildOneToManyResultUrl(paymentId)
             : buildOneToOneResultUrl(paymentId)}
           className="primary-link"
@@ -122,7 +127,10 @@ function PaymentResult() {
           바로 결과 보기
         </Link>
       ) : state === "failed" || state === "cancelled" ? (
-        <Link href="/" className="back-link">처음으로 돌아가기</Link>
+        <div className="recovery-actions">
+          {retryHref ? <Link href={retryHref} className="primary-link">같은 주문으로 결제 다시 시도</Link> : null}
+          <Link href="/" className="back-link">처음으로 돌아가기</Link>
+        </div>
       ) : null}
     </main>
   );
@@ -132,7 +140,7 @@ export default function PaymentRedirectPage() {
   return (
     <Suspense
       fallback={
-        <main className="result-page">
+        <main className="result-page" aria-live="polite" aria-busy="true">
           <p>결제 정보를 불러오는 중이에요.</p>
         </main>
       }
