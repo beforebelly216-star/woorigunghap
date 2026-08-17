@@ -123,6 +123,7 @@ async function main() {
   const qualityWarnings = metas.flatMap((meta) => meta.qualityWarnings);
   const selfMentions = text.split("지민님").length - 1;
   const partnerMentions = text.split("서윤님").length - 1;
+  const totalNameMentions = selfMentions + partnerMentions;
 
   const summary = {
     qaSample: process.env.QA_SAMPLE === "coworker-boss" ? "coworker-boss" : "lover",
@@ -135,6 +136,7 @@ async function main() {
     totalCharacters,
     selfMentions,
     partnerMentions,
+    totalNameMentions,
     segments: metas.map((meta) => ({
       segment: meta.segment,
       attempt: meta.attempt,
@@ -155,9 +157,14 @@ async function main() {
   assert.ok(totalCharacters >= 13_000, `전체 상세 해설 최소 분량 미달: ${totalCharacters} chars`);
   assert.ok(selfMentions > 0, "서버 후처리 후 '지민님' 호칭이 한 번 이상 보여야 합니다.");
   assert.ok(partnerMentions > 0, "서버 후처리 후 '서윤님' 호칭이 한 번 이상 보여야 합니다.");
+  assert.ok(totalNameMentions <= Math.ceil(totalCharacters / 80), `이름 호칭이 과도하게 반복됩니다: ${totalNameMentions}/${totalCharacters}`);
   assert.match(text, /가장 궁금한 점에 대한 답/, "사용자가 질문을 입력한 샘플은 CH4에서 직접 답변 항목을 생성해야 합니다.");
+  assert.doesNotMatch(text, /님(?:는|가|를|와)(?=[^가-힣]|$)/, "이름 뒤 한국어 조사가 받침과 맞지 않으면 안 됩니다.");
   assert.doesNotMatch(text, /(^|[^A-Za-z가-힣0-9])[AB]([^A-Za-z가-힣0-9]|$)/, "개발자용 A/B 표기가 사용자 문장에 남으면 안 됩니다.");
-  assert.doesNotMatch(text, /(무조건|100%|틀림없이|운명적으로 정해)/, "단정적·운명론적 표현이 남으면 안 됩니다.");
+  assert.doesNotMatch(text, /(역할 공급도|배우자 역할 점수|유용신 적합도|범위값)/, "내부 계산 지표명이 사용자 리포트에 노출되면 안 됩니다.");
+  assert.doesNotMatch(text, /(20\d{2}년|\b대운\b|\b세운\b|월운)/, "AI 해설에는 서버 전용 미래 연도 타이밍이 섞이면 안 됩니다.");
+  assert.doesNotMatch(text, /(무의식적|내부적으로|내면화|갈망|사랑받을 자격|심리 상태(?:입니다|다))/, "상대의 숨은 마음을 사실처럼 확정하면 안 됩니다.");
+  assert.doesNotMatch(text, /(무조건|100%|확실히|틀림없이|반드시|운명적으로 정해|자동(?:으로|적)|증명합니다)/, "단정적·운명론적 표현이 남으면 안 됩니다.");
 
   console.log(JSON.stringify(summary, null, 2));
   console.log("1:1 real Anthropic sample QA: PASS");
