@@ -34,13 +34,39 @@ export function BulletList({ items }: { items: string[] }) {
   return <ul className="v2-bullets">{items.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul>;
 }
 
-export function Chapter({ index, eyebrow, title, children }: { index: number; eyebrow: string; title: string; children: React.ReactNode }) {
-  return <section className="v2-chapter">
-    <div className="v2-chapter-heading"><span>{String(index).padStart(2, "0")}</span><div><small>{eyebrow}</small><h2>{title}</h2></div></div>
-    {children}
+export function Chapter({
+  index,
+  eyebrow,
+  title,
+  intro,
+  summary,
+  children,
+}: {
+  index: number;
+  eyebrow: string;
+  title: string;
+  intro?: string;
+  summary?: string[];
+  children: React.ReactNode;
+}) {
+  const summaryItems = (summary ?? []).filter(Boolean).slice(0, 3);
+  return <section className="v2-chapter day19-chapter" id={`chapter-${index}`}>
+    <div className="v2-chapter-heading">
+      <span>CH{index}</span>
+      <div><small>{eyebrow}</small><h2>{title}</h2>{intro ? <p>{intro}</p> : null}</div>
+    </div>
+    <div className="day19-chapter-body">{children}</div>
+    {summaryItems.length > 0 ? <div className="day19-summary" aria-label={`${title} 핵심 요약`}>
+      <strong>이 장의 핵심</strong>
+      <ol>{summaryItems.map((item, itemIndex) => <li key={`${itemIndex}-${item}`}>{item}</li>)}</ol>
+    </div> : null}
   </section>;
 }
 
 export function Paragraph({ children }: { children: React.ReactNode }) {
   return <p className="v2-long-text">{children}</p>;
+}
+
+export function EvidenceBoundary({ children }: { children: React.ReactNode }) {
+  return <aside className="day19-evidence-boundary"><strong>해석 범위</strong><p>{children}</p></aside>;
 }
