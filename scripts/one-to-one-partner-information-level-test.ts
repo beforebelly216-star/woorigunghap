@@ -17,6 +17,11 @@ assert.match(PARTNER_INFORMATION_LEVEL_COPY.A.detail, /네 기둥/);
 assert.match(PARTNER_INFORMATION_LEVEL_COPY.B.detail, /대표 시간대 시나리오/);
 assert.match(PARTNER_INFORMATION_LEVEL_COPY.B.detail, /점수 범위/);
 
+const page = readFileSync("src/app/one-to-one/page.tsx", "utf8");
+assert.match(page, /실명 대신 별칭/);
+assert.match(page, /“OOO님”/);
+assert.match(page, /이름·별칭 원문은 AI 서술 생성 요청에 전달하지 않습니다/);
+
 const form = readFileSync("src/components/one-to-one-form.tsx", "utf8");
 assert.match(form, /상대 정보 수준/);
 assert.match(form, /PARTNER_INFORMATION_LEVEL_COPY/);
@@ -26,4 +31,4 @@ assert.match(reportComponents, /정보 수준 \{informationLevel\}/);
 assert.match(reportComponents, /partnerInformationLevelFromFacts/);
 assert.match(reportComponents, /PARTNER_INFORMATION_LEVEL_COPY/);
 
-console.log("1:1 partner information level A/B checks: PASS");
+console.log("1:1 partner information level A/B + display-name guidance checks: PASS");
