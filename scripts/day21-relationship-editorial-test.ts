@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
+  OLDER_ORDER_BINDING_VERSION,
   ORDER_BINDING_VERSION,
   PREVIOUS_ORDER_BINDING_VERSION,
   canonicalizeOneToOneInput,
@@ -8,6 +9,7 @@ import {
 import {
   COWORKER_HIERARCHIES,
   COWORKER_HIERARCHY_LABELS,
+  MAX_MOST_CURIOUS_LENGTH,
   parseOneToOneReportInput,
   validateOneToOneReportInput,
   type OneToOneReportInput,
@@ -24,6 +26,7 @@ assert.deepEqual(COWORKER_HIERARCHIES, ["boss", "peer", "subordinate"]);
 assert.equal(COWORKER_HIERARCHY_LABELS.boss, "상대가 내 상사");
 assert.equal(COWORKER_HIERARCHY_LABELS.peer, "동급 동료");
 assert.equal(COWORKER_HIERARCHY_LABELS.subordinate, "상대가 내 부하");
+assert.equal(MAX_MOST_CURIOUS_LENGTH, 200);
 
 assert.notEqual(RELATIONSHIP_EDITORIAL.crush.ui.strategyTitle, RELATIONSHIP_EDITORIAL.flirting.ui.strategyTitle);
 assert.notEqual(RELATIONSHIP_EDITORIAL.flirting.ui.strategyTitle, RELATIONSHIP_EDITORIAL.lover.ui.strategyTitle);
@@ -49,6 +52,8 @@ assert.match(relationshipPromptRules("lover"), /실제 이름·별칭은 서버�
 const baseCoworkerInput: OneToOneReportInput = {
   relationshipType: "coworker",
   coworkerHierarchy: "boss",
+  relationshipDurationMonths: 18,
+  mostCurious: "회의에서 의견이 다를 때 어떻게 말하는 게 좋을까요?",
   personA: {
     displayName: "나",
     gender: "male",
@@ -71,29 +76,67 @@ const baseCoworkerInput: OneToOneReportInput = {
 
 const parsedBoss = parseOneToOneReportInput(baseCoworkerInput);
 assert.equal(parsedBoss?.coworkerHierarchy, "boss");
+assert.equal(parsedBoss?.relationshipDurationMonths, 18);
+assert.equal(parsedBoss?.mostCurious, baseCoworkerInput.mostCurious);
 assert.equal(validateOneToOneReportInput(baseCoworkerInput, { requireCoworkerHierarchy: true }).valid, true);
 const missingHierarchy = { ...baseCoworkerInput, coworkerHierarchy: null };
 assert.equal(validateOneToOneReportInput(missingHierarchy).valid, true, "기존 저장 직장동료 결과는 위계 없이도 읽을 수 있어야 합니다.");
 assert.equal(validateOneToOneReportInput(missingHierarchy, { requireCoworkerHierarchy: true }).valid, false, "새 직장동료 주문은 위계를 필수로 받아야 합니다.");
+const tooLongQuestion = { ...baseCoworkerInput, mostCurious: "가".repeat(201) };
+assert.equal(validateOneToOneReportInput(tooLongQuestion).valid, false, "가장 궁금한 점은 200자를 초과할 수 없습니다.");
+const crushWithDuration: OneToOneReportInput = { ...baseCoworkerInput, relationshipType: "crush", coworkerHierarchy: null, relationshipDurationMonths: 3 };
+assert.equal(validateOneToOneReportInput(crushWithDuration).valid, false, "짝사랑에는 관계 기간을 받지 않습니다.");
 
 const subordinateInput: OneToOneReportInput = { ...baseCoworkerInput, coworkerHierarchy: "subordinate" };
-assert.equal(ORDER_BINDING_VERSION, "input-sha256-v3");
-assert.equal(PREVIOUS_ORDER_BINDING_VERSION, "input-sha256-v2");
+const changedDuration: OneToOneReportInput = { ...baseCoworkerInput, relationshipDurationMonths: 19 };
+const changedQuestion: OneToOneReportInput = { ...baseCoworkerInput, mostCurious: "상사에게 보고는 언제 하는 게 좋을까요?" };
+assert.equal(ORDER_BINDING_VERSION, "input-sha256-v4");
+assert.equal(PREVIOUS_ORDER_BINDING_VERSION, "input-sha256-v3");
+assert.equal(OLDER_ORDER_BINDING_VERSION, "input-sha256-v2");
 assert.notEqual(
   canonicalizeOneToOneInput(baseCoworkerInput),
   canonicalizeOneToOneInput(subordinateInput),
+  "v4 결제 바인딩은 직장 위계 변경을 감지해야 합니다.",
+);
+assert.notEqual(
+  canonicalizeOneToOneInput(baseCoworkerInput),
+  canonicalizeOneToOneInput(changedDuration),
+  "v4 결제 바인딩은 관계 기간 변경을 감지해야 합니다.",
+);
+assert.notEqual(
+  canonicalizeOneToOneInput(baseCoworkerInput),
+  canonicalizeOneToOneInput(changedQuestion),
+  "v4 결제 바인딩은 가장 궁금한 점 변경을 감지해야 합니다.",
+);
+assert.notEqual(
+  canonicalizeOneToOneInput(baseCoworkerInput, PREVIOUS_ORDER_BINDING_VERSION),
+  canonicalizeOneToOneInput(subordinateInput, PREVIOUS_ORDER_BINDING_VERSION),
   "v3 결제 바인딩은 직장 위계 변경을 감지해야 합니다.",
 );
 assert.equal(
   canonicalizeOneToOneInput(baseCoworkerInput, PREVIOUS_ORDER_BINDING_VERSION),
-  canonicalizeOneToOneInput(subordinateInput, PREVIOUS_ORDER_BINDING_VERSION),
-  "과거 v2 결제 해시는 새 위계 필드 때문에 바뀌면 안 됩니다.",
+  canonicalizeOneToOneInput(changedQuestion, PREVIOUS_ORDER_BINDING_VERSION),
+  "과거 v3 결제 해시는 새 질문 필드 때문에 바뀌면 안 됩니다.",
+);
+assert.equal(
+  canonicalizeOneToOneInput(baseCoworkerInput, PREVIOUS_ORDER_BINDING_VERSION),
+  canonicalizeOneToOneInput(changedDuration, PREVIOUS_ORDER_BINDING_VERSION),
+  "과거 v3 결제 해시는 새 관계 기간 필드 때문에 바뀌면 안 됩니다.",
+);
+assert.equal(
+  canonicalizeOneToOneInput(baseCoworkerInput, OLDER_ORDER_BINDING_VERSION),
+  canonicalizeOneToOneInput(subordinateInput, OLDER_ORDER_BINDING_VERSION),
+  "과거 v2 결제 해시는 직장 위계나 새 편집 필드 때문에 바뀌면 안 됩니다.",
 );
 
 const engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
-assert.match(engine, /paid-report-v7-editorial-v6-coworker-hierarchy/);
+assert.match(engine, /paid-report-v7-editorial-v7-user-context/);
+assert.match(engine, /paid-report-evidence-v4/);
 assert.match(engine, /relationshipPromptRules\(/);
 assert.match(engine, /input\.coworkerHierarchy \?\? null/);
+assert.match(engine, /buildReportEditorialContext/);
+assert.match(engine, /가장 궁금한 점에 대한 답/);
+assert.match(engine, /relationshipDurationMonths/);
 assert.match(engine, /relationshipEditorialVersion/);
 assert.match(engine, /partnerDeepDive: PARTNER_DEEP_DIVE_SCHEMA/);
 assert.match(engine, /personalLeverage: PERSONAL_LEVERAGE_SCHEMA/);
@@ -108,6 +151,11 @@ assert.match(form, /coworkerHierarchy/);
 assert.match(form, /두 번째 사람은 나와 어떤 업무 관계인가요/);
 assert.match(form, /COWORKER_HIERARCHY_LABELS/);
 assert.match(form, /requireCoworkerHierarchy: true/);
+assert.match(form, /relationshipDurationMonths/);
+assert.match(form, /관계 기간 \(개월, 선택\)/);
+assert.match(form, /mostCurious/);
+assert.match(form, /가장 궁금한 것 한 가지가 있나요/);
+assert.match(form, /MAX_MOST_CURIOUS_LENGTH/);
 
 const orderRoute = readFileSync("src/app/api/orders/one-to-one/route.ts", "utf8");
 assert.match(orderRoute, /requireCoworkerHierarchy: true/);
@@ -115,9 +163,12 @@ assert.match(orderRoute, /requireCoworkerHierarchy: true/);
 const checkout = readFileSync("src/app/one-to-one/checkout/page.tsx", "utf8");
 assert.match(checkout, /업무 관계/);
 assert.match(checkout, /COWORKER_HIERARCHY_LABELS/);
+assert.match(checkout, /관계 기간/);
+assert.match(checkout, /가장 궁금한 점/);
 
 const verification = readFileSync("src/lib/payments/verification.ts", "utf8");
 assert.match(verification, /PREVIOUS_ORDER_BINDING_VERSION/);
+assert.match(verification, /OLDER_ORDER_BINDING_VERSION/);
 assert.match(verification, /hashOneToManyInput\(expectedInput as OneToManyReportInput, bindingVersion\)/);
 
 const chaptersA = readFileSync("src/app/one-to-one/result/report-v2-chapters-a.tsx", "utf8");
@@ -145,4 +196,4 @@ const resultV2 = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8")
 assert.match(resultV2, /threeYearTiming=\{snapshot\.threeYearTiming\}/);
 assert.doesNotMatch(resultV2, /dimension !== "luckCycleAlignment"/);
 
-console.log("Day 21 relationship editorial + privacy-safe name tokens + coworker hierarchy + deep content contract checks: PASS");
+console.log("Day 21 relationship editorial + user context + v4 binding + deep content contract checks: PASS");
