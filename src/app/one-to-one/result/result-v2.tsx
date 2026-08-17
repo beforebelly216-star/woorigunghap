@@ -22,7 +22,7 @@ import {
   saveReportProgress,
   type ReportProgress,
 } from "@/lib/report-progress-storage";
-import { RELATIONSHIP_LABELS } from "@/lib/report-input";
+import { COWORKER_HIERARCHY_LABELS, RELATIONSHIP_LABELS } from "@/lib/report-input";
 import {
   buildOneToOneResultUrl,
   isResultAccessToken,
@@ -388,9 +388,12 @@ export default function ResultV2() {
 
   const { personA, personB, relationshipType } = order.inputSnapshot;
   const relationshipLabel = RELATIONSHIP_LABELS[relationshipType];
+  const coworkerHierarchyLabel = relationshipType === "coworker" && order.inputSnapshot.coworkerHierarchy
+    ? COWORKER_HIERARCHY_LABELS[order.inputSnapshot.coworkerHierarchy]
+    : null;
   return <main className="v2-page"><div className="v2-shell">
     <header className="v2-hero">
-      <p className="v2-kicker">{relationshipLabel} 궁합 리포트</p>
+      <p className="v2-kicker">{relationshipLabel}{coworkerHierarchyLabel ? ` · ${coworkerHierarchyLabel}` : ""} 궁합 리포트</p>
       <h1>{personA.displayName} <span>×</span> {personB.displayName}</h1>
       <h2>{content.overview.headline}</h2>
       <Paragraph>{content.overview.detailedSummary}</Paragraph>
