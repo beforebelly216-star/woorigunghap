@@ -1,0 +1,97 @@
+.reference-timing-summary {
+  display: grid;
+  gap: 8px;
+  margin: 28px 0 16px;
+  border: 1px solid #d4c8b5;
+  border-radius: 22px;
+  padding: 22px;
+  background: #f5efe5;
+}
+.reference-timing-summary > small {
+  color: #8c7759;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.reference-timing-summary > strong {
+  font-family: Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 500;
+}
+.reference-timing-summary > p {
+  margin: 0;
+  color: #667168;
+  line-height: 1.65;
+}
+.reference-year-timing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 16px 0 24px;
+}
+.reference-year-timing-grid > article {
+  border: 1px solid #ded7cc;
+  border-radius: 20px;
+  padding: 20px;
+  background: #fffdf9;
+}
+.reference-year-timing-grid > article.timing-rising { background: #f2f6f1; }
+.reference-year-timing-grid > article.timing-adjusting { background: #f8f5ee; }
+.reference-year-timing-grid > article.timing-caution { background: #f8f0eb; }
+.reference-year-timing-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+.reference-year-timing-head > span {
+  color: #6b766e;
+  font-size: .82rem;
+  font-weight: 700;
+}
+.reference-year-timing-head > strong {
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: #2e4438;
+  color: #fffaf1;
+  font-size: .75rem;
+}
+.timing-caution .reference-year-timing-head > strong { background: #80584b; }
+.timing-adjusting .reference-year-timing-head > strong { background: #7a6b55; }
+.reference-year-score {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin: 18px 0 14px;
+}
+.reference-year-score > b {
+  font-family: Georgia, serif;
+  font-size: 2.5rem;
+  font-weight: 500;
+}
+.reference-year-score > small { color: #6c766e; }
+.reference-year-score > em {
+  margin-left: auto;
+  color: #8a7457;
+  font-size: .78rem;
+  font-style: normal;
+}
+.reference-year-timing-grid ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: #59655d;
+  font-size: .9rem;
+  line-height: 1.55;
+}
+.reference-year-confidence {
+  margin: 14px 0 0;
+  border-top: 1px solid #e7e0d6;
+  padding-top: 12px;
+  color: #8a8175;
+  font-size: .76rem;
+}
+@media (max-width: 860px) {
+  .reference-year-timing-grid { grid-template-columns: 1fr; }
+}
