@@ -4,8 +4,11 @@ import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { focusFirstInvalidField } from "@/lib/form-accessibility";
 import {
+  COWORKER_HIERARCHIES,
+  COWORKER_HIERARCHY_LABELS,
   RELATIONSHIP_LABELS,
   RELATIONSHIP_TYPES,
+  type CoworkerHierarchy,
   type OneToOneReportInput,
   type RelationshipType,
   validateOneToOneReportInput,
@@ -30,12 +33,14 @@ import {
 
 type FormState = {
   relationshipType: RelationshipType | "";
+  coworkerHierarchy: CoworkerHierarchy | "";
   personA: PersonBirthFormState;
   personB: PersonBirthFormState;
 };
 
 const initialState: FormState = {
   relationshipType: "",
+  coworkerHierarchy: "",
   personA: createEmptyPersonBirthForm(),
   personB: createEmptyPersonBirthForm(),
 };
@@ -52,6 +57,9 @@ function toReportInput(form: FormState) {
   return {
     input: {
       relationshipType: form.relationshipType,
+      coworkerHierarchy: form.relationshipType === "coworker" && form.coworkerHierarchy
+        ? form.coworkerHierarchy
+        : null,
       personA: personA.person,
       personB: personB.person,
     } satisfies OneToOneReportInput,
@@ -81,6 +89,9 @@ export function OneToOneForm() {
 
     const nextErrors: Record<string, string> = {};
     if (!form.relationshipType) nextErrors.relationshipType = "관계 유형을 선택해 주세요.";
+    if (form.relationshipType === "coworker" && !form.coworkerHierarchy) {
+      nextErrors.coworkerHierarchy = "두 번째 사람의 직장 내 위치를 선택해 주세요.";
+    }
     if (!form.personA.gender) nextErrors["personA.gender"] = "성별을 선택해 주세요.";
     if (!form.personB.gender) nextErrors["personB.gender"] = "성별을 선택해 주세요.";
 
@@ -92,7 +103,7 @@ export function OneToOneForm() {
     }
 
     const input = normalized.input;
-    const result = validateOneToOneReportInput(input);
+    const result = validateOneToOneReportInput(input, { requireCoworkerHierarchy: true });
     if (!result.valid) {
       showErrors(formElement, result.errors);
       return;
@@ -156,7 +167,11 @@ export function OneToOneForm() {
                 name="relationshipType"
                 value={relationshipType}
                 checked={form.relationshipType === relationshipType}
-                onChange={() => setForm({ ...form, relationshipType })}
+                onChange={() => setForm({
+                  ...form,
+                  relationshipType,
+                  coworkerHierarchy: relationshipType === "coworker" ? form.coworkerHierarchy : "",
+                })}
               />
               {RELATIONSHIP_LABELS[relationshipType]}
             </label>
@@ -164,6 +179,34 @@ export function OneToOneForm() {
         </div>
         {errors.relationshipType ? <small id="one-to-one-relationship-error" className="field-error">{errors.relationshipType}</small> : null}
       </section>
+
+      {form.relationshipType === "coworker" ? (
+        <section className="form-section relationship-section coworker-hierarchy-section">
+          <h2 id="coworker-hierarchy-label">두 번째 사람은 나와 어떤 업무 관계인가요?</h2>
+          <p className="field-help">첫 번째 사람 기준으로 선택해 주세요. 같은 사주 조합이어도 보고·피드백·역할 분담 조언이 달라집니다.</p>
+          <div
+            className="relationship-options"
+            role="radiogroup"
+            aria-labelledby="coworker-hierarchy-label"
+            aria-invalid={Boolean(errors.coworkerHierarchy)}
+            aria-describedby={errors.coworkerHierarchy ? "coworker-hierarchy-error" : undefined}
+          >
+            {COWORKER_HIERARCHIES.map((hierarchy) => (
+              <label key={hierarchy} className={form.coworkerHierarchy === hierarchy ? "selected" : ""}>
+                <input
+                  type="radio"
+                  name="coworkerHierarchy"
+                  value={hierarchy}
+                  checked={form.coworkerHierarchy === hierarchy}
+                  onChange={() => setForm({ ...form, coworkerHierarchy: hierarchy })}
+                />
+                {COWORKER_HIERARCHY_LABELS[hierarchy]}
+              </label>
+            ))}
+          </div>
+          {errors.coworkerHierarchy ? <small id="coworker-hierarchy-error" className="field-error">{errors.coworkerHierarchy}</small> : null}
+        </section>
+      ) : null}
 
       <div className="people-grid">
         <PersonBirthFields
