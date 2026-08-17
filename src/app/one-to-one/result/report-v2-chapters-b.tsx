@@ -1,5 +1,5 @@
 import type { ThreeYearTimingAssessment, TimingConfidence, TimingPhase } from "@/lib/compatibility/timing-alignment";
-import type { DetailedReportContent } from "@/lib/narrative/report-engine-v5";
+import type { EnhancedDetailedReportContent } from "@/lib/narrative/report-deep-content";
 import { getRelationshipEditorialProfileByLabel } from "@/lib/relationship-editorial";
 import { BulletList, Chapter, EvidenceBoundary, Paragraph } from "./report-v2-components";
 
@@ -26,35 +26,46 @@ export default function ReportChaptersB({
   relationshipLabel,
   threeYearTiming,
 }: {
-  content: DetailedReportContent;
+  content: EnhancedDetailedReportContent;
   personAName: string;
   personBName: string;
   relationshipLabel: string;
   threeYearTiming?: ThreeYearTimingAssessment;
 }) {
   const editorial = getRelationshipEditorialProfileByLabel(relationshipLabel);
-  const thirtyDayPlan = [
-    {
-      week: "1주차",
-      goal: "관계의 기본 리듬 관찰",
-      action: itemAt(content.practicalManual.do, 0, content.relationshipFlow.overview),
-    },
-    {
-      week: "2주차",
-      goal: "잘 통하는 방식 한 가지 반복",
-      action: itemAt(content.practicalManual.do, 1, content.directionalImpact.beneficialSupply),
-    },
-    {
-      week: "3주차",
-      goal: "마찰이 생길 때 대응 순서 바꾸기",
-      action: itemAt(content.practicalManual.conflictProtocol, 0, content.strengthsAndRisks.warning),
-    },
-    {
-      week: "4주차",
-      goal: "둘에게 맞는 좋은 경험 만들기",
-      action: itemAt(content.practicalManual.recommendedActivities, 0, content.chemistry.overview),
-    },
-  ];
+  const thirtyDayPlan = content.actionPlan30?.weeks.length
+    ? content.actionPlan30.weeks.map((item) => ({
+      week: `${item.week}주차`,
+      goal: item.goal,
+      action: item.action,
+      check: item.check,
+    }))
+    : [
+      {
+        week: "1주차",
+        goal: "관계의 기본 리듬 관찰",
+        action: itemAt(content.practicalManual.do, 0, content.relationshipFlow.overview),
+        check: "상대의 반응과 내 체감이 전보다 편해졌는지 확인하세요.",
+      },
+      {
+        week: "2주차",
+        goal: "잘 통하는 방식 한 가지 반복",
+        action: itemAt(content.practicalManual.do, 1, content.directionalImpact.beneficialSupply),
+        check: "같은 행동을 반복했을 때 관계의 부담이 줄었는지 확인하세요.",
+      },
+      {
+        week: "3주차",
+        goal: "마찰이 생길 때 대응 순서 바꾸기",
+        action: itemAt(content.practicalManual.conflictProtocol, 0, content.strengthsAndRisks.warning),
+        check: "갈등 뒤 회복 시간이 짧아졌는지 확인하세요.",
+      },
+      {
+        week: "4주차",
+        goal: "둘에게 맞는 좋은 경험 만들기",
+        action: itemAt(content.practicalManual.recommendedActivities, 0, content.chemistry.overview),
+        check: "둘 다 억지 없이 편하게 참여했는지 확인하세요.",
+      },
+    ];
 
   return <>
     <Chapter
@@ -62,13 +73,31 @@ export default function ReportChaptersB({
       eyebrow="RELATIONSHIP STRATEGY"
       title={editorial.ui.strategyTitle}
       intro={editorial.ui.strategyIntro}
-      summary={[content.relationshipSpecific.overview, content.directionalImpact.asymmetry, ...content.practicalManual.do.slice(0, 1)]}
+      summary={[content.relationshipSpecific.overview, content.situationStrategy?.priority ?? content.directionalImpact.asymmetry, ...content.practicalManual.do.slice(0, 1)]}
     >
       <div className="reference-strategy-lead">
         <span>{relationshipLabel} 전용 해석</span>
         <Paragraph>{content.relationshipSpecific.overview}</Paragraph>
       </div>
 
+      {content.situationStrategy ? <>
+        <div className="deep-strategy-priority">
+          <small>지금 가장 먼저 볼 것</small>
+          <strong>{content.situationStrategy.priority}</strong>
+        </div>
+        <div className="deep-strategy-steps">
+          {content.situationStrategy.stepByStep.map((item, index) => <article key={`${index}-${item.step}`}>
+            <span>STEP {index + 1}</span>
+            <div><h3>{item.step}</h3><p>{item.action}</p><small>확인할 신호 · {item.watchFor}</small></div>
+          </article>)}
+        </div>
+        <div className="deep-strategy-signals">
+          <article><small>PROGRESS</small><h3>다음 단계로 가도 되는 신호</h3><BulletList items={content.situationStrategy.progressSignals} /></article>
+          <article><small>STOP / SLOW DOWN</small><h3>속도를 줄여야 하는 신호</h3><BulletList items={content.situationStrategy.stopSignals} /></article>
+        </div>
+      </> : null}
+
+      <h3>관계 유형별 세부 포인트</h3>
       <div className="v2-numbered reference-strategy-points">
         {content.relationshipSpecific.points.map((point, index) => <div key={`${index}-${point.title}`}>
           <span>{String(index + 1).padStart(2, "0")}</span>
@@ -191,7 +220,9 @@ export default function ReportChaptersB({
       index={8}
       eyebrow="30-DAY ACTION PLAN"
       title={editorial.ui.actionTitle}
-      intro="기준문서의 핵심 원칙대로 ‘그래서 내일부터 무엇을 할지’가 남도록, 기존 조언을 4주 실행 순서로 재배치했습니다."
+      intro={content.actionPlan30
+        ? "이번 달에 실제로 실행할 수 있도록 새 리포트가 1~4주차 목표·행동·확인 기준을 각각 작성했습니다."
+        : "기존 저장 리포트는 실전 조언을 4주 실행 순서로 재배치해 보여드립니다."}
       summary={[...content.practicalManual.do.slice(0, 2), ...content.practicalManual.dont.slice(0, 1)]}
     >
       <div className="reference-30day-grid">
@@ -199,12 +230,13 @@ export default function ReportChaptersB({
           <span>{item.week}</span>
           <h3>{item.goal}</h3>
           <p>{item.action}</p>
+          <small className="deep-week-check">확인 · {item.check}</small>
         </article>)}
       </div>
 
       <div className="v2-two-column">
         <div><h3>이번 달에 반복하면 좋은 것</h3><BulletList items={content.practicalManual.do} /></div>
-        <div><h3>이번 달에 특히 피할 것</h3><BulletList items={content.practicalManual.dont} /></div>
+        <div><h3>이번 달에 특히 피할 것</h3><BulletList items={content.actionPlan30?.monthlyDont ?? content.practicalManual.dont} /></div>
       </div>
 
       <h3>갈등이 생겼을 때 순서</h3>
