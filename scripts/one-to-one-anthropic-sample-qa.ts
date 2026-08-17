@@ -37,11 +37,15 @@ function sampleInput(): OneToOneReportInput {
     return {
       relationshipType: "coworker",
       coworkerHierarchy: "boss",
+      relationshipDurationMonths: 14,
+      mostCurious: "회의에서 의견이 다를 때 상사에게 어떤 순서로 말하는 게 좋을까요?",
       ...common,
     };
   }
   return {
     relationshipType: "lover",
+    relationshipDurationMonths: 26,
+    mostCurious: "싸운 뒤 대화가 길어질 때 누가 어떤 방식으로 먼저 회복 신호를 보내는 게 좋을까요?",
     ...common,
   };
 }
@@ -93,12 +97,15 @@ async function main() {
   assert.ok(totalCharacters >= 13_000, `전체 상세 해설 최소 분량 미달: ${totalCharacters} chars`);
   assert.ok(selfMentions > 0, "서버 후처리 후 '지민님' 호칭이 한 번 이상 보여야 합니다.");
   assert.ok(partnerMentions > 0, "서버 후처리 후 '서윤님' 호칭이 한 번 이상 보여야 합니다.");
+  assert.match(text, /가장 궁금한 점에 대한 답/, "사용자가 질문을 입력한 샘플은 CH4에서 직접 답변 항목을 생성해야 합니다.");
   assert.doesNotMatch(text, /(^|[^A-Za-z가-힣0-9])[AB]([^A-Za-z가-힣0-9]|$)/, "개발자용 A/B 표기가 사용자 문장에 남으면 안 됩니다.");
   assert.doesNotMatch(text, /(무조건|100%|틀림없이|운명적으로 정해)/, "단정적·운명론적 표현이 남으면 안 됩니다.");
 
   const summary = {
     qaSample: process.env.QA_SAMPLE === "coworker-boss" ? "coworker-boss" : "lover",
     relationshipType: input.relationshipType,
+    relationshipDurationMonths: input.relationshipDurationMonths ?? null,
+    hasUserQuestion: Boolean(input.mostCurious),
     score: snapshot.score,
     uncertaintyRange: snapshot.uncertaintyRange,
     scenarioCount: snapshot.scenarioPolicy.pairScenarios,
