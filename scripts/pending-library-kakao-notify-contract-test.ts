@@ -45,7 +45,7 @@ assert.match(accountPage, /완료 알림 받기/);
 // Completion notification is one-per-payment and only after a complete stored report exists.
 assert.match(notification, /payment_id TEXT PRIMARY KEY/);
 assert.match(notification, /loadCompletedServerReport\(paymentId\)/);
-assert.match(notification, /status = 'sent'/);
+assert.match(notification, /finishNotification\(paymentId, "sent"\)/);
 assert.match(oneToOne, /segment === "action".*notifyReportCompleted/s);
 assert.match(oneToMany, /saveOneToManyStoredReport[\s\S]*notifyReportCompleted/);
 
