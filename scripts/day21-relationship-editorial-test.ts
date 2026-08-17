@@ -16,17 +16,29 @@ assert.match(relationshipPromptRules("flirting"), /교제와 독점성을 가정
 assert.match(relationshipPromptRules("lover"), /이미 교제 중인 관계/);
 assert.match(relationshipPromptRules("friend"), /연애적 끌림이나 독점성을 전제로 하지 않는다/);
 assert.match(relationshipPromptRules("coworker"), /상사·동급·부하 관계는 입력받지 않았으므로 임의 추정하지 않는다/);
+assert.match(relationshipPromptRules("lover"), /상대 해부 > 이 상대에게 통하는 나의 강점/);
+assert.match(relationshipPromptRules("friend"), /최소 40%는 사용자가 바로 실행할 수 있는 행동 기준/);
+assert.match(relationshipPromptRules("crush"), /공략법이 아니라 배려법/);
 
 const engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
 assert.match(engine, /paid-report-v7-editorial-v4/);
 assert.match(engine, /relationshipPromptRules\(input\.relationshipType\)/);
 assert.match(engine, /relationshipEditorialVersion/);
 
-const chapters = readFileSync("src/app/one-to-one/result/report-v2-chapters-b.tsx", "utf8");
-assert.match(chapters, /getRelationshipEditorialProfileByLabel/);
-assert.match(chapters, /editorial\.ui\.strategyTitle/);
-assert.match(chapters, /editorial\.ui\.flowTitle/);
-assert.match(chapters, /editorial\.ui\.closenessTitle/);
-assert.match(chapters, /editorial\.ui\.actionTitle/);
+const chaptersA = readFileSync("src/app/one-to-one/result/report-v2-chapters-a.tsx", "utf8");
+assert.match(chaptersA, /상대 해부 핵심/);
+assert.match(chaptersA, /편해지기 쉬운 지점/);
+assert.match(chaptersA, /잘 통하는 방식/);
+assert.match(chaptersA, /reference-top3/);
+
+const chaptersB = readFileSync("src/app/one-to-one/result/report-v2-chapters-b.tsx", "utf8");
+assert.match(chaptersB, /getRelationshipEditorialProfileByLabel/);
+assert.match(chaptersB, /editorial\.ui\.strategyTitle/);
+assert.match(chaptersB, /editorial\.ui\.flowTitle/);
+assert.match(chaptersB, /editorial\.ui\.closenessTitle/);
+assert.match(chaptersB, /editorial\.ui\.actionTitle/);
+assert.match(chaptersB, /이 관계의 미래를 가르는 조건/);
+assert.match(chaptersB, /30-DAY ACTION PLAN/);
+assert.match(chaptersB, /기준문서의 ‘앞으로 3년’ 장은 대운·세운·월운 계산이 선행/);
 
 console.log("Day 21 relationship editorial contract checks: PASS");
