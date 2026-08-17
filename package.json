@@ -28,7 +28,8 @@
     "test:day17:kakao-auth": "tsx scripts/day17-kakao-auth-contract-test.ts",
     "test:day18:account-report-library": "tsx scripts/day18-account-report-library-contract-test.ts",
     "test:day21:relationship-editorial": "tsx scripts/day21-relationship-editorial-test.ts",
-    "test:day22:operating-policy": "tsx scripts/day22-operating-policy-test.ts"
+    "test:day22:operating-policy": "tsx scripts/day22-operating-policy-test.ts",
+    "test:day23:system-qa": "tsx scripts/day23-system-qa-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
