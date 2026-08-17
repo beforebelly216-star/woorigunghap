@@ -26,11 +26,15 @@ export async function POST(request: NextRequest) {
   const order = createOneToOneOrderDraft(input);
   try {
     const persisted = await saveServerOrderDraft(order);
+    if (!persisted) {
+      return NextResponse.json({ error: "1:1 결과 저장소가 아직 연결되지 않았습니다." }, { status: 503 });
+    }
     return NextResponse.json({ order, persisted });
   } catch (error) {
-    console.error("[woorigunghap:order-store]", error);
-    // The browser keeps a local recovery copy. Checkout should not be blocked by
-    // a temporarily unavailable database, but the response makes that explicit.
-    return NextResponse.json({ order, persisted: false, serverStorageConfigured: isServerReportStoreConfigured() });
+    console.error("[woorigunghap:one-to-one-order-store]", error);
+    return NextResponse.json({
+      error: "1:1 주문을 안전하게 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      serverStorageConfigured: isServerReportStoreConfigured(),
+    }, { status: 503 });
   }
 }
