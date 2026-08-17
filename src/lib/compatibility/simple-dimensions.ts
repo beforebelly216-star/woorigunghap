@@ -342,26 +342,19 @@ export function scoreEarthlyBranchInteraction(
       if (pa.position === "day" && pb.position === "day") continue;
       const key = orderedPair(pa.pillar.earthlyBranch, pb.pillar.earthlyBranch, BRANCH_ORDER);
       const weight = (POSITION_WEIGHT[pa.position] + POSITION_WEIGHT[pb.position]) / 2;
-      if (BRANCH_HARMONY.has(key)) {
-        delta += 3.5 * weight;
-        interactions.push({ pair: key, relation: "육합", weight: round1(weight) });
-      }
-      if (BRANCH_CLASH.has(key)) {
-        delta -= 3.5 * weight;
-        interactions.push({ pair: key, relation: "충", weight: round1(weight) });
-      }
-      if (BRANCH_HARM.has(key)) {
-        delta -= 2 * weight;
-        interactions.push({ pair: key, relation: "해", weight: round1(weight) });
-      }
-      if (BRANCH_PUNISHMENT.has(key)) {
-        delta -= 2 * weight;
-        interactions.push({ pair: key, relation: "형", weight: round1(weight) });
-      }
-      if (BRANCH_BREAK.has(key)) {
-        delta -= 1 * weight;
-        interactions.push({ pair: key, relation: "파", weight: round1(weight) });
-      }
+      const add = (relation: string, value: number) => {
+        delta += value * weight;
+        interactions.push({
+          pair: `${pa.position}:${pa.pillar.earthlyBranch}-${pb.position}:${pb.pillar.earthlyBranch}`,
+          relation,
+          weight: round1(weight),
+        });
+      };
+      if (BRANCH_HARMONY.has(key)) add("六合(육합)", 4);
+      if (BRANCH_CLASH.has(key)) add("沖(충)", -6);
+      if (BRANCH_PUNISHMENT.has(key)) add("刑(형)", -4);
+      if (BRANCH_HARM.has(key)) add("害(해)", -3);
+      if (BRANCH_BREAK.has(key)) add("破(파)", -2);
     }
   }
   const normalizedScore = round1(clamp(70 + delta, 40, 90));
