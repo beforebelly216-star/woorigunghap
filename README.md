@@ -62,12 +62,16 @@ npm run dev
 - 이용약관·개인정보처리방침·환불/청약철회 안내와 전역 푸터, 결제 전 정책 동의, 회원탈퇴·데이터 삭제 동선 구현
 - 탈퇴 시 계정·세션·리포트 원문·출생정보·복구 접근정보를 제거하고 법정 보존이 필요한 최소 거래기록만 분리 보존
 - `KAKAO_ADMIN_KEY`가 설정된 운영 환경에서는 회원탈퇴 시 카카오 서비스 연결 해제 API도 호출
+- 신규 1:1 주문은 서버 저장 성공 후에만 결제로 진행하고 기존 유료 주문은 최초 결과 접근키와 저장된 입력 스냅샷을 권위 데이터로 사용
+- 1:1 AI 세그먼트도 DB 원자적 single-flight 잠금으로 중복 탭·동시 요청의 이중 생성과 API 비용 중복을 차단
+- 웹훅은 동일 ID 재사용 충돌을 거부하고 5분 이상 멈춘 처리 건은 원자적으로 재회수
+- GitHub Actions에서 Day 8~23 핵심 결제·AI·1:N·계정·정책 계약과 ESLint·Production build를 통합 회귀 검증
 
 현재 1:1 사용자 흐름:
 
 ```text
-홈 → 1:1 정보 입력 → 주문 저장 → 결제 전 확인·정책 동의 → PortOne 결제 → 서버 리포트 생성·복구
-                                                                                 └→ 선택 로그인 → 계정 보관함 → 탈퇴·데이터 삭제
+홈 → 1:1 정보 입력 → 서버 주문 저장 → 결제 전 확인·정책 동의 → PortOne 결제 → 서버 리포트 생성·복구
+                                                                                      └→ 선택 로그인 → 계정 보관함 → 탈퇴·데이터 삭제
 ```
 
 현재 1:N 사용자 흐름:
@@ -113,6 +117,7 @@ AI는 사주를 계산하거나 결제 여부를 판단하지 않습니다. 서�
 - 1:1 새 생성분은 `paid-report-v7-editorial-v4` + `relationship-editorial-v1`을 사용합니다.
 - 생성된 문구, 모델명, 프롬프트 버전, 계산 결과 버전을 함께 `report_json`에 저장해 기존 구매 결과가 바뀌지 않게 합니다.
 - AI 호출은 서버에서 PortOne 결제가 검증된 뒤에만 실행합니다.
+- 1:1 각 AI 세그먼트는 `paymentId + segment` 기준 원자적 잠금을 사용해 동일 세그먼트를 동시에 두 번 생성하지 않습니다.
 
 ## 진행 상태
 
@@ -136,11 +141,11 @@ AI는 사주를 계산하거나 결제 여부를 판단하지 않습니다. 서�
 - Day 20: 모바일 입력·결제·결과·보관함 접근성·오류 복구 코드/배포 ✅ (360·390·430px 실기기 전체 E2E 대기)
 - Day 21: 5개 관계 유형별 1:1 편집 계약·AI 프롬프트·CH4/5/6/8 프레이밍 분리 ✅
 - Day 22: 운영 정책 페이지·결제 전 동의·개인정보 보유/파기·회원탈퇴/데이터 삭제·카카오 unlink 지원 ✅ (정식 판매 공개정보·운영키 설정 대기)
+- Day 23: 결제 입력 바인딩·결과 접근권한·웹훅 stale recovery·1:1 AI 중복 생성 방지·전체 CI 회귀 QA ✅ (Day 18·20 운영 E2E는 Day 24에서 마감)
 
-## 다음 구현 순서 (Day 23~24)
+## 다음 구현 순서 (Day 24)
 
-- Day 23: 로그인·권한·결제·웹훅·AI 실패·성능·원가·삭제 흐름 종합 QA
-- Day 24: 전체 E2E, 알려진 문제, 버전 태그, 운영 전환 체크 후 베타 동결
+- Day 24: 전체 운영 E2E, 알려진 문제, 출시 환경값, 버전 태그, 운영 전환 체크 후 베타 동결
 
 ## 검증
 
@@ -148,6 +153,12 @@ AI는 사주를 계산하거나 결제 여부를 판단하지 않습니다. 서�
 npm run test:manse
 npm run test:manse:boundaries
 npm run test:compatibility:day-master
+npm run test:compatibility:day-branch
+npm run test:compatibility:engine
+npm run test:day8:payment-gate
+npm run test:day9:narrative-boundary
+npm run test:day9:schema-guard
+npm run test:day10:editorial
 npm run test:day11:server-store
 npm run test:day13:one-to-many-input
 npm run test:day14:one-to-many-calculation
@@ -158,6 +169,7 @@ npm run test:day17:kakao-auth
 npm run test:day18:account-report-library
 npm run test:day21:relationship-editorial
 npm run test:day22:operating-policy
+npm run test:day23:system-qa
 npm run lint
 npm run build
 ```
