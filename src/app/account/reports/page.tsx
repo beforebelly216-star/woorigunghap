@@ -37,7 +37,6 @@ export default function AccountReportsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    setState({ status: "loading" });
     fetch("/api/account/reports", { cache: "no-store" })
       .then(async (response) => {
         const payload = await response.json().catch(() => null);
@@ -58,6 +57,11 @@ export default function AccountReportsPage() {
     };
   }, [reloadKey]);
 
+  function reload() {
+    setState({ status: "loading" });
+    setReloadKey((value) => value + 1);
+  }
+
   return <main className="library-page">
     <section className="library-shell">
       <p className="eyebrow">ACCOUNT LIBRARY</p>
@@ -74,7 +78,7 @@ export default function AccountReportsPage() {
         {state.status === "failed" ? <div className="library-state" role="alert">
           <h2>보관함을 불러오지 못했어요</h2>
           <p>기존 결과는 사라지지 않았습니다. 네트워크 상태를 확인한 뒤 다시 불러와 주세요.</p>
-          <button type="button" className="secondary-action" onClick={() => setReloadKey((value) => value + 1)}>다시 불러오기</button>
+          <button type="button" className="secondary-action" onClick={reload}>다시 불러오기</button>
         </div> : null}
         {state.status === "ready" && state.reports.length === 0 ? <div className="library-state">
           <h2>아직 저장한 리포트가 없어요</h2>
