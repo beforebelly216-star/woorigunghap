@@ -31,6 +31,9 @@ export async function POST(request: NextRequest) {
     if (claim === "processed" || claim === "in_progress") {
       return NextResponse.json({ received: true, duplicate: true, type: webhook.type });
     }
+    if (claim === "conflict") {
+      return NextResponse.json({ error: "Webhook id conflicts with a different payment event." }, { status: 409 });
+    }
     if (claim === "unavailable") {
       return NextResponse.json({ error: "Webhook store is unavailable." }, { status: 503 });
     }

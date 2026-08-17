@@ -24,20 +24,27 @@ assert.match(store, /access_token_hash TEXT/);
 assert.match(store, /createHash\("sha256"\)/);
 assert.match(store, /stripAccessToken/);
 assert.match(store, /timingSafeEqual/);
+assert.match(store, /loadServerOrderForAccess/);
 assert.match(store, /loadServerReportForAccess/);
 assert.match(store, /saveServerReportPrepared/);
 assert.match(store, /saveServerReportSegment/);
 assert.match(store, /markServerOrderPaid/);
 assert.match(store, /hasServerOrder/);
+assert.match(store, /access_token_hash IS NULL/);
 assert.doesNotMatch(store, /NEXT_PUBLIC_DATABASE_URL/);
+
 assert.match(orderRoute, /validateOneToOneReportInput/);
 assert.match(orderRoute, /saveServerOrderDraft/);
+assert.match(orderRoute, /if \(!persisted\)/);
+assert.match(orderRoute, /status: 503/);
 assert.doesNotMatch(orderRoute, /export async function GET/);
 assert.match(environment, /^DATABASE_URL=/m);
 
 assert.match(reportRoute, /verifyPaidPayment\(paymentId, "oneToOne", input\)/);
 assert.match(reportRoute, /isResultAccessToken/);
-assert.match(reportRoute, /ensureServerOrderAccessToken/);
+assert.match(reportRoute, /loadServerOrderForAccess\(paymentId, accessToken, "oneToOne"\)/);
+assert.match(reportRoute, /RESULT_ACCESS_DENIED/);
+assert.doesNotMatch(reportRoute, /ensureServerOrderAccessToken/);
 assert.match(reportRoute, /loadServerReportProgress/);
 assert.match(reportRoute, /saveServerReportSegment/);
 assert.match(recoveryRoute, /export async function POST/);
