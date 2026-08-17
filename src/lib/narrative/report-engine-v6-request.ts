@@ -268,15 +268,23 @@ export async function requestStructuredSegment<T>(args: {
   qualityIssues: (value: T) => string[];
   label: string;
 }): Promise<{ best: SegmentAttempt<T>; attempts: number; allUsage: AnthropicRawUsage[] }> {
-  const timeoutMs = Math.max(args.timeoutMs ?? 60_000, 60_000);
+  const requestedTimeoutMs = Math.max(args.timeoutMs ?? 60_000, 60_000);
+  const isLongSegment = args.label === "DYNAMICS" || args.label === "ACTION";
+  const perAttemptTimeoutMs = isLongSegment
+    ? Math.max(requestedTimeoutMs, 205_000)
+    : Math.max(requestedTimeoutMs, 120_000);
+  const totalBudgetMs = isLongSegment ? 220_000 : 180_000;
+  const startedAt = Date.now();
   const allUsage: AnthropicRawUsage[] = [];
   let lastFailure = "UNKNOWN";
   let structuredRejected = args.preferStructured !== true;
   let bestQualityCandidate: SegmentAttempt<T> | null = null;
 
   for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const remainingBudgetMs = Math.max(1_000, totalBudgetMs - (Date.now() - startedAt));
+    const attemptTimeoutMs = Math.min(perAttemptTimeoutMs, remainingBudgetMs);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    const timeout = setTimeout(() => controller.abort(), attemptTimeoutMs);
     try {
       const retryReason = lastFailure === "QUALITY_SHORTFALL"
         ? "직전 응답은 JSON 구조는 맞았지만 내용 밀도, 반복·금지 표현 또는 관계 맥락 품질 기준을 충족하지 못했습니다. 같은 내용을 반복하지 말고 계산 근거·관계 장면·행동 기준을 더 구체적으로 작성하며 개발자 표기와 단정적 표현을 제거하세요."
@@ -382,7 +390,7 @@ export async function requestStructuredSegment<T>(args: {
       return { best: bestQualityCandidate, attempts: attempt, allUsage };
     } catch (error) {
       lastFailure = error instanceof Error && error.name === "AbortError" ? "TIMEOUT" : "REQUEST_FAILED";
-      console.warn("[woorigunghap:v6-segment-request]", JSON.stringify({ label: args.label, attempt, reason: lastFailure }));
+      console.warn("[woorigunghap:v6-segment-request]", JSON.stringify({ label: args.label, attempt, reason: lastFailure, timeoutMs: attemptTimeoutMs }));
     } finally {
       clearTimeout(timeout);
     }
