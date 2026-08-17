@@ -117,6 +117,95 @@ function collectCharacters(value: unknown): number {
   return 0;
 }
 
+function collectStrings(value: unknown): string[] {
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap(collectStrings);
+  if (value && typeof value === "object") {
+    return Object.values(value as Record<string, unknown>).flatMap(collectStrings);
+  }
+  return [];
+}
+
+function normalizeForDuplicateCheck(value: string) {
+  return value
+    .replace(/\s+/g, " ")
+    .replace(/[“”‘’"']/g, "")
+    .trim();
+}
+
+function hasStandaloneDeveloperLabel(text: string) {
+  return /(^|[^A-Za-z가-힣0-9])[AB]([^A-Za-z가-힣0-9]|$)/.test(text);
+}
+
+function relationshipFromPrompt(user: string) {
+  return user.match(/"relationshipType":"(crush|flirting|lover|friend|coworker)"/)?.[1] ?? null;
+}
+
+function coworkerHierarchyFromPrompt(user: string) {
+  return user.match(/"coworkerHierarchy":"(boss|peer|subordinate)"/)?.[1] ?? null;
+}
+
+function includesAny(text: string, terms: string[]) {
+  return terms.some((term) => text.includes(term));
+}
+
+/**
+ * Output-only quality gate. This does not invent new content; it decides whether a
+ * structurally valid Claude response is good enough to keep or should trigger the
+ * existing one-time regeneration path.
+ */
+export function collectPaidNarrativeQualityIssues(
+  value: unknown,
+  label: string,
+  userPrompt = "",
+) {
+  const issues: string[] = [];
+  const strings = collectStrings(value);
+  const joined = strings.join("\n");
+  const characters = collectCharacters(value);
+  const minCharacters = label === "INTRO" ? 2600 : label === "DYNAMICS" || label === "ACTION" ? 5200 : 0;
+
+  if (minCharacters > 0 && characters < minCharacters) issues.push(`${label}_TOTAL_DENSITY_SHORT`);
+
+  const duplicateCounts = new Map<string, number>();
+  for (const source of strings) {
+    const normalized = normalizeForDuplicateCheck(source);
+    if (normalized.length < 40) continue;
+    duplicateCounts.set(normalized, (duplicateCounts.get(normalized) ?? 0) + 1);
+  }
+  if ([...duplicateCounts.values()].some((count) => count >= 2)) issues.push("EXACT_LONG_TEXT_DUPLICATE");
+
+  if (hasStandaloneDeveloperLabel(joined)) issues.push("DEVELOPER_LABEL_A_B_EXPOSED");
+  if (/\b(WEAK|STRONG|BALANCED|confidence)\b|soft signal/i.test(joined)) issues.push("INTERNAL_TERM_EXPOSED");
+  if (/(무조건|100%|확실히|틀림없이|운명적으로 정해)/.test(joined)) issues.push("DETERMINISTIC_CERTAINTY");
+
+  const relationshipType = relationshipFromPrompt(userPrompt);
+  if ((relationshipType === "friend" || relationshipType === "coworker")
+    && /(데이트|썸을|연인 관계|성적 긴장|결혼 상대|연애 감정)/.test(joined)) {
+    issues.push("RELATIONSHIP_ROMANCE_LEAK");
+  }
+  if (relationshipType === "crush" && /(이미 교제|연인으로서|결혼 생활)/.test(joined)) {
+    issues.push("CRUSH_STAGE_OVERREACH");
+  }
+  if (relationshipType === "flirting" && /(이미 교제 중|연인으로서|결혼 생활)/.test(joined)) {
+    issues.push("FLIRTING_STAGE_OVERREACH");
+  }
+
+  if (relationshipType === "coworker" && label === "ACTION") {
+    const hierarchy = coworkerHierarchyFromPrompt(userPrompt);
+    const hierarchyTerms = hierarchy === "boss"
+      ? ["보고", "이견", "요청", "피드백", "상사"]
+      : hierarchy === "peer"
+        ? ["합의", "역할", "책임", "일정", "피드백", "동급"]
+        : hierarchy === "subordinate"
+          ? ["위임", "지시", "체크인", "피드백", "심리적 안전", "부하"]
+          : [];
+    if (hierarchy && !includesAny(joined, hierarchyTerms)) issues.push("COWORKER_HIERARCHY_NOT_REFLECTED");
+  }
+
+  return [...new Set(issues)];
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -190,7 +279,7 @@ export async function requestStructuredSegment<T>(args: {
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const retryReason = lastFailure === "QUALITY_SHORTFALL"
-        ? "직전 응답은 JSON 구조는 맞았지만 내용 밀도 또는 필수 항목 수가 부족했습니다. 기존 내용을 반복하지 말고 부족한 부분을 구체적인 근거·관계 장면·행동 기준으로 확장하세요."
+        ? "직전 응답은 JSON 구조는 맞았지만 내용 밀도, 반복·금지 표현 또는 관계 맥락 품질 기준을 충족하지 못했습니다. 같은 내용을 반복하지 말고 계산 근거·관계 장면·행동 기준을 더 구체적으로 작성하며 개발자 표기와 단정적 표현을 제거하세요."
         : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고, 중간에 끊기지 않도록 완결된 객체를 출력하세요.";
       const expandedSystem = attempt === 1
         ? args.system
@@ -263,7 +352,10 @@ export async function requestStructuredSegment<T>(args: {
         continue;
       }
 
-      const issues = args.qualityIssues(parsed);
+      const issues = [...new Set([
+        ...args.qualityIssues(parsed),
+        ...collectPaidNarrativeQualityIssues(parsed, args.label, args.user),
+      ])];
       const candidate: SegmentAttempt<T> = {
         value: parsed,
         usage: body?.usage ?? null,
