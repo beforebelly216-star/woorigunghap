@@ -369,7 +369,7 @@ export default function ResultV2() {
   const visibleDimensions = useMemo(() => {
     if (!snapshot) return [];
     return (Object.entries(snapshot.dimensions) as Array<[CompatibilityDimension, CompatibilityCalculationSnapshot["dimensions"][CompatibilityDimension]]>)
-      .filter(([dimension, value]) => value.maxPoints > 0 && dimension !== "luckCycleAlignment");
+      .filter(([, value]) => value.maxPoints > 0);
   }, [snapshot]);
 
   if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 불러올 입력정보가 없어요.</h1><p>결제 자체는 사라지지 않았어요. 같은 브라우저의 원래 결제 탭이 있으면 그 탭을 다시 열어 주세요. 없으면 아래에서 두 사람의 정보만 다시 입력해 기존 결제로 결과를 복구할 수 있어요.</p>{paymentId ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력정보 다시 넣기</Link> : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}</div></main>;
@@ -412,7 +412,13 @@ export default function ResultV2() {
     </section>
 
     <ReportChaptersA content={content} personAName={personA.displayName} personBName={personB.displayName} />
-    <ReportChaptersB content={content} personAName={personA.displayName} personBName={personB.displayName} relationshipLabel={relationshipLabel} />
+    <ReportChaptersB
+      content={content}
+      personAName={personA.displayName}
+      personBName={personB.displayName}
+      relationshipLabel={relationshipLabel}
+      threeYearTiming={snapshot.threeYearTiming}
+    />
 
     <ReportAccountLink
       paymentId={order.paymentId}
@@ -420,7 +426,7 @@ export default function ResultV2() {
       alreadyClaimed={accountOwned}
     />
 
-    {debug && <section className="v2-debug"><strong>QA debug</strong><pre>{JSON.stringify({ segmentMetas, scoringVersion: snapshot.scoringVersion, engineVersion: snapshot.engineVersion }, null, 2)}</pre></section>}
+    {debug && <section className="v2-debug"><strong>QA debug</strong><pre>{JSON.stringify({ segmentMetas, scoringVersion: snapshot.scoringVersion, engineVersion: snapshot.engineVersion, threeYearTiming: snapshot.threeYearTiming }, null, 2)}</pre></section>}
     <footer className="v2-footer"><Link href="/one-to-one">다른 사람과 다시 보기</Link><Link href="/">처음으로</Link></footer>
   </div></main>;
 }
