@@ -11,13 +11,19 @@ on:
         options:
           - lover
           - coworker-boss
+  push:
+    branches:
+      - agent/one-to-one-reference-upgrade
 
 permissions:
   contents: read
 
 jobs:
   sample-qa:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[anthropic-qa]') }}
     runs-on: ubuntu-24.04
+    env:
+      QA_SAMPLE: ${{ github.event_name == 'workflow_dispatch' && inputs.sample || 'lover' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,14 +43,13 @@ jobs:
       - name: Generate and validate real Claude sample
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          QA_SAMPLE: ${{ inputs.sample }}
-          QA_OUTPUT_PATH: artifacts/one-to-one-${{ inputs.sample }}.json
-        run: npm run qa:one-to-one:anthropic
+        run: |
+          QA_OUTPUT_PATH="artifacts/one-to-one-${QA_SAMPLE}.json" npm run qa:one-to-one:anthropic
       - name: Upload sample report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: one-to-one-${{ inputs.sample }}-sample
+          name: one-to-one-${{ env.QA_SAMPLE }}-sample
           path: artifacts/*.json
           if-no-files-found: ignore
           retention-days: 7
