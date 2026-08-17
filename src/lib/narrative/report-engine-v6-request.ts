@@ -319,7 +319,12 @@ export async function requestStructuredSegment<T>(args: {
   const allUsage: AnthropicRawUsage[] = [];
   let lastFailure = "UNKNOWN";
   let lastQualityIssues: string[] = [];
-  let structuredRejected = args.preferStructured !== true;
+  // v7 still passes preferStructured=false for backward compatibility. Haiku 4.5
+  // supports JSON-schema structured output, so use it automatically and retain the
+  // existing HTTP 400 plain-JSON fallback below for account/model incompatibility.
+  const autoStructuredHaiku45 = args.preferStructured === false
+    && args.model.startsWith("claude-haiku-4-5");
+  let structuredRejected = args.preferStructured !== true && !autoStructuredHaiku45;
   let bestQualityCandidate: SegmentAttempt<T> | null = null;
   let criticalQualityFailure: string[] | null = null;
 
