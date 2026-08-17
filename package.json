@@ -33,7 +33,8 @@
     "test:pending-library-notify": "tsx scripts/pending-library-kakao-notify-contract-test.ts",
     "test:one-to-one:partner-info": "tsx scripts/one-to-one-partner-information-level-test.ts",
     "test:one-to-one:luck-cycle": "tsx scripts/one-to-one-luck-cycle-foundation-test.ts",
-    "test:one-to-one:three-year-timing": "tsx scripts/one-to-one-three-year-timing-test.ts"
+    "test:one-to-one:three-year-timing": "tsx scripts/one-to-one-three-year-timing-test.ts",
+    "qa:one-to-one:anthropic": "tsx scripts/one-to-one-anthropic-sample-qa.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
