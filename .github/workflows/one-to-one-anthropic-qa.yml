@@ -25,19 +25,36 @@ permissions:
 
 jobs:
   sample-qa:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[anthropic-qa]') }}
     runs-on: ubuntu-24.04
     env:
       QA_SAMPLE: ${{ github.event_name == 'workflow_dispatch' && inputs.sample || 'lover' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Check explicit QA trigger
+        id: gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif git log -1 --pretty=%B | grep -Fq '[anthropic-qa]'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping paid Anthropic QA: latest commit has no [anthropic-qa] marker."
+          fi
       - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
         with:
           node-version: 24
           cache: npm
       - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
         run: npm ci
       - name: Check Anthropic secret
+        if: steps.gate.outputs.run == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
@@ -46,12 +63,13 @@ jobs:
             exit 1
           fi
       - name: Generate and validate real Claude sample
+        if: steps.gate.outputs.run == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           QA_OUTPUT_PATH="artifacts/one-to-one-${QA_SAMPLE}.json" npm run qa:one-to-one:anthropic
       - name: Upload sample report
-        if: always()
+        if: ${{ always() && steps.gate.outputs.run == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: one-to-one-${{ env.QA_SAMPLE }}-sample
