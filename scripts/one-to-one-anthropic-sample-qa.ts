@@ -6,6 +6,8 @@ import {
   generatePaidReportSegmentV7,
   PAID_REPORT_SEGMENTS,
   type PaidReportSegmentContent,
+  type PaidReportSegmentMeta,
+  type PaidReportSegmentName,
 } from "../src/lib/narrative/report-engine-v7";
 import { personalizeNarrativeNames } from "../src/lib/narrative/name-personalization";
 import type { OneToOneReportInput } from "../src/lib/report-input";
@@ -66,6 +68,8 @@ function textOf(value: unknown): string {
   return "";
 }
 
+type SampleMeta = { segment: PaidReportSegmentName } & PaidReportSegmentMeta;
+
 async function main() {
   assert.ok(process.env.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY가 있어야 실제 Claude 샘플 QA를 실행할 수 있습니다.");
   process.env.REPORT_NARRATIVE_MODE = "anthropic";
@@ -73,7 +77,7 @@ async function main() {
   const input = sampleInput();
   const snapshot = calculateOneToOneCompatibility(input);
   const contents: PaidReportSegmentContent[] = [];
-  const metas = [];
+  const metas: SampleMeta[] = [];
   const outputPath = process.env.QA_OUTPUT_PATH;
 
   function writeProgress(status: "partial" | "complete", error: string | null = null) {
