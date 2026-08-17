@@ -8,6 +8,7 @@ const accountPage = readFileSync("src/app/account/reports/page.tsx", "utf8");
 const verify = readFileSync("src/app/api/payments/verify/route.ts", "utf8");
 const redirect = readFileSync("src/app/payment/redirect/page.tsx", "utf8");
 const kickoff = readFileSync("src/lib/background-report-kickoff.ts", "utf8");
+const authPolicy = readFileSync("src/lib/auth-policy.ts", "utf8");
 const kakaoAuth = readFileSync("src/lib/kakao-auth.ts", "utf8");
 const kakaoStart = readFileSync("src/app/api/auth/kakao/start/route.ts", "utf8");
 const kakaoCallback = readFileSync("src/app/api/auth/kakao/callback/route.ts", "utf8");
@@ -35,7 +36,12 @@ assert.match(kickoff, /REPORT_GENERATION_IN_PROGRESS/);
 
 // Kakao messaging is explicit opt-in and tokens are encrypted server-side.
 assert.match(kakaoStart, /\["talk_message"\]/);
-assert.match(kakaoCallback, /tokenBundle\.scopes\.includes\("talk_message"\)/);
+assert.match(authPolicy, /KAKAO_NOTIFY_INTENT_COOKIE/);
+assert.match(kakaoStart, /KAKAO_NOTIFY_INTENT_COOKIE/);
+assert.match(kakaoStart, /wantsMessageNotification \? "1" : "0"/);
+assert.match(kakaoCallback, /KAKAO_NOTIFY_INTENT_COOKIE/);
+assert.match(kakaoCallback, /wantsMessageNotification && process\.env\.KAKAO_TOKEN_ENCRYPTION_KEY/);
+assert.doesNotMatch(kakaoCallback, /tokenBundle\.scopes\.includes\("talk_message"\)/);
 assert.match(tokenStore, /aes-256-gcm/);
 assert.match(tokenStore, /KAKAO_TOKEN_ENCRYPTION_KEY/);
 assert.match(kakaoAuth, /\/v2\/api\/talk\/memo\/default\/send/);
