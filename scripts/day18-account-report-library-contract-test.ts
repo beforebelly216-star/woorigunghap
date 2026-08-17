@@ -16,7 +16,11 @@ assert.match(accountStore, /REFERENCES woorigunghap_order_records/);
 assert.match(accountStore, /REFERENCES woorigunghap_users/);
 assert.match(accountStore, /WHERE woorigunghap_account_reports\.user_id = EXCLUDED\.user_id/);
 assert.match(accountStore, /WHERE user_id = \$\{userId\}[\s\S]*payment_id = \$\{paymentId\}/);
-assert.doesNotMatch(accountStore, /access_token_hash|resultAccessToken/);
+
+// Claim/list/detail must never expose recovery tokens. Day 22 deletion is allowed to null the hash internally.
+const claimSection = accountStore.slice(accountStore.indexOf("export async function claimAccountReport"), accountStore.indexOf("export async function deleteAccountAndScrubReports"));
+assert.doesNotMatch(claimSection, /access_token_hash|resultAccessToken/);
+assert.match(accountStore, /access_token_hash = NULL/);
 
 assert.match(serverStore, /loadCompletedServerReportForAccess/);
 assert.match(serverStore, /isCompleteOneToOneProgress/);
