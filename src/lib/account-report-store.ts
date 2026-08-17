@@ -18,6 +18,7 @@ export type AccountReportSummary = {
   title: string;
   createdAt: string;
   claimedAt: string;
+  status: "generating" | "ready";
 };
 
 let query: NeonQueryFunction<false, false> | null = null;
@@ -79,7 +80,11 @@ function parseStoredOrder(raw: unknown): StoredOrderDraft | null {
   }
 }
 
-function summarizeOrder(order: StoredOrderDraft, claimedAt: string): AccountReportSummary {
+function summarizeOrder(
+  order: StoredOrderDraft,
+  claimedAt: string,
+  status: AccountReportSummary["status"],
+): AccountReportSummary {
   const relationshipLabel = RELATIONSHIP_LABELS[order.inputSnapshot.relationshipType];
   if (order.product === "oneToOne") {
     return {
@@ -90,6 +95,7 @@ function summarizeOrder(order: StoredOrderDraft, claimedAt: string): AccountRepo
       title: `${order.inputSnapshot.personA.displayName} × ${order.inputSnapshot.personB.displayName}`,
       createdAt: order.createdAt,
       claimedAt,
+      status,
     };
   }
   return {
@@ -100,13 +106,14 @@ function summarizeOrder(order: StoredOrderDraft, claimedAt: string): AccountRepo
     title: `${order.inputSnapshot.referencePerson.displayName} 외 ${order.inputSnapshot.candidates.length}명 비교`,
     createdAt: order.createdAt,
     claimedAt,
+    status,
   };
 }
 
 export async function claimAccountReport(
   userId: string,
   paymentId: string,
-  product: CompletedAccountReport["product"],
+  product: "oneToOne" | "oneToMany",
 ) {
   if (!await ensureAccountReportSchema()) return "unavailable" as const;
   const sql = getQuery();
@@ -117,7 +124,6 @@ export async function claimAccountReport(
     FROM woorigunghap_order_records
     WHERE payment_id = ${paymentId}
       AND payment_status = 'paid'
-      AND report_json IS NOT NULL
     ON CONFLICT (payment_id) DO UPDATE SET
       updated_at = NOW()
     WHERE woorigunghap_account_reports.user_id = EXCLUDED.user_id
@@ -132,21 +138,37 @@ export async function listAccountReports(userId: string): Promise<AccountReportS
   const sql = getQuery();
   if (!sql) return [];
   const rows = await sql`
-    SELECT records.order_json, account.claimed_at
+    SELECT records.payment_id, records.order_json, account.claimed_at
     FROM woorigunghap_account_reports account
     JOIN woorigunghap_order_records records ON records.payment_id = account.payment_id
     WHERE account.user_id = ${userId}
       AND records.payment_status = 'paid'
-      AND records.report_json IS NOT NULL
     ORDER BY account.claimed_at DESC
   `;
-  return rows.flatMap((row) => {
+
+  const reports = await Promise.all(rows.map(async (row) => {
     const order = parseStoredOrder(row.order_json);
     const claimedAt = row.claimed_at instanceof Date
       ? row.claimed_at.toISOString()
       : typeof row.claimed_at === "string" ? row.claimed_at : null;
-    return order && claimedAt ? [summarizeOrder(order, claimedAt)] : [];
-  });
+    if (!order || !claimedAt) return null;
+    const completed = await loadCompletedServerReport(order.paymentId);
+    return summarizeOrder(order, claimedAt, completed ? "ready" : "generating");
+  }));
+  return reports.filter((report): report is AccountReportSummary => Boolean(report));
+}
+
+export async function findAccountReportOwnerUserId(paymentId: string) {
+  if (!await ensureAccountReportSchema()) return null;
+  const sql = getQuery();
+  if (!sql) return null;
+  const rows = await sql`
+    SELECT user_id
+    FROM woorigunghap_account_reports
+    WHERE payment_id = ${paymentId}
+    LIMIT 1
+  `;
+  return typeof rows[0]?.user_id === "string" ? rows[0].user_id : null;
 }
 
 export async function loadOwnedAccountReport(
