@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   AUTH_SESSION_COOKIE,
   AUTH_SESSION_MAX_AGE_SECONDS,
+  KAKAO_NOTIFY_INTENT_COOKIE,
   KAKAO_OAUTH_STATE_COOKIE,
   KAKAO_RETURN_TO_COOKIE,
   createOpaqueToken,
@@ -22,6 +23,7 @@ export const dynamic = "force-dynamic";
 function clearTransientCookies(response: NextResponse) {
   response.cookies.set(KAKAO_OAUTH_STATE_COOKIE, "", { maxAge: 0, path: "/api/auth/kakao" });
   response.cookies.set(KAKAO_RETURN_TO_COOKIE, "", { maxAge: 0, path: "/api/auth/kakao" });
+  response.cookies.set(KAKAO_NOTIFY_INTENT_COOKIE, "", { maxAge: 0, path: "/api/auth/kakao" });
 }
 
 function failureResponse(request: NextRequest, reason: string) {
@@ -48,6 +50,7 @@ export async function GET(request: NextRequest) {
   const config = getKakaoAuthConfig();
   if (!config) return failureResponse(request, "config");
   const returnTo = normalizeReturnTo(request.cookies.get(KAKAO_RETURN_TO_COOKIE)?.value);
+  const wantsMessageNotification = request.cookies.get(KAKAO_NOTIFY_INTENT_COOKIE)?.value === "1";
 
   let userId: string;
   try {
@@ -55,7 +58,7 @@ export async function GET(request: NextRequest) {
     const identity = await retrieveKakaoIdentity(tokenBundle.accessToken);
     const user = await upsertKakaoUser(identity.providerUserId, identity.displayName);
     userId = user.userId;
-    if (tokenBundle.scopes.includes("talk_message") && process.env.KAKAO_TOKEN_ENCRYPTION_KEY) {
+    if (wantsMessageNotification && process.env.KAKAO_TOKEN_ENCRYPTION_KEY) {
       await saveKakaoTokenBundle(userId, tokenBundle);
     }
   } catch (authError) {

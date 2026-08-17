@@ -3,6 +3,7 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 export const AUTH_SESSION_COOKIE = "woori_auth_session";
 export const KAKAO_OAUTH_STATE_COOKIE = "woori_kakao_state";
 export const KAKAO_RETURN_TO_COOKIE = "woori_kakao_return_to";
+export const KAKAO_NOTIFY_INTENT_COOKIE = "woori_kakao_notify_intent";
 export const OAUTH_STATE_MAX_AGE_SECONDS = 10 * 60;
 export const AUTH_SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
