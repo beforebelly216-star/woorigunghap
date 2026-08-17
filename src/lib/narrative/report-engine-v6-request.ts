@@ -134,7 +134,7 @@ function normalizeForDuplicateCheck(value: string) {
 }
 
 function hasStandaloneDeveloperLabel(text: string) {
-  return /(^|[^A-Za-z가-힣0-9])[AB]([^A-Za-z가-힣0-9]|$)/.test(text);
+  return /(^|[^A-Za-z0-9])[AB](?=(?:은|는|이|가|을|를|와|과|에게|의|도|만|쪽)|[^A-Za-z가-힣0-9]|$)/.test(text);
 }
 
 function relationshipFromPrompt(user: string) {
