@@ -1,4 +1,4 @@
-import type { DetailedReportContent } from "@/lib/narrative/report-engine-v5";
+import type { EnhancedDetailedReportContent } from "@/lib/narrative/report-deep-content";
 import { BulletList, Chapter, Paragraph } from "./report-v2-components";
 
 function safeItems(items: string[], fallback: string) {
@@ -10,7 +10,7 @@ export default function ReportChaptersA({
   personAName,
   personBName,
 }: {
-  content: DetailedReportContent;
+  content: EnhancedDetailedReportContent;
   personAName: string;
   personBName: string;
 }) {
@@ -20,10 +20,9 @@ export default function ReportChaptersA({
     content.strengthsAndRisks.repeatedFrictions[0],
   ].filter(Boolean);
 
-  const attractionCards = safeItems(
-    content.personA.strengths.slice(0, 3),
-    content.directionalImpact.aToB,
-  );
+  const attractionCards = content.personalLeverage?.topStrengths.length
+    ? content.personalLeverage.topStrengths.slice(0, 3).map((item) => item.title)
+    : safeItems(content.personA.strengths.slice(0, 3), content.directionalImpact.aToB);
 
   return <>
     <Chapter
@@ -100,7 +99,7 @@ export default function ReportChaptersA({
       index={2}
       eyebrow="PARTNER DECONSTRUCTION"
       title={`${personBName}, 관계 안에서는 이런 사람입니다`}
-      intro="1:1 궁합에서 가장 오래 읽게 되는 장입니다. 상대를 단정적으로 규정하지 않고, 현재 계산 근거에서 반복될 가능성이 높은 욕구·반응·부담 지점을 상대 중심으로 묶었습니다."
+      intro="1:1 궁합에서 가장 오래 읽게 되는 장입니다. 상대를 단정적으로 규정하지 않고, 계산 근거에서 반복될 가능성이 높은 욕구·반응·부담 지점을 관찰 가능한 장면과 함께 봅니다."
       summary={[content.personB.relationshipNeeds, ...content.personB.strengths.slice(0, 1), ...content.personB.cautions.slice(0, 1)]}
     >
       <div className="reference-partner-lead">
@@ -109,40 +108,72 @@ export default function ReportChaptersA({
         <Paragraph>{content.personB.overallProfile}</Paragraph>
       </div>
 
-      <div className="reference-partner-grid">
-        <article>
-          <small>01 · 겉에서 먼저 보이는 결</small>
-          <h3>기본적으로 드러나는 모습</h3>
-          <Paragraph>{content.personB.elementAnalysis}</Paragraph>
-        </article>
-        <article>
-          <small>02 · 관계 안쪽의 욕구</small>
-          <h3>가까운 사람에게 바라는 것</h3>
-          <Paragraph>{content.personB.relationshipNeeds}</Paragraph>
-        </article>
-        <article>
-          <small>03 · 편해지기 쉬운 지점</small>
-          <h3>{personAName}이 줄 수 있는 좋은 자극</h3>
-          <Paragraph>{content.directionalImpact.beneficialSupply}</Paragraph>
-        </article>
-        <article>
-          <small>04 · 부담이 커지는 지점</small>
-          <h3>선의가 있어도 압박으로 느낄 수 있는 부분</h3>
-          <Paragraph>{content.directionalImpact.burdenSupply}</Paragraph>
-        </article>
-      </div>
+      {content.partnerDeepDive ? <>
+        <div className="reference-keywords" aria-label="상대 프로필 태그">
+          {content.partnerDeepDive.profileTags.map((tag) => <span key={tag}>#{tag}</span>)}
+        </div>
+        <div className="reference-focus-box">
+          <small>겉으로 보이는 모습과 가까워졌을 때의 차이</small>
+          <strong>{content.partnerDeepDive.outerInnerContrast}</strong>
+        </div>
+        <div className="deep-partner-grid">
+          <article>
+            <small>OPEN</small><h3>편해지기 쉬운 신호</h3>
+            <BulletList items={content.partnerDeepDive.comfortTriggers} />
+          </article>
+          <article>
+            <small>SENSITIVE</small><h3>예민해지기 쉬운 신호</h3>
+            <BulletList items={content.partnerDeepDive.sensitiveTriggers} />
+          </article>
+          <article>
+            <small>BEST APPROACH</small><h3>잘 받아들이기 쉬운 방식</h3>
+            <BulletList items={content.partnerDeepDive.preferredInteraction} />
+          </article>
+        </div>
 
-      <div className="v2-two-column">
-        <div><h3>상대의 강점</h3><BulletList items={safeItems(content.personB.strengths, content.chemistry.overview)} /></div>
-        <div><h3>상대가 예민해질 수 있는 지점</h3><BulletList items={safeItems(content.personB.cautions, content.strengthsAndRisks.warning)} /></div>
-      </div>
+        <h3>실제로 이런 장면에서 확인해 보세요</h3>
+        <div className="deep-observable-scenes">
+          {content.partnerDeepDive.observableScenes.map((scene, index) => <article key={`${index}-${scene.situation}`}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <div><h4>{scene.situation}</h4><p><strong>관찰될 수 있는 반응</strong>{scene.likelyReaction}</p><p><strong>배려하는 대응</strong>{scene.considerateResponse}</p></div>
+          </article>)}
+        </div>
+      </> : <>
+        <div className="reference-partner-grid">
+          <article>
+            <small>01 · 겉에서 먼저 보이는 결</small>
+            <h3>기본적으로 드러나는 모습</h3>
+            <Paragraph>{content.personB.elementAnalysis}</Paragraph>
+          </article>
+          <article>
+            <small>02 · 관계 안쪽의 욕구</small>
+            <h3>가까운 사람에게 바라는 것</h3>
+            <Paragraph>{content.personB.relationshipNeeds}</Paragraph>
+          </article>
+          <article>
+            <small>03 · 편해지기 쉬운 지점</small>
+            <h3>{personAName}이 줄 수 있는 좋은 자극</h3>
+            <Paragraph>{content.directionalImpact.beneficialSupply}</Paragraph>
+          </article>
+          <article>
+            <small>04 · 부담이 커지는 지점</small>
+            <h3>선의가 있어도 압박으로 느낄 수 있는 부분</h3>
+            <Paragraph>{content.directionalImpact.burdenSupply}</Paragraph>
+          </article>
+        </div>
 
-      <h3>두 사람 사이에서 실제로 드러나기 쉬운 장면</h3>
-      <div className="reference-scene-list">
-        {safeItems(content.bondAndFriction.realLifeManifestations, content.bondAndFriction.overview).map((item, index) => (
-          <div key={`${index}-${item}`}><span>{String(index + 1).padStart(2, "0")}</span><p>{item}</p></div>
-        ))}
-      </div>
+        <div className="v2-two-column">
+          <div><h3>상대의 강점</h3><BulletList items={safeItems(content.personB.strengths, content.chemistry.overview)} /></div>
+          <div><h3>상대가 예민해질 수 있는 지점</h3><BulletList items={safeItems(content.personB.cautions, content.strengthsAndRisks.warning)} /></div>
+        </div>
+
+        <h3>두 사람 사이에서 실제로 드러나기 쉬운 장면</h3>
+        <div className="reference-scene-list">
+          {safeItems(content.bondAndFriction.realLifeManifestations, content.bondAndFriction.overview).map((item, index) => (
+            <div key={`${index}-${item}`}><span>{String(index + 1).padStart(2, "0")}</span><p>{item}</p></div>
+          ))}
+        </div>
+      </>}
     </Chapter>
 
     <Chapter
@@ -152,33 +183,57 @@ export default function ReportChaptersA({
       intro="일반적인 내 장점이 아니라, 이 상대와의 조합에서 실제로 강점으로 작동하기 쉬운 부분과 과하게 쓰면 역효과가 나는 부분을 분리합니다."
       summary={[...content.personA.strengths.slice(0, 2), content.directionalImpact.aToB]}
     >
-      <div className="reference-top3">
-        {attractionCards.map((item, index) => (
-          <article key={`${index}-${item}`}>
-            <span>TOP {index + 1}</span>
-            <p>{item}</p>
-          </article>
-        ))}
-      </div>
-
-      <div className="reference-conversation-card">
-        <small>말투 · 대화 방식</small>
-        <h3>{personAName} → {personBName}</h3>
-        <Paragraph>{content.directionalImpact.aToB}</Paragraph>
-        <strong>핵심은 “내 방식대로 잘해주는 것”보다 상대가 받아들이기 쉬운 형태로 전달하는 것입니다.</strong>
-      </div>
-
-      <div className="v2-two-column">
-        <div>
-          <h3>상대에게 실제로 도움이 되는 방식</h3>
-          <Paragraph>{content.directionalImpact.beneficialSupply}</Paragraph>
-          <BulletList items={safeItems(content.practicalManual.do.slice(0, 2), content.directionalImpact.aToB)} />
+      {content.personalLeverage ? <>
+        <div className="reference-top3 deep-leverage-top3">
+          {content.personalLeverage.topStrengths.slice(0, 3).map((item, index) => <article key={`${index}-${item.title}`}>
+            <span>TOP {index + 1}</span><h3>{item.title}</h3><p>{item.whyItWorks}</p><strong>{item.howToUse}</strong>
+          </article>)}
         </div>
-        <div>
-          <h3>반대로 역효과가 날 수 있는 습관</h3>
-          <BulletList items={safeItems(content.personA.cautions, content.directionalImpact.burdenSupply)} />
+
+        <h3>상황별로 이렇게 말해보세요</h3>
+        <div className="deep-conversation-grid">
+          {content.personalLeverage.conversationScripts.map((script, index) => <article key={`${index}-${script.situation}`}>
+            <small>{script.situation}</small>
+            <p><strong>추천 표현</strong> “{script.say}”</p>
+            <p><strong>피할 표현</strong> “{script.avoid}”</p>
+          </article>)}
         </div>
-      </div>
+
+        <h3>내 장점이 역효과가 되는 순간</h3>
+        <div className="deep-backfire-list">
+          {content.personalLeverage.backfireHabits.map((item, index) => <article key={`${index}-${item.habit}`}>
+            <span>{String(index + 1).padStart(2, "0")}</span><div><h4>{item.habit}</h4><p>{item.correction}</p></div>
+          </article>)}
+        </div>
+      </> : <>
+        <div className="reference-top3">
+          {attractionCards.map((item, index) => (
+            <article key={`${index}-${item}`}>
+              <span>TOP {index + 1}</span>
+              <p>{item}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className="reference-conversation-card">
+          <small>말투 · 대화 방식</small>
+          <h3>{personAName} → {personBName}</h3>
+          <Paragraph>{content.directionalImpact.aToB}</Paragraph>
+          <strong>핵심은 “내 방식대로 잘해주는 것”보다 상대가 받아들이기 쉬운 형태로 전달하는 것입니다.</strong>
+        </div>
+
+        <div className="v2-two-column">
+          <div>
+            <h3>상대에게 실제로 도움이 되는 방식</h3>
+            <Paragraph>{content.directionalImpact.beneficialSupply}</Paragraph>
+            <BulletList items={safeItems(content.practicalManual.do.slice(0, 2), content.directionalImpact.aToB)} />
+          </div>
+          <div>
+            <h3>반대로 역효과가 날 수 있는 습관</h3>
+            <BulletList items={safeItems(content.personA.cautions, content.directionalImpact.burdenSupply)} />
+          </div>
+        </div>
+      </>}
     </Chapter>
   </>;
 }
