@@ -17,6 +17,11 @@ import {
   type OneToOneReportInput,
 } from "@/lib/report-input";
 import {
+  claimReportSegmentGeneration,
+  completeReportSegmentGeneration,
+  releaseReportSegmentGeneration,
+} from "@/lib/report-generation-lock";
+import {
   hasServerOrder,
   isServerReportStoreConfigured,
   loadServerOrderForAccess,
@@ -95,16 +100,8 @@ async function readOrCreateServerProgress(
     return await loadServerReportProgress(paymentId);
   } catch (error) {
     console.error("[woorigunghap:server-report-store-read]", error);
+    if (!orderExists) throw error;
     return null;
-  }
-}
-
-async function persistWithoutBlocking(label: string, task: () => Promise<unknown>) {
-  if (!isServerReportStoreConfigured()) return;
-  try {
-    await task();
-  } catch (error) {
-    console.error(`[woorigunghap:server-report-store-${label}]`, error);
   }
 }
 
@@ -151,6 +148,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  let claimedSegment: PaidReportSegmentName | null = null;
   try {
     const orderExists = isServerReportStoreConfigured() ? await hasServerOrder(paymentId) : false;
     const storedOrder = orderExists
@@ -192,7 +190,8 @@ export async function POST(request: NextRequest) {
 
     if (phase === "prepare") {
       if (!storedProgress?.snapshot || !storedProgress.facts) {
-        await persistWithoutBlocking("prepare", () => saveServerReportPrepared(paymentId, snapshot, reportFacts));
+        const persisted = await saveServerReportPrepared(paymentId, snapshot, reportFacts);
+        if (!persisted) throw new Error("SERVER_REPORT_PREPARE_SAVE_FAILED");
       }
       return NextResponse.json({
         phase,
@@ -209,8 +208,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const storedSegment = storedProgress?.segments[phase as PaidReportSegmentName];
-    const storedMeta = storedProgress?.metas[phase as PaidReportSegmentName];
+    const segment = phase as PaidReportSegmentName;
+    const storedSegment = storedProgress?.segments[segment];
+    const storedMeta = storedProgress?.metas[segment];
     if (storedSegment && storedMeta) {
       return NextResponse.json({
         phase,
@@ -227,13 +227,27 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const generated = await generatePaidReportSegmentV7(snapshot, input, phase as PaidReportSegmentName);
-    await persistWithoutBlocking("segment", () => saveServerReportSegment(
+    if (!await claimReportSegmentGeneration(paymentId, segment)) {
+      return NextResponse.json({
+        error: "같은 해설 묶음을 이미 생성하고 있습니다. 잠시 후 저장된 결과를 다시 확인합니다.",
+        code: "REPORT_GENERATION_IN_PROGRESS",
+        retryable: true,
+        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+      }, { status: 409 });
+    }
+    claimedSegment = segment;
+
+    const generated = await generatePaidReportSegmentV7(snapshot, input, segment);
+    const persisted = await saveServerReportSegment(
       paymentId,
-      phase as PaidReportSegmentName,
+      segment,
       generated.content,
       generated.meta,
-    ));
+    );
+    if (!persisted) throw new Error("SERVER_REPORT_SEGMENT_SAVE_FAILED");
+    await completeReportSegmentGeneration(paymentId, segment);
+    claimedSegment = null;
+
     return NextResponse.json({
       phase,
       segmentContent: generated.content,
@@ -248,6 +262,10 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (claimedSegment) {
+      await releaseReportSegmentGeneration(paymentId, claimedSegment).catch(() => false);
+    }
+
     if (error instanceof PaymentVerificationError) {
       const retryable = error.code === "PORTONE_LOOKUP_FAILED" || error.code === "PAYMENT_NOT_PAID";
       return NextResponse.json(
