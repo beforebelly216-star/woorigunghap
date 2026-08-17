@@ -72,6 +72,15 @@ async function main() {
   assertCondition(personalized.summary.includes("테스트A님은 테스트B님에게"), "한국어 조사까지 자연스럽게 이름 호칭으로 치환해야 합니다.");
   assertCondition(personalized.detail[0].includes("테스트B님의 반응") && personalized.detail[0].includes("테스트A님이"), "구조화된 중첩 필드도 이름 호칭으로 치환해야 합니다.");
 
+  const boundarySafe = personalizeNarrativeNames(
+    "떠나는 사람과 하나의 약속, 하나도 놓치지 않는 태도는 그대로 두고 나는 상대와 대화합니다.",
+    { self: input.personA.displayName, partner: input.personB.displayName },
+  );
+  assertCondition(boundarySafe.includes("떠나는 사람"), "'떠나는' 내부의 '나는'을 이름으로 오인 치환하면 안 됩니다.");
+  assertCondition(boundarySafe.includes("하나의 약속"), "'하나의' 내부의 '나의'를 이름으로 오인 치환하면 안 됩니다.");
+  assertCondition(boundarySafe.includes("하나도 놓치지"), "'하나도' 내부의 '나도'를 이름으로 오인 치환하면 안 됩니다.");
+  assertCondition(boundarySafe.includes("테스트A님은 테스트B님과 대화합니다"), "독립된 나/상대 표현은 이름 호칭으로 치환해야 합니다.");
+
   assertCondition(pack.payloadVersion === REPORT_EVIDENCE_PACK_VERSION, "payload version이 다릅니다.");
   assertCondition(pack.persons.A.dayMaster.stem.length > 0, "A 개인 분석용 일간이 필요합니다.");
   assertCondition(pack.persons.B.dayMaster.stem.length > 0, "B 개인 분석용 일간이 필요합니다.");
