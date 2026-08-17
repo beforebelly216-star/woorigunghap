@@ -15,8 +15,12 @@ import {
   combineAnthropicUsage,
   requestStructuredSegment,
 } from "@/lib/narrative/report-engine-v6-request";
+import {
+  RELATIONSHIP_EDITORIAL_VERSION,
+  relationshipPromptRules,
+} from "@/lib/relationship-editorial";
 
-export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-editorial-v3" as const;
+export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-editorial-v4" as const;
 export const PAID_REPORT_V7_PAYLOAD_VERSION = "paid-report-evidence-v3" as const;
 export const PAID_REPORT_SEGMENTS = ["intro", "dynamics", "action"] as const;
 export type PaidReportSegmentName = (typeof PAID_REPORT_SEGMENTS)[number];
@@ -112,6 +116,7 @@ export type PaidReportSegmentMeta = {
   promptVersion: typeof PAID_REPORT_V7_PROMPT_VERSION;
   payloadVersion: typeof PAID_REPORT_V7_PAYLOAD_VERSION;
   evidencePackVersion: typeof REPORT_EVIDENCE_PACK_VERSION;
+  relationshipEditorialVersion: typeof RELATIONSHIP_EDITORIAL_VERSION;
   attempt: number;
   qualityCharacters: number;
   qualityWarnings: string[];
@@ -228,7 +233,7 @@ function payloadFor(snapshot: CompatibilityCalculationSnapshot, input: OneToOneR
   };
 }
 
-async function generateIntro(apiKey: string, model: string, payloadText: string) {
+async function generateIntro(apiKey: string, model: string, payloadText: string, relationshipRules: string) {
   return requestStructuredSegment<IntroSegment>({
     apiKey,
     model,
@@ -239,12 +244,12 @@ async function generateIntro(apiKey: string, model: string, payloadText: string)
     label: "INTRO",
     validate: validIntro,
     qualityIssues: introIssues,
-    system: `${BASE_RULES}\n\n[담당 범위: 1~3장]\n- overview.detailedSummary: 4~5개의 완결된 문장. 강점, 마찰, 양방향 영향, 실제 관계에서의 핵심 조언을 모두 포함하세요.\n- personA.overallProfile / personB.overallProfile: 각각 4~6문장. 일간 성향과 전체 세력 구조를 관계 행동으로 연결하세요. 두 사람의 문장 구조를 복사하지 마세요.\n- elementAnalysis: 각각 3~5문장. 겉오행 개수와 실질 세력 비중을 구분하고, 과잉·부족이 관계에서 어떤 체감으로 이어지는지 설명하세요.\n- relationshipNeeds: 각각 2~4문장. 필요한 기운이 상대와의 관계에서 어떻게 채워지거나 부담이 되는지 설명하세요.\n- strengths / cautions: 각각 최소 2개. 항목 하나당 한두 문장 분량의 구체적인 관계 행동으로 쓰세요.`,
+    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[담당 범위: 1~3장]\n- overview.detailedSummary: 4~5개의 완결된 문장. 강점, 마찰, 양방향 영향, 실제 관계에서의 핵심 조언을 모두 포함하세요.\n- personA.overallProfile / personB.overallProfile: 각각 4~6문장. 일간 성향과 전체 세력 구조를 관계 행동으로 연결하세요. 두 사람의 문장 구조를 복사하지 마세요.\n- elementAnalysis: 각각 3~5문장. 겉오행 개수와 실질 세력 비중을 구분하고, 과잉·부족이 관계에서 어떤 체감으로 이어지는지 설명하세요.\n- relationshipNeeds: 각각 2~4문장. 필요한 기운이 상대와의 관계에서 어떻게 채워지거나 부담이 되는지 설명하세요.\n- strengths / cautions: 각각 최소 2개. 항목 하나당 한두 문장 분량의 구체적인 관계 행동으로 쓰세요.`,
     user: `다음 계산 근거만 사용해 리포트의 1~3장을 작성하세요.\n${payloadText}`,
   });
 }
 
-async function generateDynamics(apiKey: string, model: string, payloadText: string) {
+async function generateDynamics(apiKey: string, model: string, payloadText: string, relationshipRules: string) {
   return requestStructuredSegment<DynamicsSegment>({
     apiKey,
     model,
@@ -255,12 +260,12 @@ async function generateDynamics(apiKey: string, model: string, payloadText: stri
     label: "DYNAMICS",
     validate: validDynamics,
     qualityIssues: dynamicsIssues,
-    system: `${BASE_RULES}\n\n[담당 범위: 4~6장]\n- chemistry.overview는 3~4문장, dayMaster/dayBranch/yinYang/elements는 각각 2~3문장으로 계산 의미와 현실 체감을 연결하세요.\n- bondAndFriction.overview는 3~4문장. positiveInteractions와 frictionInteractions는 실제 evidence가 있는 것만 최소 2개씩 우선 작성하고, 각 항목은 한두 문장으로 풀이하세요. 근거가 부족하면 억지로 개수를 채우지 마세요.\n- realLifeManifestations는 최소 2개이며, 연락·약속·감정표현·생활리듬·의사결정 중 실제 장면으로 구체화하세요.\n- directionalImpact의 overview/aToB/bToA/beneficialSupply/burdenSupply/asymmetry는 각각 2~3문장. 나→상대와 상대→나를 반드시 구분하고 같은 문장을 뒤집어 쓰지 마세요.`,
+    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[담당 범위: 4~6장]\n- chemistry.overview는 3~4문장, dayMaster/dayBranch/yinYang/elements는 각각 2~3문장으로 계산 의미와 현실 체감을 연결하세요.\n- bondAndFriction.overview는 3~4문장. positiveInteractions와 frictionInteractions는 실제 evidence가 있는 것만 최소 2개씩 우선 작성하고, 각 항목은 한두 문장으로 풀이하세요. 근거가 부족하면 억지로 개수를 채우지 마세요.\n- realLifeManifestations는 최소 2개이며, 위 관계 유형의 현실 장면을 우선 사용해 구체화하세요.\n- directionalImpact의 overview/aToB/bToA/beneficialSupply/burdenSupply/asymmetry는 각각 2~3문장. 나→상대와 상대→나를 반드시 구분하고 같은 문장을 뒤집어 쓰지 마세요.`,
     user: `다음 계산 근거만 사용해 리포트의 4~6장을 작성하세요.\n${payloadText}`,
   });
 }
 
-async function generateAction(apiKey: string, model: string, payloadText: string) {
+async function generateAction(apiKey: string, model: string, payloadText: string, relationshipRules: string) {
   return requestStructuredSegment<ActionSegment>({
     apiKey,
     model,
@@ -271,7 +276,7 @@ async function generateAction(apiKey: string, model: string, payloadText: string
     label: "ACTION",
     validate: validAction,
     qualityIssues: actionIssues,
-    system: `${BASE_RULES}\n\n[담당 범위: 7~10장]\n- relationshipFlow.overview/roles/initiative/intimacy는 각각 2~4문장. 관계유형에 맞는 역할과 친밀해진 뒤의 변화를 현실적으로 설명하세요.\n- conflictScenarios는 최소 2개. 각 시나리오의 situation, likelyPattern, response를 각각 충분히 구체적으로 써서 상황→반복 패턴→대응 순서가 읽히게 하세요.\n- relationshipSpecific.overview는 3~4문장, points는 최소 3개이며 각 detail은 2~3문장으로 관계유형에만 해당하는 분석을 쓰세요.\n- strengthsAndRisks.strengths와 repeatedFrictions는 각각 최소 2개를 우선하고 항목별로 한두 문장. redFlag와 warning은 과장 없이 2~3문장으로 쓰세요.\n- practicalManual.do는 최소 4개, dont는 최소 3개, conflictProtocol은 최소 4단계, recommendedActivities는 최소 3개를 목표로 하되 근거가 없는 조언을 억지로 만들지 마세요. 각 항목은 사용자가 바로 행동으로 옮길 수 있을 정도로 구체적으로 작성하세요.`,
+    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[담당 범위: 7~10장]\n- relationshipFlow.overview/roles/initiative/intimacy는 각각 2~4문장. 위 관계 유형에서 실제로 성립한 관계 단계만 전제로 설명하세요.\n- conflictScenarios는 최소 2개. 위 관계 유형의 현실 장면을 사용하고 situation, likelyPattern, response를 각각 충분히 구체적으로 써서 상황→반복 패턴→대응 순서가 읽히게 하세요.\n- relationshipSpecific.overview는 3~4문장, points는 최소 3개이며 각 detail은 2~3문장으로 해당 관계 유형에서만 유효한 분석을 쓰세요.\n- strengthsAndRisks.strengths와 repeatedFrictions는 각각 최소 2개를 우선하고 항목별로 한두 문장. redFlag와 warning은 과장 없이 2~3문장으로 쓰세요.\n- practicalManual.do는 최소 4개, dont는 최소 3개, conflictProtocol은 최소 4단계, recommendedActivities는 최소 3개를 목표로 하되 근거가 없는 조언을 억지로 만들지 마세요. 직장동료의 recommendedActivities는 사적 데이트가 아니라 협업 방식·회의·업무 루틴으로 작성하세요.\n- 짝사랑에서는 상대 호감을 확정하거나 연인처럼 갈등 해결을 전제하지 마세요. 썸에서는 교제·독점성을 전제하지 마세요. 친구와 직장동료에는 연애·성적 문구를 넣지 마세요.`,
     user: `다음 계산 근거만 사용해 리포트의 7~10장을 작성하세요.\n${payloadText}`,
   });
 }
@@ -290,19 +295,22 @@ export async function generatePaidReportSegmentV7(
   const payload = payloadFor(snapshot, input);
   const payloadText = JSON.stringify(payload);
   const payloadBytes = Buffer.byteLength(payloadText, "utf8");
+  const relationshipRules = relationshipPromptRules(input.relationshipType);
 
   try {
     const generated = segment === "intro"
-      ? await generateIntro(apiKey, model, payloadText)
+      ? await generateIntro(apiKey, model, payloadText, relationshipRules)
       : segment === "dynamics"
-        ? await generateDynamics(apiKey, model, payloadText)
-        : await generateAction(apiKey, model, payloadText);
+        ? await generateDynamics(apiKey, model, payloadText, relationshipRules)
+        : await generateAction(apiKey, model, payloadText, relationshipRules);
 
     const usage = combineAnthropicUsage(generated.allUsage);
 
     console.info("[woorigunghap:paid-report-v7-segment]", JSON.stringify({
       segment,
       model,
+      relationshipType: input.relationshipType,
+      relationshipEditorialVersion: RELATIONSHIP_EDITORIAL_VERSION,
       attempt: generated.attempts,
       qualityCharacters: generated.best.characters,
       qualityWarnings: generated.best.qualityIssues,
@@ -319,6 +327,7 @@ export async function generatePaidReportSegmentV7(
         promptVersion: PAID_REPORT_V7_PROMPT_VERSION,
         payloadVersion: PAID_REPORT_V7_PAYLOAD_VERSION,
         evidencePackVersion: REPORT_EVIDENCE_PACK_VERSION,
+        relationshipEditorialVersion: RELATIONSHIP_EDITORIAL_VERSION,
         attempt: generated.attempts,
         qualityCharacters: generated.best.characters,
         qualityWarnings: generated.best.qualityIssues,
@@ -328,7 +337,7 @@ export async function generatePaidReportSegmentV7(
     };
   } catch (error) {
     const reason = error instanceof Error ? error.message : "UNKNOWN";
-    console.warn("[woorigunghap:paid-report-v7-segment-failed]", JSON.stringify({ segment, model, reason }));
+    console.warn("[woorigunghap:paid-report-v7-segment-failed]", JSON.stringify({ segment, model, relationshipType: input.relationshipType, reason }));
     throw new Error(`PAID_REPORT_SEGMENT_FAILED_${segment.toUpperCase()}_${reason}`);
   }
 }
