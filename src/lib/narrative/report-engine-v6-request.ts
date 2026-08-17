@@ -73,6 +73,7 @@ export function matchesJsonSchema(value: unknown, schema: unknown): boolean {
   const shape = schema as JsonSchemaShape;
 
   if (shape.type === "string") return typeof value === "string";
+  if (shape.type === "number") return typeof value === "number" && Number.isFinite(value);
 
   if (shape.type === "array") {
     if (!Array.isArray(value) || !shape.items) return false;
@@ -118,6 +119,13 @@ function collectCharacters(value: unknown): number {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function betterCandidate<T>(current: SegmentAttempt<T> | null, next: SegmentAttempt<T>) {
+  if (!current) return next;
+  if (next.qualityIssues.length < current.qualityIssues.length) return next;
+  if (next.qualityIssues.length === current.qualityIssues.length && next.characters > current.characters) return next;
+  return current;
 }
 
 async function callAnthropic(args: {
@@ -175,14 +183,18 @@ export async function requestStructuredSegment<T>(args: {
   const allUsage: AnthropicRawUsage[] = [];
   let lastFailure = "UNKNOWN";
   let structuredRejected = args.preferStructured !== true;
+  let bestQualityCandidate: SegmentAttempt<T> | null = null;
 
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
+      const retryReason = lastFailure === "QUALITY_SHORTFALL"
+        ? "직전 응답은 JSON 구조는 맞았지만 내용 밀도 또는 필수 항목 수가 부족했습니다. 기존 내용을 반복하지 말고 부족한 부분을 구체적인 근거·관계 장면·행동 기준으로 확장하세요."
+        : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고, 중간에 끊기지 않도록 완결된 객체를 출력하세요.";
       const expandedSystem = attempt === 1
         ? args.system
-        : `${args.system}\n\n[재시도 지시] 직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고, 중간에 끊기지 않도록 완결된 객체를 출력하세요.`;
+        : `${args.system}\n\n[재시도 지시] ${retryReason}`;
       const attemptMaxTokens = attempt === 1 ? args.maxTokens : Math.min(12_000, Math.ceil(args.maxTokens * 1.5));
 
       let result = await callAnthropic({
@@ -258,10 +270,15 @@ export async function requestStructuredSegment<T>(args: {
         characters: collectCharacters(parsed),
         qualityIssues: issues,
       };
-      if (issues.length > 0) {
-        console.warn("[woorigunghap:v6-segment-quality]", JSON.stringify({ label: args.label, attempt, characters: candidate.characters, issues }));
+      if (issues.length === 0) {
+        return { best: candidate, attempts: attempt, allUsage };
       }
-      return { best: candidate, attempts: attempt, allUsage };
+
+      bestQualityCandidate = betterCandidate(bestQualityCandidate, candidate);
+      lastFailure = "QUALITY_SHORTFALL";
+      console.warn("[woorigunghap:v6-segment-quality]", JSON.stringify({ label: args.label, attempt, characters: candidate.characters, issues }));
+      if (attempt < 2) continue;
+      return { best: bestQualityCandidate, attempts: attempt, allUsage };
     } catch (error) {
       lastFailure = error instanceof Error && error.name === "AbortError" ? "TIMEOUT" : "REQUEST_FAILED";
       console.warn("[woorigunghap:v6-segment-request]", JSON.stringify({ label: args.label, attempt, reason: lastFailure }));
@@ -270,6 +287,9 @@ export async function requestStructuredSegment<T>(args: {
     }
   }
 
+  if (bestQualityCandidate) {
+    return { best: bestQualityCandidate, attempts: 2, allUsage };
+  }
   throw new Error(`ANTHROPIC_SEGMENT_${args.label}_${lastFailure}`);
 }
 
