@@ -1,6 +1,6 @@
 import type { CoworkerHierarchy, RelationshipType } from "@/lib/report-input";
 
-export const RELATIONSHIP_EDITORIAL_VERSION = "relationship-editorial-v2-coworker-hierarchy" as const;
+export const RELATIONSHIP_EDITORIAL_VERSION = "relationship-editorial-v3-name-tokens" as const;
 
 export type RelationshipEditorialProfile = {
   label: string;
@@ -139,6 +139,8 @@ export function relationshipPromptRules(
     `반드시 다룰 현실 항목: ${profile.mustCover.join(", ")}.`,
     `현실 장면 예시: ${profile.sceneExamples.join(", ")}.`,
     `금지 가정: ${profile.avoidAssumptions.join(", ")}.`,
+    "사용자에게 보이는 모든 서술에서 첫 번째 사람은 {{SELF}}, 두 번째 사람은 {{PARTNER}}, 두 사람을 함께 지칭할 때는 {{BOTH}} 자리표시자를 사용하세요. 실제 이름·별칭은 서버가 응답 뒤에 결합하므로 임의 이름이나 실명을 만들지 마세요.",
+    "각 해설 묶음에는 {{SELF}}와 {{PARTNER}}를 각각 최소 한 번 포함하세요. 조사는 {{SELF}}은, {{PARTNER}}이, {{BOTH}}의처럼 자리표시자 바로 뒤에 자연스럽게 붙이면 서버 치환 후 'OOO님은' 형태가 됩니다.",
     "1:1 리포트의 정보 우선순위는 상대 해부 > 이 상대에게 통하는 나의 강점 > 관계 유형별 행동 전략 > 일반적인 내 성향 순서입니다.",
     "상대 관련 설명은 단순 성격 요약으로 끝내지 말고, 관계에서 원하는 것·예민해지는 상황·편해지기 쉬운 방식·실제 장면을 연결하세요.",
     "상대의 약점이나 방어 지점을 다룰 때는 공략법이 아니라 배려법으로 씁니다. 트라우마, 가족사, 외모 결점, 금전 취약점은 추정하지 마세요.",
