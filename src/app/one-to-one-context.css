@@ -1,0 +1,51 @@
+.relationship-context-section .field-stack {
+  margin-top: 0;
+}
+
+.relationship-context-textarea {
+  width: 100%;
+  min-height: 116px;
+  border: 1px solid #d8d1c7;
+  border-radius: 14px;
+  padding: 14px;
+  background: #fff;
+  color: #27312a;
+  font: inherit;
+  line-height: 1.65;
+  resize: vertical;
+}
+
+.relationship-context-textarea:focus {
+  outline: 2px solid #bca57e;
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.relationship-context-textarea[aria-invalid="true"] {
+  border-color: #a3483e;
+  box-shadow: 0 0 0 1px #a3483e;
+}
+
+.relationship-context-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.relationship-context-meta > small:last-child {
+  flex: 0 0 auto;
+  color: #8a8178;
+  font-size: .78rem;
+}
+
+@media (max-width: 640px) {
+  .relationship-context-textarea {
+    min-height: 128px;
+    font-size: 16px;
+  }
+
+  .relationship-context-meta {
+    gap: 8px;
+  }
+}
