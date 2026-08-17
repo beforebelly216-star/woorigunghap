@@ -133,7 +133,7 @@ export async function verifyPaidPayment(
     const paidInputHash = customData?.inputHash;
     if (isBindingVersion(bindingVersion) && typeof paidInputHash === "string") {
       const expectedInputHash = expectedProduct === "oneToMany"
-        ? await hashOneToManyInput(expectedInput as OneToManyReportInput)
+        ? await hashOneToManyInput(expectedInput as OneToManyReportInput, bindingVersion)
         : await hashOneToOneInput(expectedInput as OneToOneReportInput, bindingVersion);
       if (paidInputHash !== expectedInputHash) {
         throw new PaymentVerificationError(
