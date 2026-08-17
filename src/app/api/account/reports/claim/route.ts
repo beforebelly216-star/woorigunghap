@@ -3,7 +3,7 @@ import { claimAccountReport } from "@/lib/account-report-store";
 import { isSameOriginPost } from "@/lib/auth-policy";
 import { loadAuthenticatedRequestUser } from "@/lib/auth-request";
 import { isResultAccessToken } from "@/lib/result-access-token";
-import { loadCompletedServerReportForAccess } from "@/lib/server-report-store";
+import { loadServerOrderForAccess } from "@/lib/server-report-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,18 +38,18 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const report = await loadCompletedServerReportForAccess(paymentId, accessToken);
-    if (!report) {
-      return NextResponse.json({ error: "완료된 유료 결과를 확인하지 못했습니다." }, { status: 404, headers: privateHeaders });
+    const order = await loadServerOrderForAccess(paymentId, accessToken);
+    if (!order || order.status !== "paid") {
+      return NextResponse.json({ error: "완료된 결제를 확인하지 못했습니다." }, { status: 404, headers: privateHeaders });
     }
-    const claimed = await claimAccountReport(user.userId, paymentId, report.product);
+    const claimed = await claimAccountReport(user.userId, paymentId, order.product);
     if (claimed === "conflict") {
       return NextResponse.json({ error: "이미 다른 계정에 저장된 결과입니다." }, { status: 409, headers: privateHeaders });
     }
     if (claimed !== "claimed") {
       return NextResponse.json({ error: "보관함 저장소를 확인할 수 없습니다." }, { status: 503, headers: privateHeaders });
     }
-    return NextResponse.json({ claimed: true, product: report.product }, { headers: privateHeaders });
+    return NextResponse.json({ claimed: true, product: order.product }, { headers: privateHeaders });
   } catch (error) {
     console.error("[woorigunghap:account-report-claim]", error);
     return NextResponse.json({ error: "보관함 저장 중 서버 오류가 발생했습니다." }, { status: 503, headers: privateHeaders });
