@@ -150,7 +150,6 @@ function overallConfidence(years: ThreeYearTimingAssessmentYear[]): TimingConfid
 }
 
 function buildSignals(
-  input: Pick<OneToOneReportInput, "personA" | "personB">,
   aDeltas: number[],
   bDeltas: number[],
   aLuck: PersonYearLuckEvidence,
@@ -159,8 +158,6 @@ function buildSignals(
 ) {
   const a = median(aDeltas);
   const b = median(bDeltas);
-  const aName = input.personA.displayName || "첫 번째 사람";
-  const bName = input.personB.displayName || "두 번째 사람";
   const signals: string[] = [];
 
   if (a >= 5 && b >= 5) signals.push("두 사람 모두 현재 대운·세운 조합에서 관계에 여유를 쓰기 쉬운 편입니다.");
@@ -168,10 +165,10 @@ function buildSignals(
   else if ((a >= 5 && b <= -5) || (a <= -5 && b >= 5)) signals.push("한 사람은 확장하려 하고 다른 사람은 부담을 느끼기 쉬워 관계 속도 차이가 커질 수 있습니다.");
   else signals.push("한쪽으로 강하게 치우치기보다 기존 관계 패턴을 어떻게 운영하느냐가 더 중요한 해입니다.");
 
-  if (a >= 7) signals.push(`${aName} 쪽에는 보완적으로 작용하는 기운이 상대적으로 강합니다.`);
-  if (b >= 7) signals.push(`${bName} 쪽에는 보완적으로 작용하는 기운이 상대적으로 강합니다.`);
-  if (a <= -7) signals.push(`${aName} 쪽에는 부담 신호가 겹쳐 반응을 서두르지 않는 편이 좋습니다.`);
-  if (b <= -7) signals.push(`${bName} 쪽에는 부담 신호가 겹쳐 반응을 서두르지 않는 편이 좋습니다.`);
+  if (a >= 7) signals.push("나 쪽에는 보완적으로 작용하는 기운이 상대적으로 강합니다.");
+  if (b >= 7) signals.push("상대 쪽에는 보완적으로 작용하는 기운이 상대적으로 강합니다.");
+  if (a <= -7) signals.push("나 쪽에는 부담 신호가 겹쳐 반응을 서두르지 않는 편이 좋습니다.");
+  if (b <= -7) signals.push("상대 쪽에는 부담 신호가 겹쳐 반응을 서두르지 않는 편이 좋습니다.");
 
   if (aLuck.transitionWithinYear || bLuck.transitionWithinYear) {
     signals.push("해당 연도 안에 대운 전환 후보가 있어 상반기와 하반기의 체감이 달라질 수 있습니다.");
@@ -224,7 +221,7 @@ export function calculateThreeYearTimingAlignment(
       scoreRange: { min, max },
       phase: phaseFor(score),
       confidence: confidenceFor(width, year.personA, year.personB),
-      signals: buildSignals(input, aDeltas, bDeltas, year.personA, year.personB, width),
+      signals: buildSignals(aDeltas, bDeltas, year.personA, year.personB, width),
     };
   });
 
