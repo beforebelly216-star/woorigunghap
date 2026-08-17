@@ -10,6 +10,7 @@ import {
   REPORT_PROMPT_VERSION,
 } from "../src/lib/narrative/report-engine";
 import { buildPaidReportFacts } from "../src/lib/narrative/report-engine-v5";
+import { personalizeNarrativeNames } from "../src/lib/narrative/name-personalization";
 import type { OneToOneReportInput } from "../src/lib/report-input";
 
 const input: OneToOneReportInput = {
@@ -55,8 +56,21 @@ async function main() {
   }
   assertCondition(!fullAiPayload.includes("\"birthTime\":"), "원본 birthTime 키는 AI payload에 포함되면 안 됩니다.");
   assertCondition(fullAiPayload.includes("\"birthTimeKnown\":"), "시간 미상 여부 플래그는 신뢰도 설명을 위해 유지합니다.");
-  assertCondition(fullAiPayload.includes("\"pillars\":"), "유료 리포트 AI payload에는 비식별 사주팔자 facts가 필요합니다.");
+  assertCondition(fullAiPayload.includes("\"pillars\":"), "유료 리포트 AI payload에는 직접 식별정보를 제거한 사주팔자 facts가 필요합니다.");
   assertCondition(fullAiPayload.includes("\"visibleElementCounts\":"), "유료 리포트 AI payload에는 오행 개수 facts가 필요합니다.");
+
+  const personalized = personalizeNarrativeNames(
+    {
+      summary: "나는 상대에게 천천히 다가가고, 상대는 나에게 바로 답을 주지 않을 수 있습니다.",
+      detail: ["상대의 반응을 보고 내가 속도를 조절합니다.", "내 강점을 상대에게 밀어붙이지 않습니다."],
+    },
+    { self: input.personA.displayName, partner: input.personB.displayName },
+  );
+  const personalizedText = JSON.stringify(personalized);
+  assertCondition(personalizedText.includes("테스트A님"), "AI 응답 후 나의 이름 호칭이 합성되어야 합니다.");
+  assertCondition(personalizedText.includes("테스트B님"), "AI 응답 후 상대 이름 호칭이 합성되어야 합니다.");
+  assertCondition(personalized.summary.includes("테스트A님은 테스트B님에게"), "한국어 조사까지 자연스럽게 이름 호칭으로 치환해야 합니다.");
+  assertCondition(personalized.detail[0].includes("테스트B님의 반응") && personalized.detail[0].includes("테스트A님이"), "구조화된 중첩 필드도 이름 호칭으로 치환해야 합니다.");
 
   assertCondition(pack.payloadVersion === REPORT_EVIDENCE_PACK_VERSION, "payload version이 다릅니다.");
   assertCondition(pack.persons.A.dayMaster.stem.length > 0, "A 개인 분석용 일간이 필요합니다.");
@@ -114,12 +128,19 @@ async function main() {
   assert.match(apiRoute, /API_TIMEOUT/);
   assert.match(apiRoute, /API_OVERLOADED/);
   assert.match(apiRoute, /AI_OUTPUT_TRUNCATED/);
+  assert.match(apiRoute, /personalizeNarrativeNames\(storedSegment, narrativeNames\)/);
+  assert.match(apiRoute, /personalizeNarrativeNames\(generated\.content, narrativeNames\)/);
 
   const v7Engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
   assert.match(v7Engine, /PAID_REPORT_SEGMENTS = \["intro", "dynamics", "action"\]/);
   assert.match(v7Engine, /대운·세운·특정 연도·월의 관계 타이밍은 작성하지 마세요/);
   assert.match(v7Engine, /preferStructured: false/);
   assert.match(v7Engine, /combineAnthropicUsage\(generated\.allUsage\)/);
+
+  const privacyPage = readFileSync("src/app/privacy/page.tsx", "utf8");
+  assert.match(privacyPage, /이름·별칭, 원본 생년월일, 원본 출생시간은 AI 서술 생성 요청에 전달하지 않습니다/);
+  assert.match(privacyPage, /Anthropic API/);
+  assert.match(privacyPage, /30일 이내 삭제/);
 
   const progressStore = readFileSync("src/lib/report-progress-storage.ts", "utf8");
   assert.match(progressStore, /window\.localStorage/);
@@ -134,7 +155,7 @@ async function main() {
   assertCondition(conservativeCost.estimatedUsd === 0.027, `Haiku 원가 계산 오류(USD): ${conservativeCost.estimatedUsd}`);
   assertCondition(conservativeCost.estimatedKrw === 39.15, `Haiku 원가 계산 오류(KRW): ${conservativeCost.estimatedKrw}`);
 
-  console.log("Day 9 full AI payload privacy + resumable report checks: PASS");
+  console.log("Day 9 AI payload privacy + server-side name personalization checks: PASS");
   console.log(
     `score=${snapshot.score}, prompt=${REPORT_PROMPT_VERSION}, aiPayload=${fullAiPayload.length} chars, ` +
     `conservativeCost=${conservativeCost.estimatedKrw} KRW`,
