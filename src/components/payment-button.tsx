@@ -68,11 +68,14 @@ export function PaymentButton({
   }
 
   return (
-    <div className="payment-area">
+    <div className="payment-area" aria-busy={isLoading}>
       <button type="button" className="payment-button" disabled={isLoading} onClick={startPayment}>
         {isLoading ? "결제창을 여는 중..." : `${item.amount.toLocaleString("ko-KR")}원 결제하기`}
       </button>
-      {message ? <p className="payment-message">{message}</p> : null}
+      <p className="sr-only" role="status" aria-live="polite">
+        {isLoading ? "결제창을 여는 중입니다." : ""}
+      </p>
+      {message ? <p className="payment-message" role="alert">{message}</p> : null}
     </div>
   );
 }
