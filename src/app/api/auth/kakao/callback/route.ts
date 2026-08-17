@@ -14,6 +14,7 @@ import {
   getKakaoAuthConfig,
   retrieveKakaoIdentity,
 } from "@/lib/kakao-auth";
+import { saveKakaoTokenBundle } from "@/lib/kakao-token-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,10 +51,13 @@ export async function GET(request: NextRequest) {
 
   let userId: string;
   try {
-    const accessToken = await exchangeKakaoAuthorizationCode(config, code);
-    const identity = await retrieveKakaoIdentity(accessToken);
+    const tokenBundle = await exchangeKakaoAuthorizationCode(config, code);
+    const identity = await retrieveKakaoIdentity(tokenBundle.accessToken);
     const user = await upsertKakaoUser(identity.providerUserId, identity.displayName);
     userId = user.userId;
+    if (process.env.KAKAO_TOKEN_ENCRYPTION_KEY) {
+      await saveKakaoTokenBundle(userId, tokenBundle);
+    }
   } catch (authError) {
     console.error("[woorigunghap:kakao-auth]", authError instanceof Error ? authError.name : "unknown");
     return failureResponse(request, "callback");
