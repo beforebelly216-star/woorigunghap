@@ -35,7 +35,7 @@ function CheckoutContent() {
   }, [paymentId]);
 
   if (!loaded) {
-    return <p className="checkout-state">주문 정보를 불러오는 중이에요.</p>;
+    return <p className="checkout-state" role="status">주문 정보를 불러오는 중이에요.</p>;
   }
 
   if (!order) {
@@ -53,10 +53,10 @@ function CheckoutContent() {
       <header className="checkout-header">
         <p className="eyebrow">결제 전 마지막 확인</p>
         <h1>입력 내용을 확인해 주세요.</h1>
-        <p>결제가 확인된 뒤 이 주문의 입력 스냅샷으로 궁합 계산을 진행하게 됩니다.</p>
+        <p>결제가 확인된 뒤 이 주문의 입력 스냅샷으로 궁합 계산을 진행합니다.</p>
       </header>
 
-      <section className="checkout-card">
+      <section className="checkout-card" aria-label="주문 정보">
         <div className="checkout-row">
           <span>관계</span>
           <strong>{RELATIONSHIP_LABELS[order.inputSnapshot.relationshipType]}</strong>
@@ -77,7 +77,7 @@ function CheckoutContent() {
 
       <PaymentButton product="oneToOne" paymentId={order.paymentId} inputSnapshot={order.inputSnapshot} />
       <Link href="/one-to-one" className="back-link checkout-back">입력 수정하기</Link>
-      <p className="checkout-note">현재 개발 단계에서는 입력값을 같은 브라우저 프로필에 임시 보관합니다. 새 탭에서도 복원할 수 있고, 저장값이 사라져도 기존 결제를 다시 청구하지 않고 입력정보만 재입력해 결과를 복구할 수 있습니다. 새 결제부터는 개인정보 자체가 아닌 입력 해시를 결제건과 함께 검증합니다. 서버 영구 저장은 후속 단계에서 연결합니다.</p>
+      <p className="checkout-note">결제 승인 후 서버가 입력 해시와 금액을 검증한 뒤 결과를 생성·저장합니다. 결제창을 닫거나 네트워크가 끊겨도 같은 주문으로 다시 확인할 수 있고, 완료된 결과는 복구키 또는 로그인 계정 보관함에서 재열람할 수 있습니다.</p>
     </>
   );
 }
@@ -86,7 +86,7 @@ export default function OneToOneCheckoutPage() {
   return (
     <main className="input-page">
       <div className="checkout-shell">
-        <Suspense fallback={<p className="checkout-state">주문 정보를 불러오는 중이에요.</p>}>
+        <Suspense fallback={<p className="checkout-state" role="status">주문 정보를 불러오는 중이에요.</p>}>
           <CheckoutContent />
         </Suspense>
       </div>
