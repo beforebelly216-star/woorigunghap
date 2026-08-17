@@ -78,9 +78,51 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function replaceIndependentRolePhrase(source: string, phrase: string, replacement: string) {
-  const pattern = new RegExp(`(^|[^가-힣A-Za-z0-9])${escapeRegExp(phrase)}`, "g");
+function replaceIndependentRolePhraseOnce(source: string, phrase: string, replacement: string) {
+  const pattern = new RegExp(`(^|[^가-힣A-Za-z0-9])${escapeRegExp(phrase)}`);
   return source.replace(pattern, (_match, prefix: string) => `${prefix}${replacement}`);
+}
+
+const HONORIFIC_PARTICLE_MAP: Record<string, string> = {
+  "는": "은",
+  "은": "은",
+  "가": "이",
+  "이": "이",
+  "를": "을",
+  "을": "을",
+  "와": "과",
+  "과": "과",
+  "로": "으로",
+  "으로": "으로",
+  "라고": "이라고",
+  "이라고": "이라고",
+  "라면": "이라면",
+  "이라면": "이라면",
+  "라는": "이라는",
+  "이라는": "이라는",
+  "랑": "이랑",
+  "이랑": "이랑",
+  "야": "이야",
+  "이야": "이야",
+};
+
+const TOKEN_PARTICLES = [
+  "에게서는", "에게서", "에게는", "에게", "이라면", "이라는", "이라고", "으로는", "으로",
+  "라면", "라는", "라고", "이랑", "처럼", "보다", "부터", "까지", "에서", "으로", "랑",
+  "은", "는", "이", "가", "을", "를", "과", "와", "의", "도", "만", "로", "야",
+] as const;
+
+function normalizeParticle(particle: string) {
+  if (particle === "으로는") return "으로는";
+  return HONORIFIC_PARTICLE_MAP[particle] ?? particle;
+}
+
+function replaceNameTokenWithParticle(source: string, token: string, replacement: string) {
+  const particles = TOKEN_PARTICLES.map(escapeRegExp).join("|");
+  const pattern = new RegExp(`${escapeRegExp(token)}(${particles})?`, "g");
+  return source.replace(pattern, (_match, particle: string | undefined) => (
+    `${replacement}${particle ? normalizeParticle(particle) : ""}`
+  ));
 }
 
 export function personalizeNarrativeNames<T>(
@@ -91,12 +133,19 @@ export function personalizeNarrativeNames<T>(
   const roleReplacements = rolePhraseReplacements(names);
 
   function personalizeText(source: string) {
+    const hadNameToken = Object.values(NARRATIVE_NAME_TOKENS).some((token) => source.includes(token));
     const tokenized = Object.entries(tokenReplacements).reduce(
-      (text, [token, replacement]) => text.split(token).join(replacement),
+      (text, [token, replacement]) => replaceNameTokenWithParticle(text, token, replacement),
       source,
     );
+
+    // New reports are instructed to place privacy-safe name tokens deliberately.
+    // When a field already contains a token, preserve the remaining 나/상대 pronouns
+    // instead of turning every role reference into a repeated name. For legacy reports
+    // without tokens, keep a restrained fallback: at most one replacement per phrase.
+    if (hadNameToken) return tokenized;
     return roleReplacements.reduce(
-      (text, [rolePhrase, replacement]) => replaceIndependentRolePhrase(text, rolePhrase, replacement),
+      (text, [rolePhrase, replacement]) => replaceIndependentRolePhraseOnce(text, rolePhrase, replacement),
       tokenized,
     );
   }
