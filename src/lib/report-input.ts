@@ -19,6 +19,9 @@ export const COWORKER_HIERARCHY_LABELS: Record<CoworkerHierarchy, string> = {
   subordinate: "상대가 내 부하",
 };
 
+export const MAX_RELATIONSHIP_DURATION_MONTHS = 1200;
+export const MAX_MOST_CURIOUS_LENGTH = 200;
+
 export const CALCULATION_PROFILES = ["romance", "friend", "coworker"] as const;
 export type CalculationProfile = (typeof CALCULATION_PROFILES)[number];
 
@@ -66,6 +69,10 @@ export type OneToOneReportInput = {
    * 기존 저장 주문과의 하위호환을 위해 optional이며, 새 coworker 주문은 폼/주문 API에서 필수 검증한다.
    */
   coworkerHierarchy?: CoworkerHierarchy | null;
+  /** 썸·연인·친구·직장동료의 현재 관계 기간. 기준문서에 따라 개월 단위로 저장한다. */
+  relationshipDurationMonths?: number | null;
+  /** 사용자가 가장 궁금한 한 가지. 선택값이며 최대 200자다. */
+  mostCurious?: string | null;
   personA: PersonBirthInput;
   personB: PersonBirthInput;
 };
@@ -111,12 +118,28 @@ export function parseOneToOneReportInput(value: unknown): OneToOneReportInput | 
     && !COWORKER_HIERARCHIES.includes(hierarchy as CoworkerHierarchy)
   ) return null;
 
+  const rawDuration = candidate.relationshipDurationMonths;
+  if (
+    rawDuration !== undefined
+    && rawDuration !== null
+    && (typeof rawDuration !== "number" || !Number.isFinite(rawDuration))
+  ) return null;
+
+  const rawMostCurious = candidate.mostCurious;
+  if (
+    rawMostCurious !== undefined
+    && rawMostCurious !== null
+    && typeof rawMostCurious !== "string"
+  ) return null;
+
   const personA = parsePersonBirthInput(candidate.personA);
   const personB = parsePersonBirthInput(candidate.personB);
   return personA && personB
     ? {
         relationshipType: candidate.relationshipType as RelationshipType,
         coworkerHierarchy: hierarchy == null ? null : hierarchy as CoworkerHierarchy,
+        relationshipDurationMonths: rawDuration == null ? null : rawDuration,
+        mostCurious: rawMostCurious == null ? null : rawMostCurious.trim() || null,
         personA,
         personB,
       }
@@ -239,6 +262,22 @@ export function validateOneToOneReportInput(
   }
   if (input.relationshipType !== "coworker" && input.coworkerHierarchy) {
     errors.coworkerHierarchy = "직장 내 위치는 직장동료 궁합에서만 선택할 수 있어요.";
+  }
+
+  if (input.relationshipDurationMonths != null) {
+    if (
+      !Number.isInteger(input.relationshipDurationMonths)
+      || input.relationshipDurationMonths < 0
+      || input.relationshipDurationMonths > MAX_RELATIONSHIP_DURATION_MONTHS
+    ) {
+      errors.relationshipDurationMonths = `관계 기간은 0~${MAX_RELATIONSHIP_DURATION_MONTHS}개월 사이의 숫자로 입력해 주세요.`;
+    } else if (input.relationshipType === "crush") {
+      errors.relationshipDurationMonths = "짝사랑은 관계 기간 대신 현재 관계 단계만 반영합니다.";
+    }
+  }
+
+  if (input.mostCurious != null && input.mostCurious.trim().length > MAX_MOST_CURIOUS_LENGTH) {
+    errors.mostCurious = `가장 궁금한 점은 ${MAX_MOST_CURIOUS_LENGTH}자 이하로 입력해 주세요.`;
   }
 
   Object.assign(errors, validatePerson(input.personA, "personA"));
