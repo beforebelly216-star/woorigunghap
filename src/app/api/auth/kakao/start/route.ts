@@ -19,7 +19,12 @@ export async function GET(request: NextRequest) {
 
   const state = createOpaqueToken();
   const returnTo = normalizeReturnTo(request.nextUrl.searchParams.get("returnTo"));
-  const response = NextResponse.redirect(buildKakaoAuthorizationUrl(config, state));
+  const wantsMessageNotification = request.nextUrl.searchParams.get("notify") === "1";
+  const response = NextResponse.redirect(buildKakaoAuthorizationUrl(
+    config,
+    state,
+    wantsMessageNotification ? ["talk_message"] : [],
+  ));
   const cookieBase = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
