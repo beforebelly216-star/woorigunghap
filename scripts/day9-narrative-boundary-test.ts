@@ -81,7 +81,7 @@ async function main() {
   assertCondition(personalizedText.includes("테스트A님"), "AI 응답 후 나의 이름 호칭이 합성되어야 합니다.");
   assertCondition(personalizedText.includes("테스트B님"), "AI 응답 후 상대 이름 호칭이 합성되어야 합니다.");
   assertCondition(personalized.summary.includes("테스트A님은 테스트B님에게"), "한국어 조사까지 자연스럽게 이름 호칭으로 치환해야 합니다.");
-  assertCondition(personalized.tokens.includes("테스트A님은 테스트B님에게") && personalized.tokens.includes("두 사람의 합의"), "비식별 이름 토큰도 서버에서 사용자 호칭으로 치환해야 합니다.");
+  assertCondition(personalized.tokens.includes("테스트A님은 테스트B님에게") && personalized.tokens.includes("테스트A님과 테스트B님의 합의"), "비식별 이름 토큰도 서버에서 사용자 호칭으로 치환해야 합니다.");
   assertCondition(personalized.detail[0].includes("테스트B님의 반응") && personalized.detail[0].includes("테스트A님이"), "구조화된 중첩 필드도 이름 호칭으로 치환해야 합니다.");
 
   const boundarySafe = personalizeNarrativeNames(
