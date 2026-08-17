@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     const identity = await retrieveKakaoIdentity(tokenBundle.accessToken);
     const user = await upsertKakaoUser(identity.providerUserId, identity.displayName);
     userId = user.userId;
-    if (process.env.KAKAO_TOKEN_ENCRYPTION_KEY) {
+    if (tokenBundle.scopes.includes("talk_message") && process.env.KAKAO_TOKEN_ENCRYPTION_KEY) {
       await saveKakaoTokenBundle(userId, tokenBundle);
     }
   } catch (authError) {
