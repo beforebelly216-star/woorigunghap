@@ -6,6 +6,7 @@ import {
   generatePaidReportSegmentV7,
   type PaidReportSegmentName,
 } from "@/lib/narrative/report-engine-v7";
+import { personalizeNarrativeNames } from "@/lib/narrative/name-personalization";
 import {
   PaymentVerificationError,
   verifyPaidPayment,
@@ -37,7 +38,7 @@ import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const runtime = "nodejs";
 export const maxDuration = 240;
-const REPORT_RUNTIME_VERSION = "paid-report-v7-editorial-server-store-20260817-background-notify";
+const REPORT_RUNTIME_VERSION = "paid-report-v7-editorial-server-store-20260818-name-personalization";
 const PHASES = ["prepare", ...PAID_REPORT_SEGMENTS] as const;
 type ReportPhase = (typeof PHASES)[number];
 
@@ -175,6 +176,10 @@ export async function POST(request: NextRequest) {
         reportRuntimeVersion: REPORT_RUNTIME_VERSION,
       }, { status: 409 });
     }
+    const narrativeNames = {
+      self: input.personA.displayName,
+      partner: input.personB.displayName,
+    };
 
     const payment = await verifyPaidPayment(paymentId, "oneToOne", input);
     if (!orderExists && !payment.inputBound) {
@@ -215,7 +220,7 @@ export async function POST(request: NextRequest) {
     if (storedSegment && storedMeta) {
       return NextResponse.json({
         phase,
-        segmentContent: storedSegment,
+        segmentContent: personalizeNarrativeNames(storedSegment, narrativeNames),
         segmentMeta: storedMeta,
         reportRuntimeVersion: REPORT_RUNTIME_VERSION,
         payment: {
@@ -239,10 +244,11 @@ export async function POST(request: NextRequest) {
     claimedSegment = segment;
 
     const generated = await generatePaidReportSegmentV7(snapshot, input, segment);
+    const personalizedContent = personalizeNarrativeNames(generated.content, narrativeNames);
     const persisted = await saveServerReportSegment(
       paymentId,
       segment,
-      generated.content,
+      personalizedContent,
       generated.meta,
     );
     if (!persisted) throw new Error("SERVER_REPORT_SEGMENT_SAVE_FAILED");
@@ -252,7 +258,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       phase,
-      segmentContent: generated.content,
+      segmentContent: personalizedContent,
       segmentMeta: generated.meta,
       reportRuntimeVersion: REPORT_RUNTIME_VERSION,
       payment: {
