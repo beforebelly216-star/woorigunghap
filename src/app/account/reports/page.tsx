@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AccountDeletionPanel } from "@/components/account-deletion-panel";
 
 type ReportSummary = {
   paymentId: string;
@@ -91,6 +92,7 @@ export default function AccountReportsPage() {
           </li>)}
         </ul> : null}
       </div>
+      {state.status === "ready" ? <AccountDeletionPanel /> : null}
     </section>
   </main>;
 }

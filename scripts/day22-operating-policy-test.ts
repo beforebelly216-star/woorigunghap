@@ -1,0 +1,25 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const policy = readFileSync("src/lib/operating-policy.ts", "utf8");
+const payment = readFileSync("src/components/payment-button.tsx", "utf8");
+const oneToOne = readFileSync("src/app/one-to-one/checkout/page.tsx", "utf8");
+const oneToMany = readFileSync("src/app/one-to-many/checkout/page.tsx", "utf8");
+const deleteRoute = readFileSync("src/app/api/account/delete/route.ts", "utf8");
+const accountStore = readFileSync("src/lib/account-report-store.ts", "utf8");
+const privacy = readFileSync("src/app/privacy/page.tsx", "utf8");
+
+assert.match(policy, /operating-policy-v1/);
+assert.match(policy, /5년/);
+assert.match(policy, /3년/);
+assert.match(payment, /agreementAccepted/);
+assert.match(oneToOne, /PurchasePolicyConsent/);
+assert.match(oneToMany, /PurchasePolicyConsent/);
+assert.match(deleteRoute, /isSameOriginPost/);
+assert.match(deleteRoute, /confirmation !== "탈퇴"/);
+assert.match(accountStore, /legal-retention-v1/);
+assert.match(accountStore, /report_json = NULL/);
+assert.match(accountStore, /access_token_hash = NULL/);
+assert.match(privacy, /AI 서술 생성 단계에 전달하지 않습니다/);
+
+console.log("Day 22 operating policy contract checks: PASS");

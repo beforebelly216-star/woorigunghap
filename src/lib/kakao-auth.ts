@@ -3,6 +3,7 @@ import "server-only";
 export const KAKAO_AUTHORIZE_ENDPOINT = "https://kauth.kakao.com/oauth/authorize";
 export const KAKAO_TOKEN_ENDPOINT = "https://kauth.kakao.com/oauth/token";
 export const KAKAO_USER_ENDPOINT = "https://kapi.kakao.com/v2/user/me";
+export const KAKAO_UNLINK_ENDPOINT = "https://kapi.kakao.com/v1/user/unlink";
 
 export type KakaoAuthConfig = {
   restApiKey: string;
@@ -105,4 +106,20 @@ export async function retrieveKakaoIdentity(accessToken: string) {
       ? nickname.trim().slice(0, 80)
       : null,
   };
+}
+
+export async function unlinkKakaoUserByAdminKey(providerUserId: string) {
+  const adminKey = process.env.KAKAO_ADMIN_KEY?.trim();
+  if (!adminKey || !/^\d{1,32}$/.test(providerUserId)) return false;
+  const body = new URLSearchParams({ target_id_type: "user_id", target_id: providerUserId });
+  const response = await fetch(KAKAO_UNLINK_ENDPOINT, {
+    method: "POST",
+    headers: {
+      authorization: `KakaoAK ${adminKey}`,
+      "content-type": "application/x-www-form-urlencoded;charset=utf-8",
+    },
+    body,
+    cache: "no-store",
+  });
+  return response.ok;
 }
