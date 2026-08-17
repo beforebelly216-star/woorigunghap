@@ -1,8 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function AccountDeletionPanel() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -22,7 +24,8 @@ export function AccountDeletionPanel() {
         setMessage(payload?.error ?? "탈퇴를 처리하지 못했습니다.");
         return;
       }
-      window.location.assign("/?accountDeleted=1");
+      router.replace("/?accountDeleted=1");
+      router.refresh();
     } catch {
       setMessage("네트워크 문제로 탈퇴를 처리하지 못했습니다.");
     } finally {
