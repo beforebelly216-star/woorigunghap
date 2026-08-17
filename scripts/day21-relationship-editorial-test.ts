@@ -39,6 +39,13 @@ assert.match(chaptersB, /editorial\.ui\.closenessTitle/);
 assert.match(chaptersB, /editorial\.ui\.actionTitle/);
 assert.match(chaptersB, /이 관계의 미래를 가르는 조건/);
 assert.match(chaptersB, /30-DAY ACTION PLAN/);
-assert.match(chaptersB, /기준문서의 ‘앞으로 3년’ 장은 대운·세운·월운 계산이 선행/);
+assert.match(chaptersB, /RELATIONSHIP FLOW & 3-YEAR TIMING/);
+assert.match(chaptersB, /threeYearTiming\.years\.map/);
+assert.match(chaptersB, /TIMING_PHASE_LABEL/);
+assert.match(chaptersB, /특정 월·날짜 예측은 아직 포함하지 않습니다/);
+
+const resultV2 = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
+assert.match(resultV2, /threeYearTiming=\{snapshot\.threeYearTiming\}/);
+assert.doesNotMatch(resultV2, /dimension !== "luckCycleAlignment"/);
 
 console.log("Day 21 relationship editorial contract checks: PASS");
