@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { calculateOneToOneCompatibility } from "../src/lib/compatibility/engine";
+import { personalizeNarrativeNames } from "../src/lib/narrative/name-personalization";
+import { buildReportEvidencePack } from "../src/lib/narrative/report-engine";
 import { collectPaidNarrativeQualityIssues } from "../src/lib/narrative/report-engine-v6-request";
+import type { OneToOneReportInput } from "../src/lib/report-input";
 
 const oneToOneOrder = readFileSync("src/app/api/orders/one-to-one/route.ts", "utf8");
 const oneToOneReport = readFileSync("src/app/api/compatibility/one-to-one/route.ts", "utf8");
@@ -106,6 +110,46 @@ assert.ok(manualQaRegressionIssues.includes("DETERMINISTIC_CERTAINTY"));
 assert.ok(manualQaRegressionIssues.includes("MIND_READING_CERTAINTY"));
 assert.ok(manualQaRegressionIssues.includes("DURATION_CAUSAL_OVERREACH"));
 assert.ok(manualQaRegressionIssues.includes("NAME_TOKEN_OVERUSE"));
+
+// Privacy-safe name tokens must produce natural Korean particles after adding 님.
+const tokenizedNames = personalizeNarrativeNames(
+  "{{SELF}}는 {{PARTNER}}가 제안을 듣고 {{PARTNER}}와 대화하며 {{SELF}}를 기다립니다. 나는 상대의 반응을 확인합니다.",
+  { self: "지민", partner: "서윤" },
+);
+assert.equal(
+  tokenizedNames,
+  "지민님은 서윤님이 제안을 듣고 서윤님과 대화하며 지민님을 기다립니다. 나는 상대의 반응을 확인합니다.",
+  "새 토큰 기반 문장에서는 님 뒤 조사를 교정하고 남은 나/상대 표현을 이름으로 도배하지 않아야 합니다.",
+);
+assert.doesNotMatch(tokenizedNames, /님(?:는|가|를|와)(?=[^가-힣]|$)/);
+
+// Detailed 3-year timing must remain on the deterministic CH5 snapshot, not generic AI evidence.
+const timingInput: OneToOneReportInput = {
+  relationshipType: "lover",
+  personA: {
+    displayName: "나",
+    gender: "male",
+    calendarType: "solar",
+    birthDate: "1990-05-15",
+    birthTimeKnown: true,
+    birthTime: "14:30",
+    isLeapMonth: false,
+  },
+  personB: {
+    displayName: "상대",
+    gender: "female",
+    calendarType: "solar",
+    birthDate: "1992-10-24",
+    birthTimeKnown: false,
+    birthTime: null,
+    isLeapMonth: false,
+  },
+};
+const timingSnapshot = calculateOneToOneCompatibility(timingInput, { timingBaseYear: 2026 });
+assert.deepEqual(timingSnapshot.threeYearTiming?.years.map((item) => item.year), [2026, 2027, 2028]);
+const aiEvidence = buildReportEvidencePack(timingSnapshot, timingInput);
+assert.deepEqual(aiEvidence.dimensions.luckCycleAlignment.evidence, { policy: "SERVER_RENDERED_CH5_ONLY" });
+assert.doesNotMatch(JSON.stringify(aiEvidence.dimensions.luckCycleAlignment.evidence), /2026|2027|2028|annualPillar|years/);
 
 const hierarchyAwareText = Array.from(
   { length: 130 },
