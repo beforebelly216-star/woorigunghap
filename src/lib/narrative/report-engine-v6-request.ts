@@ -284,7 +284,16 @@ export async function requestStructuredSegment<T>(args: {
       const expandedSystem = attempt === 1
         ? args.system
         : `${args.system}\n\n[재시도 지시] ${retryReason}`;
-      const attemptMaxTokens = attempt === 1 ? args.maxTokens : Math.min(12_000, Math.ceil(args.maxTokens * 1.5));
+      const firstAttemptMaxTokens = args.label === "INTRO"
+        ? Math.max(args.maxTokens, 7_000)
+        : args.label === "DYNAMICS"
+          ? Math.max(args.maxTokens, 16_000)
+          : args.label === "ACTION"
+            ? Math.max(args.maxTokens, 14_000)
+            : args.maxTokens;
+      const attemptMaxTokens = attempt === 1
+        ? firstAttemptMaxTokens
+        : Math.min(24_000, Math.ceil(firstAttemptMaxTokens * 1.25));
 
       let result = await callAnthropic({
         apiKey: args.apiKey,
