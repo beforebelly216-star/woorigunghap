@@ -1,5 +1,9 @@
 import type { FiveElement } from "@/lib/compatibility/types";
 import type { BasicPersonFacts } from "@/lib/narrative/report-engine-v5";
+import {
+  PARTNER_INFORMATION_LEVEL_COPY,
+  partnerInformationLevelFromFacts,
+} from "@/lib/partner-information-level";
 
 const ELEMENT_LABELS: Record<FiveElement, string> = {
   wood: "목(木)", fire: "화(火)", earth: "토(土)", metal: "금(金)", water: "수(水)",
@@ -19,7 +23,11 @@ export function PillarGrid({ facts }: { facts: BasicPersonFacts }) {
 }
 
 export function ElementFacts({ facts }: { facts: BasicPersonFacts }) {
+  const informationLevel = partnerInformationLevelFromFacts(facts);
+  const informationCopy = PARTNER_INFORMATION_LEVEL_COPY[informationLevel];
+
   return <div className="v2-elements">
+    <p className="v2-note"><strong>정보 수준 {informationLevel}</strong> · {informationCopy.short}. {informationCopy.detail}</p>
     <div className="v2-element-counts">{ELEMENT_ORDER.map((element) => (
       <div key={element}><span>{ELEMENT_LABELS[element]}</span><strong>{facts.visibleElementCounts[element]}</strong><small>개</small></div>
     ))}</div>
