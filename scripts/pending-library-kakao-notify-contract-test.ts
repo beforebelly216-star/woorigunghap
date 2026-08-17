@@ -46,7 +46,7 @@ assert.match(accountPage, /완료 알림 받기/);
 assert.match(notification, /payment_id TEXT PRIMARY KEY/);
 assert.match(notification, /loadCompletedServerReport\(paymentId\)/);
 assert.match(notification, /finishNotification\(paymentId, "sent"\)/);
-assert.match(oneToOne, /segment === "action".*notifyReportCompleted/s);
+assert.match(oneToOne, /segment === "action"[\s\S]*notifyReportCompleted/);
 assert.match(oneToMany, /saveOneToManyStoredReport[\s\S]*notifyReportCompleted/);
 
 console.log("Pending-library + Kakao notification contract checks: PASS");
