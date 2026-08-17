@@ -20,6 +20,7 @@ assert.match(verification, /PAYMENT_INPUT_MISMATCH/);
 assert.match(verification, /hashOneToOneInput\(expectedInput as OneToOneReportInput, bindingVersion\)/);
 assert.match(verification, /hashOneToManyInput\(expectedInput as OneToManyReportInput, bindingVersion\)/);
 assert.match(verification, /PREVIOUS_ORDER_BINDING_VERSION/);
+assert.match(verification, /OLDER_ORDER_BINDING_VERSION/);
 assert.match(verification, /LEGACY_ORDER_BINDING_VERSION/);
 assert.match(verification, /isBindingVersion\(bindingVersion\)/);
 assert.match(verification, /PAYMENT_TERMINAL/);
@@ -28,10 +29,13 @@ assert.match(verification, /status === "CANCELLED"/);
 assert.match(verification, /status === "PARTIAL_CANCELLED"/);
 
 const binding = readFileSync("src/lib/order-binding.ts", "utf8");
+assert.match(binding, /input-sha256-v4/);
 assert.match(binding, /input-sha256-v3/);
 assert.match(binding, /input-sha256-v2/);
 assert.match(binding, /input-sha256-v1/);
 assert.match(binding, /coworkerHierarchy/);
+assert.match(binding, /relationshipDurationMonths/);
+assert.match(binding, /mostCurious/);
 assert.match(binding, /displayName: value\.displayName/);
 assert.match(binding, /version === LEGACY_ORDER_BINDING_VERSION/);
 assert.match(binding, /canonicalizeOneToManyInput/);
@@ -57,4 +61,4 @@ const demoRoute = readFileSync("src/app/api/compatibility/one-to-one/demo/route.
 assert.doesNotMatch(demoRoute, /request\.json\(/);
 assert.match(demoRoute, /const DEMO_INPUT/);
 
-console.log("Day 8 payment gate v3 + backward compatibility regression checks passed");
+console.log("Day 8 payment gate v4 + v3/v2/v1 backward compatibility regression checks passed");
