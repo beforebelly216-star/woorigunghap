@@ -2,6 +2,7 @@ import { PaymentClient } from "@portone/server-sdk";
 import { PRODUCTS, type ProductKey } from "@/lib/catalog";
 import {
   LEGACY_ORDER_BINDING_VERSION,
+  OLDER_ORDER_BINDING_VERSION,
   ORDER_BINDING_VERSION,
   PREVIOUS_ORDER_BINDING_VERSION,
   hashOneToOneInput,
@@ -45,6 +46,7 @@ function parseCustomData(value: unknown): Record<string, unknown> | null {
 function isBindingVersion(value: unknown): value is OrderBindingVersion {
   return value === ORDER_BINDING_VERSION
     || value === PREVIOUS_ORDER_BINDING_VERSION
+    || value === OLDER_ORDER_BINDING_VERSION
     || value === LEGACY_ORDER_BINDING_VERSION;
 }
 
