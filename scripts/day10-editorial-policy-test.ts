@@ -22,8 +22,11 @@ assert.match(engine, /partnerDeepDive/);
 assert.match(engine, /personalLeverage/);
 assert.match(engine, /situationStrategy/);
 assert.match(engine, /actionPlan30/);
-assert.match(editorial, /relationship-editorial-v2-coworker-hierarchy/);
+assert.match(editorial, /relationship-editorial-v3-name-tokens/);
 assert.match(editorial, /COWORKER_HIERARCHY_RULES/);
 assert.match(editorial, /지시 명확화, 위임 범위/);
+assert.match(editorial, /\{\{SELF\}\}/);
+assert.match(editorial, /\{\{PARTNER\}\}/);
+assert.match(editorial, /실제 이름·별칭은 서버가 응답 뒤에 결합/);
 
-console.log("Day 10 editorial style + deep narrative + coworker hierarchy policy checks: PASS");
+console.log("Day 10 editorial style + privacy-safe name tokens + coworker hierarchy policy checks: PASS");
