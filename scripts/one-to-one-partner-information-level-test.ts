@@ -8,6 +8,7 @@ import {
 } from "../src/lib/partner-information-level";
 
 assert.deepEqual(PARTNER_INFORMATION_LEVELS, ["A", "B"]);
+assert.deepEqual(Object.keys(PARTNER_INFORMATION_LEVEL_COPY).sort(), ["A", "B"]);
 assert.equal(partnerInformationLevelFromPerson({ birthTimeKnown: true }), "A");
 assert.equal(partnerInformationLevelFromPerson({ birthTimeKnown: false }), "B");
 assert.equal(partnerInformationLevelFromFacts({ birthTimeKnown: true }), "A");
@@ -15,9 +16,6 @@ assert.equal(partnerInformationLevelFromFacts({ birthTimeKnown: false }), "B");
 assert.match(PARTNER_INFORMATION_LEVEL_COPY.A.detail, /네 기둥/);
 assert.match(PARTNER_INFORMATION_LEVEL_COPY.B.detail, /대표 시간대 시나리오/);
 assert.match(PARTNER_INFORMATION_LEVEL_COPY.B.detail, /점수 범위/);
-
-const contract = readFileSync("src/lib/partner-information-level.ts", "utf8");
-assert.doesNotMatch(contract, /C_LEVEL|정보 수준 C|informationLevel: "C"|관찰 10문항/);
 
 const form = readFileSync("src/components/one-to-one-form.tsx", "utf8");
 assert.match(form, /상대 정보 수준/);
