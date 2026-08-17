@@ -1,6 +1,6 @@
-import type { RelationshipType } from "@/lib/report-input";
+import type { CoworkerHierarchy, RelationshipType } from "@/lib/report-input";
 
-export const RELATIONSHIP_EDITORIAL_VERSION = "relationship-editorial-v1" as const;
+export const RELATIONSHIP_EDITORIAL_VERSION = "relationship-editorial-v2-coworker-hierarchy" as const;
 
 export type RelationshipEditorialProfile = {
   label: string;
@@ -76,9 +76,9 @@ export const RELATIONSHIP_EDITORIAL: Record<RelationshipType, RelationshipEditor
   },
   coworker: {
     label: "직장동료",
-    premise: "업무 관계를 전제로 하며 연애적 해석을 배제한다. 역할, 속도, 보고·의사결정, 피드백, 갈등 관리와 협업 효율을 중심으로 쓴다. 상사·동급·부하 관계는 입력받지 않았으므로 임의 추정하지 않는다.",
+    premise: "업무 관계를 전제로 하며 연애적 해석을 배제한다. 역할, 속도, 보고·의사결정, 피드백, 갈등 관리와 협업 효율을 중심으로 쓴다. 제공된 직장 위계가 있으면 그 권한 차이를 실제 행동 조언에 반영한다.",
     mustCover: ["업무 속도", "역할 분담", "보고·의사결정 방식", "피드백 주고받기", "갈등을 업무 이슈로 분리하는 법", "책임 경계가 모호할 때의 대응", "협업 피로를 줄이는 루틴"],
-    avoidAssumptions: ["연애 감정", "사적 친밀감을 업무 궁합으로 해석", "상사·동급·부하를 임의 추정", "승진·이직 시기 예언"],
+    avoidAssumptions: ["연애 감정", "사적 친밀감을 업무 궁합으로 해석", "입력되지 않은 직급·평가권을 추가 추정", "승진·이직 시기 예언"],
     sceneExamples: ["업무 우선순위가 다를 때", "보고 속도가 엇갈릴 때", "피드백을 주고받을 때", "책임 경계가 모호할 때"],
     ui: {
       strategyTitle: "협업 마찰을 줄이는 업무 전략",
@@ -90,6 +90,26 @@ export const RELATIONSHIP_EDITORIAL: Record<RelationshipType, RelationshipEditor
   },
 };
 
+const COWORKER_HIERARCHY_RULES: Record<CoworkerHierarchy, string[]> = {
+  boss: [
+    "[직장 위계: 두 번째 사람이 첫 번째 사람의 상사]",
+    "첫 번째 사람의 행동 조언은 보고 타이밍, 요청 방식, 이견 제시, 우선순위 재확인, 피드백 수용을 우선합니다.",
+    "상사의 권한을 이유로 무조건 복종하라고 하지 말고, 근거를 갖춘 확인·보고·경계 설정처럼 실무적으로 안전한 방법을 제시하세요.",
+    "두 번째 사람의 반응은 평가권이나 인사권을 실제로 보유한다고 추가 추정하지 말고, 입력된 '상사'라는 관계 범위 안에서만 해석하세요.",
+  ],
+  peer: [
+    "[직장 위계: 두 사람은 동급 동료]",
+    "행동 조언은 합의 방식, 역할 분담, 일정 조율, 상호 피드백, 책임 경계와 공동 의사결정을 우선합니다.",
+    "한쪽이 다른 쪽의 공식 지휘권을 가진다고 가정하지 마세요. 충돌 시 누가 이기느냐보다 의사결정 기준과 책임 소재를 명확히 하는 방법을 제시하세요.",
+  ],
+  subordinate: [
+    "[직장 위계: 두 번째 사람이 첫 번째 사람의 부하]",
+    "첫 번째 사람의 행동 조언은 지시 명확화, 위임 범위, 체크인 주기, 피드백 전달, 질문하기 쉬운 분위기와 책임 배분을 우선합니다.",
+    "권한 차이를 압박이나 통제의 근거로 쓰지 말고, 업무 기준을 명확히 하면서 두 번째 사람이 의견과 위험 신호를 말할 수 있게 하는 방법을 제시하세요.",
+    "두 번째 사람의 직급·근속·평가 결과는 추가로 추정하지 마세요.",
+  ],
+};
+
 export function getRelationshipEditorialProfile(type: RelationshipType) {
   return RELATIONSHIP_EDITORIAL[type];
 }
@@ -98,11 +118,24 @@ export function getRelationshipEditorialProfileByLabel(label: string) {
   return Object.values(RELATIONSHIP_EDITORIAL).find((profile) => profile.label === label) ?? RELATIONSHIP_EDITORIAL.lover;
 }
 
-export function relationshipPromptRules(type: RelationshipType) {
+export function relationshipPromptRules(
+  type: RelationshipType,
+  coworkerHierarchy: CoworkerHierarchy | null = null,
+) {
   const profile = RELATIONSHIP_EDITORIAL[type];
+  const hierarchyRules = type === "coworker"
+    ? coworkerHierarchy
+      ? COWORKER_HIERARCHY_RULES[coworkerHierarchy]
+      : [
+          "[직장 위계: 기존 저장 결과로 위계 정보 없음]",
+          "상사·동급·부하 중 어느 관계인지 임의 추정하지 말고 공통 협업 조언만 작성하세요.",
+        ]
+    : [];
+
   return [
     `[관계 유형: ${profile.label}]`,
     profile.premise,
+    ...hierarchyRules,
     `반드시 다룰 현실 항목: ${profile.mustCover.join(", ")}.`,
     `현실 장면 예시: ${profile.sceneExamples.join(", ")}.`,
     `금지 가정: ${profile.avoidAssumptions.join(", ")}.`,
