@@ -94,6 +94,10 @@ export function getRelationshipEditorialProfile(type: RelationshipType) {
   return RELATIONSHIP_EDITORIAL[type];
 }
 
+export function getRelationshipEditorialProfileByLabel(label: string) {
+  return Object.values(RELATIONSHIP_EDITORIAL).find((profile) => profile.label === label) ?? RELATIONSHIP_EDITORIAL.lover;
+}
+
 export function relationshipPromptRules(type: RelationshipType) {
   const profile = RELATIONSHIP_EDITORIAL[type];
   return [
