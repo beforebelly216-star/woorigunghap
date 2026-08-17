@@ -84,7 +84,7 @@ assert.ok(badIssues.includes("RELATIONSHIP_ROMANCE_LEAK"));
 assert.ok(badIssues.includes("COWORKER_HIERARCHY_NOT_REFLECTED"));
 
 const hierarchyAwareText = Array.from(
-  { length: 90 },
+  { length: 130 },
   (_, index) => `업무 장면 ${index + 1}에서는 보고 시점을 먼저 합의하고, 이견이 있으면 근거를 짧게 정리해 상사에게 요청하며 피드백 기준을 확인합니다.`,
 ).join(" ");
 const hierarchyAwareIssues = collectPaidNarrativeQualityIssues(
