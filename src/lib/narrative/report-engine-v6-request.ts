@@ -32,6 +32,21 @@ type JsonSchemaShape = {
   items?: unknown;
 };
 
+const CRITICAL_QUALITY_ISSUES = new Set([
+  "DEVELOPER_LABEL_A_B_EXPOSED",
+  "INTERNAL_TERM_EXPOSED",
+  "INTERNAL_METRIC_EXPOSED",
+  "DETERMINISTIC_CERTAINTY",
+  "MIND_READING_CERTAINTY",
+  "FUTURE_TIMING_LEAK",
+  "DURATION_CAUSAL_OVERREACH",
+  "NAME_TOKEN_OVERUSE",
+  "RELATIONSHIP_ROMANCE_LEAK",
+  "CRUSH_STAGE_OVERREACH",
+  "FLIRTING_STAGE_OVERREACH",
+  "COWORKER_HIERARCHY_NOT_REFLECTED",
+]);
+
 function safeError(body: unknown) {
   if (!body || typeof body !== "object" || Array.isArray(body)) return "UNKNOWN";
   const error = (body as { error?: unknown }).error;
@@ -149,6 +164,10 @@ function includesAny(text: string, terms: string[]) {
   return terms.some((term) => text.includes(term));
 }
 
+function countNameTokens(text: string) {
+  return text.match(/\{\{(?:SELF|PARTNER|BOTH)\}\}/g)?.length ?? 0;
+}
+
 /**
  * Output-only quality gate. This does not invent new content; it decides whether a
  * structurally valid Claude response is good enough to keep or should trigger the
@@ -177,7 +196,25 @@ export function collectPaidNarrativeQualityIssues(
 
   if (hasStandaloneDeveloperLabel(joined)) issues.push("DEVELOPER_LABEL_A_B_EXPOSED");
   if (/\b(WEAK|STRONG|BALANCED|confidence)\b|soft signal/i.test(joined)) issues.push("INTERNAL_TERM_EXPOSED");
-  if (/(무조건|100%|확실히|틀림없이|운명적으로 정해)/.test(joined)) issues.push("DETERMINISTIC_CERTAINTY");
+  if (/(역할 공급도|배우자 역할 점수|유용신 적합도|범위값)/.test(joined)) issues.push("INTERNAL_METRIC_EXPOSED");
+  if (/(무조건|100%|확실히|틀림없이|반드시|운명적으로 정해|자동(?:으로|적)|확률이 높(?:아|습니다)|증명합니다|즉시[^.\n]{0,40}전환|바로[^.\n]{0,60}만듭니다)/.test(joined)) {
+    issues.push("DETERMINISTIC_CERTAINTY");
+  }
+  if (/(무의식적|무의식적으로|내부적으로|내면화|갈망|사랑받을 자격|마음속에서|심리 상태(?:입니다|다)|정말로[^.\n]{0,50}해서가 아니라)/.test(joined)) {
+    issues.push("MIND_READING_CERTAINTY");
+  }
+  if (/(20\d{2}년|\b대운\b|\b세운\b|월운)/.test(joined)) issues.push("FUTURE_TIMING_LEAK");
+
+  const maxNameTokens = Math.max(12, Math.ceil(characters / 120));
+  if (countNameTokens(joined) > maxNameTokens) issues.push("NAME_TOKEN_OVERUSE");
+
+  const hasDurationContext = /"relationshipDurationMonths":\d+/.test(userPrompt);
+  if (
+    hasDurationContext
+    && /\d+개월[\s\S]{0,120}(?:유지된 것은|유지해 온 것은|유지한 것 자체|증명합니다|조화가[^.\n]{0,50}뜻)/.test(joined)
+  ) {
+    issues.push("DURATION_CAUSAL_OVERREACH");
+  }
 
   const relationshipType = relationshipFromPrompt(userPrompt);
   if ((relationshipType === "friend" || relationshipType === "coworker")
@@ -215,6 +252,10 @@ function betterCandidate<T>(current: SegmentAttempt<T> | null, next: SegmentAtte
   if (next.qualityIssues.length < current.qualityIssues.length) return next;
   if (next.qualityIssues.length === current.qualityIssues.length && next.characters > current.characters) return next;
   return current;
+}
+
+function criticalIssues(issues: string[]) {
+  return issues.filter((issue) => CRITICAL_QUALITY_ISSUES.has(issue));
 }
 
 async function callAnthropic(args: {
@@ -277,8 +318,10 @@ export async function requestStructuredSegment<T>(args: {
   const startedAt = Date.now();
   const allUsage: AnthropicRawUsage[] = [];
   let lastFailure = "UNKNOWN";
+  let lastQualityIssues: string[] = [];
   let structuredRejected = args.preferStructured !== true;
   let bestQualityCandidate: SegmentAttempt<T> | null = null;
+  let criticalQualityFailure: string[] | null = null;
 
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     const remainingBudgetMs = Math.max(1_000, totalBudgetMs - (Date.now() - startedAt));
@@ -287,7 +330,7 @@ export async function requestStructuredSegment<T>(args: {
     const timeout = setTimeout(() => controller.abort(), attemptTimeoutMs);
     try {
       const retryReason = lastFailure === "QUALITY_SHORTFALL"
-        ? "직전 응답은 JSON 구조는 맞았지만 내용 밀도, 반복·금지 표현 또는 관계 맥락 품질 기준을 충족하지 못했습니다. 같은 내용을 반복하지 말고 계산 근거·관계 장면·행동 기준을 더 구체적으로 작성하며 개발자 표기와 단정적 표현을 제거하세요."
+        ? `직전 응답은 JSON 구조는 맞았지만 다음 품질 기준을 위반했습니다: ${lastQualityIssues.join(", ")}. 계산 근거와 관찰 가능한 행동만 사용하고, 숨은 마음·미래 연도·내부 지표·과도한 이름 반복·단정 표현을 제거하세요. 관계 기간은 맥락일 뿐 궁합의 증거로 해석하지 마세요.`
         : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고, 중간에 끊기지 않도록 완결된 객체를 출력하세요.";
       const expandedSystem = attempt === 1
         ? args.system
@@ -385,8 +428,15 @@ export async function requestStructuredSegment<T>(args: {
 
       bestQualityCandidate = betterCandidate(bestQualityCandidate, candidate);
       lastFailure = "QUALITY_SHORTFALL";
+      lastQualityIssues = issues;
       console.warn("[woorigunghap:v6-segment-quality]", JSON.stringify({ label: args.label, attempt, characters: candidate.characters, issues }));
       if (attempt < 2) continue;
+
+      const critical = criticalIssues(issues);
+      if (critical.length) {
+        criticalQualityFailure = critical;
+        break;
+      }
       return { best: bestQualityCandidate, attempts: attempt, allUsage };
     } catch (error) {
       lastFailure = error instanceof Error && error.name === "AbortError" ? "TIMEOUT" : "REQUEST_FAILED";
@@ -396,6 +446,9 @@ export async function requestStructuredSegment<T>(args: {
     }
   }
 
+  if (criticalQualityFailure) {
+    throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${criticalQualityFailure.join("_")}`);
+  }
   if (bestQualityCandidate) {
     return { best: bestQualityCandidate, attempts: 2, allUsage };
   }
