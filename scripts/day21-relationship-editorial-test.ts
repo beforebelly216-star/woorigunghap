@@ -21,24 +21,33 @@ assert.match(relationshipPromptRules("friend"), /최소 40%는 사용자가 바�
 assert.match(relationshipPromptRules("crush"), /공략법이 아니라 배려법/);
 
 const engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
-assert.match(engine, /paid-report-v7-editorial-v4/);
+assert.match(engine, /paid-report-v7-editorial-v5-deep/);
 assert.match(engine, /relationshipPromptRules\(input\.relationshipType\)/);
 assert.match(engine, /relationshipEditorialVersion/);
+assert.match(engine, /partnerDeepDive: PARTNER_DEEP_DIVE_SCHEMA/);
+assert.match(engine, /personalLeverage: PERSONAL_LEVERAGE_SCHEMA/);
+assert.match(engine, /situationStrategy: SITUATION_STRATEGY_SCHEMA/);
+assert.match(engine, /actionPlan30: ACTION_PLAN_30_SCHEMA/);
+assert.match(engine, /PARTNER_DEEP_DIVE_SHORT/);
+assert.match(engine, /ACTION_PLAN_30_WEEKS_INVALID/);
+assert.match(engine, /maxTokens: 7000/);
 
 const chaptersA = readFileSync("src/app/one-to-one/result/report-v2-chapters-a.tsx", "utf8");
 assert.match(chaptersA, /상대 해부 핵심/);
-assert.match(chaptersA, /편해지기 쉬운 지점/);
-assert.match(chaptersA, /잘 통하는 방식/);
-assert.match(chaptersA, /reference-top3/);
+assert.match(chaptersA, /content\.partnerDeepDive/);
+assert.match(chaptersA, /observableScenes\.map/);
+assert.match(chaptersA, /content\.personalLeverage/);
+assert.match(chaptersA, /conversationScripts\.map/);
+assert.match(chaptersA, /backfireHabits\.map/);
 
 const chaptersB = readFileSync("src/app/one-to-one/result/report-v2-chapters-b.tsx", "utf8");
 assert.match(chaptersB, /getRelationshipEditorialProfileByLabel/);
 assert.match(chaptersB, /editorial\.ui\.strategyTitle/);
-assert.match(chaptersB, /editorial\.ui\.flowTitle/);
-assert.match(chaptersB, /editorial\.ui\.closenessTitle/);
-assert.match(chaptersB, /editorial\.ui\.actionTitle/);
-assert.match(chaptersB, /이 관계의 미래를 가르는 조건/);
-assert.match(chaptersB, /30-DAY ACTION PLAN/);
+assert.match(chaptersB, /content\.situationStrategy/);
+assert.match(chaptersB, /stepByStep\.map/);
+assert.match(chaptersB, /progressSignals/);
+assert.match(chaptersB, /stopSignals/);
+assert.match(chaptersB, /content\.actionPlan30/);
 assert.match(chaptersB, /RELATIONSHIP FLOW & 3-YEAR TIMING/);
 assert.match(chaptersB, /threeYearTiming\.years\.map/);
 assert.match(chaptersB, /TIMING_PHASE_LABEL/);
@@ -48,4 +57,4 @@ const resultV2 = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8")
 assert.match(resultV2, /threeYearTiming=\{snapshot\.threeYearTiming\}/);
 assert.doesNotMatch(resultV2, /dimension !== "luckCycleAlignment"/);
 
-console.log("Day 21 relationship editorial contract checks: PASS");
+console.log("Day 21 relationship editorial + deep content contract checks: PASS");
