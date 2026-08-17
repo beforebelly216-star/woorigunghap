@@ -1,0 +1,150 @@
+.deep-partner-grid,
+.deep-strategy-signals,
+.deep-conversation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0 28px;
+}
+.deep-partner-grid article,
+.deep-strategy-signals article,
+.deep-conversation-grid article {
+  border: 1px solid #ddd5ca;
+  border-radius: 20px;
+  padding: 20px;
+  background: #fffdf9;
+}
+.deep-partner-grid small,
+.deep-strategy-signals small,
+.deep-conversation-grid small,
+.deep-strategy-priority small {
+  display: block;
+  margin-bottom: 9px;
+  color: #90795c;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.deep-partner-grid h3,
+.deep-strategy-signals h3,
+.deep-conversation-grid h3 {
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+.deep-observable-scenes,
+.deep-backfire-list,
+.deep-strategy-steps {
+  overflow: hidden;
+  margin: 14px 0 28px;
+  border: 1px solid #ddd5ca;
+  border-radius: 22px;
+  background: #fffdf9;
+}
+.deep-observable-scenes article,
+.deep-backfire-list article,
+.deep-strategy-steps article {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 16px;
+  padding: 20px 22px;
+}
+.deep-observable-scenes article + article,
+.deep-backfire-list article + article,
+.deep-strategy-steps article + article {
+  border-top: 1px solid #ebe5dc;
+}
+.deep-observable-scenes article > span,
+.deep-backfire-list article > span,
+.deep-strategy-steps article > span {
+  color: #927a5c;
+  font-family: Georgia, serif;
+  font-size: .9rem;
+}
+.deep-observable-scenes h4,
+.deep-backfire-list h4,
+.deep-strategy-steps h3 {
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+.deep-observable-scenes p,
+.deep-backfire-list p,
+.deep-strategy-steps p,
+.deep-conversation-grid p {
+  margin: 8px 0 0;
+  color: #5d6961;
+  line-height: 1.65;
+}
+.deep-observable-scenes p strong,
+.deep-conversation-grid p strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #3d4e44;
+  font-size: .78rem;
+}
+.deep-leverage-top3 article h3 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+.deep-leverage-top3 article strong {
+  display: block;
+  margin-top: 12px;
+  border-top: 1px solid #ebe5dc;
+  padding-top: 12px;
+  color: #3f5147;
+  font-size: .88rem;
+  line-height: 1.6;
+}
+.deep-conversation-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.deep-strategy-priority {
+  margin: 22px 0;
+  border-left: 4px solid #2f493c;
+  border-radius: 0 18px 18px 0;
+  padding: 20px 22px;
+  background: #f4efe6;
+}
+.deep-strategy-priority strong {
+  display: block;
+  color: #344a3e;
+  font-size: 1.03rem;
+  line-height: 1.7;
+}
+.deep-strategy-steps article > span {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+.deep-strategy-steps article small {
+  display: block;
+  margin-top: 10px;
+  color: #8a7459;
+  line-height: 1.55;
+}
+.deep-strategy-signals {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.deep-week-check {
+  display: block;
+  margin-top: 12px;
+  border-top: 1px solid #e8e1d7;
+  padding-top: 10px;
+  color: #897a66;
+  font-size: .78rem;
+  line-height: 1.5;
+}
+@media (max-width: 820px) {
+  .deep-partner-grid,
+  .deep-conversation-grid,
+  .deep-strategy-signals { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .deep-observable-scenes article,
+  .deep-backfire-list article,
+  .deep-strategy-steps article {
+    grid-template-columns: 38px minmax(0, 1fr);
+    padding: 17px;
+  }
+}
