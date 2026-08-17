@@ -1,4 +1,5 @@
 import type { DetailedReportContent } from "@/lib/narrative/report-engine-v5";
+import { getRelationshipEditorialProfileByLabel } from "@/lib/relationship-editorial";
 import { BulletList, Chapter, EvidenceBoundary, Paragraph } from "./report-v2-components";
 
 export default function ReportChaptersB({
@@ -12,12 +13,14 @@ export default function ReportChaptersB({
   personBName: string;
   relationshipLabel: string;
 }) {
+  const editorial = getRelationshipEditorialProfileByLabel(relationshipLabel);
+
   return <>
     <Chapter
       index={4}
       eyebrow="RELATIONSHIP STRATEGY"
-      title={`${relationshipLabel} 관계에서 통하는 전략`}
-      intro="두 사람이 잘 맞는다는 말보다, 어떤 방식으로 연락하고 결정하고 표현해야 관계가 덜 소모되는지가 더 중요합니다."
+      title={editorial.ui.strategyTitle}
+      intro={editorial.ui.strategyIntro}
       summary={[content.relationshipSpecific.overview, content.directionalImpact.asymmetry, ...content.practicalManual.do.slice(0, 1)]}
     >
       <Paragraph>{content.relationshipSpecific.overview}</Paragraph>
@@ -28,7 +31,7 @@ export default function ReportChaptersB({
     <Chapter
       index={5}
       eyebrow="RELATIONSHIP FLOW"
-      title="관계가 가까워질수록 생기는 흐름"
+      title={editorial.ui.flowTitle}
       intro="현재 엔진이 근거를 가진 관계 역할·주도권·친밀도와 갈등 패턴만 다룹니다. 근거 없는 월별 운세나 사건 시점은 만들지 않습니다."
       summary={[content.relationshipFlow.roles, content.relationshipFlow.initiative, content.relationshipFlow.intimacy]}
     >
@@ -42,14 +45,14 @@ export default function ReportChaptersB({
     <Chapter
       index={6}
       eyebrow="CLOSENESS & CHEMISTRY"
-      title={`${relationshipLabel}에서 느껴지는 친밀 케미와 거리감`}
+      title={editorial.ui.closenessTitle}
       intro="끌림과 편안함은 한 방향으로만 생기지 않습니다. 서로를 묶는 신호와 부담을 주는 신호를 함께 봅니다."
       summary={[content.chemistry.overview, ...content.bondAndFriction.positiveInteractions.slice(0, 1), content.directionalImpact.bToA]}
     >
       <Paragraph>{content.chemistry.overview}</Paragraph>
       <div className="v2-two-column"><div><h3>둘을 붙잡아 주는 신호</h3><BulletList items={content.bondAndFriction.positiveInteractions} /></div><div><h3>거리를 만들 수 있는 신호</h3><BulletList items={content.bondAndFriction.frictionInteractions} /></div></div>
       <h3>{personBName} → {personAName}</h3><Paragraph>{content.directionalImpact.bToA}</Paragraph>
-      <h3>친밀해졌을 때의 체감</h3><Paragraph>{content.relationshipFlow.intimacy}</Paragraph>
+      <h3>가까워졌을 때의 체감</h3><Paragraph>{content.relationshipFlow.intimacy}</Paragraph>
     </Chapter>
 
     <Chapter
@@ -67,13 +70,13 @@ export default function ReportChaptersB({
     <Chapter
       index={8}
       eyebrow="ACTION PLAN"
-      title="지금 바로 써먹는 관계 실행 플랜"
+      title={editorial.ui.actionTitle}
       intro="해석을 읽고 끝내지 않도록, 오늘부터 적용할 행동과 갈등이 생겼을 때의 순서를 한 장에 모았습니다."
       summary={[...content.practicalManual.do.slice(0, 2), ...content.practicalManual.dont.slice(0, 1)]}
     >
       <div className="v2-two-column"><div><h3>이렇게 해보세요</h3><BulletList items={content.practicalManual.do} /></div><div><h3>이건 피하세요</h3><BulletList items={content.practicalManual.dont} /></div></div>
       <h3>갈등이 생겼을 때 순서</h3><div className="v2-protocol">{content.practicalManual.conflictProtocol.map((item, index) => <div key={`${index}-${item}`}><span>{index + 1}</span><p>{item}</p></div>)}</div>
-      <h3>함께 하기 좋은 활동</h3><BulletList items={content.practicalManual.recommendedActivities} />
+      <h3>{relationshipLabel === "직장동료" ? "함께 일하기 좋은 방식" : "함께 하기 좋은 활동"}</h3><BulletList items={content.practicalManual.recommendedActivities} />
     </Chapter>
 
     <Chapter

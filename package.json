@@ -26,7 +26,8 @@
     "test:day15:one-to-many-result-ui": "tsx scripts/day15-one-to-many-result-ui-test.ts",
     "test:day16:one-to-many-paid-e2e": "tsx scripts/day16-one-to-many-paid-e2e-contract-test.ts",
     "test:day17:kakao-auth": "tsx scripts/day17-kakao-auth-contract-test.ts",
-    "test:day18:account-report-library": "tsx scripts/day18-account-report-library-contract-test.ts"
+    "test:day18:account-report-library": "tsx scripts/day18-account-report-library-contract-test.ts",
+    "test:day21:relationship-editorial": "tsx scripts/day21-relationship-editorial-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
