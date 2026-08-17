@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { collectPaidNarrativeQualityIssues } from "../src/lib/narrative/report-engine-v6-request";
 
 const oneToOneOrder = readFileSync("src/app/api/orders/one-to-one/route.ts", "utf8");
 const oneToOneReport = readFileSync("src/app/api/compatibility/one-to-one/route.ts", "utf8");
@@ -48,7 +49,7 @@ assert.match(oneToOneReport, /completeReportSegmentGeneration\(paymentId, segmen
 assert.match(oneToOneReport, /releaseReportSegmentGeneration/);
 assert.match(oneToOneReport, /SERVER_REPORT_SEGMENT_SAVE_FAILED/);
 
-// AI failures remain bounded/retryable, output is server-validated, and short valid JSON gets one quality retry.
+// AI failures remain bounded/retryable and structurally valid but weak output gets one quality retry.
 assert.match(requestEngine, /for \(let attempt = 1; attempt <= 2; attempt \+= 1\)/);
 assert.match(requestEngine, /response\.status === 429 \|\| response\.status === 529/);
 assert.match(requestEngine, /matchesJsonSchema/);
@@ -56,6 +57,43 @@ assert.match(requestEngine, /shape\.type === "number"/);
 assert.match(requestEngine, /QUALITY_SHORTFALL/);
 assert.match(requestEngine, /bestQualityCandidate/);
 assert.match(requestEngine, /MAX_TOKENS/);
+assert.match(requestEngine, /collectPaidNarrativeQualityIssues/);
+assert.match(requestEngine, /EXACT_LONG_TEXT_DUPLICATE/);
+assert.match(requestEngine, /DEVELOPER_LABEL_A_B_EXPOSED/);
+assert.match(requestEngine, /RELATIONSHIP_ROMANCE_LEAK/);
+assert.match(requestEngine, /COWORKER_HIERARCHY_NOT_REFLECTED/);
+assert.match(requestEngine, /INTRO" \? 2600/);
+assert.match(requestEngine, /5200/);
+
+const repeated = "업무 상황에서는 감정 추정보다 확인 가능한 기준과 책임 범위를 먼저 맞추는 편이 좋습니다.";
+const badCoworkerOutput = {
+  first: `A는 상대를 무조건 이해해야 합니다. 두 사람은 데이트를 통해 가까워질 수 있습니다. ${repeated}`,
+  second: repeated,
+  third: repeated,
+};
+const badIssues = collectPaidNarrativeQualityIssues(
+  badCoworkerOutput,
+  "ACTION",
+  '{"relationshipType":"coworker","coworkerHierarchy":"boss"}',
+);
+assert.ok(badIssues.includes("ACTION_TOTAL_DENSITY_SHORT"));
+assert.ok(badIssues.includes("EXACT_LONG_TEXT_DUPLICATE"));
+assert.ok(badIssues.includes("DEVELOPER_LABEL_A_B_EXPOSED"));
+assert.ok(badIssues.includes("DETERMINISTIC_CERTAINTY"));
+assert.ok(badIssues.includes("RELATIONSHIP_ROMANCE_LEAK"));
+assert.ok(badIssues.includes("COWORKER_HIERARCHY_NOT_REFLECTED"));
+
+const hierarchyAwareText = Array.from(
+  { length: 90 },
+  (_, index) => `업무 장면 ${index + 1}에서는 보고 시점을 먼저 합의하고, 이견이 있으면 근거를 짧게 정리해 상사에게 요청하며 피드백 기준을 확인합니다.`,
+).join(" ");
+const hierarchyAwareIssues = collectPaidNarrativeQualityIssues(
+  { detail: hierarchyAwareText },
+  "ACTION",
+  '{"relationshipType":"coworker","coworkerHierarchy":"boss"}',
+);
+assert.ok(!hierarchyAwareIssues.includes("COWORKER_HIERARCHY_NOT_REFLECTED"));
+assert.ok(!hierarchyAwareIssues.includes("ACTION_TOTAL_DENSITY_SHORT"));
 
 // Account deletion strips sensitive report/input material while preserving a minimal legal record.
 assert.match(accountStore, /legal-retention-v1/);
@@ -68,4 +106,4 @@ assert.match(workflow, /test:day18:account-report-library/);
 assert.match(workflow, /test:day22:operating-policy/);
 assert.match(workflow, /test:day23:system-qa/);
 
-console.log("Day 23 system QA + narrative quality retry contract checks: PASS");
+console.log("Day 23 system QA + narrative output quality gate checks: PASS");
