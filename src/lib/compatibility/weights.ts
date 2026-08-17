@@ -1,6 +1,6 @@
 import type { CompatibilityDimension, CompatibilityProfile } from "./types";
 
-export const COMPATIBILITY_SCORING_VERSION = "1.2.0";
+export const COMPATIBILITY_SCORING_VERSION = "1.3.0";
 
 export const COMPATIBILITY_SCORE_WEIGHTS = {
   romance: {
