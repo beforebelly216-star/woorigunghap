@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  KAKAO_NOTIFY_INTENT_COOKIE,
   KAKAO_OAUTH_STATE_COOKIE,
   KAKAO_RETURN_TO_COOKIE,
   OAUTH_STATE_MAX_AGE_SECONDS,
@@ -34,5 +35,6 @@ export async function GET(request: NextRequest) {
   };
   response.cookies.set(KAKAO_OAUTH_STATE_COOKIE, state, cookieBase);
   response.cookies.set(KAKAO_RETURN_TO_COOKIE, returnTo, cookieBase);
+  response.cookies.set(KAKAO_NOTIFY_INTENT_COOKIE, wantsMessageNotification ? "1" : "0", cookieBase);
   return response;
 }
