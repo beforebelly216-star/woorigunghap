@@ -7,6 +7,7 @@ import {
   type Gender,
   type PersonBirthInput,
 } from "@/lib/report-input";
+import { ariaDescribedBy, formFieldId } from "@/lib/form-accessibility";
 
 type Meridiem = "am" | "pm";
 
@@ -104,26 +105,40 @@ export function PersonBirthFields({
   onChange: (next: PersonBirthFormState) => void;
 }) {
   const error = (field: string) => errors[`${prefix}.${field}`];
+  const id = (field: string, suffix?: string) => formFieldId(prefix, field, suffix);
+  const birthDateError = error("birthDate");
+  const birthTimeError = error("birthTime");
+  const genderError = error("gender");
+  const displayNameError = error("displayName");
 
   return (
     <fieldset className="person-panel">
       <legend>{title}</legend>
 
-      <label className="field-stack">
+      <label className="field-stack" htmlFor={id("displayName")}>
         <span>이름 또는 별칭</span>
         <input
+          id={id("displayName")}
           type="text"
           maxLength={20}
           placeholder={placeholder}
           value={value.displayName}
+          aria-invalid={Boolean(displayNameError)}
+          aria-describedby={displayNameError ? id("displayName", "error") : undefined}
           onChange={(event) => onChange({ ...value, displayName: event.target.value })}
         />
-        {error("displayName") ? <small className="field-error">{error("displayName")}</small> : null}
+        {displayNameError ? <small id={id("displayName", "error")} className="field-error">{displayNameError}</small> : null}
       </label>
 
       <div className="field-stack">
-        <span>성별</span>
-        <div className="segmented-control" role="radiogroup" aria-label={`${title} 성별`}>
+        <span id={id("gender", "label")}>성별</span>
+        <div
+          className="segmented-control"
+          role="radiogroup"
+          aria-labelledby={id("gender", "label")}
+          aria-invalid={Boolean(genderError)}
+          aria-describedby={genderError ? id("gender", "error") : undefined}
+        >
           {GENDERS.map((gender) => (
             <label key={gender} className={value.gender === gender ? "selected" : ""}>
               <input
@@ -137,12 +152,12 @@ export function PersonBirthFields({
             </label>
           ))}
         </div>
-        {error("gender") ? <small className="field-error">{error("gender")}</small> : null}
+        {genderError ? <small id={id("gender", "error")} className="field-error">{genderError}</small> : null}
       </div>
 
       <div className="field-stack">
-        <span>달력 기준</span>
-        <div className="segmented-control" role="radiogroup" aria-label={`${title} 달력 기준`}>
+        <span id={id("calendar", "label")}>달력 기준</span>
+        <div className="segmented-control" role="radiogroup" aria-labelledby={id("calendar", "label")}>
           {CALENDAR_TYPES.map((calendarType) => (
             <label key={calendarType} className={value.calendarType === calendarType ? "selected" : ""}>
               <input
@@ -162,19 +177,23 @@ export function PersonBirthFields({
         </div>
       </div>
 
-      <label className="field-stack">
+      <label className="field-stack" htmlFor={id("birthDate")}>
         <span>생년월일</span>
         <input
+          id={id("birthDate")}
           type="text"
           inputMode="numeric"
           autoComplete="bday"
+          enterKeyHint="next"
           maxLength={8}
           placeholder="예: 19980815"
           value={value.birthDate}
+          aria-invalid={Boolean(birthDateError)}
+          aria-describedby={ariaDescribedBy(id("birthDate", "hint"), birthDateError && id("birthDate", "error"))}
           onChange={(event) => onChange({ ...value, birthDate: numbersOnly(event.target.value, 8) })}
         />
-        <small className="field-hint">하이픈 없이 YYYYMMDD 8자리로 입력해 주세요.</small>
-        {error("birthDate") ? <small className="field-error">{error("birthDate")}</small> : null}
+        <small id={id("birthDate", "hint")} className="field-hint">하이픈 없이 YYYYMMDD 8자리로 입력해 주세요.</small>
+        {birthDateError ? <small id={id("birthDate", "error")} className="field-error">{birthDateError}</small> : null}
       </label>
 
       {value.calendarType === "lunar" ? (
@@ -189,7 +208,7 @@ export function PersonBirthFields({
       ) : null}
 
       <div className="field-stack">
-        <span>출생시간</span>
+        <span id={id("birthTime", "label")}>출생시간</span>
         <div className="time-input-row">
           <div className="segmented-control" role="radiogroup" aria-label={`${title} 출생시간 오전 또는 오후`}>
             {(["am", "pm"] as const).map((meridiem) => (
@@ -206,17 +225,22 @@ export function PersonBirthFields({
             ))}
           </div>
           <input
+            id={id("birthTime")}
             type="text"
             inputMode="numeric"
             autoComplete="off"
+            enterKeyHint="next"
             maxLength={4}
             placeholder="예: 0930"
             value={value.birthTime}
             disabled={!value.birthTimeKnown}
+            aria-labelledby={id("birthTime", "label")}
+            aria-invalid={Boolean(birthTimeError)}
+            aria-describedby={ariaDescribedBy(id("birthTime", "hint"), birthTimeError && id("birthTime", "error"))}
             onChange={(event) => onChange({ ...value, birthTime: numbersOnly(event.target.value, 4) })}
           />
         </div>
-        <small className="field-hint">오전/오후를 고른 뒤 HHMM 4자리로 입력해 주세요. 자정은 오전 1200입니다.</small>
+        <small id={id("birthTime", "hint")} className="field-hint">오전/오후를 고른 뒤 HHMM 4자리로 입력해 주세요. 자정은 오전 1200입니다.</small>
         <label className="check-row">
           <input
             type="checkbox"
@@ -229,7 +253,7 @@ export function PersonBirthFields({
           />
           정확한 출생시간을 몰라요
         </label>
-        {error("birthTime") ? <small className="field-error">{error("birthTime")}</small> : null}
+        {birthTimeError ? <small id={id("birthTime", "error")} className="field-error">{birthTimeError}</small> : null}
       </div>
     </fieldset>
   );
