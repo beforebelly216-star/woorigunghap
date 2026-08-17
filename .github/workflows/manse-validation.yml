@@ -9,6 +9,7 @@ on:
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
       - "scripts/day*.ts"
+      - "scripts/one-to-one-*.ts"
       - "scripts/pending-*.ts"
       - "package.json"
       - "package-lock.json"
@@ -19,6 +20,7 @@ on:
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
       - "scripts/day*.ts"
+      - "scripts/one-to-one-*.ts"
       - "scripts/pending-*.ts"
       - "package.json"
       - "package-lock.json"
@@ -71,6 +73,7 @@ jobs:
           npm run test:day22:operating-policy
           npm run test:day23:system-qa
           npm run test:pending-library-notify
+          npm run test:one-to-one:partner-info
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi
