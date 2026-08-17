@@ -74,6 +74,15 @@ function rolePhraseReplacements(names: { self: string; partner: string }) {
   ] as const;
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function replaceIndependentRolePhrase(source: string, phrase: string, replacement: string) {
+  const pattern = new RegExp(`(^|[^가-힣A-Za-z0-9])${escapeRegExp(phrase)}`, "g");
+  return source.replace(pattern, (_match, prefix: string) => `${prefix}${replacement}`);
+}
+
 export function personalizeNarrativeNames<T>(
   value: T,
   names: { self: string; partner: string },
@@ -87,7 +96,7 @@ export function personalizeNarrativeNames<T>(
       source,
     );
     return roleReplacements.reduce(
-      (text, [rolePhrase, replacement]) => text.split(rolePhrase).join(replacement),
+      (text, [rolePhrase, replacement]) => replaceIndependentRolePhrase(text, rolePhrase, replacement),
       tokenized,
     );
   }
