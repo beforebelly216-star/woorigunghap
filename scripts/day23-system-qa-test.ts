@@ -48,10 +48,13 @@ assert.match(oneToOneReport, /completeReportSegmentGeneration\(paymentId, segmen
 assert.match(oneToOneReport, /releaseReportSegmentGeneration/);
 assert.match(oneToOneReport, /SERVER_REPORT_SEGMENT_SAVE_FAILED/);
 
-// AI failures remain bounded/retryable and output is server-validated.
+// AI failures remain bounded/retryable, output is server-validated, and short valid JSON gets one quality retry.
 assert.match(requestEngine, /for \(let attempt = 1; attempt <= 2; attempt \+= 1\)/);
 assert.match(requestEngine, /response\.status === 429 \|\| response\.status === 529/);
 assert.match(requestEngine, /matchesJsonSchema/);
+assert.match(requestEngine, /shape\.type === "number"/);
+assert.match(requestEngine, /QUALITY_SHORTFALL/);
+assert.match(requestEngine, /bestQualityCandidate/);
 assert.match(requestEngine, /MAX_TOKENS/);
 
 // Account deletion strips sensitive report/input material while preserving a minimal legal record.
@@ -65,4 +68,4 @@ assert.match(workflow, /test:day18:account-report-library/);
 assert.match(workflow, /test:day22:operating-policy/);
 assert.match(workflow, /test:day23:system-qa/);
 
-console.log("Day 23 system QA contract checks: PASS");
+console.log("Day 23 system QA + narrative quality retry contract checks: PASS");
