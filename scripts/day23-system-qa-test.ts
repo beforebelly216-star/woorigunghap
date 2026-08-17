@@ -5,6 +5,7 @@ const oneToOneOrder = readFileSync("src/app/api/orders/one-to-one/route.ts", "ut
 const oneToOneReport = readFileSync("src/app/api/compatibility/one-to-one/route.ts", "utf8");
 const oneToManyReport = readFileSync("src/app/api/compatibility/one-to-many/route.ts", "utf8");
 const store = readFileSync("src/lib/server-report-store.ts", "utf8");
+const segmentLock = readFileSync("src/lib/report-generation-lock.ts", "utf8");
 const webhook = readFileSync("src/app/api/webhooks/portone/route.ts", "utf8");
 const payment = readFileSync("src/lib/payments/verification.ts", "utf8");
 const requestEngine = readFileSync("src/lib/narrative/report-engine-v6-request.ts", "utf8");
@@ -36,6 +37,16 @@ assert.match(store, /status = 'processing' AND updated_at < NOW\(\) - INTERVAL '
 assert.match(store, /return "conflict" as const/);
 assert.match(webhook, /claim === "conflict"/);
 assert.match(webhook, /status: 409/);
+
+// 1:1 AI generation is single-flight per paid segment, with stale/failed recovery.
+assert.match(segmentLock, /PRIMARY KEY \(payment_id, segment\)/);
+assert.match(segmentLock, /status = 'failed'/);
+assert.match(segmentLock, /updated_at < NOW\(\) - INTERVAL '5 minutes'/);
+assert.match(oneToOneReport, /claimReportSegmentGeneration\(paymentId, segment\)/);
+assert.match(oneToOneReport, /REPORT_GENERATION_IN_PROGRESS/);
+assert.match(oneToOneReport, /completeReportSegmentGeneration\(paymentId, segment\)/);
+assert.match(oneToOneReport, /releaseReportSegmentGeneration/);
+assert.match(oneToOneReport, /SERVER_REPORT_SEGMENT_SAVE_FAILED/);
 
 // AI failures remain bounded/retryable and output is server-validated.
 assert.match(requestEngine, /for \(let attempt = 1; attempt <= 2; attempt \+= 1\)/);
