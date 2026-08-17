@@ -9,6 +9,16 @@ export const RELATIONSHIP_LABELS: Record<RelationshipType, string> = {
   coworker: "직장동료",
 };
 
+export const COWORKER_HIERARCHIES = ["boss", "peer", "subordinate"] as const;
+export type CoworkerHierarchy = (typeof COWORKER_HIERARCHIES)[number];
+
+/** 두 번째 사람(personB)이 첫 번째 사람(personA) 기준으로 어떤 위치인지 나타낸다. */
+export const COWORKER_HIERARCHY_LABELS: Record<CoworkerHierarchy, string> = {
+  boss: "상대가 내 상사",
+  peer: "동급 동료",
+  subordinate: "상대가 내 부하",
+};
+
 export const CALCULATION_PROFILES = ["romance", "friend", "coworker"] as const;
 export type CalculationProfile = (typeof CALCULATION_PROFILES)[number];
 
@@ -51,6 +61,11 @@ export type PersonBirthInput = {
 
 export type OneToOneReportInput = {
   relationshipType: RelationshipType;
+  /**
+   * 두 번째 사람(personB)의 첫 번째 사람(personA) 대비 직장 위계.
+   * 기존 저장 주문과의 하위호환을 위해 optional이며, 새 coworker 주문은 폼/주문 API에서 필수 검증한다.
+   */
+  coworkerHierarchy?: CoworkerHierarchy | null;
   personA: PersonBirthInput;
   personB: PersonBirthInput;
 };
@@ -89,10 +104,22 @@ export function parseOneToOneReportInput(value: unknown): OneToOneReportInput | 
   const candidate = value as Record<string, unknown>;
 
   if (!RELATIONSHIP_TYPES.includes(candidate.relationshipType as RelationshipType)) return null;
+  const hierarchy = candidate.coworkerHierarchy;
+  if (
+    hierarchy !== undefined
+    && hierarchy !== null
+    && !COWORKER_HIERARCHIES.includes(hierarchy as CoworkerHierarchy)
+  ) return null;
+
   const personA = parsePersonBirthInput(candidate.personA);
   const personB = parsePersonBirthInput(candidate.personB);
   return personA && personB
-    ? { relationshipType: candidate.relationshipType as RelationshipType, personA, personB }
+    ? {
+        relationshipType: candidate.relationshipType as RelationshipType,
+        coworkerHierarchy: hierarchy == null ? null : hierarchy as CoworkerHierarchy,
+        personA,
+        personB,
+      }
     : null;
 }
 
@@ -187,11 +214,31 @@ function validatePerson(person: PersonBirthInput, prefix: string) {
   return errors;
 }
 
-export function validateOneToOneReportInput(input: OneToOneReportInput) {
+export function validateOneToOneReportInput(
+  input: OneToOneReportInput,
+  options: { requireCoworkerHierarchy?: boolean } = {},
+) {
   const errors: InputFieldErrors = {};
 
   if (!RELATIONSHIP_TYPES.includes(input.relationshipType)) {
     errors.relationshipType = "관계 유형을 선택해 주세요.";
+  }
+
+  if (
+    input.coworkerHierarchy != null
+    && !COWORKER_HIERARCHIES.includes(input.coworkerHierarchy)
+  ) {
+    errors.coworkerHierarchy = "직장동료 관계의 위치를 다시 선택해 주세요.";
+  }
+  if (
+    options.requireCoworkerHierarchy
+    && input.relationshipType === "coworker"
+    && !input.coworkerHierarchy
+  ) {
+    errors.coworkerHierarchy = "두 번째 사람의 직장 내 위치를 선택해 주세요.";
+  }
+  if (input.relationshipType !== "coworker" && input.coworkerHierarchy) {
+    errors.coworkerHierarchy = "직장 내 위치는 직장동료 궁합에서만 선택할 수 있어요.";
   }
 
   Object.assign(errors, validatePerson(input.personA, "personA"));
