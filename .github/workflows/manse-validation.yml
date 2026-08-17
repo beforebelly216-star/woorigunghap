@@ -9,6 +9,7 @@ on:
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
       - "scripts/day*.ts"
+      - "scripts/pending-*.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/manse-validation.yml"
@@ -18,6 +19,7 @@ on:
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
       - "scripts/day*.ts"
+      - "scripts/pending-*.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/manse-validation.yml"
@@ -68,6 +70,7 @@ jobs:
           npm run test:day21:relationship-editorial
           npm run test:day22:operating-policy
           npm run test:day23:system-qa
+          npm run test:pending-library-notify
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi

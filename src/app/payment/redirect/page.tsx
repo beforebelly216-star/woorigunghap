@@ -49,10 +49,15 @@ function PaymentResult() {
         setAttempt(currentAttempt);
 
         try {
+          const order = loadOrderDraft(verifiedPaymentId);
           const response = await fetch("/api/payments/verify", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ paymentId: verifiedPaymentId }),
+            body: JSON.stringify({
+              paymentId: verifiedPaymentId,
+              accessToken: order?.resultAccessToken,
+              input: order?.inputSnapshot,
+            }),
             cache: "no-store",
           });
           const payload = await response.json().catch(() => null) as VerifyPayload | null;
@@ -60,7 +65,6 @@ function PaymentResult() {
 
           if (response.ok && payload?.verified) {
             setState("success");
-            const order = loadOrderDraft(verifiedPaymentId);
             const resultUrl = productFromPaymentId(verifiedPaymentId) === "oneToMany"
               ? buildOneToManyResultUrl(verifiedPaymentId, order?.resultAccessToken)
               : buildOneToOneResultUrl(verifiedPaymentId, order?.resultAccessToken);
@@ -97,9 +101,9 @@ function PaymentResult() {
       "결제를 확인하고 있어요",
       attempt > 1
         ? "결제 반영이 늦어 자동으로 다시 확인하고 있어요. 추가 결제는 하지 않습니다."
-        : "확인되면 궁합 결과로 바로 이동해요.",
+        : "확인되면 결과 생성을 시작하고 궁합 결과로 이동해요.",
     ],
-    success: ["결제가 확인됐어요", "궁합 결과를 여는 중이에요."],
+    success: ["결제가 확인됐어요", "결과 생성을 시작했어요. 보관함으로 이동해도 계속 진행됩니다."],
     failed: ["결제 정보를 확인해야 해요", fatalMessage ?? "결제 상품 또는 금액을 다시 확인해 주세요."],
     cancelled: [
       "결제가 완료되지 않았어요",
@@ -118,14 +122,17 @@ function PaymentResult() {
       <h1>{copy[0]}</h1>
       <p>{copy[1]}</p>
       {state === "success" && paymentId ? (
-        <Link
-          href={product === "oneToMany"
-            ? buildOneToManyResultUrl(paymentId)
-            : buildOneToOneResultUrl(paymentId)}
-          className="primary-link"
-        >
-          바로 결과 보기
-        </Link>
+        <div className="recovery-actions">
+          <Link
+            href={product === "oneToMany"
+              ? buildOneToManyResultUrl(paymentId)
+              : buildOneToOneResultUrl(paymentId)}
+            className="primary-link"
+          >
+            바로 결과 보기
+          </Link>
+          <Link href="/account/reports" className="back-link">보관함에서 생성 상태 보기</Link>
+        </div>
       ) : state === "failed" || state === "cancelled" ? (
         <div className="recovery-actions">
           {retryHref ? <Link href={retryHref} className="primary-link">같은 주문으로 결제 다시 시도</Link> : null}

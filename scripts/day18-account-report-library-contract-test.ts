@@ -29,7 +29,8 @@ assert.match(serverStore, /payment_status = 'paid'/);
 
 assert.match(claimRoute, /isSameOriginPost\(request\)/);
 assert.match(claimRoute, /loadAuthenticatedRequestUser/);
-assert.match(claimRoute, /loadCompletedServerReportForAccess/);
+// A paid order may be claimed before its report is complete, but the original access token is still required.
+assert.match(claimRoute, /loadServerReportForAccess\(paymentId, accessToken\)/);
 assert.match(claimRoute, /status: 409/);
 assert.match(claimRoute, /private, no-store/);
 assert.match(listRoute, /listAccountReports\(user\.userId\)/);
@@ -43,7 +44,8 @@ assert.match(accountLink, /\/api\/account\/reports\/claim/);
 assert.match(accountLink, /JSON\.stringify\(\{ paymentId, accessToken \}\)/);
 assert.doesNotMatch(accountLink, /accessToken=.*href|searchParams.*accessToken/);
 assert.match(libraryPage, /source: "account"/);
-assert.match(libraryPage, /다시 계산하거나 AI를 다시 호출하지 않고/);
+assert.match(libraryPage, /결제 완료 즉시 보관함에 저장되고/);
+assert.match(libraryPage, />생성중</);
 assert.match(oneToOne, /\/api\/account\/reports\/\$\{encodeURIComponent\(paymentId\)\}/);
 assert.match(oneToOne, /alreadyClaimed=\{accountOwned\}/);
 assert.match(oneToMany, /\/api\/account\/reports\/\$\{encodeURIComponent\(paymentId\)\}/);

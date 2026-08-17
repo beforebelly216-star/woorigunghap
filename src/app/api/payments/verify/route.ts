@@ -1,11 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
+import { claimAccountReport } from "@/lib/account-report-store";
+import { loadAuthenticatedRequestUser } from "@/lib/auth-request";
+import { kickOffPaidReportGeneration } from "@/lib/background-report-kickoff";
 import {
   PaymentVerificationError,
   verifyPaidPayment,
 } from "@/lib/payments/verification";
+import { isResultAccessToken } from "@/lib/result-access-token";
 import { markServerOrderPaid } from "@/lib/server-report-store";
 
 export const runtime = "nodejs";
+export const maxDuration = 240;
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -18,12 +23,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const paymentId =
-    body &&
-    typeof body === "object" &&
-    typeof (body as { paymentId?: unknown }).paymentId === "string"
-      ? (body as { paymentId: string }).paymentId
-      : null;
+  const candidate = body && typeof body === "object" && !Array.isArray(body)
+    ? body as { paymentId?: unknown; accessToken?: unknown; input?: unknown }
+    : null;
+  const paymentId = typeof candidate?.paymentId === "string" ? candidate.paymentId : null;
+  const accessToken = isResultAccessToken(candidate?.accessToken) ? candidate.accessToken : null;
 
   if (!paymentId) {
     return NextResponse.json(
@@ -39,7 +43,32 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error("[woorigunghap:payment-store-mark]", error);
     }
-    return NextResponse.json({ verified: true, ...verified });
+
+    const user = await loadAuthenticatedRequestUser(request).catch(() => null);
+    if (user) {
+      const claimed = await claimAccountReport(user.userId, paymentId, verified.product).catch(() => "unavailable" as const);
+      if (claimed === "conflict") {
+        console.warn("[woorigunghap:auto-claim-conflict]", paymentId);
+      }
+    }
+
+    if (accessToken) {
+      const origin = request.nextUrl.origin;
+      after(async () => {
+        const completed = await kickOffPaidReportGeneration({
+          origin,
+          paymentId,
+          product: verified.product,
+          accessToken,
+          input: candidate?.input,
+        });
+        if (!completed) {
+          console.warn("[woorigunghap:background-report-incomplete]", paymentId);
+        }
+      });
+    }
+
+    return NextResponse.json({ verified: true, ...verified, generationQueued: Boolean(accessToken) });
   } catch (error) {
     if (error instanceof PaymentVerificationError) {
       return NextResponse.json(

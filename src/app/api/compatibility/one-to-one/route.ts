@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
 import { buildPaidReportFacts } from "@/lib/narrative/report-engine-v5";
 import {
@@ -11,6 +11,7 @@ import {
   verifyPaidPayment,
 } from "@/lib/payments/verification";
 import { createRecoveredOneToOneOrderDraft } from "@/lib/orders";
+import { notifyReportCompleted } from "@/lib/report-completion-notification";
 import {
   parseOneToOneReportInput,
   validateOneToOneReportInput,
@@ -36,7 +37,7 @@ import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const runtime = "nodejs";
 export const maxDuration = 240;
-const REPORT_RUNTIME_VERSION = "paid-report-v7-editorial-server-store-20260817-day23";
+const REPORT_RUNTIME_VERSION = "paid-report-v7-editorial-server-store-20260817-background-notify";
 const PHASES = ["prepare", ...PAID_REPORT_SEGMENTS] as const;
 type ReportPhase = (typeof PHASES)[number];
 
@@ -247,6 +248,7 @@ export async function POST(request: NextRequest) {
     if (!persisted) throw new Error("SERVER_REPORT_SEGMENT_SAVE_FAILED");
     await completeReportSegmentGeneration(paymentId, segment);
     claimedSegment = null;
+    if (segment === "action") after(() => notifyReportCompleted(paymentId));
 
     return NextResponse.json({
       phase,
