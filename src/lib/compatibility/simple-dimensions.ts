@@ -284,7 +284,7 @@ export function scoreElementComplementarity(
     ...weightedPoints(profile, "elementComplementarity", normalizedScore),
     evidence: {
       aImbalance: round1(aImbalance),
-      bImbalance: round1(bImalance),
+      bImbalance: round1(bImbalance),
       combinedImbalance: round1(after),
       improvement: round1(improvement),
     },
