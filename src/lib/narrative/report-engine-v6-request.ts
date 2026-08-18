@@ -475,7 +475,7 @@ export async function requestStructuredSegment<T>(args: {
         : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고 완결된 객체를 출력하세요.";
       const expandedSystem = attempt === 1 ? baseSystem : `${baseSystem}\n\n[재시도 지시] ${retryReason}`;
       const firstAttemptMaxTokens = args.label === "INTRO"
-        ? Math.min(args.maxTokens, 3_500)
+        ? Math.min(args.maxTokens, 4_400)
         : args.label === "DYNAMICS" || args.label === "ACTION"
           ? Math.min(args.maxTokens, 5_000)
           : args.maxTokens;
