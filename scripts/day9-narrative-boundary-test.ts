@@ -48,20 +48,22 @@ async function main() {
   const facts = buildPaidReportFacts(input);
   const editorialContext = buildReportEditorialContext(input);
   const serialized = JSON.stringify(pack);
-  const fullAiPayload = JSON.stringify({ facts, evidence: pack, editorialContext });
+  // This is a conservative privacy superset. The actual paid v7 path additionally
+  // strips editorially unnecessary role-supply and weighting internals before Claude.
+  const privacySupersetPayload = JSON.stringify({ facts, evidence: pack, editorialContext });
 
   for (const forbiddenValue of ["테스트A", "테스트B", "1990-05-15", "1992-10-24", "14:17", "05:43", "test@example.com", "010-1234-5678"]) {
     assertCondition(!serialized.includes(forbiddenValue), `ReportEvidencePack 개인정보 값 노출: ${forbiddenValue}`);
-    assertCondition(!fullAiPayload.includes(forbiddenValue), `실제 AI payload 개인정보 값 노출: ${forbiddenValue}`);
+    assertCondition(!privacySupersetPayload.includes(forbiddenValue), `AI privacy superset 개인정보 값 노출: ${forbiddenValue}`);
   }
   for (const forbiddenKey of ["displayName", "paymentId", "orderId", "birthDate", "sourceDate", "solarDate"]) {
     assertCondition(!serialized.includes(`\"${forbiddenKey}\":`), `ReportEvidencePack 개인정보 키 노출: ${forbiddenKey}`);
-    assertCondition(!fullAiPayload.includes(`\"${forbiddenKey}\":`), `실제 AI payload 개인정보 키 노출: ${forbiddenKey}`);
+    assertCondition(!privacySupersetPayload.includes(`\"${forbiddenKey}\":`), `AI privacy superset 개인정보 키 노출: ${forbiddenKey}`);
   }
-  assertCondition(!fullAiPayload.includes("\"birthTime\":"), "원본 birthTime 키는 AI payload에 포함되면 안 됩니다.");
-  assertCondition(fullAiPayload.includes("\"birthTimeKnown\":"), "시간 미상 여부 플래그는 신뢰도 설명을 위해 유지합니다.");
-  assertCondition(fullAiPayload.includes("\"pillars\":"), "유료 리포트 AI payload에는 직접 식별정보를 제거한 사주팔자 facts가 필요합니다.");
-  assertCondition(fullAiPayload.includes("\"visibleElementCounts\":"), "유료 리포트 AI payload에는 오행 개수 facts가 필요합니다.");
+  assertCondition(!privacySupersetPayload.includes("\"birthTime\":"), "원본 birthTime 키는 AI payload에 포함되면 안 됩니다.");
+  assertCondition(privacySupersetPayload.includes("\"birthTimeKnown\":"), "시간 미상 여부 플래그는 신뢰도 설명을 위해 유지합니다.");
+  assertCondition(privacySupersetPayload.includes("\"pillars\":"), "유료 리포트 AI payload에는 직접 식별정보를 제거한 사주팔자 facts가 필요합니다.");
+  assertCondition(privacySupersetPayload.includes("\"visibleElementCounts\":"), "유료 리포트 AI payload에는 오행 개수 facts가 필요합니다.");
   assertCondition(editorialContext.relationshipDurationMonths === 24, "관계 기간은 계산 근거가 아닌 편집 참고문맥으로 전달되어야 합니다.");
   assertCondition(editorialContext.userQuestionPolicy === "untrusted-reference-text", "사용자 질문은 비신뢰 참고 텍스트로 표시해야 합니다.");
   assertCondition(editorialContext.userQuestion?.includes("{{PARTNER}}") === true, "질문 속 상대 이름은 비식별 자리표시자로 바뀌어야 합니다.");
@@ -103,7 +105,7 @@ async function main() {
   assertCondition(pack.directionalSignals.bReceivesUsefulFit !== null, "B←A 방향성 근거가 필요합니다.");
   assertCondition(pack.aiBoundary.scoreMutableByAi === false, "AI가 점수를 변경할 수 없어야 합니다.");
   assertCondition(pack.aiBoundary.rankingMutableByAi === false, "AI가 순위를 변경할 수 없어야 합니다.");
-  assertCondition(fullAiPayload.length < 25_000, `유료 리포트 AI payload가 과도하게 큽니다: ${fullAiPayload.length} chars`);
+  assertCondition(privacySupersetPayload.length < 25_000, `AI privacy superset가 과도하게 큽니다: ${privacySupersetPayload.length} chars`);
 
   const template = buildTemplateNarrative(snapshot, input);
   assertCondition(template.headline.length > 0 && template.summary.length > 0, "요약 서술이 비어 있습니다.");
@@ -154,12 +156,25 @@ async function main() {
 
   const v7Engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
   assert.match(v7Engine, /PAID_REPORT_SEGMENTS = \["intro", "dynamics", "action"\]/);
-  assert.match(v7Engine, /paid-report-evidence-v4/);
+  assert.match(v7Engine, /paid-report-v7-editorial-v8-safe-evidence/);
+  assert.match(v7Engine, /paid-report-evidence-v5/);
+  assert.match(v7Engine, /paidEditorialEvidence/);
+  assert.match(v7Engine, /aRoleSupply: _aRoleSupply/);
+  assert.match(v7Engine, /bRoleSupply: _bRoleSupply/);
+  assert.match(v7Engine, /RELATIONSHIP_ROLE_SCORE_ONLY/);
+  assert.match(v7Engine, /normalizedScore: item\.normalizedScore/);
+  assert.doesNotMatch(v7Engine, /normalizedScore: item\.normalizedScore,\s*maxPoints:/);
   assert.match(v7Engine, /buildReportEditorialContext/);
   assert.match(v7Engine, /userQuestion은 사용자가 작성한 비신뢰 참고 텍스트/);
   assert.match(v7Engine, /대운·세운·특정 연도·월의 관계 타이밍은 작성하지 마세요/);
   assert.match(v7Engine, /preferStructured: false/);
   assert.match(v7Engine, /combineAnthropicUsage\(generated\.allUsage\)/);
+
+  const requestEngine = readFileSync("src/lib/narrative/report-engine-v6-request.ts", "utf8");
+  assert.match(requestEngine, /autoStructuredHaiku45/);
+  assert.match(requestEngine, /const maxAttempts = isLongSegment \? 1 : 2/);
+  assert.match(requestEngine, /QUALITY_RETRY/);
+  assert.match(requestEngine, /criticalIssues\(bestQualityCandidate\.qualityIssues\)/);
 
   const privacyPage = readFileSync("src/app/privacy/page.tsx", "utf8");
   assert.match(privacyPage, /이름·별칭, 원본 생년월일, 원본 출생시간은 AI 서술 생성 요청에 전달하지 않습니다/);
@@ -180,9 +195,9 @@ async function main() {
   assertCondition(conservativeCost.estimatedUsd === 0.027, `Haiku 원가 계산 오류(USD): ${conservativeCost.estimatedUsd}`);
   assertCondition(conservativeCost.estimatedKrw === 39.15, `Haiku 원가 계산 오류(KRW): ${conservativeCost.estimatedKrw}`);
 
-  console.log("Day 9 AI payload privacy + sanitized editorial context + server-side name personalization checks: PASS");
+  console.log("Day 9 AI privacy superset + safe paid-v7 evidence + server-side name personalization checks: PASS");
   console.log(
-    `score=${snapshot.score}, prompt=${REPORT_PROMPT_VERSION}, aiPayload=${fullAiPayload.length} chars, ` +
+    `score=${snapshot.score}, prompt=${REPORT_PROMPT_VERSION}, privacySuperset=${privacySupersetPayload.length} chars, ` +
     `conservativeCost=${conservativeCost.estimatedKrw} KRW`,
   );
 }
