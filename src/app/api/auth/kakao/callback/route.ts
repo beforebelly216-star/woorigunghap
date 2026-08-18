@@ -72,10 +72,7 @@ export async function GET(request: NextRequest) {
       const enabled = saved && await isKakaoMessageEnabled(userId);
       notificationResult = enabled ? "enabled" : "failed";
       if (!enabled) {
-        console.warn("[woorigunghap:kakao-notify-enable-failed]", JSON.stringify({
-          tokenStored: saved,
-          scopeReturned: tokenBundle.scopes.includes("talk_message"),
-        }));
+        console.warn("[woorigunghap:kakao-notify-enable-failed]", JSON.stringify({ tokenStored: saved }));
       }
     } catch (notificationError) {
       console.error(
