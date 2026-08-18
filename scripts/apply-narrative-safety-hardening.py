@@ -125,12 +125,3 @@ package_path = Path("package.json")
 package_data = json.loads(package_path.read_text())
 package_data["scripts"]["test:one-to-one:quality-gate"] = "tsx scripts/one-to-one-quality-gate-test.ts"
 package_path.write_text(json.dumps(package_data, ensure_ascii=False, indent=2) + "\n")
-
-workflow_path = Path(".github/workflows/manse-validation.yml")
-workflow = workflow_path.read_text()
-needle = "          npm run test:one-to-one:three-year-timing\n"
-if "npm run test:one-to-one:quality-gate" not in workflow:
-    if needle not in workflow:
-        raise SystemExit("core workflow target not found")
-    workflow = workflow.replace(needle, needle + "          npm run test:one-to-one:quality-gate\n", 1)
-    workflow_path.write_text(workflow)
