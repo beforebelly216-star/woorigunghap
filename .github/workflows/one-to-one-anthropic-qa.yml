@@ -89,32 +89,31 @@ jobs:
           if old not in s:
               raise SystemExit('critical issue block not found')
           s = s.replace(old, new)
-          s = s.replace(
-              'const minCharacters = label === "INTRO" ? 2600 : label === "DYNAMICS" || label === "ACTION" ? 5200 : 0;',
-              'const minCharacters = label === "INTRO" ? 1200 : label === "DYNAMICS" || label === "ACTION" ? 1800 : 0;',
-          )
-          old_flow = '''      if (isLongSegment) {
-                throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_RETRY_${issues.join("_")}`);
-              }
+          density_old = 'const minCharacters = label === "INTRO" ? 2600 : label === "DYNAMICS" || label === "ACTION" ? 5200 : 0;'
+          if density_old not in s:
+              raise SystemExit('density threshold not found')
+          s = s.replace(density_old, 'const minCharacters = label === "INTRO" ? 1200 : label === "DYNAMICS" || label === "ACTION" ? 1800 : 0;')
 
-              if (attempt < maxAttempts) continue;
-              const critical = criticalIssues(issues);
-              if (critical.length) {
-                throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
-              }
-              return { best: candidate, attempts: attempt, allUsage };'''
+          start_anchor = '      if (isLongSegment) {\n        throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_RETRY_'
+          end_anchor = '      return { best: candidate, attempts: attempt, allUsage };\n'
+          start = s.find(start_anchor)
+          if start < 0:
+              raise SystemExit('quality flow start not found')
+          end = s.find(end_anchor, start)
+          if end < 0:
+              raise SystemExit('quality flow end not found')
+          end += len(end_anchor)
           new_flow = '''      const critical = criticalIssues(issues);
-              if (critical.length === 0) {
-                return { best: candidate, attempts: attempt, allUsage };
-              }
-              if (isLongSegment) {
-                throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
-              }
-              if (attempt < maxAttempts) continue;
-              throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);'''
-          if old_flow not in s:
-              raise SystemExit('quality flow block not found')
-          s = s.replace(old_flow, new_flow)
+          if (critical.length === 0) {
+            return { best: candidate, attempts: attempt, allUsage };
+          }
+          if (isLongSegment) {
+            throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
+          }
+          if (attempt < maxAttempts) continue;
+          throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
+'''
+          s = s[:start] + new_flow + s[end:]
           p.write_text(s)
 
           p = Path('src/lib/narrative/report-engine-v7.ts')
