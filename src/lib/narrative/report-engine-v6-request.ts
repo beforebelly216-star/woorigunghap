@@ -364,6 +364,16 @@ export async function requestStructuredSegment<T>(args: {
     && args.model.startsWith("claude-haiku-4-5");
   let structuredRejected = args.preferStructured !== true && !autoStructuredHaiku45;
   let bestQualityCandidate: SegmentAttempt<T> | null = null;
+  const segmentSafetyRule = args.label === "INTRO"
+    ? [
+        "[INTRO 필수 안전 규칙]",
+        "personA.elementAnalysis와 personB.elementAnalysis에서는 오행의 상대적 강약·균형·보완 가능성만 설명하세요. 공감, 감정, 마음, 애착, 욕구, 상처, 불안, 성욕, 심리, 의지력 같은 심리 어휘를 사용하지 마세요.",
+        "personA.overallProfile, personB.overallProfile, relationshipNeeds에서는 무의식, 내면, 마음속, 갈망, 사랑받을 자격, 심리 상태처럼 확인할 수 없는 내부 상태를 서술하지 마세요.",
+        "확실히, 반드시, 무조건, 자동으로, 확률이 높다, 증명한다 같은 단정 표현을 사용하지 마세요.",
+        "관찰 가능한 행동 가능성은 '그럴 수 있다', '확인해 볼 수 있다', '이런 장면에서 차이가 보일 수 있다'처럼 가설로 쓰고 확인 방법을 함께 제시하세요.",
+      ].join("\n")
+    : "";
+  const baseSystem = segmentSafetyRule ? `${args.system}\n\n${segmentSafetyRule}` : args.system;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const remainingBudgetMs = Math.max(1_000, totalBudgetMs - (Date.now() - startedAt));
@@ -375,8 +385,8 @@ export async function requestStructuredSegment<T>(args: {
         ? `직전 응답은 JSON 구조는 맞았지만 다음 품질 기준을 위반했습니다: ${lastQualityIssues.join(", ")}. 계산 근거와 관찰 가능한 행동만 사용하고, 숨은 마음·미래 연도·내부 지표·과도한 이름 반복·단정 표현·오행과 심리 능력의 1:1 대응·서버 근거 없는 횟수나 시간 처방을 제거하세요. 특히 오행 강약을 설명하는 문장에서는 공감·감정·마음·애착·욕구·상처 같은 심리 어휘를 함께 쓰지 말고 구조적 균형과 보완 가능성만 설명하세요. 관계 기간은 맥락일 뿐 궁합의 증거로 해석하지 마세요.`
         : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고, 중간에 끊기지 않도록 완결된 객체를 출력하세요.";
       const expandedSystem = attempt === 1
-        ? args.system
-        : `${args.system}\n\n[재시도 지시] ${retryReason}`;
+        ? baseSystem
+        : `${baseSystem}\n\n[재시도 지시] ${retryReason}`;
       const firstAttemptMaxTokens = args.label === "INTRO"
         ? Math.max(args.maxTokens, 7_000)
         : args.label === "DYNAMICS"
