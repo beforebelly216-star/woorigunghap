@@ -39,6 +39,8 @@ const CRITICAL_QUALITY_ISSUES = new Set([
   "INTERNAL_METRIC_EXPOSED",
   "DETERMINISTIC_CERTAINTY",
   "MIND_READING_CERTAINTY",
+  "ELEMENT_PSYCHOLOGY_OVERREACH",
+  "UNSUPPORTED_NUMERIC_PRESCRIPTION",
   "FUTURE_TIMING_LEAK",
   "DURATION_CAUSAL_OVERREACH",
   "NAME_TOKEN_OVERUSE",
@@ -79,11 +81,6 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-/**
- * Lightweight recursive validator for the JSON-Schema subset used by the paid report.
- * It intentionally validates on our server even when Claude is asked for plain JSON,
- * so malformed nested arrays/objects can never reach the React renderer.
- */
 export function matchesJsonSchema(value: unknown, schema: unknown): boolean {
   if (!isPlainObject(schema)) return false;
   const shape = schema as JsonSchemaShape;
@@ -169,6 +166,16 @@ function countNameTokens(text: string) {
   return text.match(/\{\{(?:SELF|PARTNER|BOTH)\}\}/g)?.length ?? 0;
 }
 
+function hasElementPsychologyOverreach(text: string) {
+  const element = "(?:목|화|토|금|수|나무|불|흙|금속|물|오행)";
+  const psychology = "(?:공감(?:\s*능력)?|감정(?:\s*표현)?|불안(?:감)?|애착|사랑|마음|표현\s*능력|상처|성욕|의지력?|심리|욕구)";
+  return new RegExp(`${element}.{0,100}${psychology}|${psychology}.{0,100}${element}`, "s").test(text);
+}
+
+function hasUnsupportedNumericPrescription(text: string) {
+  return /(?:하루|주당|주)\s*\d+\s*(?:회|번)|\d+\s*(?:시간|분)\s*(?:뒤|후|간격)|\d+\s*일\s*(?:마다|간격)/.test(text);
+}
+
 /**
  * Output-only quality gate. This does not invent new content; it decides whether a
  * structurally valid Claude response is good enough to keep or should trigger a
@@ -197,13 +204,15 @@ export function collectPaidNarrativeQualityIssues(
 
   if (hasStandaloneDeveloperLabel(joined)) issues.push("DEVELOPER_LABEL_A_B_EXPOSED");
   if (/\b(WEAK|STRONG|BALANCED|confidence)\b|soft signal/i.test(joined)) issues.push("INTERNAL_TERM_EXPOSED");
-  if (/(역할 공급도|배우자 역할 점수|유용신 적합도|범위값)/.test(joined)) issues.push("INTERNAL_METRIC_EXPOSED");
+  if (/(역할 공급도|배우자 역할 점수|유용신 적합도|범위값|aRoleSupply|bRoleSupply|weightedPoints|maxPoints)/.test(joined)) issues.push("INTERNAL_METRIC_EXPOSED");
   if (/(무조건|100%|확실히|틀림없이|반드시|운명적으로 정해|자동(?:으로|적)|확률이 높(?:아|습니다)|증명합니다|즉시[^.\n]{0,40}전환|바로[^.\n]{0,60}만듭니다)/.test(joined)) {
     issues.push("DETERMINISTIC_CERTAINTY");
   }
-  if (/(무의식적|무의식적으로|내부적으로|내면화|갈망|사랑받을 자격|마음속에서|내면은|심리 상태(?:입니다|다)|정말로[^.\n]{0,50}해서가 아니라)/.test(joined)) {
+  if (/(무의식적|무의식적으로|내부적으로|내면화|내면에|내면은|갈망|사랑받을 자격|마음속에서|마음이 한 번 닫|상처에서 벗어나|선천적(?:으로)?|실제로는 감정|공감\s*능력|표현\s*능력[^.\n]{0,30}(?:제한|부족)|존재감[^.\n]{0,30}느끼|불안감[^.\n]{0,30}(?:낮아|높아)|심리 상태(?:입니다|다)|정말로[^.\n]{0,50}해서가 아니라)/.test(joined)) {
     issues.push("MIND_READING_CERTAINTY");
   }
+  if (hasElementPsychologyOverreach(joined)) issues.push("ELEMENT_PSYCHOLOGY_OVERREACH");
+  if (hasUnsupportedNumericPrescription(joined)) issues.push("UNSUPPORTED_NUMERIC_PRESCRIPTION");
   if (/(20\d{2}년|\b대운\b|\b세운\b|월운)/.test(joined)) issues.push("FUTURE_TIMING_LEAK");
 
   const maxNameTokens = Math.max(12, Math.ceil(characters / 120));
@@ -333,7 +342,7 @@ export async function requestStructuredSegment<T>(args: {
     const timeout = setTimeout(() => controller.abort(), attemptTimeoutMs);
     try {
       const retryReason = lastFailure === "QUALITY_SHORTFALL"
-        ? `직전 응답은 JSON 구조는 맞았지만 다음 품질 기준을 위반했습니다: ${lastQualityIssues.join(", ")}. 계산 근거와 관찰 가능한 행동만 사용하고, 숨은 마음·미래 연도·내부 지표·과도한 이름 반복·단정 표현을 제거하세요. 관계 기간은 맥락일 뿐 궁합의 증거로 해석하지 마세요.`
+        ? `직전 응답은 JSON 구조는 맞았지만 다음 품질 기준을 위반했습니다: ${lastQualityIssues.join(", ")}. 계산 근거와 관찰 가능한 행동만 사용하고, 숨은 마음·미래 연도·내부 지표·과도한 이름 반복·단정 표현·오행과 심리 능력의 1:1 대응·서버 근거 없는 횟수나 시간 처방을 제거하세요. 관계 기간은 맥락일 뿐 궁합의 증거로 해석하지 마세요.`
         : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고, 중간에 끊기지 않도록 완결된 객체를 출력하세요.";
       const expandedSystem = attempt === 1
         ? args.system
@@ -435,9 +444,6 @@ export async function requestStructuredSegment<T>(args: {
       lastQualityIssues = issues;
       console.warn("[woorigunghap:v6-segment-quality]", JSON.stringify({ label: args.label, attempt, characters: candidate.characters, issues }));
 
-      // Long paid segments already consume most of a Vercel request. Never use the
-      // small leftover budget to regenerate a full long report: fail this request and
-      // let the production client retry the segment in a fresh 240s server request.
       if (isLongSegment) {
         throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_RETRY_${issues.join("_")}`);
       }
@@ -458,8 +464,6 @@ export async function requestStructuredSegment<T>(args: {
     }
   }
 
-  // A previous valid candidate with critical issues must never be resurrected just
-  // because a later retry timed out or failed structurally.
   if (bestQualityCandidate) {
     const critical = criticalIssues(bestQualityCandidate.qualityIssues);
     if (critical.length) {
