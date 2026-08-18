@@ -49,6 +49,7 @@ function parsePhase(value: unknown): ReportPhase | null {
 }
 
 function classifyReportFailure(message: string) {
+  if (message.includes("CREDIT_BALANCE_LOW")) return "API_BILLING";
   if (message.includes("HTTP_401")) return "API_AUTH";
   if (message.includes("HTTP_402")) return "API_BILLING";
   if (message.includes("HTTP_403")) return "API_PERMISSION";
