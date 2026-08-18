@@ -58,7 +58,9 @@ jobs:
           cache: npm
       - name: Apply server-grounded intro patch
         if: steps.gate.outputs.patch == 'true'
-        run: python3 scripts/apply-intro-server-grounding.py
+        run: |
+          python3 scripts/apply-intro-server-grounding.py
+          python3 scripts/fix-intro-grounding-safe-text.py
       - name: Install dependencies
         if: steps.gate.outputs.run == 'true'
         run: npm ci
@@ -70,8 +72,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm scripts/apply-intro-server-grounding.py
-          git add src/lib/narrative/report-engine-v6-request.ts scripts/one-to-one-quality-gate-test.ts scripts/apply-intro-server-grounding.py
+          rm scripts/apply-intro-server-grounding.py scripts/fix-intro-grounding-safe-text.py
+          git add src/lib/narrative/report-engine-v6-request.ts scripts/one-to-one-quality-gate-test.ts scripts/apply-intro-server-grounding.py scripts/fix-intro-grounding-safe-text.py
           git commit -m "fix: ground paid intro person profiles on server evidence"
           git fetch origin agent/one-to-one-reference-upgrade
           git rebase origin/agent/one-to-one-reference-upgrade
