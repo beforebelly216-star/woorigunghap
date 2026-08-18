@@ -8,7 +8,6 @@ import {
   type PaidReportSegmentContent,
   type PaidReportSegmentMeta,
   type PaidReportSegmentName,
-  type PaidReportSegmentResult,
 } from "../src/lib/narrative/report-engine-v7";
 import { personalizeNarrativeNames } from "../src/lib/narrative/name-personalization";
 import type { OneToOneReportInput } from "../src/lib/report-input";
@@ -115,6 +114,7 @@ async function main() {
         const reason = error instanceof Error ? error.message : String(error);
         console.warn(`[sample-qa] ${segment} fresh request ${freshRequestAttempt}/3 failed: ${reason}`);
         writeProgress("partial", `${segment} request ${freshRequestAttempt}/3: ${reason}`);
+        if (reason.includes("CREDIT_BALANCE_LOW")) throw error;
         if (freshRequestAttempt < 3) await sleep(2_000 * freshRequestAttempt);
       }
     }
