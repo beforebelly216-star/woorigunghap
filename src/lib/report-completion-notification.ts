@@ -9,6 +9,7 @@ import {
 } from "@/lib/kakao-auth";
 import {
   loadKakaoMessagingTokens,
+  setKakaoMessageEnabled,
   updateKakaoAccessToken,
 } from "@/lib/kakao-token-store";
 import { loadCompletedServerReport } from "@/lib/server-report-store";
@@ -110,14 +111,18 @@ async function finishNotification(paymentId: string, status: "sent" | "failed") 
 
 export async function notifyReportCompleted(paymentId: string) {
   let claimed = false;
+  let userId: string | null = null;
   try {
     const completed = await loadCompletedServerReport(paymentId);
     if (!completed) return false;
-    const userId = await findAccountReportOwnerUserId(paymentId);
+    userId = await findAccountReportOwnerUserId(paymentId);
     if (!userId) return false;
     const accessToken = await resolveAccessToken(userId);
     const origin = appBaseUrl();
-    if (!accessToken || !origin) return false;
+    if (!accessToken || !origin) {
+      await setKakaoMessageEnabled(userId, false).catch(() => false);
+      return false;
+    }
     claimed = await claimNotification(paymentId, userId);
     if (!claimed) return false;
     const url = `${origin}/account/reports`;
@@ -130,6 +135,7 @@ export async function notifyReportCompleted(paymentId: string) {
     return true;
   } catch (error) {
     if (claimed) await finishNotification(paymentId, "failed").catch(() => undefined);
+    if (userId) await setKakaoMessageEnabled(userId, false).catch(() => false);
     console.error("[woorigunghap:kakao-completion-notification]", error);
     return false;
   }
