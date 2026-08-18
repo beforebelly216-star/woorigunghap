@@ -18,6 +18,8 @@ const tokenStore = readFileSync("src/lib/kakao-token-store.ts", "utf8");
 const notification = readFileSync("src/lib/report-completion-notification.ts", "utf8");
 const oneToOne = readFileSync("src/app/api/compatibility/one-to-one/route.ts", "utf8");
 const oneToMany = readFileSync("src/app/api/compatibility/one-to-many/route.ts", "utf8");
+const reportV7 = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
+const anthropicSampleQa = readFileSync("scripts/one-to-one-anthropic-sample-qa.ts", "utf8");
 
 // Paid orders can be claimed/listed before report_json is complete.
 assert.doesNotMatch(accountStore, /payment_status = 'paid'\s+AND report_json IS NOT NULL/);
@@ -54,6 +56,16 @@ assert.match(serverStore, /jsonb_set\(/);
 assert.match(serverStore, /COALESCE\(NULLIF\(report_json, ''\)/);
 assert.match(serverStore, /ARRAY\['segments', \$\{segment\}\]::text\[\]/);
 assert.match(serverStore, /ARRAY\['metas', \$\{segment\}\]::text\[\]/);
+
+// The paid report stays structurally rich but its generation contract must match the
+// product decision of roughly 5k-8k characters instead of drifting back to 13k+.
+assert.match(reportV7, /paid-report-v7-editorial-v10-latency-balanced/);
+assert.match(reportV7, /compactLength\(value\) < 1200/);
+assert.match(reportV7, /compactLength\(value\) < 2200/);
+assert.match(reportV7, /전체 리포트는 5,000~8,000자 수준을 목표/);
+assert.match(anthropicSampleQa, /totalCharacters >= 5_000/);
+assert.match(anthropicSampleQa, /totalCharacters <= 10_000/);
+assert.doesNotMatch(anthropicSampleQa, /totalCharacters >= 13_000/);
 
 // Kakao messaging is explicit opt-in and tokens are encrypted server-side.
 assert.match(kakaoStart, /\["talk_message"\]/);
