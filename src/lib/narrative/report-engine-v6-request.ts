@@ -33,21 +33,14 @@ type JsonSchemaShape = {
   items?: unknown;
 };
 
+// Progress-first policy: only defects that can leak implementation details or
+// make a relationship-specific product materially wrong block generation.
+// Editorial/tone issues are still collected below and surfaced as warnings.
 const CRITICAL_QUALITY_ISSUES = new Set([
   "DEVELOPER_LABEL_A_B_EXPOSED",
   "INTERNAL_TERM_EXPOSED",
   "INTERNAL_METRIC_EXPOSED",
-  "DETERMINISTIC_CERTAINTY",
-  "MIND_READING_CERTAINTY",
-  "ELEMENT_PSYCHOLOGY_OVERREACH",
-  "UNSUPPORTED_NUMERIC_PRESCRIPTION",
-  "FUTURE_TIMING_LEAK",
-  "DURATION_CAUSAL_OVERREACH",
-  "NAME_TOKEN_OVERUSE",
   "RELATIONSHIP_ROMANCE_LEAK",
-  "CRUSH_STAGE_OVERREACH",
-  "FLIRTING_STAGE_OVERREACH",
-  "COWORKER_HIERARCHY_NOT_REFLECTED",
 ]);
 
 function safeError(body: unknown) {
@@ -99,7 +92,6 @@ function parseJsonText(text: string): unknown {
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
-
 
 const INTRO_ELEMENT_LABELS: Record<string, string> = {
   wood: "목",
@@ -161,13 +153,13 @@ function buildGroundedIntroPerson(payload: Record<string, unknown>, key: "A" | "
     relationshipNeeds: `${placeholder}에게 필요한 관계 조건을 사주의 심리 진단으로 정하지 않습니다. 실제로 확인할 기준은 대화 속도, 약속을 정하는 방식, 의견이 다를 때 설명하는 방식, 각자가 편안하다고 말하는 경계입니다. 차이가 보이면 상대의 속마음을 추측하기보다 어떤 상황에서 어떤 반응이 반복되는지 먼저 확인합니다. 이후 조언은 이 관찰 결과와 서버 계산 근거가 함께 맞을 때 적용하는 것이 안전합니다.`,
     strengths: [
       `${placeholder}의 계산 구조는 두 사람의 차이를 설명할 때 비교 기준으로 활용할 수 있습니다. 단독으로 성격의 장점이라고 확정하지 않습니다.`,
-      `일주와 오행의 상대적 배치를 서로의 구조와 나란히 보면 겹치는 지점과 다른 지점을 구분하기 쉽습니다. 실제 장점 여부는 관계 장면에서 확인합니다.`,
-      `출생시간 확인 여부를 함께 표시하므로 계산이 확실한 부분과 열어 두어야 할 부분을 구분할 수 있습니다. 불확실한 부분은 단정하지 않습니다.`,
+      "일주와 오행의 상대적 배치를 서로의 구조와 나란히 보면 겹치는 지점과 다른 지점을 구분하기 쉽습니다. 실제 장점 여부는 관계 장면에서 확인합니다.",
+      "출생시간 확인 여부를 함께 표시하므로 계산이 확실한 부분과 열어 두어야 할 부분을 구분할 수 있습니다. 불확실한 부분은 단정하지 않습니다.",
     ],
     cautions: [
-      `구조의 상대적 강약을 개인의 특성에 대한 원인 설명으로 바꾸지 않습니다. 계산 구조와 사람 평가를 분리합니다.`,
-      `일주 하나만으로 상대의 속마음이나 미래 행동을 확정하지 않습니다. 실제 반응과 대화를 우선 확인합니다.`,
-      `출생시간이 없거나 계산 경계가 있는 경우 가능한 범위를 남겨 둡니다. 단일 해석을 사실처럼 고정하지 않습니다.`,
+      "구조의 상대적 강약을 개인의 특성에 대한 원인 설명으로 바꾸지 않습니다. 계산 구조와 사람 평가를 분리합니다.",
+      "일주 하나만으로 상대의 속마음이나 미래 행동을 확정하지 않습니다. 실제 반응과 대화를 우선 확인합니다.",
+      "출생시간이 없거나 계산 경계가 있는 경우 가능한 범위를 남겨 둡니다. 단일 해석을 사실처럼 고정하지 않습니다.",
     ],
   };
 }
@@ -241,10 +233,7 @@ function collectStrings(value: unknown): string[] {
 }
 
 function normalizeForDuplicateCheck(value: string) {
-  return value
-    .replace(/\s+/g, " ")
-    .replace(/[“”‘’"']/g, "")
-    .trim();
+  return value.replace(/\s+/g, " ").replace(/[“”‘’"']/g, "").trim();
 }
 
 function hasStandaloneDeveloperLabel(text: string) {
@@ -269,7 +258,7 @@ function countNameTokens(text: string) {
 
 function hasElementPsychologyOverreach(text: string) {
   const element = "(?:목|화|토|금|수|나무|불|흙|금속|물|오행)";
-  const psychology = "(?:공감(?:\s*능력)?|감정(?:\s*표현)?|불안(?:감)?|애착|사랑|마음|표현\s*능력|상처|성욕|의지력?|심리|욕구)";
+  const psychology = "(?:공감(?:\\s*능력)?|감정(?:\\s*표현)?|불안(?:감)?|애착|사랑|마음|표현\\s*능력|상처|성욕|의지력?|심리|욕구)";
   const imbalance = "(?:약(?:해|해서|하니|한|하기)|부족(?:해|해서|하니|한|하기)|적(?:어|어서|으니|은|기)|강(?:해|해서|하니|한|하기)|많(?:아|아서|으니|은|기)|과다(?:해|해서|한|하기)|우세(?:해|해서|한|하기))";
   const causal = "(?:때문(?:에|이다)?|그래서|따라서|결과(?:로)?|원인(?:이|으로)?|이므로|라서|해서|하여)";
   const safeNegation = /(?:뜻|의미)하지\s*않|(?:뜻|의미)하는\s*것은\s*아니|단정할\s*수\s*없|연결하지\s*않|판단하지\s*않|1:1로\s*대응하지\s*않/;
@@ -289,9 +278,8 @@ function hasUnsupportedNumericPrescription(text: string) {
 }
 
 /**
- * Output-only quality gate. This does not invent new content; it decides whether a
- * structurally valid Claude response is good enough to keep or should trigger a
- * fresh paid-generation request.
+ * Output-only editorial diagnostics. Only CRITICAL_QUALITY_ISSUES block a
+ * structurally valid report. Other findings remain visible in qualityWarnings.
  */
 export function collectPaidNarrativeQualityIssues(
   value: unknown,
@@ -302,7 +290,7 @@ export function collectPaidNarrativeQualityIssues(
   const strings = collectStrings(value);
   const joined = strings.join("\n");
   const characters = collectCharacters(value);
-  const minCharacters = label === "INTRO" ? 2600 : label === "DYNAMICS" || label === "ACTION" ? 5200 : 0;
+  const minCharacters = label === "INTRO" ? 1200 : label === "DYNAMICS" || label === "ACTION" ? 1800 : 0;
 
   if (minCharacters > 0 && characters < minCharacters) issues.push(`${label}_TOTAL_DENSITY_SHORT`);
 
@@ -390,6 +378,10 @@ function sleep(ms: number) {
 
 function betterCandidate<T>(current: SegmentAttempt<T> | null, next: SegmentAttempt<T>) {
   if (!current) return next;
+  const currentCritical = criticalIssues(current.qualityIssues).length;
+  const nextCritical = criticalIssues(next.qualityIssues).length;
+  if (nextCritical < currentCritical) return next;
+  if (nextCritical > currentCritical) return current;
   if (next.qualityIssues.length < current.qualityIssues.length) return next;
   if (next.qualityIssues.length === current.qualityIssues.length && next.characters > current.characters) return next;
   return current;
@@ -411,7 +403,7 @@ async function callAnthropic(args: {
 }) {
   const plainJsonRule = args.structured
     ? ""
-    : `\n\n[JSON 출력 규칙]\n아래 JSON Schema와 정확히 같은 키 구조의 JSON 객체 하나만 출력하세요. 마크다운 코드펜스와 앞뒤 설명은 넣지 마세요. 문자열 값은 충분히 자세한 한국어로 작성하세요.\n${JSON.stringify(args.schema)}`;
+    : `\n\n[JSON 출력 규칙]\n아래 JSON Schema와 정확히 같은 키 구조의 JSON 객체 하나만 출력하세요. 마크다운 코드펜스와 앞뒤 설명은 넣지 마세요. 문자열 값은 자연스럽고 구체적인 한국어로 작성하세요.\n${JSON.stringify(args.schema)}`;
 
   const requestBody: Record<string, unknown> = {
     model: args.model,
@@ -465,25 +457,13 @@ export async function requestStructuredSegment<T>(args: {
     && args.model.startsWith("claude-haiku-4-5");
   let structuredRejected = args.preferStructured !== true && !autoStructuredHaiku45;
   let bestQualityCandidate: SegmentAttempt<T> | null = null;
-  const segmentSafetyRule = args.label === "INTRO"
+  const segmentSafetyRule = args.label === "DYNAMICS"
     ? [
-        "[INTRO 필수 안전 규칙]",
-        "personA.elementAnalysis와 personB.elementAnalysis에서는 오행의 상대적 강약·균형·보완 가능성만 설명하세요. 공감, 감정, 마음, 애착, 욕구, 상처, 불안, 성욕, 심리, 의지력, 유연함, 적응 속도, 표현 능력 같은 사람의 능력·심리 어휘를 사용하지 마세요.",
-        "personA.overallProfile, personB.overallProfile, relationshipNeeds, strengths, cautions에서는 무의식, 내면, 마음속, 갈망, 사랑받을 자격, 심리 상태, 진짜 생각, 마음의 준비처럼 확인할 수 없는 내부 상태를 서술하지 마세요.",
-        "관계 기간은 현재 맥락일 뿐 사주 근거가 아닙니다. '26개월 유지했으니 이미 서로를 안다/조화가 증명됐다'처럼 기간에서 관계 품질을 추론하지 마세요.",
-        "확실히, 반드시, 무조건, 자동으로, 확률이 높다, 증명한다 같은 단정 표현을 사용하지 마세요.",
-        "관찰 가능한 행동 가능성은 '그럴 수 있다', '확인해 볼 수 있다', '이런 장면에서 차이가 보일 수 있다'처럼 가설로 쓰고 확인 방법을 함께 제시하세요.",
+        "[필수 출력 경계]",
+        "역할 공급도, 배우자 역할 점수, 유용신 적합도, 범위값, aRoleSupply, bRoleSupply, weightedPoints, maxPoints 같은 내부 지표명은 출력하지 마세요.",
+        "친구·직장동료 관계에서는 연애·성적 프레임을 섞지 마세요.",
       ].join("\n")
-    : args.label === "DYNAMICS"
-      ? [
-          "[DYNAMICS 필수 안전 규칙]",
-          "chemistry.elements에서는 오행의 상대적 균형과 두 사람 사이의 구조적 보완만 설명하세요. 공감, 감정, 마음, 애착, 욕구, 상처, 불안, 성욕, 심리, 의지력, 표현 능력 같은 심리·능력 어휘를 오행 강약과 연결하지 마세요.",
-          "partnerDeepDive와 directionalImpact는 독심술이 아닙니다. 무의식, 내면, 마음속, 갈망, 진짜 속마음, 사랑받을 욕구, 존재감을 느낀다 같은 확인 불가능한 내부 상태를 쓰지 마세요. 관찰 가능한 반응 가능성과 확인 방법만 쓰세요.",
-          "역할 공급도, 배우자 역할 점수, 유용신 적합도, 범위값, aRoleSupply, bRoleSupply, weightedPoints, maxPoints 같은 내부 지표명은 절대 출력하지 마세요. 서버 숫자는 쉬운 관계 언어로만 번역하세요.",
-          "하루 N회, N시간 뒤, 주 N회, N일마다 같은 횟수·시간 처방은 만들지 마세요. 합의한 빈도, 감정이 가라앉은 뒤, 다음 대화 때처럼 행동 기준으로 쓰세요.",
-          "확실히, 반드시, 무조건, 자동으로, 확률이 높다, 증명한다 같은 단정 표현을 사용하지 마세요.",
-        ].join("\n")
-      : "";
+    : "";
   const baseSystem = segmentSafetyRule ? `${args.system}\n\n${segmentSafetyRule}` : args.system;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -493,21 +473,19 @@ export async function requestStructuredSegment<T>(args: {
     const timeout = setTimeout(() => controller.abort(), attemptTimeoutMs);
     try {
       const retryReason = lastFailure === "QUALITY_SHORTFALL"
-        ? `직전 응답은 JSON 구조는 맞았지만 다음 품질 기준을 위반했습니다: ${lastQualityIssues.join(", ")}. 계산 근거와 관찰 가능한 행동만 사용하고, 숨은 마음·미래 연도·내부 지표·과도한 이름 반복·단정 표현·오행과 심리 능력의 1:1 대응·서버 근거 없는 횟수나 시간 처방을 제거하세요. 특히 오행 강약을 설명하는 문장에서는 공감·감정·마음·애착·욕구·상처 같은 심리 어휘를 함께 쓰지 말고 구조적 균형과 보완 가능성만 설명하세요. 관계 기간은 맥락일 뿐 궁합의 증거로 해석하지 마세요.`
-        : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고, 중간에 끊기지 않도록 완결된 객체를 출력하세요.";
-      const expandedSystem = attempt === 1
-        ? baseSystem
-        : `${baseSystem}\n\n[재시도 지시] ${retryReason}`;
+        ? `직전 응답은 다음 출시 차단 이슈를 포함했습니다: ${lastQualityIssues.join(", ")}. JSON 구조를 유지하면서 개발자용 내부값과 관계 유형에 맞지 않는 문구만 제거하세요.`
+        : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고 완결된 객체를 출력하세요.";
+      const expandedSystem = attempt === 1 ? baseSystem : `${baseSystem}\n\n[재시도 지시] ${retryReason}`;
       const firstAttemptMaxTokens = args.label === "INTRO"
-        ? Math.max(args.maxTokens, 7_000)
+        ? Math.max(args.maxTokens, 5_000)
         : args.label === "DYNAMICS"
-          ? Math.max(args.maxTokens, 16_000)
+          ? Math.max(args.maxTokens, 9_000)
           : args.label === "ACTION"
-            ? Math.max(args.maxTokens, 14_000)
+            ? Math.max(args.maxTokens, 8_000)
             : args.maxTokens;
       const attemptMaxTokens = attempt === 1
         ? firstAttemptMaxTokens
-        : Math.min(24_000, Math.ceil(firstAttemptMaxTokens * 1.25));
+        : Math.min(12_000, Math.ceil(firstAttemptMaxTokens * 1.2));
 
       let result = await callAnthropic({
         apiKey: args.apiKey,
@@ -521,24 +499,11 @@ export async function requestStructuredSegment<T>(args: {
       });
 
       if (!result.response.ok && isCreditBalanceLow(result.body)) {
-        console.warn("[woorigunghap:v6-segment-billing]", JSON.stringify({
-          label: args.label,
-          attempt,
-          status: result.response.status,
-          reason: safeError(result.body),
-          detail: safeErrorDetail(result.body),
-        }));
         throw new Error("ANTHROPIC_CREDIT_BALANCE_LOW");
       }
 
       if (!result.response.ok && result.response.status === 400 && !structuredRejected) {
         structuredRejected = true;
-        console.warn("[woorigunghap:v6-structured-fallback]", JSON.stringify({
-          label: args.label,
-          attempt,
-          reason: safeError(result.body),
-          detail: safeErrorDetail(result.body),
-        }));
         result = await callAnthropic({
           apiKey: args.apiKey,
           model: args.model,
@@ -554,16 +519,7 @@ export async function requestStructuredSegment<T>(args: {
       const { response, body } = result;
       if (body?.usage) allUsage.push(body.usage);
       if (!response.ok) {
-        if (isCreditBalanceLow(body)) {
-          console.warn("[woorigunghap:v6-segment-billing]", JSON.stringify({
-            label: args.label,
-            attempt,
-            status: response.status,
-            reason: safeError(body),
-            detail: safeErrorDetail(body),
-          }));
-          throw new Error("ANTHROPIC_CREDIT_BALANCE_LOW");
-        }
+        if (isCreditBalanceLow(body)) throw new Error("ANTHROPIC_CREDIT_BALANCE_LOW");
         lastFailure = `HTTP_${response.status}_${safeError(body)}`;
         console.warn("[woorigunghap:v6-segment-http]", JSON.stringify({
           label: args.label,
@@ -621,31 +577,38 @@ export async function requestStructuredSegment<T>(args: {
         characters: collectCharacters(candidateValue),
         qualityIssues: issues,
       };
-      if (issues.length === 0) {
+      const critical = criticalIssues(issues);
+
+      if (issues.length) {
+        console.warn("[woorigunghap:v6-segment-quality-warning]", JSON.stringify({
+          label: args.label,
+          attempt,
+          characters: candidate.characters,
+          issues,
+          critical,
+        }));
+      }
+
+      if (critical.length === 0) {
         return { best: candidate, attempts: attempt, allUsage };
       }
 
       bestQualityCandidate = betterCandidate(bestQualityCandidate, candidate);
       lastFailure = "QUALITY_SHORTFALL";
-      lastQualityIssues = issues;
-      console.warn("[woorigunghap:v6-segment-quality]", JSON.stringify({ label: args.label, attempt, characters: candidate.characters, issues }));
-
-      if (isLongSegment) {
-        throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_RETRY_${issues.join("_")}`);
-      }
-
+      lastQualityIssues = critical;
       if (attempt < maxAttempts) continue;
-      const critical = criticalIssues(issues);
-      if (critical.length) {
-        throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
-      }
-      return { best: candidate, attempts: attempt, allUsage };
+      throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       if (message === "ANTHROPIC_CREDIT_BALANCE_LOW") throw error;
-      if (message.startsWith(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_`)) throw error;
+      if (message.startsWith(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_`)) throw error;
       lastFailure = error instanceof Error && error.name === "AbortError" ? "TIMEOUT" : "REQUEST_FAILED";
-      console.warn("[woorigunghap:v6-segment-request]", JSON.stringify({ label: args.label, attempt, reason: lastFailure, timeoutMs: attemptTimeoutMs }));
+      console.warn("[woorigunghap:v6-segment-request]", JSON.stringify({
+        label: args.label,
+        attempt,
+        reason: lastFailure,
+        timeoutMs: attemptTimeoutMs,
+      }));
     } finally {
       clearTimeout(timeout);
     }
@@ -653,10 +616,8 @@ export async function requestStructuredSegment<T>(args: {
 
   if (bestQualityCandidate) {
     const critical = criticalIssues(bestQualityCandidate.qualityIssues);
-    if (critical.length) {
-      throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
-    }
-    return { best: bestQualityCandidate, attempts: maxAttempts, allUsage };
+    if (critical.length === 0) return { best: bestQualityCandidate, attempts: maxAttempts, allUsage };
+    throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
   }
   throw new Error(`ANTHROPIC_SEGMENT_${args.label}_${lastFailure}`);
 }
