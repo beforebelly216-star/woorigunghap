@@ -65,11 +65,31 @@ jobs:
             echo "ANTHROPIC_API_KEY repository secret is required."
             exit 1
           fi
+      - name: Select available Sonnet model
+        if: steps.gate.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          response=$(curl --fail-with-body -sS https://api.anthropic.com/v1/models \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01")
+          model=$(printf '%s' "$response" | node -e '
+            let body="";
+            process.stdin.on("data", d => body += d);
+            process.stdin.on("end", () => {
+              const parsed = JSON.parse(body);
+              const ids = Array.isArray(parsed.data) ? parsed.data.map(x => x?.id).filter(Boolean) : [];
+              const sonnet = ids.find(id => /sonnet/i.test(id));
+              if (!sonnet) process.exit(2);
+              console.log(sonnet);
+            });
+          ')
+          echo "Selected Anthropic QA model: $model"
+          echo "ANTHROPIC_NARRATIVE_MODEL=$model" >> "$GITHUB_ENV"
       - name: Generate and validate real Claude sample
         if: steps.gate.outputs.run == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          ANTHROPIC_NARRATIVE_MODEL: claude-sonnet-4-20250514
         run: |
           QA_OUTPUT_PATH="artifacts/one-to-one-${QA_SAMPLE}.json" npm run qa:one-to-one:anthropic
       - name: Upload sample report
