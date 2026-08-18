@@ -37,6 +37,7 @@
   - 완료 메시지 발송 실패 시 `kakao_message_enabled=false`로 내려 stale `알림 사용 중` 상태 제거
   - 기존 활성 계정도 `연결 다시 확인`으로 시험 발송을 다시 실행 가능
   - 계약 테스트 `test:pending-library-notify`에 재동의/시험발송/실패 비활성화 회귀 조건 추가
+  - 관련 코드/테스트/상태문서 묶음 커밋: `a51adf8`
 
 - [ ] 사용자 QA 리포트 서술/표시 신뢰도 개선 — 다음 작업 최우선
   - 공통 서술: **일상 언어 결론/관계 장면 → 사주 용어와 계산 근거** 순서로 재작성
@@ -130,7 +131,7 @@ HANDOFF
 - Task: 사용자 beta QA stage 1 — Kakao 완료 알림 재동의 + 실제 전송 검증 hotfix
 - Status: partial
 - Validation: Kakao 공식 문서로 talk_message 추가 동의/-402/나에게 보내기 계약 확인; test:pending-library-notify 계약 갱신; connector 환경이라 lint/build 직접 실행 불가
-- Commit: BUNDLED_MAIN_COMMIT
+- Commit: a51adf8 (Kakao code/test/state bundle); following docs-only handoff commit is the main tip
 - Remaining: 최신 main Production 배포 후 연결 시험 메시지/완료 메시지 E2E → 이어서 위 `사용자 QA 리포트 서술/표시 신뢰도 개선` 항목 수행
 - Risk: Production Kakao 앱 talk_message 권한과 Vercel env는 런타임 검증 전 미확정; 1:1/1:N 서술/UI 요청은 stage 2로 명시적 미완료
 ```
