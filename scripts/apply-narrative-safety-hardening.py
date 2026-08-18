@@ -4,6 +4,12 @@ import json
 request_path = Path("src/lib/narrative/report-engine-v6-request.ts")
 text = request_path.read_text()
 
+old_imbalance = '  const imbalance = "(?:약(?:해|해서|하니|한)|부족(?:해|해서|하니|한)|적(?:어|어서|으니|은)|강(?:해|해서|하니|한)|많(?:아|아서|으니|은)|과다(?:해|해서|한)|우세(?:해|해서|한))";\n'
+new_imbalance = '  const imbalance = "(?:약(?:해|해서|하니|한|하기)|부족(?:해|해서|하니|한|하기)|적(?:어|어서|으니|은|기)|강(?:해|해서|하니|한|하기)|많(?:아|아서|으니|은|기)|과다(?:해|해서|한|하기)|우세(?:해|해서|한|하기))";\n'
+if old_imbalance not in text:
+    raise SystemExit("imbalance target not found")
+text = text.replace(old_imbalance, new_imbalance, 1)
+
 old_duration = '''  const hasDurationContext = /"relationshipDurationMonths":\\d+/.test(userPrompt);
   if (
     hasDurationContext
