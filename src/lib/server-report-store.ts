@@ -576,9 +576,34 @@ export async function saveServerReportSegment(
   content: IntroSegment | DynamicsSegment | ActionSegment,
   meta: PaidReportSegmentMeta,
 ) {
-  return updateProgress(paymentId, (current) => ({
-    ...current,
-    segments: { ...current.segments, [segment]: content },
-    metas: { ...current.metas, [segment]: meta },
-  }));
+  if (!await ensureSchema()) return false;
+  const sql = getQuery();
+  if (!sql) return false;
+
+  const baseProgress = JSON.stringify(emptyProgress(paymentId));
+  const updatedAt = new Date().toISOString();
+  const rows = await sql`
+    UPDATE woorigunghap_order_records
+    SET report_json = jsonb_set(
+          jsonb_set(
+            jsonb_set(
+              COALESCE(NULLIF(report_json, ''), ${baseProgress})::jsonb,
+              ARRAY['segments', ${segment}]::text[],
+              ${JSON.stringify(content)}::jsonb,
+              true
+            ),
+            ARRAY['metas', ${segment}]::text[],
+            ${JSON.stringify(meta)}::jsonb,
+            true
+          ),
+          ARRAY['updatedAt']::text[],
+          to_jsonb(${updatedAt}::text),
+          true
+        )::text,
+        updated_at = NOW()
+    WHERE payment_id = ${paymentId}
+      AND payment_status = 'paid'
+    RETURNING payment_id
+  `;
+  return rows.length > 0;
 }
