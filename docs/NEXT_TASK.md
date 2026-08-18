@@ -91,9 +91,9 @@ HANDOFF
 HANDOFF
 - Worker: GPT
 - Task: GPT/Claude 교대 작업 환경 구축
-- Status: in progress
-- Validation: repository state and Day 24 baseline inspected
-- Commit: pending
-- Remaining: AGENTS.md / CLAUDE.md / DECISIONS.md 연결 후 최종 검증
+- Status: complete
+- Validation: latest main/Day 24 baseline and all shared handoff files verified; docs-only change
+- Commit: b31307a, 0994121, 324b6d4, 689155c, 1ae8225 (+ this handoff update)
+- Remaining: 360/390/430px 모바일 실기기 핵심 플로우 재검증부터 시작
 - Risk: none
 ```
