@@ -181,7 +181,7 @@ async function main() {
   assert.match(requestEngine, /autoStructuredHaiku45/);
   assert.match(requestEngine, /const maxAttempts = isLongSegment \? 1 : 2/);
   assert.match(requestEngine, /QUALITY_RETRY/);
-  assert.match(requestEngine, /ELEMENT_TO_PSYCHOLOGY_OVERREACH/);
+  assert.match(requestEngine, /ELEMENT_PSYCHOLOGY_OVERREACH/);
   assert.match(requestEngine, /UNSUPPORTED_NUMERIC_PRESCRIPTION/);
   assert.match(requestEngine, /criticalIssues\(bestQualityCandidate\.qualityIssues\)/);
 
