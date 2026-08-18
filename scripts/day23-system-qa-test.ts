@@ -18,6 +18,7 @@ const segmentLock = readFileSync("src/lib/report-generation-lock.ts", "utf8");
 const webhook = readFileSync("src/app/api/webhooks/portone/route.ts", "utf8");
 const payment = readFileSync("src/lib/payments/verification.ts", "utf8");
 const requestEngine = readFileSync("src/lib/narrative/report-engine-v6-request.ts", "utf8");
+const paidEngine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
 const accountStore = readFileSync("src/lib/account-report-store.ts", "utf8");
 const workflow = readFileSync(".github/workflows/manse-validation.yml", "utf8");
 
@@ -57,8 +58,12 @@ assert.match(oneToOneReport, /completeReportSegmentGeneration\(paymentId, segmen
 assert.match(oneToOneReport, /releaseReportSegmentGeneration/);
 assert.match(oneToOneReport, /SERVER_REPORT_SEGMENT_SAVE_FAILED/);
 
-// AI failures remain bounded/retryable and structurally valid but weak output gets one quality retry.
-assert.match(requestEngine, /for \(let attempt = 1; attempt <= 2; attempt \+= 1\)/);
+// Long paid generations get one full-budget attempt per HTTP request; the client retries
+// the whole segment with a fresh Vercel budget instead of reviving a flawed candidate.
+assert.match(requestEngine, /const maxAttempts = isLongSegment \? 1 : 2/);
+assert.match(requestEngine, /for \(let attempt = 1; attempt <= maxAttempts; attempt \+= 1\)/);
+assert.match(requestEngine, /QUALITY_RETRY/);
+assert.match(requestEngine, /criticalIssues\(bestQualityCandidate\.qualityIssues\)/);
 assert.match(requestEngine, /response\.status === 429 \|\| response\.status === 529/);
 assert.match(requestEngine, /matchesJsonSchema/);
 assert.match(requestEngine, /shape\.type === "number"/);
@@ -81,6 +86,15 @@ assert.match(requestEngine, /COWORKER_HIERARCHY_NOT_REFLECTED/);
 assert.match(requestEngine, /INTRO" \? 2600/);
 assert.match(requestEngine, /5200/);
 assert.match(requestEngine, /totalBudgetMs = isLongSegment \? 220_000 : 180_000/);
+
+// Paid AI evidence removes raw role-supply numbers and weighting internals that caused
+// unsupported psychological interpretations in real Claude samples.
+assert.match(paidEngine, /paid-report-evidence-v5/);
+assert.match(paidEngine, /aRoleSupply: _aRoleSupply/);
+assert.match(paidEngine, /bRoleSupply: _bRoleSupply/);
+assert.match(paidEngine, /RELATIONSHIP_ROLE_SCORE_ONLY/);
+assert.match(paidEngine, /normalizedScore: item\.normalizedScore/);
+assert.doesNotMatch(paidEngine, /normalizedScore: item\.normalizedScore,\s*maxPoints:/);
 
 const repeated = "업무 상황에서는 감정 추정보다 확인 가능한 기준과 책임 범위를 먼저 맞추는 편이 좋습니다.";
 const badCoworkerOutput = {
@@ -123,9 +137,9 @@ const overTokenized = {
     `장면 ${index + 1}: {{SELF}}는 {{PARTNER}}와 대화하고 {{BOTH}}의 기준을 확인합니다.`
   )).join(" "),
 };
-assert.ok(countNarrativeNameTokens(overTokenized) > 19);
+assert.ok(countNarrativeNameTokens(overTokenized) > 12);
 const normalizedTokens = normalizeNarrativeNameTokenDensity(overTokenized);
-assert.ok(countNarrativeNameTokens(normalizedTokens) <= 19, "세그먼트당 직접 이름 토큰 예산을 결정론적으로 제한해야 합니다.");
+assert.ok(countNarrativeNameTokens(normalizedTokens) <= 12, "세그먼트당 직접 이름 토큰 예산은 SELF 5 + PARTNER 5 + BOTH 2 이하여야 합니다.");
 const normalizedTokenText = normalizedTokens.detail;
 assert.match(normalizedTokenText, /나는 상대와 대화하고 두 사람의 기준을 확인합니다/);
 assert.ok(!collectPaidNarrativeQualityIssues(normalizedTokens, "INTRO").includes("NAME_TOKEN_OVERUSE"));
@@ -193,4 +207,4 @@ assert.match(workflow, /test:day18:account-report-library/);
 assert.match(workflow, /test:day22:operating-policy/);
 assert.match(workflow, /test:day23:system-qa/);
 
-console.log("Day 23 system QA + real-sample narrative quality regression checks: PASS");
+console.log("Day 23 system QA + safe-evidence + fresh-request narrative quality checks: PASS");
