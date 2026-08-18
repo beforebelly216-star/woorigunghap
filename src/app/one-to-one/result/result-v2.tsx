@@ -39,6 +39,9 @@ const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
 };
 
 const SEGMENTS: PaidReportSegmentName[] = ["intro", "dynamics", "action"];
+const MAX_TOTAL_WAIT_MS = 240_000;
+const MAX_TRANSIENT_FAILURES = 2;
+const MAX_ACCOUNT_RESUME_ATTEMPTS = 4;
 const STAGE_COPY: Record<"prepare" | PaidReportSegmentName, string> = {
   prepare: "결제와 궁합 점수를 확인하고 있어요.",
   intro: "1~3장 · 두 사람의 사주와 관계 성향을 풀어 쓰고 있어요.",
@@ -68,7 +71,7 @@ function wait(ms: number) {
 }
 
 function retryDelay(attempt: number) {
-  return Math.min(20_000, 1_500 * 2 ** Math.min(4, Math.max(0, attempt - 1)));
+  return Math.min(5_000, 1_200 * 2 ** Math.min(3, Math.max(0, attempt - 1)));
 }
 
 function completeContent(progress: Pick<ReportProgress, "segments">): DetailedReportContent | null {
@@ -97,6 +100,13 @@ type AccountReportPayload = {
   product?: "oneToOne" | "oneToMany";
   order?: DisplayOneToOneOrder;
   progress?: RecoveryPayload["progress"];
+  error?: string;
+};
+
+type ResumePayload = {
+  status?: "generating" | "ready";
+  completedSegments?: number;
+  retryable?: boolean;
   error?: string;
 };
 
@@ -149,14 +159,24 @@ export default function ResultV2() {
 
   useEffect(() => {
     let cancelled = false;
+    const generationDeadline = Date.now() + MAX_TOTAL_WAIT_MS;
+    let accountResumeAttempts = 0;
+
+    function ensureWithinDeadline() {
+      if (Date.now() >= generationDeadline) {
+        throw new FatalGenerationError("생성이 예상보다 오래 걸리고 있어요. 결제는 유지되며 보관함에서 마지막 저장 단계부터 다시 이어서 만들 수 있습니다.");
+      }
+    }
 
     async function postPhase<T>(
       draft: OneToOneOrderDraft,
       phase: "prepare" | PaidReportSegmentName,
     ): Promise<T> {
       let attempt = 0;
+      let transientFailures = 0;
 
       while (!cancelled) {
+        ensureWithinDeadline();
         attempt += 1;
         setStage(phase);
         setStageAttempt(attempt);
@@ -182,6 +202,11 @@ export default function ResultV2() {
 
           if (response.ok && payload) return payload;
 
+          if (payload?.code === "REPORT_GENERATION_IN_PROGRESS") {
+            await wait(2_500);
+            continue;
+          }
+
           const transient = payload?.retryable === true
             || response.status === 429
             || response.status >= 500;
@@ -189,13 +214,22 @@ export default function ResultV2() {
           if (!transient) {
             throw new FatalGenerationError(payload?.error ?? "상세 리포트 생성 설정을 확인해야 합니다.");
           }
+
+          transientFailures += 1;
+          if (transientFailures >= MAX_TRANSIENT_FAILURES) {
+            throw new FatalGenerationError(payload?.error ?? "생성이 지연되고 있어요. 보관함에서 다시 이어서 만들 수 있습니다.");
+          }
         } catch (error) {
           if (error instanceof FatalGenerationError) throw error;
-          // Network interruption or a platform/server timeout is retried indefinitely.
+          transientFailures += 1;
+          if (transientFailures >= MAX_TRANSIENT_FAILURES) {
+            throw new FatalGenerationError("네트워크 또는 생성 서버 응답이 지연되고 있어요. 결제는 유지되며 보관함에서 다시 이어서 만들 수 있습니다.");
+          }
         }
 
         if (cancelled) throw new Error("CANCELLED");
-        await wait(retryDelay(attempt));
+        ensureWithinDeadline();
+        await wait(retryDelay(transientFailures));
       }
 
       throw new Error("CANCELLED");
@@ -209,6 +243,7 @@ export default function ResultV2() {
 
       if (accountSource) {
         try {
+          ensureWithinDeadline();
           const response = await fetch(`/api/account/reports/${encodeURIComponent(paymentId)}`, {
             cache: "no-store",
             referrerPolicy: "no-referrer",
@@ -233,13 +268,42 @@ export default function ResultV2() {
             setStatus("ready");
             return;
           }
-          setFatalMessage(response.status === 401
-            ? "이 보관함 결과를 열려면 다시 로그인해 주세요."
-            : payload?.error ?? "보관함에서 결과를 불러오지 못했습니다.");
-          setStatus("fatal");
-          return;
-        } catch {
-          setFatalMessage("보관함에서 결과를 불러오지 못했습니다.");
+
+          if (response.status === 401) {
+            setFatalMessage("이 보관함 결과를 열려면 다시 로그인해 주세요.");
+            setStatus("fatal");
+            return;
+          }
+
+          if (response.status === 404 && accountResumeAttempts < MAX_ACCOUNT_RESUME_ATTEMPTS) {
+            accountResumeAttempts += 1;
+            setStageAttempt(accountResumeAttempts);
+            const resumeResponse = await fetch(`/api/account/reports/${encodeURIComponent(paymentId)}/resume`, {
+              method: "POST",
+              cache: "no-store",
+              referrerPolicy: "no-referrer",
+            });
+            const resumePayload = await resumeResponse.json().catch(() => null) as ResumePayload | null;
+            if (typeof resumePayload?.completedSegments === "number") {
+              setCompletedSegments(Math.min(3, Math.max(0, resumePayload.completedSegments)));
+            }
+            if (resumeResponse.ok || resumeResponse.status === 202 || resumePayload?.retryable === true) {
+              ensureWithinDeadline();
+              await wait(2_000);
+              if (!cancelled) void run();
+              return;
+            }
+            throw new FatalGenerationError(resumePayload?.error ?? "보관함 결과 생성을 이어서 시작하지 못했습니다.");
+          }
+
+          throw new FatalGenerationError(
+            payload?.error ?? "생성이 지연되고 있어요. 보관함에서 잠시 후 다시 열면 저장된 단계부터 이어서 만들 수 있습니다.",
+          );
+        } catch (error) {
+          if (cancelled) return;
+          setFatalMessage(error instanceof FatalGenerationError
+            ? error.message
+            : "보관함에서 결과 생성을 이어서 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.");
           setStatus("fatal");
           return;
         }
@@ -345,15 +409,10 @@ export default function ResultV2() {
         setStatus("ready");
       } catch (error) {
         if (cancelled || (error instanceof Error && error.message === "CANCELLED")) return;
-        if (error instanceof FatalGenerationError) {
-          setFatalMessage(error.message);
-          setStatus("fatal");
-          return;
-        }
-        // Any unknown transport-level issue should keep waiting rather than show a delay error.
-        setStageAttempt((current) => current + 1);
-        await wait(3_000);
-        if (!cancelled) void run();
+        setFatalMessage(error instanceof FatalGenerationError
+          ? error.message
+          : "생성이 지연되고 있어요. 결제는 유지되며 보관함에서 다시 이어서 만들 수 있습니다.");
+        setStatus("fatal");
       }
     }
 
@@ -374,17 +433,17 @@ export default function ResultV2() {
 
   if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 불러올 입력정보가 없어요.</h1><p>결제 자체는 사라지지 않았어요. 같은 브라우저의 원래 결제 탭이 있으면 그 탭을 다시 열어 주세요. 없으면 아래에서 두 사람의 정보만 다시 입력해 기존 결제로 결과를 복구할 수 있어요.</p>{paymentId ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력정보 다시 넣기</Link> : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}</div></main>;
 
-  if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>상세 리포트를 만들고 있어요.</h1><p>{STAGE_COPY[stage]}</p><p>{completedSegments}/3개 해설 묶음 완료 · {elapsedSeconds}초 경과</p>{stageAttempt > 1 ? <p>연결이 끊겨도 자동으로 이어서 시도하고 있어요. 이 화면은 완료될 때까지 계속 기다립니다.</p> : <p>첫 장문 생성은 시간이 걸릴 수 있어요. 창을 그대로 열어두면 완료될 때까지 이어서 진행합니다.</p>}</div></main>;
+  if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>상세 리포트를 만들고 있어요.</h1><p>{STAGE_COPY[stage]}</p><p>{completedSegments}/3개 해설 묶음 완료 · {elapsedSeconds}초 경과</p>{stageAttempt > 1 ? <p>일시적인 지연을 다시 확인하고 있어요. 전체 대기는 최대 약 4분까지만 진행하며, 그 이후에도 결제는 유지되고 보관함에서 이어서 만들 수 있습니다.</p> : <p>창을 닫아도 결제와 이미 저장된 생성 단계는 유지됩니다. 오래 걸리면 보관함에서 이어서 만들 수 있어요.</p>}</div></main>;
 
   if (status === "fatal" && accountSource) return <main className="v2-page"><div className="v2-state">
     <p className="v2-kicker">내 궁합 보관함</p>
-    <h1>보관함 결과를 열 수 없어요.</h1>
+    <h1>결과 생성이 지연되고 있어요.</h1>
     <p>{fatalMessage ?? "로그인 상태와 결과 소유권을 다시 확인해 주세요."}</p>
-    <Link href={`/login?${new URLSearchParams({ returnTo: `/one-to-one/result?paymentId=${paymentId ?? ""}&source=account` }).toString()}`} className="primary-link">카카오 로그인 다시 하기</Link>
+    <button type="button" className="secondary-action" onClick={() => window.location.reload()}>저장된 단계부터 다시 이어서 만들기</button>
     <Link href="/account/reports">보관함으로 돌아가기</Link>
   </div></main>;
 
-  if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>자동 대기로 해결할 수 없는 설정 문제가 있어요.</h1><p>{fatalMessage ?? "결제 또는 API 설정을 확인해 주세요."}</p><p>결제는 다시 하지 않아도 됩니다.</p></div></main>;
+  if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리궁합</p><h1>결과 생성이 잠시 지연되고 있어요.</h1><p>{fatalMessage ?? "생성 서버 상태를 확인한 뒤 다시 이어서 만들 수 있습니다."}</p><p>결제는 다시 하지 않아도 되고, 이미 저장된 해설 묶음은 유지됩니다.</p><Link href="/account/reports" className="primary-link">보관함에서 상태 확인하기</Link></div></main>;
 
   const { personA, personB, relationshipType } = order.inputSnapshot;
   const relationshipLabel = RELATIONSHIP_LABELS[relationshipType];
