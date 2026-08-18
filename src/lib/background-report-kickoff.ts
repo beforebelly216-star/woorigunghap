@@ -2,14 +2,14 @@ import "server-only";
 
 import type { OrderDraft } from "@/lib/orders";
 
-const PHASES = ["prepare", "intro", "dynamics", "action"] as const;
+const ONE_TO_ONE_SEGMENTS = ["intro", "dynamics", "action"] as const;
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function postWithRetry(url: string, body: unknown) {
-  for (let attempt = 1; attempt <= 8; attempt += 1) {
+async function postWithRetry(url: string, body: unknown, maxAttempts = 8) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -28,7 +28,7 @@ async function postWithRetry(url: string, body: unknown) {
     } catch {
       // Treat transient internal fetch failures as retryable while the originating function is alive.
     }
-    await wait(Math.min(4_000, attempt * 700));
+    if (attempt < maxAttempts) await wait(Math.min(4_000, attempt * 700));
   }
   return false;
 }
@@ -51,14 +51,23 @@ export async function kickOffPaidReportGeneration({
   }
 
   if (!input) return false;
-  for (const phase of PHASES) {
-    const completed = await postWithRetry(`${origin}/api/compatibility/one-to-one`, {
-      paymentId,
-      accessToken,
-      input,
-      phase,
-    });
-    if (!completed) return false;
-  }
-  return true;
+
+  const prepared = await postWithRetry(`${origin}/api/compatibility/one-to-one`, {
+    paymentId,
+    accessToken,
+    input,
+    phase: "prepare",
+  }, 3);
+  if (!prepared) return false;
+
+  // Each paid segment can consume most of one Vercel function lifetime. Running
+  // them sequentially here can outlive the payment-verification function and
+  // strand the order when the buyer leaves the result page. Segment locks and
+  // atomic server-store writes make this fan-out safe and idempotent.
+  const completed = await Promise.all(ONE_TO_ONE_SEGMENTS.map((phase) => postWithRetry(
+    `${origin}/api/compatibility/one-to-one`,
+    { paymentId, accessToken, input, phase },
+    1,
+  )));
+  return completed.every(Boolean);
 }
