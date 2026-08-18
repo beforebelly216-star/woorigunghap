@@ -14,8 +14,9 @@ import {
   exchangeKakaoAuthorizationCode,
   getKakaoAuthConfig,
   retrieveKakaoIdentity,
+  type KakaoTokenBundle,
 } from "@/lib/kakao-auth";
-import { saveKakaoTokenBundle } from "@/lib/kakao-token-store";
+import { isKakaoMessageEnabled, saveKakaoTokenBundle } from "@/lib/kakao-token-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,17 +54,36 @@ export async function GET(request: NextRequest) {
   const wantsMessageNotification = request.cookies.get(KAKAO_NOTIFY_INTENT_COOKIE)?.value === "1";
 
   let userId: string;
+  let tokenBundle: KakaoTokenBundle;
   try {
-    const tokenBundle = await exchangeKakaoAuthorizationCode(config, code);
+    tokenBundle = await exchangeKakaoAuthorizationCode(config, code);
     const identity = await retrieveKakaoIdentity(tokenBundle.accessToken);
     const user = await upsertKakaoUser(identity.providerUserId, identity.displayName);
     userId = user.userId;
-    if (wantsMessageNotification && process.env.KAKAO_TOKEN_ENCRYPTION_KEY) {
-      await saveKakaoTokenBundle(userId, tokenBundle);
-    }
   } catch (authError) {
     console.error("[woorigunghap:kakao-auth]", authError instanceof Error ? authError.name : "unknown");
     return failureResponse(request, "callback");
+  }
+
+  let notificationResult: "enabled" | "failed" | null = null;
+  if (wantsMessageNotification) {
+    try {
+      const saved = await saveKakaoTokenBundle(userId, tokenBundle);
+      const enabled = saved && await isKakaoMessageEnabled(userId);
+      notificationResult = enabled ? "enabled" : "failed";
+      if (!enabled) {
+        console.warn("[woorigunghap:kakao-notify-enable-failed]", JSON.stringify({
+          tokenStored: saved,
+          scopeReturned: tokenBundle.scopes.includes("talk_message"),
+        }));
+      }
+    } catch (notificationError) {
+      console.error(
+        "[woorigunghap:kakao-notify-enable]",
+        notificationError instanceof Error ? notificationError.name : "unknown",
+      );
+      notificationResult = "failed";
+    }
   }
 
   const sessionToken = createOpaqueToken();
@@ -76,6 +96,7 @@ export async function GET(request: NextRequest) {
 
   const destination = new URL(returnTo, request.nextUrl.origin);
   destination.searchParams.set("login", "success");
+  if (notificationResult) destination.searchParams.set("notify", notificationResult);
   const response = NextResponse.redirect(destination);
   clearTransientCookies(response);
   response.cookies.set(AUTH_SESSION_COOKIE, sessionToken, {
