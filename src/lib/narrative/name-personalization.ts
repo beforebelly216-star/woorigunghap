@@ -185,9 +185,9 @@ export function normalizeNarrativeNameTokenDensity<T>(
   limits: Partial<Record<NarrativeNameTokenRole, number>> = {},
 ): T {
   const budget: Record<NarrativeNameTokenRole, number> = {
-    self: limits.self ?? 8,
-    partner: limits.partner ?? 8,
-    both: limits.both ?? 3,
+    self: limits.self ?? 5,
+    partner: limits.partner ?? 5,
+    both: limits.both ?? 2,
   };
   const used: Record<NarrativeNameTokenRole, number> = { self: 0, partner: 0, both: 0 };
   const particles = TOKEN_PARTICLES.map(escapeRegExp).join("|");
