@@ -134,12 +134,18 @@ assert.equal(
 );
 
 const engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
-assert.match(engine, /paid-report-v7-editorial-v8-safe-evidence/);
-assert.match(engine, /paid-report-evidence-v5/);
+assert.match(engine, /paid-report-v7-editorial-v9-reduced-ai-facts/);
+assert.match(engine, /paid-report-evidence-v6/);
 assert.match(engine, /relationshipPromptRules\(/);
 assert.match(engine, /input\.coworkerHierarchy \?\? null/);
 assert.match(engine, /buildReportEditorialContext/);
+assert.match(engine, /paidEditorialFacts/);
 assert.match(engine, /paidEditorialEvidence/);
+assert.match(engine, /dayPillar: value\.pillars\.day/);
+assert.match(engine, /strongest: value\.elementBalance\.strongest/);
+assert.match(engine, /weakest: value\.elementBalance\.weakest/);
+assert.match(engine, /정확한 오행 비율·신강 점수·겉오행 개수 일부가 의도적으로 제공되지 않습니다/);
+assert.match(engine, /오행을 심리 능력의 원인으로 쓰는 문장은 금지/);
 assert.match(engine, /RELATIONSHIP_ROLE_SCORE_ONLY/);
 assert.match(engine, /aRoleSupply: _aRoleSupply/);
 assert.match(engine, /bRoleSupply: _bRoleSupply/);
@@ -204,4 +210,4 @@ const resultV2 = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8")
 assert.match(resultV2, /threeYearTiming=\{snapshot\.threeYearTiming\}/);
 assert.doesNotMatch(resultV2, /dimension !== "luckCycleAlignment"/);
 
-console.log("Day 21 relationship editorial + safe evidence + user context + v4 binding checks: PASS");
+console.log("Day 21 relationship editorial + reduced AI facts + user context + v4 binding checks: PASS");
