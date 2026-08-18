@@ -22,7 +22,7 @@ type LibraryState =
   | { status: "failed" }
   | { status: "ready"; reports: ReportSummary[]; kakaoNotifyEnabled: boolean };
 
-type NotifyResult = "enabled" | "failed" | null;
+type NotifyResult = "enabled" | "scope" | "setup" | "send_failed" | null;
 
 const GENERATION_RESUME_INTERVAL_MS = 120_000;
 
@@ -37,6 +37,19 @@ function reportHref(report: ReportSummary) {
   return `${path}?${new URLSearchParams({ paymentId: report.paymentId, source: "account" }).toString()}`;
 }
 
+function notificationFeedback(result: NotifyResult) {
+  switch (result) {
+    case "scope":
+      return "카카오톡 메시지 전송 권한이 아직 동의되지 않았어요. 아래 버튼을 누르면 해당 권한 동의 화면을 다시 요청합니다.";
+    case "setup":
+      return "카카오 권한과 별개로 알림 서버 설정을 확인해야 해요. 다시 연결해도 같은 안내가 나오면 운영 설정 점검이 필요합니다.";
+    case "send_failed":
+      return "권한 저장 뒤 시험 메시지 발송까지 확인했지만 카카오 전송에 실패했어요. 아래 버튼으로 다시 연결해 주세요.";
+    default:
+      return null;
+  }
+}
+
 export default function AccountReportsPage() {
   const [state, setState] = useState<LibraryState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
@@ -45,7 +58,9 @@ export default function AccountReportsPage() {
 
   useEffect(() => {
     const result = new URLSearchParams(window.location.search).get("notify");
-    if (result === "enabled" || result === "failed") setNotifyResult(result);
+    if (result === "enabled" || result === "scope" || result === "setup" || result === "send_failed") {
+      setNotifyResult(result);
+    }
   }, []);
 
   useEffect(() => {
@@ -116,6 +131,8 @@ export default function AccountReportsPage() {
     setReloadKey((value) => value + 1);
   }
 
+  const notifyFeedback = notificationFeedback(notifyResult);
+
   return <main className="library-page">
     <section className="library-shell">
       <p className="eyebrow">ACCOUNT LIBRARY</p>
@@ -135,22 +152,22 @@ export default function AccountReportsPage() {
           <button type="button" className="secondary-action" onClick={reload}>다시 불러오기</button>
         </div> : null}
         {state.status === "ready" ? <div className="library-notification-panel">
-          <div>
+          <div className="library-notification-copy">
             <strong>카카오톡 완료 알림</strong>
             <p>{state.kakaoNotifyEnabled
-              ? "결과 생성이 끝나면 카카오톡 ‘나에게 보내기’로 알려드려요."
-              : "생성이 오래 걸려도 다른 화면을 이용할 수 있도록 완료 시 카카오톡으로 알려드릴 수 있어요."}</p>
-            {notifyResult === "failed" && !state.kakaoNotifyEnabled ? <p className="library-notification-feedback library-notification-feedback-error" role="alert">
-              카카오 메시지 권한 또는 알림 서버 설정을 활성화하지 못했어요. 아래 버튼으로 다시 연결해 주세요.
+              ? "연결 시험 메시지 발송까지 확인된 상태예요. 결과 생성이 끝나면 카카오톡 ‘나에게 보내기’로 알려드려요."
+              : "처음에 메시지 권한을 넘겼더라도 언제든 다시 동의할 수 있어요. 연결할 때 시험 메시지를 실제로 보내 작동 여부까지 확인합니다."}</p>
+            {notifyFeedback && !state.kakaoNotifyEnabled ? <p className="library-notification-feedback library-notification-feedback-error" role="alert">
+              {notifyFeedback}
             </p> : null}
             {notifyResult === "enabled" && state.kakaoNotifyEnabled ? <p className="library-notification-feedback">
-              완료 알림이 활성화되었습니다.
+              완료 알림이 활성화되었습니다. 카카오톡에 연결 확인 메시지가 도착했는지 확인해 주세요.
             </p> : null}
           </div>
           {!state.kakaoNotifyEnabled ? <Link
             className="secondary-action"
             href="/api/auth/kakao/start?notify=1&returnTo=%2Faccount%2Freports"
-          >{notifyResult === "failed" ? "완료 알림 다시 연결" : "완료 알림 받기"}</Link> : <span className="library-notification-enabled">알림 사용 중</span>}
+          >{notifyResult === "scope" ? "메시지 권한 다시 동의" : notifyResult ? "완료 알림 다시 연결" : "완료 알림 받기"}</Link> : <span className="library-notification-enabled">알림 사용 중</span>}
         </div> : null}
         {state.status === "ready" && state.reports.length === 0 ? <div className="library-state">
           <h2>아직 저장한 리포트가 없어요</h2>
