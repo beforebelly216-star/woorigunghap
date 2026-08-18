@@ -102,6 +102,34 @@ input:focus-visible,
   padding: 10px;
 }
 
+.library-notification-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+}
+
+.library-notification-copy {
+  min-width: 0;
+}
+
+.library-notification-copy p {
+  overflow-wrap: anywhere;
+}
+
+.library-notification-action,
+.library-notification-enabled {
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.library-notification-error {
+  display: block;
+  margin-top: 8px;
+  color: #a3483e;
+  line-height: 1.45;
+}
+
 .v2-page,
 .report-page,
 .library-page,
@@ -280,6 +308,25 @@ input:focus-visible,
 
   .library-card {
     padding: 18px;
+  }
+
+  .library-notification-panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .library-notification-action,
+  .library-notification-enabled {
+    justify-self: stretch;
+    width: 100%;
+    text-align: center;
+  }
+
+  .library-notification-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

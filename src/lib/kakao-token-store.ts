@@ -64,11 +64,19 @@ async function ensureSchema() {
   return true;
 }
 
-export async function saveKakaoTokenBundle(userId: string, bundle: KakaoTokenBundle) {
+export async function saveKakaoTokenBundle(
+  userId: string,
+  bundle: KakaoTokenBundle,
+  explicitMessageOptIn?: boolean,
+) {
   if (!await ensureSchema()) return false;
   const sql = getQuery();
   if (!sql) return false;
-  const messageEnabled = bundle.scopes.includes("talk_message");
+  // The OAuth callback's signed state/intent cookie is the authority for an
+  // explicit notification opt-in. Kakao's token response can omit `scope`
+  // even after a successful incremental-consent flow, so do not turn the
+  // feature back off just because that optional response field is absent.
+  const messageEnabled = explicitMessageOptIn ?? bundle.scopes.includes("talk_message");
   const accessExpiresAt = new Date(Date.now() + bundle.expiresInSeconds * 1000).toISOString();
   const refreshExpiresAt = bundle.refreshToken && bundle.refreshTokenExpiresInSeconds
     ? new Date(Date.now() + bundle.refreshTokenExpiresInSeconds * 1000).toISOString()

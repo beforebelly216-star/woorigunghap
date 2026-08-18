@@ -442,13 +442,11 @@ export async function requestStructuredSegment<T>(args: {
   qualityIssues: (value: T) => string[];
   label: string;
 }): Promise<{ best: SegmentAttempt<T>; attempts: number; allUsage: AnthropicRawUsage[] }> {
-  const requestedTimeoutMs = Math.max(args.timeoutMs ?? 60_000, 60_000);
   const isLongSegment = args.label === "DYNAMICS" || args.label === "ACTION";
-  const perAttemptTimeoutMs = isLongSegment
-    ? Math.max(requestedTimeoutMs, 205_000)
-    : Math.max(requestedTimeoutMs, 120_000);
-  const totalBudgetMs = isLongSegment ? 220_000 : 180_000;
-  const maxAttempts = isLongSegment ? 1 : 2;
+  const requestedTimeoutMs = Math.max(args.timeoutMs ?? (isLongSegment ? 60_000 : 45_000), 30_000);
+  const perAttemptTimeoutMs = Math.min(requestedTimeoutMs, isLongSegment ? 75_000 : 60_000);
+  const totalBudgetMs = perAttemptTimeoutMs;
+  const maxAttempts = 1;
   const startedAt = Date.now();
   const allUsage: AnthropicRawUsage[] = [];
   let lastFailure = "UNKNOWN";
@@ -477,15 +475,11 @@ export async function requestStructuredSegment<T>(args: {
         : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고 완결된 객체를 출력하세요.";
       const expandedSystem = attempt === 1 ? baseSystem : `${baseSystem}\n\n[재시도 지시] ${retryReason}`;
       const firstAttemptMaxTokens = args.label === "INTRO"
-        ? Math.max(args.maxTokens, 5_000)
-        : args.label === "DYNAMICS"
-          ? Math.max(args.maxTokens, 9_000)
-          : args.label === "ACTION"
-            ? Math.max(args.maxTokens, 8_000)
-            : args.maxTokens;
-      const attemptMaxTokens = attempt === 1
-        ? firstAttemptMaxTokens
-        : Math.min(12_000, Math.ceil(firstAttemptMaxTokens * 1.2));
+        ? Math.min(args.maxTokens, 4_400)
+        : args.label === "DYNAMICS" || args.label === "ACTION"
+          ? Math.min(args.maxTokens, 6_500)
+          : args.maxTokens;
+      const attemptMaxTokens = firstAttemptMaxTokens;
 
       let result = await callAnthropic({
         apiKey: args.apiKey,

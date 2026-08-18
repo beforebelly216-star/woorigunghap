@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccountDeletionPanel } from "@/components/account-deletion-panel";
 
 type ReportSummary = {
@@ -35,10 +35,37 @@ function reportHref(report: ReportSummary) {
 export default function AccountReportsPage() {
   const [state, setState] = useState<LibraryState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
+  const [notificationFeedback, setNotificationFeedback] = useState<"enabled" | "failed" | null>(null);
+  const resumeInFlight = useRef(new Set<string>());
+
+  useEffect(() => {
+    const feedbackTimer = window.setTimeout(() => {
+      const notify = new URLSearchParams(window.location.search).get("notify");
+      if (notify === "enabled" || notify === "failed") setNotificationFeedback(notify);
+    }, 0);
+    return () => window.clearTimeout(feedbackTimer);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     let timer: number | null = null;
+
+    async function resumeOneToOne(report: ReportSummary) {
+      if (report.product !== "oneToOne" || report.status !== "generating") return;
+      if (resumeInFlight.current.has(report.paymentId)) return;
+      resumeInFlight.current.add(report.paymentId);
+      try {
+        await fetch(`/api/account/reports/${encodeURIComponent(report.paymentId)}/resume`, {
+          method: "POST",
+          cache: "no-store",
+          referrerPolicy: "no-referrer",
+        });
+      } catch {
+        // Polling below will retry from the last persisted segment on the next pass.
+      } finally {
+        resumeInFlight.current.delete(report.paymentId);
+      }
+    }
 
     async function load() {
       try {
@@ -56,6 +83,10 @@ export default function AccountReportsPage() {
             reports,
             kakaoNotifyEnabled: payload?.kakaoNotifyEnabled === true,
           });
+          const generatingOneToOne = reports.find(
+            (report) => report.product === "oneToOne" && report.status === "generating",
+          );
+          if (generatingOneToOne) void resumeOneToOne(generatingOneToOne);
           if (reports.some((report) => report.status === "generating")) {
             timer = window.setTimeout(load, 4_000);
           }
@@ -83,7 +114,7 @@ export default function AccountReportsPage() {
     <section className="library-shell">
       <p className="eyebrow">ACCOUNT LIBRARY</p>
       <h1>내 궁합 보관함</h1>
-      <p className="library-intro">결제 완료 즉시 보관함에 저장되고, 생성 중인 결과는 완료될 때까지 자동으로 상태를 확인합니다.</p>
+      <p className="library-intro">결제 완료 즉시 보관함에 저장되고, 생성 중인 1:1 결과는 이 화면을 다시 열어도 마지막 저장 단계부터 이어서 만듭니다.</p>
 
       <div aria-live="polite" aria-busy={state.status === "loading"}>
         {state.status === "loading" ? <div className="library-state"><p>보관함을 불러오고 있어요.</p></div> : null}
@@ -98,14 +129,17 @@ export default function AccountReportsPage() {
           <button type="button" className="secondary-action" onClick={reload}>다시 불러오기</button>
         </div> : null}
         {state.status === "ready" ? <div className="library-notification-panel">
-          <div>
+          <div className="library-notification-copy">
             <strong>카카오톡 완료 알림</strong>
             <p>{state.kakaoNotifyEnabled
               ? "결과 생성이 끝나면 카카오톡 ‘나에게 보내기’로 알려드려요."
               : "생성이 오래 걸려도 다른 화면을 이용할 수 있도록 완료 시 카카오톡으로 알려드릴 수 있어요."}</p>
+            {notificationFeedback === "failed" && !state.kakaoNotifyEnabled
+              ? <small className="library-notification-error">알림 연결을 저장하지 못했습니다. 서버 알림 설정을 확인한 뒤 다시 시도해 주세요.</small>
+              : null}
           </div>
           {!state.kakaoNotifyEnabled ? <Link
-            className="secondary-action"
+            className="secondary-action library-notification-action"
             href="/api/auth/kakao/start?notify=1&returnTo=%2Faccount%2Freports"
           >완료 알림 받기</Link> : <span className="library-notification-enabled">알림 사용 중</span>}
         </div> : null}
@@ -121,6 +155,16 @@ export default function AccountReportsPage() {
               <strong>{report.title}</strong>
               <small>{formatDate(report.createdAt)} 구매</small>
               <b>저장된 결과 열기</b>
+            </Link> : report.product === "oneToOne" ? <Link
+              className="library-card library-card-generating"
+              href={reportHref(report)}
+              aria-busy="true"
+            >
+              <span>{report.productLabel} · {report.relationshipLabel}</span>
+              <strong>{report.title}</strong>
+              <small>{formatDate(report.createdAt)} 구매</small>
+              <b>생성중 · 이어서 만들기</b>
+              <p>보관함을 다시 열면 마지막 저장 단계부터 자동으로 생성을 이어갑니다.</p>
             </Link> : <article className="library-card library-card-generating" aria-busy="true">
               <span>{report.productLabel} · {report.relationshipLabel}</span>
               <strong>{report.title}</strong>

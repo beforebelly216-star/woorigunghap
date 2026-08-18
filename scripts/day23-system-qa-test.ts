@@ -58,10 +58,14 @@ assert.match(oneToOneReport, /completeReportSegmentGeneration\(paymentId, segmen
 assert.match(oneToOneReport, /releaseReportSegmentGeneration/);
 assert.match(oneToOneReport, /SERVER_REPORT_SEGMENT_SAVE_FAILED/);
 
-// Progress-first policy keeps one full-budget long-segment attempt per HTTP request.
-// Editorial findings stay visible as warnings; only release blockers trigger a retry/failure.
-assert.match(requestEngine, /const maxAttempts = isLongSegment \? 1 : 2/);
+// Progress-first policy uses one bounded Anthropic attempt per HTTP request.
+// Editorial findings stay visible as warnings; only release blockers fail the segment.
+assert.match(requestEngine, /const maxAttempts = 1/);
 assert.match(requestEngine, /for \(let attempt = 1; attempt <= maxAttempts; attempt \+= 1\)/);
+assert.match(requestEngine, /perAttemptTimeoutMs/);
+assert.match(requestEngine, /75_000/);
+assert.match(requestEngine, /totalBudgetMs = perAttemptTimeoutMs/);
+assert.doesNotMatch(requestEngine, /205_000|220_000/);
 assert.match(requestEngine, /Progress-first policy/);
 assert.match(requestEngine, /critical\.length === 0/);
 assert.doesNotMatch(requestEngine, /QUALITY_RETRY/);
@@ -88,7 +92,6 @@ assert.match(requestEngine, /RELATIONSHIP_ROMANCE_LEAK/);
 assert.match(requestEngine, /COWORKER_HIERARCHY_NOT_REFLECTED/);
 assert.match(requestEngine, /INTRO" \? 1200/);
 assert.match(requestEngine, /1800/);
-assert.match(requestEngine, /totalBudgetMs = isLongSegment \? 220_000 : 180_000/);
 
 // Paid AI payload deliberately removes raw person-level numbers that caused unsupported
 // psychological interpretations in real Claude samples, while keeping server scores authoritative.

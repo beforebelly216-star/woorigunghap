@@ -53,13 +53,15 @@ export async function GET(request: NextRequest) {
   const wantsMessageNotification = request.cookies.get(KAKAO_NOTIFY_INTENT_COOKIE)?.value === "1";
 
   let userId: string;
+  let notificationEnrollment: "enabled" | "failed" | null = null;
   try {
     const tokenBundle = await exchangeKakaoAuthorizationCode(config, code);
     const identity = await retrieveKakaoIdentity(tokenBundle.accessToken);
     const user = await upsertKakaoUser(identity.providerUserId, identity.displayName);
     userId = user.userId;
-    if (wantsMessageNotification && process.env.KAKAO_TOKEN_ENCRYPTION_KEY) {
-      await saveKakaoTokenBundle(userId, tokenBundle);
+    if (wantsMessageNotification) {
+      const saved = await saveKakaoTokenBundle(userId, tokenBundle, true);
+      notificationEnrollment = saved ? "enabled" : "failed";
     }
   } catch (authError) {
     console.error("[woorigunghap:kakao-auth]", authError instanceof Error ? authError.name : "unknown");
@@ -76,6 +78,7 @@ export async function GET(request: NextRequest) {
 
   const destination = new URL(returnTo, request.nextUrl.origin);
   destination.searchParams.set("login", "success");
+  if (notificationEnrollment) destination.searchParams.set("notify", notificationEnrollment);
   const response = NextResponse.redirect(destination);
   clearTransientCookies(response);
   response.cookies.set(AUTH_SESSION_COOKIE, sessionToken, {
