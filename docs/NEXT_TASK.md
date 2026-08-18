@@ -18,7 +18,18 @@
 
 ## Hotfix
 
-- [ ] 현재 확인된 hotfix 없음
+- [x] 1:1 장시간 생성 정체 / 이탈 후 보관함 영구 `생성중` / Kakao 완료 알림 활성화 UI 회귀 코드 수정
+  - `prepare` 후 3개 AI segment 병렬 fan-out, segment DB atomic merge, 같은 브라우저 보관함 재기동, 최종 완료 알림 재확인, Kakao 활성화 성공/실패 표시, 알림 패널 spacing 반영
+  - 관련 커밋: `6deedaf`, `919a008`, `da71cc1`, `5053492`, `7b43e88`, `d63ac4a`, `44a6f7f`
+  - 계약 테스트 `test:pending-library-notify` 회귀 조건 갱신 완료
+
+- [ ] 최신 hotfix Production 반영 후 사용자 보고 5개 증상 실제 E2E 재검증
+  - 1:1 테스트 결제 → 800초 이상 무한 대기 재발 여부
+  - 결과 생성 중 다른 화면/보관함 이동 → 자동 복구 → `완료` 전환 여부
+  - `완료 알림 받기` → `알림 사용 중` 상태 유지 여부
+  - 결과 완료 시 Kakao ‘나에게 보내기’ 실제 수신 여부
+  - 알림 활성화가 `failed`이면 Vercel `KAKAO_TOKEN_ENCRYPTION_KEY` 및 Kakao `talk_message` 앱 권한/동의 설정 확인
+  - 현재 Vercel status는 Hobby `build-rate-limit`; Production 미반영을 코드 실패로 판정하지 않는다.
 
 ## Post-beta 운영 QA
 
@@ -90,10 +101,10 @@ HANDOFF
 ```text
 HANDOFF
 - Worker: GPT
-- Task: GPT/Claude 교대 작업 환경 구축
-- Status: complete
-- Validation: latest main/Day 24 baseline and all shared handoff files verified; docs-only change
-- Commit: b31307a, 0994121, 324b6d4, 689155c, 1ae8225 (+ this handoff update)
-- Remaining: 360/390/430px 모바일 실기기 핵심 플로우 재검증부터 시작
-- Risk: none
+- Task: 1:1 생성 무한대기/이탈 후 정체 + Kakao 완료 알림 UI·활성화 hotfix
+- Status: partial
+- Validation: contract assertions updated; push workflow includes test:pending-library-notify + lint + build, but connector cannot read push-run result; Vercel status=build-rate-limit
+- Commit: code through 44a6f7f; PROJECT_STATE a20b307; this handoff update
+- Remaining: build limit 해제 후 latest main Production 반영 확인 → 1:1 결제/이탈복구/알림 활성화/실제 Kakao 수신 E2E
+- Risk: production Kakao env/talk_message state unverified; old stalled order recovery requires same-browser access token
 ```
