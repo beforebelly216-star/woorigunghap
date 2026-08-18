@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   );
   if (!input) return NextResponse.json({ error: "궁합 입력값 형식이 올바르지 않습니다." }, { status: 400 });
 
-  const validation = validateOneToOneReportInput(input);
+  const validation = validateOneToOneReportInput(input, { requireCoworkerHierarchy: true });
   if (!validation.valid) return NextResponse.json({ error: "궁합 입력값을 다시 확인해 주세요.", fieldErrors: validation.errors }, { status: 400 });
 
   const order = createOneToOneOrderDraft(input);

@@ -30,7 +30,12 @@
     "test:day21:relationship-editorial": "tsx scripts/day21-relationship-editorial-test.ts",
     "test:day22:operating-policy": "tsx scripts/day22-operating-policy-test.ts",
     "test:day23:system-qa": "tsx scripts/day23-system-qa-test.ts",
-    "test:pending-library-notify": "tsx scripts/pending-library-kakao-notify-contract-test.ts"
+    "test:pending-library-notify": "tsx scripts/pending-library-kakao-notify-contract-test.ts",
+    "test:one-to-one:partner-info": "tsx scripts/one-to-one-partner-information-level-test.ts",
+    "test:one-to-one:luck-cycle": "tsx scripts/one-to-one-luck-cycle-foundation-test.ts",
+    "test:one-to-one:three-year-timing": "tsx scripts/one-to-one-three-year-timing-test.ts",
+    "qa:one-to-one:anthropic": "tsx scripts/one-to-one-anthropic-sample-qa.ts",
+    "test:one-to-one:quality-gate": "tsx scripts/one-to-one-quality-gate-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

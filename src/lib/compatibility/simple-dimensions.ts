@@ -437,8 +437,8 @@ export function scoreLuckCycleAlignment(
     profile,
     ...weightedPoints(profile, "luckCycleAlignment", normalizedScore),
     evidence: {
-      method: "MVP_NEUTRAL_UNTIL_DAEUN_ENGINE",
-      note: "大運(대운) 계산은 현재 MVP 범위 밖이므로 허위 정밀도를 피하기 위해 중립 처리한다.",
+      method: "SCENARIO_BASELINE_BEFORE_THREE_YEAR_TIMING",
+      note: "출생시간 시나리오 총점 집계를 위한 70점 기준값이며, 최종 스냅샷에서는 검증된 3년 대운·세운 타이밍 점수로 치환한다.",
     },
   };
 }

@@ -2,7 +2,9 @@ import { PaymentClient } from "@portone/server-sdk";
 import { PRODUCTS, type ProductKey } from "@/lib/catalog";
 import {
   LEGACY_ORDER_BINDING_VERSION,
+  OLDER_ORDER_BINDING_VERSION,
   ORDER_BINDING_VERSION,
+  PREVIOUS_ORDER_BINDING_VERSION,
   hashOneToOneInput,
   hashOneToManyInput,
   type OrderBindingVersion,
@@ -42,7 +44,10 @@ function parseCustomData(value: unknown): Record<string, unknown> | null {
 }
 
 function isBindingVersion(value: unknown): value is OrderBindingVersion {
-  return value === ORDER_BINDING_VERSION || value === LEGACY_ORDER_BINDING_VERSION;
+  return value === ORDER_BINDING_VERSION
+    || value === PREVIOUS_ORDER_BINDING_VERSION
+    || value === OLDER_ORDER_BINDING_VERSION
+    || value === LEGACY_ORDER_BINDING_VERSION;
 }
 
 function isTerminalPaymentStatus(status: unknown) {
@@ -130,7 +135,7 @@ export async function verifyPaidPayment(
     const paidInputHash = customData?.inputHash;
     if (isBindingVersion(bindingVersion) && typeof paidInputHash === "string") {
       const expectedInputHash = expectedProduct === "oneToMany"
-        ? await hashOneToManyInput(expectedInput as OneToManyReportInput)
+        ? await hashOneToManyInput(expectedInput as OneToManyReportInput, bindingVersion)
         : await hashOneToOneInput(expectedInput as OneToOneReportInput, bindingVersion);
       if (paidInputHash !== expectedInputHash) {
         throw new PaymentVerificationError(

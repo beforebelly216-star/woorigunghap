@@ -1,8 +1,14 @@
 import type { OneToManyReportInput, OneToOneReportInput, PersonBirthInput } from "@/lib/report-input";
 
-export const ORDER_BINDING_VERSION = "input-sha256-v2" as const;
+export const ORDER_BINDING_VERSION = "input-sha256-v4" as const;
+export const PREVIOUS_ORDER_BINDING_VERSION = "input-sha256-v3" as const;
+export const OLDER_ORDER_BINDING_VERSION = "input-sha256-v2" as const;
 export const LEGACY_ORDER_BINDING_VERSION = "input-sha256-v1" as const;
-export type OrderBindingVersion = typeof ORDER_BINDING_VERSION | typeof LEGACY_ORDER_BINDING_VERSION;
+export type OrderBindingVersion =
+  | typeof ORDER_BINDING_VERSION
+  | typeof PREVIOUS_ORDER_BINDING_VERSION
+  | typeof OLDER_ORDER_BINDING_VERSION
+  | typeof LEGACY_ORDER_BINDING_VERSION;
 
 function canonicalPerson(value: PersonBirthInput) {
   return {
@@ -13,6 +19,12 @@ function canonicalPerson(value: PersonBirthInput) {
     birthTime: value.birthTimeKnown ? value.birthTime : null,
     isLeapMonth: value.isLeapMonth,
   };
+}
+
+function canonicalPersonForVersion(value: PersonBirthInput, version: OrderBindingVersion) {
+  return version === LEGACY_ORDER_BINDING_VERSION
+    ? { displayName: value.displayName, ...canonicalPerson(value) }
+    : canonicalPerson(value);
 }
 
 function digestCanonical(value: string) {
@@ -26,16 +38,36 @@ export function canonicalizeOneToOneInput(
   input: OneToOneReportInput,
   version: OrderBindingVersion = ORDER_BINDING_VERSION,
 ) {
-  const person = (value: OneToOneReportInput["personA"]) => version === LEGACY_ORDER_BINDING_VERSION
-    ? { displayName: value.displayName, ...canonicalPerson(value) }
-    : canonicalPerson(value);
-
-  return JSON.stringify({
+  const shared = {
     version,
     relationshipType: input.relationshipType,
-    personA: person(input.personA),
-    personB: person(input.personB),
-  });
+    personA: canonicalPersonForVersion(input.personA, version),
+    personB: canonicalPersonForVersion(input.personB, version),
+  };
+
+  if (version === ORDER_BINDING_VERSION) {
+    return JSON.stringify({
+      ...shared,
+      coworkerHierarchy: input.relationshipType === "coworker"
+        ? input.coworkerHierarchy ?? null
+        : null,
+      relationshipDurationMonths: input.relationshipType === "crush"
+        ? null
+        : input.relationshipDurationMonths ?? null,
+      mostCurious: input.mostCurious?.trim() || null,
+    });
+  }
+
+  if (version === PREVIOUS_ORDER_BINDING_VERSION) {
+    return JSON.stringify({
+      ...shared,
+      coworkerHierarchy: input.relationshipType === "coworker"
+        ? input.coworkerHierarchy ?? null
+        : null,
+    });
+  }
+
+  return JSON.stringify(shared);
 }
 
 export async function hashOneToOneInput(
@@ -45,16 +77,21 @@ export async function hashOneToOneInput(
   return digestCanonical(canonicalizeOneToOneInput(input, version));
 }
 
-
-export function canonicalizeOneToManyInput(input: OneToManyReportInput) {
+export function canonicalizeOneToManyInput(
+  input: OneToManyReportInput,
+  version: OrderBindingVersion = ORDER_BINDING_VERSION,
+) {
   return JSON.stringify({
-    version: ORDER_BINDING_VERSION,
+    version,
     relationshipType: input.relationshipType,
-    referencePerson: canonicalPerson(input.referencePerson),
-    candidates: input.candidates.map(canonicalPerson),
+    referencePerson: canonicalPersonForVersion(input.referencePerson, version),
+    candidates: input.candidates.map((person) => canonicalPersonForVersion(person, version)),
   });
 }
 
-export async function hashOneToManyInput(input: OneToManyReportInput) {
-  return digestCanonical(canonicalizeOneToManyInput(input));
+export async function hashOneToManyInput(
+  input: OneToManyReportInput,
+  version: OrderBindingVersion = ORDER_BINDING_VERSION,
+) {
+  return digestCanonical(canonicalizeOneToManyInput(input, version));
 }

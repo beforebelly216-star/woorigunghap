@@ -17,6 +17,7 @@ import {
   scoreUsefulGodFit,
   type PreparedCompatibilityPerson,
 } from "./simple-dimensions";
+import { calculateThreeYearTimingAlignment, type ThreeYearTimingAssessment } from "./timing-alignment";
 import type { CompatibilityDimension, CompatibilityProfile } from "./types";
 import {
   COMPATIBILITY_SCORE_WEIGHTS,
@@ -24,7 +25,7 @@ import {
   getCompatibilityDimensionWeight,
 } from "./weights";
 
-export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.2.2";
+export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.3.0";
 
 export const COMPATIBILITY_DIMENSIONS = [
   "dayMaster",
@@ -87,6 +88,7 @@ export type CompatibilityCalculationSnapshot = {
   strengths: CompatibilityDimension[];
   adjustmentPoints: CompatibilityDimension[];
   representativeEvidence: Record<CompatibilityDimension, unknown>;
+  threeYearTiming?: ThreeYearTimingAssessment;
   aiBoundary: { scoreMutableByAi: false; rankingMutableByAi: false };
 };
 
@@ -107,6 +109,13 @@ function median(values: number[]) {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+function currentKoreanYear() {
+  return Number(new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+  }).format(new Date()));
 }
 
 function pillarBoundaryKey(person: PersonBirthInput) {
@@ -174,6 +183,7 @@ function scorePreparedPair(
     earthlyBranchInteraction: scoreEarthlyBranchInteraction(a, b, profile),
     specialStars: scoreSpecialStars(a, b, profile),
     spouseStarRealization: scoreSpouseStarRealization(a, b, profile),
+    // 시나리오별 기본점은 70으로 유지하고 최종 집계 후 A/B 대운·세운 증거로 치환한다.
     luckCycleAlignment: scoreLuckCycleAlignment(profile),
   };
 
@@ -219,7 +229,6 @@ function summarizeDimensions(
 ) {
   const scored = COMPATIBILITY_DIMENSIONS
     .filter((dimension) => dimensions[dimension].maxPoints > 0)
-    .filter((dimension) => dimension !== "luckCycleAlignment")
     .map((dimension) => ({
       dimension,
       score: dimensions[dimension].normalizedScore,
@@ -240,6 +249,7 @@ function summarizeDimensions(
 
 export function calculateOneToOneCompatibility(
   input: OneToOneReportInput,
+  options: { timingBaseYear?: number } = {},
 ): CompatibilityCalculationSnapshot {
   const profile = getRelationshipCalculationProfile(input.relationshipType);
   const preparedA = prepareScenarios(input.personA);
@@ -265,23 +275,43 @@ export function calculateOneToOneCompatibility(
     };
   }
 
+  const timingBaseYear = options.timingBaseYear ?? currentKoreanYear();
+  const threeYearTiming = calculateThreeYearTimingAlignment(input, timingBaseYear);
+  const timingWeight = getCompatibilityDimensionWeight(profile, "luckCycleAlignment");
+  dimensions.luckCycleAlignment = {
+    normalizedScore: threeYearTiming.normalizedScore,
+    maxPoints: timingWeight,
+    weightedPoints: round4((threeYearTiming.normalizedScore / 100) * timingWeight),
+  };
+
   const rawTotal = round4(clamp(
     Object.values(dimensions).reduce((sum, dimension) => sum + dimension.weightedPoints, 0),
     30,
     100,
   ));
   const score = Math.round(rawTotal);
-  const totals = scenarioResults.map((scenario) => clamp(scenario.rawTotal, 30, 100));
-  const min = Math.round(Math.min(...totals));
-  const max = Math.round(Math.max(...totals));
+
+  // 각 출생시간 시나리오 총점에는 기존 중립 타이밍 70점이 들어 있다.
+  // 실제 3년 타이밍 범위와의 차이를 5점 배점에 환산해 최종 불확실성 범위에 더한다.
+  const timingMinDelta = ((threeYearTiming.scoreRange.min - 70) / 100) * timingWeight;
+  const timingMaxDelta = ((threeYearTiming.scoreRange.max - 70) / 100) * timingWeight;
+  const min = Math.round(Math.min(...scenarioResults.map(
+    (scenario) => clamp(scenario.rawTotal + timingMinDelta, 30, 100),
+  )));
+  const max = Math.round(Math.max(...scenarioResults.map(
+    (scenario) => clamp(scenario.rawTotal + timingMaxDelta, 30, 100),
+  )));
   const width = max - min;
 
+  const representativeTimingDelta = ((threeYearTiming.normalizedScore - 70) / 100) * timingWeight;
   const representative = [...scenarioResults].sort(
-    (x, y) => Math.abs(x.rawTotal - rawTotal) - Math.abs(y.rawTotal - rawTotal),
+    (x, y) => Math.abs((x.rawTotal + representativeTimingDelta) - rawTotal) - Math.abs((y.rawTotal + representativeTimingDelta) - rawTotal),
   )[0];
   const representativeEvidence = {} as Record<CompatibilityDimension, unknown>;
   for (const dimension of COMPATIBILITY_DIMENSIONS) {
-    representativeEvidence[dimension] = representative.dimensions[dimension].evidence;
+    representativeEvidence[dimension] = dimension === "luckCycleAlignment"
+      ? { policy: "SERVER_RENDERED_CH5_ONLY" }
+      : representative.dimensions[dimension].evidence;
   }
 
   const weightValues: number[] = Object.values(COMPATIBILITY_SCORE_WEIGHTS[profile]);
@@ -313,6 +343,7 @@ export function calculateOneToOneCompatibility(
     strengths: summary.strengths,
     adjustmentPoints: summary.adjustmentPoints,
     representativeEvidence,
+    threeYearTiming,
     aiBoundary: { scoreMutableByAi: false, rankingMutableByAi: false },
   };
 }

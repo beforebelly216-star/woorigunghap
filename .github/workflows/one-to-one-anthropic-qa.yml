@@ -1,0 +1,81 @@
+name: 1:1 Anthropic sample QA
+
+on:
+  workflow_dispatch:
+    inputs:
+      sample:
+        description: Sample relationship to generate
+        required: true
+        default: lover
+        type: choice
+        options:
+          - lover
+          - coworker-boss
+  push:
+    branches:
+      - agent/one-to-one-reference-upgrade
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/anthropic-qa-trigger
+
+permissions:
+  contents: read
+
+jobs:
+  sample-qa:
+    runs-on: ubuntu-24.04
+    env:
+      QA_SAMPLE: ${{ github.event_name == 'workflow_dispatch' && inputs.sample || 'lover' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Check explicit QA trigger
+        id: gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif git log -1 --pretty=%B | grep -Fq '[anthropic-qa]'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping paid Anthropic QA: latest commit has no [anthropic-qa] marker."
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
+        run: npm ci
+      - name: Verify narrative quality gate
+        if: steps.gate.outputs.run == 'true'
+        run: npm run test:one-to-one:quality-gate
+      - name: Check Anthropic secret
+        if: steps.gate.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY repository secret is required."
+            exit 1
+          fi
+      - name: Generate and validate real Claude sample
+        if: steps.gate.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          QA_OUTPUT_PATH="artifacts/one-to-one-${QA_SAMPLE}.json" npm run qa:one-to-one:anthropic
+      - name: Upload sample report
+        if: ${{ always() && steps.gate.outputs.run == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: one-to-one-${{ env.QA_SAMPLE }}-sample
+          path: artifacts/*.json
+          if-no-files-found: ignore
+          retention-days: 7

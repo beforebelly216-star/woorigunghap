@@ -116,7 +116,36 @@ input:focus-visible,
 .day19-profile-pair,
 .v2-two-column,
 .v2-detail-grid,
-.library-grid {
+.library-grid,
+.reference-diagnosis-grid,
+.reference-partner-grid,
+.reference-flow-grid,
+.reference-future-split,
+.reference-top3,
+.reference-30day-grid,
+.reference-year-timing-grid,
+.deep-partner-grid,
+.deep-conversation-grid,
+.deep-strategy-signals,
+.deep-observable-scenes,
+.deep-backfire-list,
+.deep-strategy-steps {
+  min-width: 0;
+}
+
+.reference-year-timing-grid > article,
+.reference-diagnosis-grid > article,
+.reference-partner-grid > article,
+.reference-flow-grid > article,
+.reference-future-split > article,
+.reference-top3 > article,
+.reference-30day-grid > article,
+.deep-partner-grid > article,
+.deep-conversation-grid > article,
+.deep-strategy-signals > article,
+.deep-observable-scenes > article,
+.deep-backfire-list > article,
+.deep-strategy-steps > article {
   min-width: 0;
 }
 
@@ -223,6 +252,20 @@ input:focus-visible,
   .v2-detail-grid,
   .v2-score-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .reference-year-timing-head,
+  .reference-year-score {
+    flex-wrap: wrap;
+  }
+
+  .reference-year-score > em {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+
+  .reference-opening-quote strong {
+    font-size: clamp(1.35rem, 7vw, 1.85rem);
   }
 
   .v2-chapter,
