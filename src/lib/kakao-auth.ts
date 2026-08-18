@@ -38,6 +38,12 @@ type KakaoUserResponse = {
   };
 };
 
+type KakaoApiErrorResponse = {
+  code?: unknown;
+  msg?: unknown;
+  required_scopes?: unknown;
+};
+
 export class KakaoAuthError extends Error {
   constructor(public readonly code: string) {
     super(code);
@@ -167,6 +173,20 @@ export async function retrieveKakaoIdentity(accessToken: string) {
   };
 }
 
+function classifyKakaoMemoFailure(response: Response, payload: KakaoApiErrorResponse | null) {
+  const kakaoCode = typeof payload?.code === "number" ? payload.code : null;
+  const requiredScopes = Array.isArray(payload?.required_scopes)
+    ? payload.required_scopes.filter((scope): scope is string => typeof scope === "string")
+    : [];
+
+  if (response.status === 403 && (kakaoCode === -402 || requiredScopes.includes("talk_message"))) {
+    return "memo_scope_required";
+  }
+  if (response.status === 401 || kakaoCode === -401) return "memo_token_invalid";
+  if (response.status === 429) return "memo_rate_limited";
+  return `memo_send_failed_${response.status}`;
+}
+
 export async function sendKakaoMemo(
   accessToken: string,
   text: string,
@@ -188,7 +208,10 @@ export async function sendKakaoMemo(
     body,
     cache: "no-store",
   });
-  if (!response.ok) throw new KakaoAuthError("memo_send_failed");
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null) as KakaoApiErrorResponse | null;
+    throw new KakaoAuthError(classifyKakaoMemoFailure(response, payload));
+  }
   return true;
 }
 
