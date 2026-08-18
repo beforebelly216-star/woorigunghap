@@ -180,10 +180,14 @@ async function main() {
   const requestEngine = readFileSync("src/lib/narrative/report-engine-v6-request.ts", "utf8");
   assert.match(requestEngine, /autoStructuredHaiku45/);
   assert.match(requestEngine, /const maxAttempts = isLongSegment \? 1 : 2/);
-  assert.match(requestEngine, /QUALITY_RETRY/);
+  assert.match(requestEngine, /Progress-first policy/);
+  assert.match(requestEngine, /DEVELOPER_LABEL_A_B_EXPOSED/);
+  assert.match(requestEngine, /INTERNAL_METRIC_EXPOSED/);
+  assert.match(requestEngine, /RELATIONSHIP_ROMANCE_LEAK/);
   assert.match(requestEngine, /ELEMENT_PSYCHOLOGY_OVERREACH/);
   assert.match(requestEngine, /UNSUPPORTED_NUMERIC_PRESCRIPTION/);
-  assert.match(requestEngine, /criticalIssues\(bestQualityCandidate\.qualityIssues\)/);
+  assert.match(requestEngine, /critical\.length === 0/);
+  assert.doesNotMatch(requestEngine, /QUALITY_RETRY/);
 
   const privacyPage = readFileSync("src/app/privacy/page.tsx", "utf8");
   assert.match(privacyPage, /이름·별칭, 원본 생년월일, 원본 출생시간은 AI 서술 생성 요청에 전달하지 않습니다/);
