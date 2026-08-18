@@ -9,6 +9,7 @@
 - 기준 상태: Day 24 MVP 완료, 베타 운영 전환
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
 - 배포: Vercel Production, `main` 자동 배포가 원칙
+- 현재 배포 주의: 2026-08-19 최신 hotfix `main`은 Vercel Hobby build-rate-limit 상태로 Production 반영 여부를 코드 상태와 분리해서 확인해야 한다.
 
 ## 제품 상태
 
@@ -28,6 +29,26 @@
 - 생성중 결과 보관함 표시 및 완료 알림 흐름
 - 이용약관/개인정보/환불 정책, 회원탈퇴/데이터 삭제
 - GitHub Actions 핵심 회귀 검증
+
+### 최근 hotfix 구현 상태
+
+2026-08-19 사용자 운영 QA에서 1:1 장시간 생성 정체, 보관함 이탈 후 영구 `생성중`, Kakao 완료 알림 활성화 상태 미표시, 완료 알림 UI 겹침이 확인되어 아래 코드를 수정했다.
+
+- 1:1 결제 후 백그라운드 생성은 `prepare` 후 `intro` / `dynamics` / `action`을 병렬 fan-out한다. 기존처럼 세 장문 AI 호출 시간을 한 240초 payment-verification 함수 실행에 순차 누적하지 않는다.
+- 병렬 세그먼트 저장 시 sibling 결과를 덮어쓰지 않도록 `report_json` 세그먼트 저장을 PostgreSQL `jsonb_set` 기반 원자 업데이트로 변경했다.
+- 같은 브라우저의 결제 복구키가 남아 있는 `생성중` 보관함 항목은 결제 검증 API를 제한적으로 재호출해 끊긴 백그라운드 생성을 다시 기동한다. 서버의 기존 segment single-flight/idempotency를 유지한다.
+- 모든 1:1 세그먼트가 완료된 뒤 백그라운드 handoff에서도 완료 알림을 재확인한다. 기존 action route의 조기 알림 시도가 완성 전이면 최종 fan-out 완료 시 다시 알림을 시도한다.
+- Kakao 완료 알림 OAuth 복귀 시 토큰 저장 및 실제 `kakaoNotifyEnabled` 상태를 확인하고 `enabled` / `failed`를 화면에 표시한다. 저장 실패를 로그인 성공으로 숨기지 않는다.
+- 보관함 Kakao 완료 알림 패널의 desktop/mobile spacing 및 활성 상태 UI를 추가했다.
+- 관련 계약 테스트 `test:pending-library-notify`에 generation fan-out, atomic segment persistence, stalled recovery, Kakao activation state, notification panel 회귀 조건을 추가했다.
+
+### 아직 운영 검증이 필요한 hotfix 항목
+
+- 최신 hotfix Production 배포 후 실제 1:1 테스트 결제에서 800초 이상 대기가 재발하지 않는지 확인
+- 결과 화면 이탈 → 보관함 복귀 후 `생성중`이 실제 `완료`로 전환되는지 확인
+- Kakao `완료 알림 받기` 후 `알림 사용 중` 상태가 유지되는지 확인
+- 실제 결과 완료 시 Kakao ‘나에게 보내기’ 메시지 수신 확인
+- Vercel Production의 `KAKAO_TOKEN_ENCRYPTION_KEY`, Kakao `talk_message` 권한/앱 설정을 실제 런타임에서 확인
 
 ### 베타 이후 운영 QA
 
@@ -58,6 +79,12 @@
 8. JSON/API/저장 실패로 유료 결과 생성 불가
 
 문체 취향, 단정 강도, 일부 반복, 분량 편차 등은 blocker가 아니다.
+
+## 알려진 운영 리스크
+
+- 최신 hotfix는 `main`에 반영됐지만 Vercel Hobby build-rate-limit 때문에 최신 커밋의 Production 반영이 지연될 수 있다. 이는 코드 빌드 실패와 구분한다.
+- 이미 오래 정체된 과거 1:1 주문은 같은 브라우저에 결과 access token/order draft가 남아 있으면 보관함 복구가 가능하다. 다른 기기처럼 복구키가 없는 환경에서는 원본 access token을 서버에 평문 저장하지 않는 정책 때문에 자동 재기동 범위가 제한된다.
+- Kakao 완료 알림 미수신은 과거에는 결과 자체 미완성만으로도 발생할 수 있었다. hotfix 후에도 Production 토큰 암호화 키와 Kakao 메시지 권한 설정에 대한 실제 수신 검증이 별도로 필요하다.
 
 ## 운영 원칙
 
