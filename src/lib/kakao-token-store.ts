@@ -89,6 +89,19 @@ export async function saveKakaoTokenBundle(userId: string, bundle: KakaoTokenBun
   return true;
 }
 
+export async function setKakaoMessageEnabled(userId: string, enabled: boolean) {
+  if (!await ensureSchema()) return false;
+  const sql = getQuery();
+  if (!sql) return false;
+  await sql`
+    UPDATE woorigunghap_users
+    SET kakao_message_enabled = ${enabled},
+        updated_at = NOW()
+    WHERE user_id = ${userId}
+  `;
+  return true;
+}
+
 export async function isKakaoMessageEnabled(userId: string) {
   if (!await ensureSchema()) return false;
   const sql = getQuery();
