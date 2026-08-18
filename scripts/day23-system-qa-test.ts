@@ -77,6 +77,8 @@ assert.match(requestEngine, /EXACT_LONG_TEXT_DUPLICATE/);
 assert.match(requestEngine, /DEVELOPER_LABEL_A_B_EXPOSED/);
 assert.match(requestEngine, /INTERNAL_METRIC_EXPOSED/);
 assert.match(requestEngine, /MIND_READING_CERTAINTY/);
+assert.match(requestEngine, /ELEMENT_TO_PSYCHOLOGY_OVERREACH/);
+assert.match(requestEngine, /UNSUPPORTED_NUMERIC_PRESCRIPTION/);
 assert.match(requestEngine, /FUTURE_TIMING_LEAK/);
 assert.match(requestEngine, /DURATION_CAUSAL_OVERREACH/);
 assert.match(requestEngine, /NAME_TOKEN_OVERUSE/);
@@ -87,14 +89,21 @@ assert.match(requestEngine, /INTRO" \? 2600/);
 assert.match(requestEngine, /5200/);
 assert.match(requestEngine, /totalBudgetMs = isLongSegment \? 220_000 : 180_000/);
 
-// Paid AI evidence removes raw role-supply numbers and weighting internals that caused
-// unsupported psychological interpretations in real Claude samples.
-assert.match(paidEngine, /paid-report-evidence-v5/);
+// Paid AI payload deliberately removes raw person-level numbers that caused unsupported
+// psychological interpretations in real Claude samples, while keeping server scores authoritative.
+assert.match(paidEngine, /paid-report-v7-editorial-v9-reduced-ai-facts/);
+assert.match(paidEngine, /paid-report-evidence-v6/);
+assert.match(paidEngine, /paidEditorialFacts/);
+assert.match(paidEngine, /dayPillar: value\.pillars\.day/);
+assert.match(paidEngine, /strongest: value\.elementBalance\.strongest/);
+assert.match(paidEngine, /weakest: value\.elementBalance\.weakest/);
 assert.match(paidEngine, /aRoleSupply: _aRoleSupply/);
 assert.match(paidEngine, /bRoleSupply: _bRoleSupply/);
 assert.match(paidEngine, /RELATIONSHIP_ROLE_SCORE_ONLY/);
 assert.match(paidEngine, /normalizedScore: item\.normalizedScore/);
 assert.doesNotMatch(paidEngine, /normalizedScore: item\.normalizedScore,\s*maxPoints:/);
+assert.match(paidEngine, /정확한 오행 비율·신강 점수·겉오행 개수 일부가 의도적으로 제공되지 않습니다/);
+assert.match(paidEngine, /오행을 심리 능력의 원인으로 쓰는 문장은 금지/);
 
 const repeated = "업무 상황에서는 감정 추정보다 확인 가능한 기준과 책임 범위를 먼저 맞추는 편이 좋습니다.";
 const badCoworkerOutput = {
@@ -120,6 +129,8 @@ const manualQaRegressionIssues = collectPaidNarrativeQualityIssues(
     second: "{{PARTNER}}는 내부적으로 사랑받을 자격이 없다고 내면화하며 갈망합니다.",
     third: "26개월 유지된 것은 이 조합의 강점이 증명합니다. 배우자 역할 점수와 유용신 적합도를 확인하세요.",
     fourth: Array.from({ length: 80 }, () => "{{SELF}} {{PARTNER}}").join(" "),
+    fifth: "목이 약해서 공감 능력이 제한되고 화가 부족해서 감정 표현 능력이 약합니다.",
+    sixth: "하루 3회 연락하고 갈등 뒤 2시간 이내에 대화하며 주 2회 데이트하세요.",
   },
   "ACTION",
   '{"relationshipType":"lover","relationshipDurationMonths":26}',
@@ -128,6 +139,8 @@ assert.ok(manualQaRegressionIssues.includes("FUTURE_TIMING_LEAK"));
 assert.ok(manualQaRegressionIssues.includes("INTERNAL_METRIC_EXPOSED"));
 assert.ok(manualQaRegressionIssues.includes("DETERMINISTIC_CERTAINTY"));
 assert.ok(manualQaRegressionIssues.includes("MIND_READING_CERTAINTY"));
+assert.ok(manualQaRegressionIssues.includes("ELEMENT_TO_PSYCHOLOGY_OVERREACH"));
+assert.ok(manualQaRegressionIssues.includes("UNSUPPORTED_NUMERIC_PRESCRIPTION"));
 assert.ok(manualQaRegressionIssues.includes("DURATION_CAUSAL_OVERREACH"));
 assert.ok(manualQaRegressionIssues.includes("NAME_TOKEN_OVERUSE"));
 
@@ -207,4 +220,4 @@ assert.match(workflow, /test:day18:account-report-library/);
 assert.match(workflow, /test:day22:operating-policy/);
 assert.match(workflow, /test:day23:system-qa/);
 
-console.log("Day 23 system QA + safe-evidence + fresh-request narrative quality checks: PASS");
+console.log("Day 23 system QA + reduced-facts + fresh-request narrative quality checks: PASS");
