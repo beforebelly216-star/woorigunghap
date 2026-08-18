@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccountDeletionPanel } from "@/components/account-deletion-panel";
+import { loadOrderDraft } from "@/lib/order-storage";
 
 type ReportSummary = {
   paymentId: string;
@@ -21,6 +22,10 @@ type LibraryState =
   | { status: "failed" }
   | { status: "ready"; reports: ReportSummary[]; kakaoNotifyEnabled: boolean };
 
+type NotifyResult = "enabled" | "failed" | null;
+
+const GENERATION_RESUME_INTERVAL_MS = 120_000;
+
 function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "저장일 확인 불가";
@@ -35,10 +40,43 @@ function reportHref(report: ReportSummary) {
 export default function AccountReportsPage() {
   const [state, setState] = useState<LibraryState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
+  const [notifyResult, setNotifyResult] = useState<NotifyResult>(null);
+  const resumeAttemptedAt = useRef(new Map<string, number>());
+
+  useEffect(() => {
+    const result = new URLSearchParams(window.location.search).get("notify");
+    if (result === "enabled" || result === "failed") setNotifyResult(result);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     let timer: number | null = null;
+
+    async function resumeGeneratingReport(report: ReportSummary) {
+      if (report.status !== "generating") return;
+      const now = Date.now();
+      const lastAttempt = resumeAttemptedAt.current.get(report.paymentId) ?? 0;
+      if (now - lastAttempt < GENERATION_RESUME_INTERVAL_MS) return;
+
+      const order = loadOrderDraft(report.paymentId);
+      if (!order || order.product !== report.product) return;
+      resumeAttemptedAt.current.set(report.paymentId, now);
+
+      try {
+        await fetch("/api/payments/verify", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            paymentId: report.paymentId,
+            accessToken: order.resultAccessToken,
+            input: order.inputSnapshot,
+          }),
+          cache: "no-store",
+        });
+      } catch {
+        // The library poll will retry this recovery handoff after the throttle interval.
+      }
+    }
 
     async function load() {
       try {
@@ -51,12 +89,11 @@ export default function AccountReportsPage() {
         }
         if (response.ok && Array.isArray(payload?.reports)) {
           const reports = payload.reports as ReportSummary[];
-          setState({
-            status: "ready",
-            reports,
-            kakaoNotifyEnabled: payload?.kakaoNotifyEnabled === true,
-          });
+          const kakaoNotifyEnabled = payload?.kakaoNotifyEnabled === true;
+          setState({ status: "ready", reports, kakaoNotifyEnabled });
+          if (kakaoNotifyEnabled) setNotifyResult("enabled");
           if (reports.some((report) => report.status === "generating")) {
+            for (const report of reports) void resumeGeneratingReport(report);
             timer = window.setTimeout(load, 4_000);
           }
           return;
@@ -103,11 +140,17 @@ export default function AccountReportsPage() {
             <p>{state.kakaoNotifyEnabled
               ? "결과 생성이 끝나면 카카오톡 ‘나에게 보내기’로 알려드려요."
               : "생성이 오래 걸려도 다른 화면을 이용할 수 있도록 완료 시 카카오톡으로 알려드릴 수 있어요."}</p>
+            {notifyResult === "failed" && !state.kakaoNotifyEnabled ? <p className="library-notification-feedback library-notification-feedback-error" role="alert">
+              카카오 메시지 권한 또는 알림 서버 설정을 활성화하지 못했어요. 아래 버튼으로 다시 연결해 주세요.
+            </p> : null}
+            {notifyResult === "enabled" && state.kakaoNotifyEnabled ? <p className="library-notification-feedback">
+              완료 알림이 활성화되었습니다.
+            </p> : null}
           </div>
           {!state.kakaoNotifyEnabled ? <Link
             className="secondary-action"
             href="/api/auth/kakao/start?notify=1&returnTo=%2Faccount%2Freports"
-          >완료 알림 받기</Link> : <span className="library-notification-enabled">알림 사용 중</span>}
+          >{notifyResult === "failed" ? "완료 알림 다시 연결" : "완료 알림 받기"}</Link> : <span className="library-notification-enabled">알림 사용 중</span>}
         </div> : null}
         {state.status === "ready" && state.reports.length === 0 ? <div className="library-state">
           <h2>아직 저장한 리포트가 없어요</h2>
@@ -126,7 +169,7 @@ export default function AccountReportsPage() {
               <strong>{report.title}</strong>
               <small>{formatDate(report.createdAt)} 구매</small>
               <b>생성중</b>
-              <p>결과를 만들고 있어요. 완료되면 이 카드에서 바로 열 수 있습니다.</p>
+              <p>결과를 만들고 있어요. 같은 브라우저의 복구키가 있으면 멈춘 생성도 자동으로 다시 이어갑니다.</p>
             </article>}
           </li>)}
         </ul> : null}
