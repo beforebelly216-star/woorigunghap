@@ -178,7 +178,8 @@ async function main() {
   }
 
   assert.equal(qualityWarnings.length, 0, `최종 채택 세그먼트에 품질 경고가 남았습니다: ${qualityWarnings.join(", ")}`);
-  assert.ok(totalCharacters >= 13_000, `전체 상세 해설 최소 분량 미달: ${totalCharacters} chars`);
+  assert.ok(totalCharacters >= 5_000, `전체 상세 해설 최소 분량 미달: ${totalCharacters} chars`);
+  assert.ok(totalCharacters <= 10_000, `전체 상세 해설 허용 분량 초과: ${totalCharacters} chars`);
   assert.ok(selfMentions > 0, "서버 후처리 후 '지민님' 호칭이 한 번 이상 보여야 합니다.");
   assert.ok(partnerMentions > 0, "서버 후처리 후 '서윤님' 호칭이 한 번 이상 보여야 합니다.");
   assert.ok(totalNameMentions <= Math.ceil(totalCharacters / 80), `이름 호칭이 과도하게 반복됩니다: ${totalNameMentions}/${totalCharacters}`);
