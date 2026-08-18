@@ -30,13 +30,31 @@
   - 실제 Anthropic QA를 5,000자 이상 / 10,000자 이하로 정렬하고 `test:pending-library-notify`에 13,000자 회귀 방지 조건 추가
   - 관련 커밋: `de693e3`, `8d06113`, `61f5b82`
 
-- [ ] latency hotfix Production 반영 후 사용자 보고 5개 증상 실제 E2E 재검증
+- [x] Kakao 완료 알림 재동의 + 실제 전송 검증 hotfix
+  - 최초 미동의/추가 동의 취소 시 `scope=talk_message` 재동의 경로를 보관함에서 다시 제공
+  - 동의 저장만으로 성공 처리하지 않고 실제 Kakao ‘나에게 보내기’ 시험 메시지가 성공해야 새 연결을 활성화
+  - scope 부족 / 서버 설정 / 실제 전송 실패를 `scope` / `setup` / `send_failed`로 분리해 안내
+  - 완료 메시지 발송 실패 시 `kakao_message_enabled=false`로 내려 stale `알림 사용 중` 상태 제거
+  - 기존 활성 계정도 `연결 다시 확인`으로 시험 발송을 다시 실행 가능
+  - 계약 테스트 `test:pending-library-notify`에 재동의/시험발송/실패 비활성화 회귀 조건 추가
+
+- [ ] 사용자 QA 리포트 서술/표시 신뢰도 개선 — 다음 작업 최우선
+  - 공통 서술: **일상 언어 결론/관계 장면 → 사주 용어와 계산 근거** 순서로 재작성
+  - 1:1 해시태그가 모바일에서 잘리는 문제 수정: 임의 글자수 slice/ellipsis 제거 또는 wrap 보장
+  - 1:1 계산된 일주가 있는데 `서버 계산상 일주 미확인`이 출력되는 데이터 shape 오류 확인 및 수정
+  - 사용자 문장에 `서버가 제공한`, `서버 계산상`, `strongest`, `weakest` 같은 구현/필드명을 노출하지 않도록 금지
+  - 개인정보 원문을 늘리지 않는 범위에서 day master, 오행 균형, 합충/상호작용, useful signal 등 이미 계산된 안전한 근거를 AI payload/후처리에 더 풍부하게 제공
+  - 1:N `첫 번째/두 번째/세 번째`, `강점 1/2/3` 같은 순번형 설명을 후보 이름/의미형 제목으로 교체
+  - 1:N `운의 실현도`, `기본 호흡의 안정성` 같은 추상 용어를 연락·갈등·신뢰·장기생활 등 직관적인 관계 언어로 교체
+  - 관련 테스트: `test:one-to-one:quality-gate`, `test:day15:one-to-many-narrative`, `test:day15:one-to-many-result-ui`, 필요 시 신규 계약 테스트
+
+- [ ] latency + Kakao hotfix Production 반영 후 사용자 보고 증상 실제 E2E 재검증
   - 새 1:1 테스트 결제 → 전체 생성시간 측정; 5분 이상 정체 여부 확인
   - 결과 생성 중 다른 화면/보관함 이동 → 자동 복구 → `완료` 전환 여부
-  - `완료 알림 받기` → `알림 사용 중` 상태 유지 여부
+  - `완료 알림 받기` 또는 기존 계정 `연결 다시 확인` → 연결 시험 메시지 실제 수신 여부
   - 결과 완료 시 Kakao ‘나에게 보내기’ 실제 수신 여부
-  - 알림 활성화가 `failed`이면 Vercel `KAKAO_TOKEN_ENCRYPTION_KEY` 및 Kakao `talk_message` 앱 권한/동의 설정 확인
-  - 최신 latency hotfix Vercel status는 Hobby `build-rate-limit`; Production 미반영을 코드 실패로 판정하지 않는다.
+  - `scope`면 Kakao `talk_message` 추가 동의/앱 권한 확인, `setup`이면 Vercel `KAKAO_TOKEN_ENCRYPTION_KEY` / `NEXT_PUBLIC_APP_URL` 확인
+  - Vercel Hobby `build-rate-limit`은 Production 미반영 사유일 수 있으며 코드 실패로 판정하지 않는다.
   - 분량 축소 후에도 5분 이상 걸리면 다음 hotfix는 `report-engine-v6-request.ts` long-segment 205초 timeout/token floor와 `result-v2.tsx` 무기한 transient retry 조정
 
 ## Post-beta 운영 QA
@@ -109,10 +127,10 @@ HANDOFF
 ```text
 HANDOFF
 - Worker: GPT
-- Task: Production 1:1 `1/3 · 421초` 재현 원인 분석 + AI 출력 분량 latency hotfix
+- Task: 사용자 beta QA stage 1 — Kakao 완료 알림 재동의 + 실제 전송 검증 hotfix
 - Status: partial
-- Validation: latest main/docs re-read; diff limited to v7 prompt/length QA/contracts; Vercel latest code commit status=build-rate-limit; local lint/build unavailable in connector session
-- Commit: code de693e3, QA 8d06113, contract 61f5b82, PROJECT_STATE 0802ff5, this handoff update
-- Remaining: build limit 해제 후 latest main Production 반영 → 새 1:1 결제로 생성시간/보관함 완료/알림 활성화/실제 Kakao 수신 E2E
-- Risk: reduced-length runtime latency unmeasured; if still >5m, cap 205s long-segment timeout/token floor and replace foreground indefinite retry
+- Validation: Kakao 공식 문서로 talk_message 추가 동의/-402/나에게 보내기 계약 확인; test:pending-library-notify 계약 갱신; connector 환경이라 lint/build 직접 실행 불가
+- Commit: BUNDLED_MAIN_COMMIT
+- Remaining: 최신 main Production 배포 후 연결 시험 메시지/완료 메시지 E2E → 이어서 위 `사용자 QA 리포트 서술/표시 신뢰도 개선` 항목 수행
+- Risk: Production Kakao 앱 talk_message 권한과 Vercel env는 런타임 검증 전 미확정; 1:1/1:N 서술/UI 요청은 stage 2로 명시적 미완료
 ```

@@ -9,7 +9,7 @@
 - 기준 상태: Day 24 MVP 완료, 베타 운영 전환
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
 - 배포: Vercel Production, `main` 자동 배포가 원칙
-- 현재 배포 주의: 2026-08-19 기존 생성/보관함/Kakao hotfix 제품 코드는 Production에 반영됐으나, 이후 1:1 분량·지연 hotfix는 Vercel Hobby build-rate-limit으로 아직 Production 미반영이다.
+- 현재 배포 주의: 2026-08-19 기존 생성/보관함/Kakao hotfix 제품 코드는 Production에 반영됐으나, 이후 1:1 분량·지연 hotfix와 최신 Kakao 실제 전송 검증 hotfix는 Vercel Hobby build-rate-limit 해제 후 Production 재검증이 필요하다.
 
 ## 제품 상태
 
@@ -38,7 +38,7 @@
 - 병렬 세그먼트 저장 시 sibling 결과를 덮어쓰지 않도록 `report_json` 세그먼트 저장을 PostgreSQL `jsonb_set` 기반 원자 업데이트로 변경했다.
 - 같은 브라우저의 결제 복구키가 남아 있는 `생성중` 보관함 항목은 결제 검증 API를 제한적으로 재호출해 끊긴 백그라운드 생성을 다시 기동한다. 서버의 기존 segment single-flight/idempotency를 유지한다.
 - 모든 1:1 세그먼트가 완료된 뒤 백그라운드 handoff에서도 완료 알림을 재확인한다. 기존 action route의 조기 알림 시도가 완성 전이면 최종 fan-out 완료 시 다시 알림을 시도한다.
-- Kakao 완료 알림 OAuth 복귀 시 토큰 저장 및 실제 `kakaoNotifyEnabled` 상태를 확인하고 `enabled` / `failed`를 화면에 표시한다. 저장 실패를 로그인 성공으로 숨기지 않는다.
+- Kakao 완료 알림 OAuth 복귀 시 토큰 저장 및 실제 `kakaoNotifyEnabled` 상태를 확인하고 성공/실패 상태를 화면에 표시한다.
 - 보관함 Kakao 완료 알림 패널의 desktop/mobile spacing 및 활성 상태 UI를 추가했다.
 - 관련 계약 테스트 `test:pending-library-notify`에 generation fan-out, atomic segment persistence, stalled recovery, Kakao activation state, notification panel 회귀 조건을 추가했다.
 
@@ -52,14 +52,33 @@
 - latency hotfix `de693e3`에서 CH0~CH9 JSON 구조와 계산 근거는 유지하면서 segment 품질 목표를 intro 1,200 / dynamics 2,200 / action 2,200 수준으로 낮추고, 각 필드의 문장·배열 요구를 압축했다. 프롬프트 버전은 `paid-report-v7-editorial-v10-latency-balanced`다.
 - 실제 Anthropic QA 분량 계약도 `5,000자 이상 / 10,000자 이하`로 제품 결정과 정렬했고, `test:pending-library-notify`에 13,000자 회귀 방지 조건을 추가했다.
 
+### 2026-08-19 Kakao 완료 알림 재검증 hotfix
+
+사용자 운영 QA에서 `완료 알림 받기`가 여전히 신뢰할 수 없음을 재확인했다. 기존 구현은 `talk_message` 동의가 저장됐는지만으로 활성화 상태를 판단해 실제 Kakao ‘나에게 보내기’가 실패해도 `알림 사용 중`으로 남을 수 있었다.
+
+- 알림 연결 OAuth는 `scope=talk_message` 추가 동의 요청을 사용한다. 처음 권한을 거절했거나 추가 동의 화면을 취소한 경우 보관함으로 돌아와 `메시지 권한 다시 동의`를 표시한다.
+- 토큰/동의 저장 뒤 실제 Kakao ‘나에게 보내기’ 시험 메시지를 발송한다. 이 시험 발송이 성공해야 새 연결을 `enabled`로 취급한다.
+- Kakao가 메시지 scope 부족을 반환하면 `scope`, 앱 URL·암호화 저장 등 내부 설정 문제가 있으면 `setup`, 그 밖의 실제 발송 실패는 `send_failed`로 분리해 보관함에 원인을 표시한다.
+- 완료 시점 실제 발송에서 토큰·설정·메시지 전송이 실패하면 `kakao_message_enabled=false`로 되돌려 잘못된 `알림 사용 중` 상태가 계속 남지 않게 했다.
+- 이전 버전에서 이미 `알림 사용 중`으로 저장된 계정도 `연결 다시 확인`을 눌러 동일한 추가 동의 + 시험 발송 경로를 다시 실행할 수 있게 했다.
+- 계약 테스트 `test:pending-library-notify`에 재동의, 시험 발송, 실패 시 비활성화, 기존 연결 재검증 UI 조건을 추가했다.
+
 ### 아직 운영 검증이 필요한 hotfix 항목
 
 - latency hotfix가 Production에 반영된 뒤 새 1:1 테스트 결제에서 전체 생성시간이 실사용 가능한 수준으로 줄었는지 확인
 - 결과 화면 이탈 → 보관함 복귀 후 `생성중`이 실제 `완료`로 전환되는지 확인
-- Kakao `완료 알림 받기` 후 `알림 사용 중` 상태가 유지되는지 확인
+- Kakao `완료 알림 받기` 또는 `연결 다시 확인` → 실제 연결 시험 메시지가 수신되는지 확인
 - 실제 결과 완료 시 Kakao ‘나에게 보내기’ 메시지 수신 확인
-- Vercel Production의 `KAKAO_TOKEN_ENCRYPTION_KEY`, Kakao `talk_message` 권한/앱 설정을 실제 런타임에서 확인
+- Vercel Production의 `KAKAO_TOKEN_ENCRYPTION_KEY`, `NEXT_PUBLIC_APP_URL`, Kakao `talk_message` 앱 권한/동의 설정을 실제 런타임에서 확인
 - 분량 축소 후에도 5분 이상 정체되면 다음 hotfix로 long-segment 205초 timeout/token floor 및 결과 화면 무기한 retry 정책을 조정
+
+### 사용자 요청 후속 리포트 개선 — 아직 미완료
+
+이번 Kakao hotfix와 분리해 다음 작업으로 남긴다. 아래 항목은 완료 처리하지 않는다.
+
+- 공통: 일상 언어로 결론을 먼저 설명하고 뒤에 사주 용어와 계산 근거를 붙이는 서술 순서로 변경
+- 1:1: 해시태그 잘림 수정, 계산된 일주가 있는데 `일주 미확인`이 나오는 문제 수정, `서버가 제공한`·`서버 계산상`·`strongest/weakest` 같은 내부 표현 제거, 안전한 계산 근거를 더 풍부하게 AI 서술에 제공
+- 1:N: `첫 번째/두 번째/세 번째`, `강점 1/2/3` 같은 순번형 표현을 후보 이름/의미형 제목으로 교체하고 `운의 실현도`, `기본 호흡의 안정성` 같은 추상 표현을 일상적인 관계 언어로 교체
 
 ### 베타 이후 운영 QA
 
@@ -93,10 +112,10 @@
 
 ## 알려진 운영 리스크
 
-- 최신 latency hotfix는 `main`에 반영됐지만 Vercel Hobby build-rate-limit 때문에 아직 Production에 반영되지 않았다. 이는 코드 빌드 실패와 구분한다.
+- 최신 latency/Kakao 재검증 hotfix는 `main` 코드 반영 후에도 Vercel Hobby build-rate-limit 때문에 Production 반영이 지연될 수 있다. 이는 코드 빌드 실패와 구분한다.
 - 기존 Production의 1:1 결과 화면은 transient/network timeout을 무기한 재시도하므로 장문 세그먼트가 실패할 때 대기 시간이 매우 길어질 수 있다. latency hotfix 배포 후에도 5분 이상 정체되면 이 retry/timeout 계층을 다음 수정 대상으로 삼는다.
 - 이미 오래 정체된 과거 1:1 주문은 같은 브라우저에 결과 access token/order draft가 남아 있으면 보관함 복구가 가능하다. 다른 기기처럼 복구키가 없는 환경에서는 원본 access token을 서버에 평문 저장하지 않는 정책 때문에 자동 재기동 범위가 제한된다.
-- Kakao 완료 알림 미수신은 과거에는 결과 자체 미완성만으로도 발생할 수 있었다. hotfix 후에도 Production 토큰 암호화 키와 Kakao 메시지 권한 설정에 대한 실제 수신 검증이 별도로 필요하다.
+- Kakao 완료 알림은 Production에서 실제 시험 메시지와 완료 메시지를 모두 확인해야 종료할 수 있다. `talk_message` 추가 동의를 반복해도 scope 부족이 계속되면 Kakao Developers 앱의 메시지 권한/동의 항목 운영 설정을 확인해야 한다.
 
 ## 운영 원칙
 

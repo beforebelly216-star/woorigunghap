@@ -67,31 +67,45 @@ assert.match(anthropicSampleQa, /totalCharacters >= 5_000/);
 assert.match(anthropicSampleQa, /totalCharacters <= 10_000/);
 assert.doesNotMatch(anthropicSampleQa, /totalCharacters >= 13_000/);
 
-// Kakao messaging is explicit opt-in and tokens are encrypted server-side.
+// Kakao messaging is explicit opt-in, can request additional consent again, and
+// is considered active only after an actual My Chatroom test message succeeds.
 assert.match(kakaoStart, /\["talk_message"\]/);
 assert.match(authPolicy, /KAKAO_NOTIFY_INTENT_COOKIE/);
 assert.match(kakaoStart, /KAKAO_NOTIFY_INTENT_COOKIE/);
 assert.match(kakaoStart, /wantsMessageNotification \? "1" : "0"/);
 assert.match(kakaoCallback, /KAKAO_NOTIFY_INTENT_COOKIE/);
+assert.match(kakaoCallback, /type NotificationResult = "enabled" \| "scope" \| "setup" \| "send_failed"/);
+assert.match(kakaoCallback, /error === "access_denied"[\s\S]*notificationReturnResponse\(request, returnTo, "scope"\)/);
 assert.match(kakaoCallback, /saveKakaoTokenBundle\(userId, tokenBundle\)/);
 assert.match(kakaoCallback, /isKakaoMessageEnabled\(userId\)/);
-assert.match(kakaoCallback, /notificationResult = enabled \? "enabled" : "failed"/);
+assert.match(kakaoCallback, /sendKakaoMemo\(/);
+assert.match(kakaoCallback, /우리궁합 완료 알림 연결이 확인됐어요/);
+assert.match(kakaoCallback, /notificationResult = "enabled"/);
+assert.match(kakaoCallback, /setKakaoMessageEnabled\(userId, false\)/);
 assert.match(kakaoCallback, /searchParams\.set\("notify", notificationResult\)/);
 assert.doesNotMatch(kakaoCallback, /tokenBundle\.scopes\.includes\("talk_message"\)/);
 assert.match(tokenStore, /aes-256-gcm/);
 assert.match(tokenStore, /KAKAO_TOKEN_ENCRYPTION_KEY/);
+assert.match(tokenStore, /export async function setKakaoMessageEnabled/);
 assert.match(kakaoAuth, /\/v2\/api\/talk\/memo\/default\/send/);
+assert.match(kakaoAuth, /memo_scope_required/);
+assert.match(kakaoAuth, /required_scopes/);
 assert.match(accountApi, /kakaoNotifyEnabled/);
 assert.match(accountPage, /완료 알림 받기/);
-assert.match(accountPage, /notifyResult === "failed"/);
+assert.match(accountPage, /메시지 권한 다시 동의/);
+assert.match(accountPage, /연결 다시 확인/);
+assert.match(accountPage, /연결 시험 메시지/);
+assert.match(accountPage, /send_failed/);
 assert.match(accountPage, /완료 알림이 활성화되었습니다/);
 assert.match(mobileCss, /\.library-notification-panel\s*\{/);
 assert.match(mobileCss, /\.library-notification-panel[\s\S]*gap: 20px/);
 
 // Completion notification is one-per-payment and only after a complete stored report exists.
+// A delivery/setup failure clears the enabled flag so the account can re-consent/reconnect.
 assert.match(notification, /payment_id TEXT PRIMARY KEY/);
 assert.match(notification, /loadCompletedServerReport\(paymentId\)/);
 assert.match(notification, /finishNotification\(paymentId, "sent"\)/);
+assert.match(notification, /setKakaoMessageEnabled\(userId, false\)/);
 assert.match(kickoff, /notifyReportCompleted\(paymentId\)/);
 assert.match(oneToOne, /segment === "action"[\s\S]*notifyReportCompleted/);
 assert.match(oneToMany, /saveOneToManyStoredReport[\s\S]*notifyReportCompleted/);
