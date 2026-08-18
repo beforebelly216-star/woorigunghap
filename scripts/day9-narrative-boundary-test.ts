@@ -183,7 +183,7 @@ async function main() {
   assert.match(requestEngine, /autoStructuredHaiku45/);
   assert.match(requestEngine, /const maxAttempts = 1/);
   assert.match(requestEngine, /75_000/);
-  assert.match(requestEngine, /Math\.min\(args\.maxTokens, 5_000\)/);
+  assert.match(requestEngine, /Math\.min\(args\.maxTokens, 6_500\)/);
   assert.doesNotMatch(requestEngine, /205_000|220_000|Math\.max\(args\.maxTokens, 9_000\)/);
   assert.match(requestEngine, /Progress-first policy/);
   assert.match(requestEngine, /DEVELOPER_LABEL_A_B_EXPOSED/);

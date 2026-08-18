@@ -477,7 +477,7 @@ export async function requestStructuredSegment<T>(args: {
       const firstAttemptMaxTokens = args.label === "INTRO"
         ? Math.min(args.maxTokens, 4_400)
         : args.label === "DYNAMICS" || args.label === "ACTION"
-          ? Math.min(args.maxTokens, 5_000)
+          ? Math.min(args.maxTokens, 6_500)
           : args.maxTokens;
       const attemptMaxTokens = firstAttemptMaxTokens;
 

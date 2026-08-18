@@ -43,7 +43,7 @@ assert.match(resultPage, /MAX_TRANSIENT_FAILURES = 2/);
 assert.doesNotMatch(resultPage, /retried indefinitely|keep waiting rather than/);
 assert.match(requestEngine, /maxAttempts = 1/);
 assert.doesNotMatch(requestEngine, /205_000|220_000|Math\.max\(args\.maxTokens, 9_000\)/);
-assert.match(requestEngine, /Math\.min\(args\.maxTokens, 5_000\)/);
+assert.match(requestEngine, /Math\.min\(args\.maxTokens, 6_500\)/);
 
 // Payment verification owns the handoff, but background retries stay bounded.
 assert.match(verify, /claimAccountReport\(user\.userId, paymentId, verified\.product\)/);
