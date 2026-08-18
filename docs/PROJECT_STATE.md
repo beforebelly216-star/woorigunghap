@@ -9,7 +9,7 @@
 - 기준 상태: Day 24 MVP 완료, 베타 운영 전환
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
 - 배포: Vercel Production, `main` 자동 배포가 원칙
-- 현재 배포 주의: 2026-08-19 최신 hotfix `main`은 Vercel Hobby build-rate-limit 상태로 Production 반영 여부를 코드 상태와 분리해서 확인해야 한다.
+- 현재 배포 주의: 2026-08-19 기존 생성/보관함/Kakao hotfix 제품 코드는 Production에 반영됐으나, 이후 1:1 분량·지연 hotfix는 Vercel Hobby build-rate-limit으로 아직 Production 미반영이다.
 
 ## 제품 상태
 
@@ -42,13 +42,24 @@
 - 보관함 Kakao 완료 알림 패널의 desktop/mobile spacing 및 활성 상태 UI를 추가했다.
 - 관련 계약 테스트 `test:pending-library-notify`에 generation fan-out, atomic segment persistence, stalled recovery, Kakao activation state, notification panel 회귀 조건을 추가했다.
 
+위 제품 코드가 포함된 Vercel 배포는 `a20b307` 기준으로 성공한 것을 확인했다. 다만 해당 Production에서 새 1:1 결제를 실행한 결과 `1/3개 해설 묶음 완료 · 421초 경과` 상태가 관찰되어 장시간 생성 문제는 완전히 종료되지 않았다.
+
+추가 분석 결과 계산 로직이 아니라 AI 출력 계약 과대화가 주요 병목으로 확인됐다.
+
+- 제품 결정은 1:1 전체 리포트 약 5,000~8,000자, 필요 시 약 10,000자까지 허용인데 실제 Anthropic 샘플 QA는 `13,000자 이상`을 강제하고 있었다.
+- v7 세그먼트 내부 품질 목표도 intro 1,700 + dynamics 3,600 + action 3,600 = 최소 8,900 compact chars였고, 각 필드에 다수의 3~7문장 요구가 중첩되어 있었다.
+- `DYNAMICS` / `ACTION` AI 요청은 한 번에 최대 약 205초까지 기다리며, 결과 화면의 전경 클라이언트는 transient timeout을 무기한 재시도한다. 따라서 421초/1개 완료는 장문 세그먼트가 긴 요청 또는 timeout 이후 재시도로 이어지는 패턴과 부합한다.
+- latency hotfix `de693e3`에서 CH0~CH9 JSON 구조와 계산 근거는 유지하면서 segment 품질 목표를 intro 1,200 / dynamics 2,200 / action 2,200 수준으로 낮추고, 각 필드의 문장·배열 요구를 압축했다. 프롬프트 버전은 `paid-report-v7-editorial-v10-latency-balanced`다.
+- 실제 Anthropic QA 분량 계약도 `5,000자 이상 / 10,000자 이하`로 제품 결정과 정렬했고, `test:pending-library-notify`에 13,000자 회귀 방지 조건을 추가했다.
+
 ### 아직 운영 검증이 필요한 hotfix 항목
 
-- 최신 hotfix Production 배포 후 실제 1:1 테스트 결제에서 800초 이상 대기가 재발하지 않는지 확인
+- latency hotfix가 Production에 반영된 뒤 새 1:1 테스트 결제에서 전체 생성시간이 실사용 가능한 수준으로 줄었는지 확인
 - 결과 화면 이탈 → 보관함 복귀 후 `생성중`이 실제 `완료`로 전환되는지 확인
 - Kakao `완료 알림 받기` 후 `알림 사용 중` 상태가 유지되는지 확인
 - 실제 결과 완료 시 Kakao ‘나에게 보내기’ 메시지 수신 확인
 - Vercel Production의 `KAKAO_TOKEN_ENCRYPTION_KEY`, Kakao `talk_message` 권한/앱 설정을 실제 런타임에서 확인
+- 분량 축소 후에도 5분 이상 정체되면 다음 hotfix로 long-segment 205초 timeout/token floor 및 결과 화면 무기한 retry 정책을 조정
 
 ### 베타 이후 운영 QA
 
@@ -82,7 +93,8 @@
 
 ## 알려진 운영 리스크
 
-- 최신 hotfix는 `main`에 반영됐지만 Vercel Hobby build-rate-limit 때문에 최신 커밋의 Production 반영이 지연될 수 있다. 이는 코드 빌드 실패와 구분한다.
+- 최신 latency hotfix는 `main`에 반영됐지만 Vercel Hobby build-rate-limit 때문에 아직 Production에 반영되지 않았다. 이는 코드 빌드 실패와 구분한다.
+- 기존 Production의 1:1 결과 화면은 transient/network timeout을 무기한 재시도하므로 장문 세그먼트가 실패할 때 대기 시간이 매우 길어질 수 있다. latency hotfix 배포 후에도 5분 이상 정체되면 이 retry/timeout 계층을 다음 수정 대상으로 삼는다.
 - 이미 오래 정체된 과거 1:1 주문은 같은 브라우저에 결과 access token/order draft가 남아 있으면 보관함 복구가 가능하다. 다른 기기처럼 복구키가 없는 환경에서는 원본 access token을 서버에 평문 저장하지 않는 정책 때문에 자동 재기동 범위가 제한된다.
 - Kakao 완료 알림 미수신은 과거에는 결과 자체 미완성만으로도 발생할 수 있었다. hotfix 후에도 Production 토큰 암호화 키와 Kakao 메시지 권한 설정에 대한 실제 수신 검증이 별도로 필요하다.
 
