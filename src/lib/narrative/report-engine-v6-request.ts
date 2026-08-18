@@ -188,7 +188,18 @@ function countNameTokens(text: string) {
 function hasElementPsychologyOverreach(text: string) {
   const element = "(?:목|화|토|금|수|나무|불|흙|금속|물|오행)";
   const psychology = "(?:공감(?:\s*능력)?|감정(?:\s*표현)?|불안(?:감)?|애착|사랑|마음|표현\s*능력|상처|성욕|의지력?|심리|욕구)";
-  return new RegExp(`${element}.{0,100}${psychology}|${psychology}.{0,100}${element}`, "s").test(text);
+  const imbalance = "(?:약(?:해|해서|하니|한)|부족(?:해|해서|하니|한)|적(?:어|어서|으니|은)|강(?:해|해서|하니|한)|많(?:아|아서|으니|은)|과다(?:해|해서|한)|우세(?:해|해서|한))";
+  const causal = "(?:때문(?:에|이다)?|그래서|따라서|결과(?:로)?|원인(?:이|으로)?|이므로|라서|해서|하여)";
+  const safeNegation = /(?:뜻|의미)하지\s*않|(?:뜻|의미)하는\s*것은\s*아니|단정할\s*수\s*없|연결하지\s*않|판단하지\s*않|1:1로\s*대응하지\s*않/;
+  const directAttribution = new RegExp(`${element}(?:이|가|은|는)?[^.\n!?]{0,45}${imbalance}[^.\n!?]{0,55}${psychology}|${psychology}[^.\n!?]{0,55}${element}(?:이|가|은|는)?[^.\n!?]{0,45}${imbalance}`);
+  const explicitCausality = new RegExp(`${element}[^.\n!?]{0,65}${causal}[^.\n!?]{0,65}${psychology}|${psychology}[^.\n!?]{0,65}${causal}[^.\n!?]{0,65}${element}`);
+  return text
+    .split(/[.\n!?]+/)
+    .some((sentence) => {
+      const clause = sentence.trim();
+      if (!clause || safeNegation.test(clause)) return false;
+      return directAttribution.test(clause) || explicitCausality.test(clause);
+    });
 }
 
 function hasUnsupportedNumericPrescription(text: string) {
@@ -361,7 +372,7 @@ export async function requestStructuredSegment<T>(args: {
     const timeout = setTimeout(() => controller.abort(), attemptTimeoutMs);
     try {
       const retryReason = lastFailure === "QUALITY_SHORTFALL"
-        ? `직전 응답은 JSON 구조는 맞았지만 다음 품질 기준을 위반했습니다: ${lastQualityIssues.join(", ")}. 계산 근거와 관찰 가능한 행동만 사용하고, 숨은 마음·미래 연도·내부 지표·과도한 이름 반복·단정 표현·오행과 심리 능력의 1:1 대응·서버 근거 없는 횟수나 시간 처방을 제거하세요. 관계 기간은 맥락일 뿐 궁합의 증거로 해석하지 마세요.`
+        ? `직전 응답은 JSON 구조는 맞았지만 다음 품질 기준을 위반했습니다: ${lastQualityIssues.join(", ")}. 계산 근거와 관찰 가능한 행동만 사용하고, 숨은 마음·미래 연도·내부 지표·과도한 이름 반복·단정 표현·오행과 심리 능력의 1:1 대응·서버 근거 없는 횟수나 시간 처방을 제거하세요. 특히 오행 강약을 설명하는 문장에서는 공감·감정·마음·애착·욕구·상처 같은 심리 어휘를 함께 쓰지 말고 구조적 균형과 보완 가능성만 설명하세요. 관계 기간은 맥락일 뿐 궁합의 증거로 해석하지 마세요.`
         : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고, 중간에 끊기지 않도록 완결된 객체를 출력하세요.";
       const expandedSystem = attempt === 1
         ? args.system
