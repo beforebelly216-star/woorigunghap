@@ -71,6 +71,12 @@ function safeErrorDetail(body: unknown) {
   return sanitized ? sanitized.slice(0, 300) : null;
 }
 
+function isCreditBalanceLow(body: unknown) {
+  const detail = safeErrorDetail(body);
+  return typeof detail === "string"
+    && /(credit balance is too low|purchase credits)/i.test(detail);
+}
+
 function extractText(body: AnthropicBody) {
   return body.content?.find((item) => item.type === "text" && typeof item.text === "string")?.text ?? null;
 }
@@ -382,6 +388,17 @@ export async function requestStructuredSegment<T>(args: {
         structured: !structuredRejected,
       });
 
+      if (!result.response.ok && isCreditBalanceLow(result.body)) {
+        console.warn("[woorigunghap:v6-segment-billing]", JSON.stringify({
+          label: args.label,
+          attempt,
+          status: result.response.status,
+          reason: safeError(result.body),
+          detail: safeErrorDetail(result.body),
+        }));
+        throw new Error("ANTHROPIC_CREDIT_BALANCE_LOW");
+      }
+
       if (!result.response.ok && result.response.status === 400 && !structuredRejected) {
         structuredRejected = true;
         console.warn("[woorigunghap:v6-structured-fallback]", JSON.stringify({
@@ -405,6 +422,16 @@ export async function requestStructuredSegment<T>(args: {
       const { response, body } = result;
       if (body?.usage) allUsage.push(body.usage);
       if (!response.ok) {
+        if (isCreditBalanceLow(body)) {
+          console.warn("[woorigunghap:v6-segment-billing]", JSON.stringify({
+            label: args.label,
+            attempt,
+            status: response.status,
+            reason: safeError(body),
+            detail: safeErrorDetail(body),
+          }));
+          throw new Error("ANTHROPIC_CREDIT_BALANCE_LOW");
+        }
         lastFailure = `HTTP_${response.status}_${safeError(body)}`;
         console.warn("[woorigunghap:v6-segment-http]", JSON.stringify({
           label: args.label,
@@ -480,6 +507,7 @@ export async function requestStructuredSegment<T>(args: {
       return { best: candidate, attempts: attempt, allUsage };
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
+      if (message === "ANTHROPIC_CREDIT_BALANCE_LOW") throw error;
       if (message.startsWith(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_`)) throw error;
       lastFailure = error instanceof Error && error.name === "AbortError" ? "TIMEOUT" : "REQUEST_FAILED";
       console.warn("[woorigunghap:v6-segment-request]", JSON.stringify({ label: args.label, attempt, reason: lastFailure, timeoutMs: attemptTimeoutMs }));
