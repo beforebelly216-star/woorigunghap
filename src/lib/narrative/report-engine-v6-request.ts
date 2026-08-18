@@ -58,6 +58,19 @@ function safeError(body: unknown) {
   return typeof type === "string" ? type.replace(/[^A-Z0-9_-]/gi, "_").toUpperCase() : "UNKNOWN";
 }
 
+function safeErrorDetail(body: unknown) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+  const error = (body as { error?: unknown }).error;
+  if (!error || typeof error !== "object" || Array.isArray(error)) return null;
+  const message = (error as { message?: unknown }).message;
+  if (typeof message !== "string") return null;
+  const sanitized = message
+    .replace(/[\u0000-\u001F\u007F]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return sanitized ? sanitized.slice(0, 300) : null;
+}
+
 function extractText(body: AnthropicBody) {
   return body.content?.find((item) => item.type === "text" && typeof item.text === "string")?.text ?? null;
 }
@@ -371,7 +384,12 @@ export async function requestStructuredSegment<T>(args: {
 
       if (!result.response.ok && result.response.status === 400 && !structuredRejected) {
         structuredRejected = true;
-        console.warn("[woorigunghap:v6-structured-fallback]", JSON.stringify({ label: args.label, attempt, reason: safeError(result.body) }));
+        console.warn("[woorigunghap:v6-structured-fallback]", JSON.stringify({
+          label: args.label,
+          attempt,
+          reason: safeError(result.body),
+          detail: safeErrorDetail(result.body),
+        }));
         result = await callAnthropic({
           apiKey: args.apiKey,
           model: args.model,
@@ -388,7 +406,13 @@ export async function requestStructuredSegment<T>(args: {
       if (body?.usage) allUsage.push(body.usage);
       if (!response.ok) {
         lastFailure = `HTTP_${response.status}_${safeError(body)}`;
-        console.warn("[woorigunghap:v6-segment-http]", JSON.stringify({ label: args.label, attempt, status: response.status, reason: safeError(body) }));
+        console.warn("[woorigunghap:v6-segment-http]", JSON.stringify({
+          label: args.label,
+          attempt,
+          status: response.status,
+          reason: safeError(body),
+          detail: safeErrorDetail(body),
+        }));
         if ((response.status === 429 || response.status === 529) && attempt < maxAttempts) {
           const retryAfterSeconds = Number(response.headers.get("retry-after"));
           const waitMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
