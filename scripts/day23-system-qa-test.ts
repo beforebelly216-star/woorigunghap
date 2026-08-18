@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { calculateOneToOneCompatibility } from "../src/lib/compatibility/engine";
-import { personalizeNarrativeNames } from "../src/lib/narrative/name-personalization";
+import {
+  countNarrativeNameTokens,
+  normalizeNarrativeNameTokenDensity,
+  personalizeNarrativeNames,
+} from "../src/lib/narrative/name-personalization";
 import { buildReportEvidencePack } from "../src/lib/narrative/report-engine";
 import { collectPaidNarrativeQualityIssues } from "../src/lib/narrative/report-engine-v6-request";
 import type { OneToOneReportInput } from "../src/lib/report-input";
@@ -62,6 +66,8 @@ assert.match(requestEngine, /QUALITY_SHORTFALL/);
 assert.match(requestEngine, /bestQualityCandidate/);
 assert.match(requestEngine, /MAX_TOKENS/);
 assert.match(requestEngine, /collectPaidNarrativeQualityIssues/);
+assert.match(requestEngine, /normalizeNarrativeNameTokenDensity/);
+assert.match(requestEngine, /autoStructuredHaiku45/);
 assert.match(requestEngine, /EXACT_LONG_TEXT_DUPLICATE/);
 assert.match(requestEngine, /DEVELOPER_LABEL_A_B_EXPOSED/);
 assert.match(requestEngine, /INTERNAL_METRIC_EXPOSED/);
@@ -110,6 +116,19 @@ assert.ok(manualQaRegressionIssues.includes("DETERMINISTIC_CERTAINTY"));
 assert.ok(manualQaRegressionIssues.includes("MIND_READING_CERTAINTY"));
 assert.ok(manualQaRegressionIssues.includes("DURATION_CAUSAL_OVERREACH"));
 assert.ok(manualQaRegressionIssues.includes("NAME_TOKEN_OVERUSE"));
+
+// Excess privacy-safe name tokens are normalized before quality checks instead of wasting a paid retry.
+const overTokenized = {
+  detail: Array.from({ length: 20 }, (_, index) => (
+    `장면 ${index + 1}: {{SELF}}는 {{PARTNER}}와 대화하고 {{BOTH}}의 기준을 확인합니다.`
+  )).join(" "),
+};
+assert.ok(countNarrativeNameTokens(overTokenized) > 19);
+const normalizedTokens = normalizeNarrativeNameTokenDensity(overTokenized);
+assert.ok(countNarrativeNameTokens(normalizedTokens) <= 19, "세그먼트당 직접 이름 토큰 예산을 결정론적으로 제한해야 합니다.");
+const normalizedTokenText = normalizedTokens.detail;
+assert.match(normalizedTokenText, /나는 상대와 대화하고 두 사람의 기준을 확인합니다/);
+assert.ok(!collectPaidNarrativeQualityIssues(normalizedTokens, "INTRO").includes("NAME_TOKEN_OVERUSE"));
 
 // Privacy-safe name tokens must produce natural Korean particles after adding 님.
 const tokenizedNames = personalizeNarrativeNames(
