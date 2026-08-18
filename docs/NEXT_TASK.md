@@ -22,14 +22,22 @@
   - `prepare` 후 3개 AI segment 병렬 fan-out, segment DB atomic merge, 같은 브라우저 보관함 재기동, 최종 완료 알림 재확인, Kakao 활성화 성공/실패 표시, 알림 패널 spacing 반영
   - 관련 커밋: `6deedaf`, `919a008`, `da71cc1`, `5053492`, `7b43e88`, `d63ac4a`, `44a6f7f`
   - 계약 테스트 `test:pending-library-notify` 회귀 조건 갱신 완료
+  - 위 제품 코드가 포함된 `a20b307` Vercel Production 성공 상태 확인
 
-- [ ] 최신 hotfix Production 반영 후 사용자 보고 5개 증상 실제 E2E 재검증
-  - 1:1 테스트 결제 → 800초 이상 무한 대기 재발 여부
+- [x] Production 1:1 테스트에서 `1/3 · 421초` 장기 대기 재현 후 AI 분량 계약 latency hotfix
+  - 원인: 제품 결정은 5,000~8,000자 목표인데 runtime 최소 segment density 합계가 8,900 compact chars, 실제 Anthropic QA가 13,000자 이상을 강제
+  - `paid-report-v7-editorial-v10-latency-balanced`: CH0~CH9 구조는 유지하고 intro 1,200 / dynamics 2,200 / action 2,200 품질 목표와 필드별 문장 요구를 축소
+  - 실제 Anthropic QA를 5,000자 이상 / 10,000자 이하로 정렬하고 `test:pending-library-notify`에 13,000자 회귀 방지 조건 추가
+  - 관련 커밋: `de693e3`, `8d06113`, `61f5b82`
+
+- [ ] latency hotfix Production 반영 후 사용자 보고 5개 증상 실제 E2E 재검증
+  - 새 1:1 테스트 결제 → 전체 생성시간 측정; 5분 이상 정체 여부 확인
   - 결과 생성 중 다른 화면/보관함 이동 → 자동 복구 → `완료` 전환 여부
   - `완료 알림 받기` → `알림 사용 중` 상태 유지 여부
   - 결과 완료 시 Kakao ‘나에게 보내기’ 실제 수신 여부
   - 알림 활성화가 `failed`이면 Vercel `KAKAO_TOKEN_ENCRYPTION_KEY` 및 Kakao `talk_message` 앱 권한/동의 설정 확인
-  - 현재 Vercel status는 Hobby `build-rate-limit`; Production 미반영을 코드 실패로 판정하지 않는다.
+  - 최신 latency hotfix Vercel status는 Hobby `build-rate-limit`; Production 미반영을 코드 실패로 판정하지 않는다.
+  - 분량 축소 후에도 5분 이상 걸리면 다음 hotfix는 `report-engine-v6-request.ts` long-segment 205초 timeout/token floor와 `result-v2.tsx` 무기한 transient retry 조정
 
 ## Post-beta 운영 QA
 
@@ -101,10 +109,10 @@ HANDOFF
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 1:1 생성 무한대기/이탈 후 정체 + Kakao 완료 알림 UI·활성화 hotfix
+- Task: Production 1:1 `1/3 · 421초` 재현 원인 분석 + AI 출력 분량 latency hotfix
 - Status: partial
-- Validation: contract assertions updated; push workflow includes test:pending-library-notify + lint + build, but connector cannot read push-run result; Vercel status=build-rate-limit
-- Commit: code through 44a6f7f; PROJECT_STATE a20b307; this handoff update
-- Remaining: build limit 해제 후 latest main Production 반영 확인 → 1:1 결제/이탈복구/알림 활성화/실제 Kakao 수신 E2E
-- Risk: production Kakao env/talk_message state unverified; old stalled order recovery requires same-browser access token
+- Validation: latest main/docs re-read; diff limited to v7 prompt/length QA/contracts; Vercel latest code commit status=build-rate-limit; local lint/build unavailable in connector session
+- Commit: code de693e3, QA 8d06113, contract 61f5b82, PROJECT_STATE 0802ff5, this handoff update
+- Remaining: build limit 해제 후 latest main Production 반영 → 새 1:1 결제로 생성시간/보관함 완료/알림 활성화/실제 Kakao 수신 E2E
+- Risk: reduced-length runtime latency unmeasured; if still >5m, cap 205s long-segment timeout/token floor and replace foreground indefinite retry
 ```
