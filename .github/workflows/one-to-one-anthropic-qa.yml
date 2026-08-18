@@ -69,6 +69,7 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_NARRATIVE_MODEL: claude-sonnet-4-20250514
         run: |
           QA_OUTPUT_PATH="artifacts/one-to-one-${QA_SAMPLE}.json" npm run qa:one-to-one:anthropic
       - name: Upload sample report
