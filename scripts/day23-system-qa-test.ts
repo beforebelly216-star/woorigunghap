@@ -58,12 +58,13 @@ assert.match(oneToOneReport, /completeReportSegmentGeneration\(paymentId, segmen
 assert.match(oneToOneReport, /releaseReportSegmentGeneration/);
 assert.match(oneToOneReport, /SERVER_REPORT_SEGMENT_SAVE_FAILED/);
 
-// Long paid generations get one full-budget attempt per HTTP request; the client retries
-// the whole segment with a fresh Vercel budget instead of reviving a flawed candidate.
+// Progress-first policy keeps one full-budget long-segment attempt per HTTP request.
+// Editorial findings stay visible as warnings; only release blockers trigger a retry/failure.
 assert.match(requestEngine, /const maxAttempts = isLongSegment \? 1 : 2/);
 assert.match(requestEngine, /for \(let attempt = 1; attempt <= maxAttempts; attempt \+= 1\)/);
-assert.match(requestEngine, /QUALITY_RETRY/);
-assert.match(requestEngine, /criticalIssues\(bestQualityCandidate\.qualityIssues\)/);
+assert.match(requestEngine, /Progress-first policy/);
+assert.match(requestEngine, /critical\.length === 0/);
+assert.doesNotMatch(requestEngine, /QUALITY_RETRY/);
 assert.match(requestEngine, /response\.status === 429 \|\| response\.status === 529/);
 assert.match(requestEngine, /matchesJsonSchema/);
 assert.match(requestEngine, /shape\.type === "number"/);
@@ -85,8 +86,8 @@ assert.match(requestEngine, /NAME_TOKEN_OVERUSE/);
 assert.match(requestEngine, /QUALITY_CRITICAL/);
 assert.match(requestEngine, /RELATIONSHIP_ROMANCE_LEAK/);
 assert.match(requestEngine, /COWORKER_HIERARCHY_NOT_REFLECTED/);
-assert.match(requestEngine, /INTRO" \? 2600/);
-assert.match(requestEngine, /5200/);
+assert.match(requestEngine, /INTRO" \? 1200/);
+assert.match(requestEngine, /1800/);
 assert.match(requestEngine, /totalBudgetMs = isLongSegment \? 220_000 : 180_000/);
 
 // Paid AI payload deliberately removes raw person-level numbers that caused unsupported
@@ -220,4 +221,4 @@ assert.match(workflow, /test:day18:account-report-library/);
 assert.match(workflow, /test:day22:operating-policy/);
 assert.match(workflow, /test:day23:system-qa/);
 
-console.log("Day 23 system QA + reduced-facts + fresh-request narrative quality checks: PASS");
+console.log("Day 23 system QA + reduced-facts + progress-first narrative quality checks: PASS");
