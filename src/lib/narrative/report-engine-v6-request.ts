@@ -188,7 +188,7 @@ function countNameTokens(text: string) {
 function hasElementPsychologyOverreach(text: string) {
   const element = "(?:목|화|토|금|수|나무|불|흙|금속|물|오행)";
   const psychology = "(?:공감(?:\s*능력)?|감정(?:\s*표현)?|불안(?:감)?|애착|사랑|마음|표현\s*능력|상처|성욕|의지력?|심리|욕구)";
-  const imbalance = "(?:약(?:해|해서|하니|한)|부족(?:해|해서|하니|한)|적(?:어|어서|으니|은)|강(?:해|해서|하니|한)|많(?:아|아서|으니|은)|과다(?:해|해서|한)|우세(?:해|해서|한))";
+  const imbalance = "(?:약(?:해|해서|하니|한|하기)|부족(?:해|해서|하니|한|하기)|적(?:어|어서|으니|은|기)|강(?:해|해서|하니|한|하기)|많(?:아|아서|으니|은|기)|과다(?:해|해서|한|하기)|우세(?:해|해서|한|하기))";
   const causal = "(?:때문(?:에|이다)?|그래서|따라서|결과(?:로)?|원인(?:이|으로)?|이므로|라서|해서|하여)";
   const safeNegation = /(?:뜻|의미)하지\s*않|(?:뜻|의미)하는\s*것은\s*아니|단정할\s*수\s*없|연결하지\s*않|판단하지\s*않|1:1로\s*대응하지\s*않/;
   const directAttribution = new RegExp(`${element}(?:이|가|은|는)?[^.\n!?]{0,45}${imbalance}[^.\n!?]{0,55}${psychology}|${psychology}[^.\n!?]{0,55}${element}(?:이|가|은|는)?[^.\n!?]{0,45}${imbalance}`);
@@ -251,9 +251,28 @@ export function collectPaidNarrativeQualityIssues(
   const hasDurationContext = /"relationshipDurationMonths":\d+/.test(userPrompt);
   if (
     hasDurationContext
-    && /\d+개월[\s\S]{0,120}(?:유지된 것은|유지해 온 것은|유지한 것 자체|증명합니다|조화가[^.\n]{0,50}뜻)/.test(joined)
+    && /\d+개월(?:간)?[\s\S]{0,150}(?:유지된 것은|유지해 온 것은|유지한 것 자체|지탱해 온 것은|증명합니다|뜻이기도|뜻입니다|보여줍니다|알고 있다는|조화가[^.\n]{0,50}뜻)/.test(joined)
   ) {
     issues.push("DURATION_CAUSAL_OVERREACH");
+  }
+
+  if (label === "INTRO" && isPlainObject(value)) {
+    const psychologyTerms = /(공감|감정|마음|애착|욕구|상처|불안|성욕|심리|의지력|표현 능력|유연함|적응 속도|신중함|배려심|진짜 생각|진정성)/;
+    const hiddenStateTerms = /(무의식|내면|마음속|갈망|사랑받을 자격|심리 상태|진짜 생각|마음의 준비|의지가 (?:강|약)|욕구가 (?:강|약))/;
+    for (const key of ["personA", "personB"] as const) {
+      const person = value[key];
+      if (!isPlainObject(person)) continue;
+      const elementAnalysis = typeof person.elementAnalysis === "string" ? person.elementAnalysis : "";
+      const overallProfile = typeof person.overallProfile === "string" ? person.overallProfile : "";
+      const relationshipNeeds = typeof person.relationshipNeeds === "string" ? person.relationshipNeeds : "";
+      const personLists = [person.strengths, person.cautions]
+        .filter(Array.isArray)
+        .flat()
+        .filter((item): item is string => typeof item === "string")
+        .join("\n");
+      if (psychologyTerms.test(elementAnalysis)) issues.push("ELEMENT_PSYCHOLOGY_OVERREACH");
+      if (hiddenStateTerms.test(`${overallProfile}\n${relationshipNeeds}\n${personLists}`)) issues.push("MIND_READING_CERTAINTY");
+    }
   }
 
   const relationshipType = relationshipFromPrompt(userPrompt);
@@ -367,12 +386,22 @@ export async function requestStructuredSegment<T>(args: {
   const segmentSafetyRule = args.label === "INTRO"
     ? [
         "[INTRO 필수 안전 규칙]",
-        "personA.elementAnalysis와 personB.elementAnalysis에서는 오행의 상대적 강약·균형·보완 가능성만 설명하세요. 공감, 감정, 마음, 애착, 욕구, 상처, 불안, 성욕, 심리, 의지력 같은 심리 어휘를 사용하지 마세요.",
-        "personA.overallProfile, personB.overallProfile, relationshipNeeds에서는 무의식, 내면, 마음속, 갈망, 사랑받을 자격, 심리 상태처럼 확인할 수 없는 내부 상태를 서술하지 마세요.",
+        "personA.elementAnalysis와 personB.elementAnalysis에서는 오행의 상대적 강약·균형·보완 가능성만 설명하세요. 공감, 감정, 마음, 애착, 욕구, 상처, 불안, 성욕, 심리, 의지력, 유연함, 적응 속도, 표현 능력 같은 사람의 능력·심리 어휘를 사용하지 마세요.",
+        "personA.overallProfile, personB.overallProfile, relationshipNeeds, strengths, cautions에서는 무의식, 내면, 마음속, 갈망, 사랑받을 자격, 심리 상태, 진짜 생각, 마음의 준비처럼 확인할 수 없는 내부 상태를 서술하지 마세요.",
+        "관계 기간은 현재 맥락일 뿐 사주 근거가 아닙니다. '26개월 유지했으니 이미 서로를 안다/조화가 증명됐다'처럼 기간에서 관계 품질을 추론하지 마세요.",
         "확실히, 반드시, 무조건, 자동으로, 확률이 높다, 증명한다 같은 단정 표현을 사용하지 마세요.",
         "관찰 가능한 행동 가능성은 '그럴 수 있다', '확인해 볼 수 있다', '이런 장면에서 차이가 보일 수 있다'처럼 가설로 쓰고 확인 방법을 함께 제시하세요.",
       ].join("\n")
-    : "";
+    : args.label === "DYNAMICS"
+      ? [
+          "[DYNAMICS 필수 안전 규칙]",
+          "chemistry.elements에서는 오행의 상대적 균형과 두 사람 사이의 구조적 보완만 설명하세요. 공감, 감정, 마음, 애착, 욕구, 상처, 불안, 성욕, 심리, 의지력, 표현 능력 같은 심리·능력 어휘를 오행 강약과 연결하지 마세요.",
+          "partnerDeepDive와 directionalImpact는 독심술이 아닙니다. 무의식, 내면, 마음속, 갈망, 진짜 속마음, 사랑받을 욕구, 존재감을 느낀다 같은 확인 불가능한 내부 상태를 쓰지 마세요. 관찰 가능한 반응 가능성과 확인 방법만 쓰세요.",
+          "역할 공급도, 배우자 역할 점수, 유용신 적합도, 범위값, aRoleSupply, bRoleSupply, weightedPoints, maxPoints 같은 내부 지표명은 절대 출력하지 마세요. 서버 숫자는 쉬운 관계 언어로만 번역하세요.",
+          "하루 N회, N시간 뒤, 주 N회, N일마다 같은 횟수·시간 처방은 만들지 마세요. 합의한 빈도, 감정이 가라앉은 뒤, 다음 대화 때처럼 행동 기준으로 쓰세요.",
+          "확실히, 반드시, 무조건, 자동으로, 확률이 높다, 증명한다 같은 단정 표현을 사용하지 마세요.",
+        ].join("\n")
+      : "";
   const baseSystem = segmentSafetyRule ? `${args.system}\n\n${segmentSafetyRule}` : args.system;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {

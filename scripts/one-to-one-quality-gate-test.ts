@@ -32,3 +32,33 @@ for (const sample of safe) {
 }
 
 console.log("one-to-one quality gate regression: PASS");
+
+
+const introArtifactLike = {
+  overview: {
+    headline: "샘플",
+    detailedSummary: "26개월간 관계를 지탱해 온 것은 두 사람이 이미 기본적인 호응 패턴을 몸으로 알고 있다는 뜻이기도 합니다.",
+  },
+  personA: {
+    overallProfile: "상대방에게 자신의 생각을 명확히 알리고 싶은 욕구가 강합니다.",
+    elementAnalysis: "금의 강함은 명확한 의사 표현으로 드러나고, 물의 약함은 표면적 반응에 머물기 쉽다는 의미로 읽힙니다.",
+    relationshipNeeds: "상대가 아직 마음의 준비가 안 된 상태를 살펴보세요.",
+    strengths: ["관계를 지키려는 의지가 강합니다."],
+    cautions: ["나무 기운의 부족함이 유연함을 줄일 수 있습니다."],
+  },
+  personB: {
+    overallProfile: "자신의 진짜 생각을 드러내기까지 시간이 걸립니다.",
+    elementAnalysis: "불의 약함은 감정을 즉각적으로 표현하는 에너지가 제한적일 수 있다는 의미입니다.",
+    relationshipNeeds: "감정을 언어로 표현하는 연습이 필요합니다.",
+    strengths: ["상대의 진정성을 감지하는 능력이 뛰어납니다."],
+    cautions: ["마음에 쌓아 두지 마세요."],
+  },
+};
+const introArtifactIssues = collectPaidNarrativeQualityIssues(
+  introArtifactLike,
+  "INTRO",
+  '{"relationshipType":"lover","relationshipDurationMonths":26}',
+);
+assert.ok(introArtifactIssues.includes("ELEMENT_PSYCHOLOGY_OVERREACH"));
+assert.ok(introArtifactIssues.includes("MIND_READING_CERTAINTY"));
+assert.ok(introArtifactIssues.includes("DURATION_CAUSAL_OVERREACH"));
