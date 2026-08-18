@@ -132,18 +132,20 @@ async function main() {
   else process.env.ANTHROPIC_API_KEY = previousKey;
 
   const resultUi = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
-  assert.doesNotMatch(resultUi, /상세 해설 생성이 지연되고 있어요/);
   assert.doesNotMatch(resultUi, /같은 결제로 다시 생성하기/);
   assert.doesNotMatch(resultUi, /AbortController/);
   assert.doesNotMatch(resultUi, /210_000/);
+  assert.match(resultUi, /MAX_TOTAL_WAIT_MS = 240_000/);
+  assert.match(resultUi, /MAX_TRANSIENT_FAILURES = 2/);
   assert.match(resultUi, /while \(!cancelled\)/);
-  assert.match(resultUi, /retryDelay\(attempt\)/);
+  assert.match(resultUi, /retryDelay\(transientFailures\)/);
   assert.match(resultUi, /response\.status >= 500/);
+  assert.match(resultUi, /\/resume/);
   assert.match(resultUi, /saveReportProgress\(progress\)/);
   assert.match(resultUi, /loadReportProgress\(draft\.paymentId, draft\.createdAt\)/);
   assert.doesNotMatch(resultUi, /dimension !== "luckCycleAlignment"/);
   assert.match(resultUi, /threeYearTiming=\{snapshot\.threeYearTiming\}/);
-  assert.match(resultUi, /완료될 때까지 계속 기다립니다/);
+  assert.doesNotMatch(resultUi, /retried indefinitely|완료될 때까지 계속 기다립니다|keep waiting rather than/);
 
   const apiRoute = readFileSync("src/app/api/compatibility/one-to-one/route.ts", "utf8");
   assert.match(apiRoute, /PHASES = \["prepare", \.\.\.PAID_REPORT_SEGMENTS\]/);
@@ -179,7 +181,10 @@ async function main() {
 
   const requestEngine = readFileSync("src/lib/narrative/report-engine-v6-request.ts", "utf8");
   assert.match(requestEngine, /autoStructuredHaiku45/);
-  assert.match(requestEngine, /const maxAttempts = isLongSegment \? 1 : 2/);
+  assert.match(requestEngine, /const maxAttempts = 1/);
+  assert.match(requestEngine, /75_000/);
+  assert.match(requestEngine, /Math\.min\(args\.maxTokens, 5_000\)/);
+  assert.doesNotMatch(requestEngine, /205_000|220_000|Math\.max\(args\.maxTokens, 9_000\)/);
   assert.match(requestEngine, /Progress-first policy/);
   assert.match(requestEngine, /DEVELOPER_LABEL_A_B_EXPOSED/);
   assert.match(requestEngine, /INTERNAL_METRIC_EXPOSED/);
