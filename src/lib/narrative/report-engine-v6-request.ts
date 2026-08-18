@@ -171,8 +171,8 @@ function countNameTokens(text: string) {
 
 /**
  * Output-only quality gate. This does not invent new content; it decides whether a
- * structurally valid Claude response is good enough to keep or should trigger the
- * existing one-time regeneration path.
+ * structurally valid Claude response is good enough to keep or should trigger a
+ * fresh paid-generation request.
  */
 export function collectPaidNarrativeQualityIssues(
   value: unknown,
@@ -316,20 +316,17 @@ export async function requestStructuredSegment<T>(args: {
     ? Math.max(requestedTimeoutMs, 205_000)
     : Math.max(requestedTimeoutMs, 120_000);
   const totalBudgetMs = isLongSegment ? 220_000 : 180_000;
+  const maxAttempts = isLongSegment ? 1 : 2;
   const startedAt = Date.now();
   const allUsage: AnthropicRawUsage[] = [];
   let lastFailure = "UNKNOWN";
   let lastQualityIssues: string[] = [];
-  // v7 still passes preferStructured=false for backward compatibility. Haiku 4.5
-  // supports JSON-schema structured output, so use it automatically and retain the
-  // existing HTTP 400 plain-JSON fallback below for account/model incompatibility.
   const autoStructuredHaiku45 = args.preferStructured === false
     && args.model.startsWith("claude-haiku-4-5");
   let structuredRejected = args.preferStructured !== true && !autoStructuredHaiku45;
   let bestQualityCandidate: SegmentAttempt<T> | null = null;
-  let criticalQualityFailure: string[] | null = null;
 
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const remainingBudgetMs = Math.max(1_000, totalBudgetMs - (Date.now() - startedAt));
     const attemptTimeoutMs = Math.min(perAttemptTimeoutMs, remainingBudgetMs);
     const controller = new AbortController();
@@ -383,7 +380,7 @@ export async function requestStructuredSegment<T>(args: {
       if (!response.ok) {
         lastFailure = `HTTP_${response.status}_${safeError(body)}`;
         console.warn("[woorigunghap:v6-segment-http]", JSON.stringify({ label: args.label, attempt, status: response.status, reason: safeError(body) }));
-        if ((response.status === 429 || response.status === 529) && attempt < 2) {
+        if ((response.status === 429 || response.status === 529) && attempt < maxAttempts) {
           const retryAfterSeconds = Number(response.headers.get("retry-after"));
           const waitMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
             ? Math.min(8_000, retryAfterSeconds * 1000)
@@ -418,9 +415,6 @@ export async function requestStructuredSegment<T>(args: {
         continue;
       }
 
-      // Keep direct-name placements readable and predictable even when the model
-      // overuses privacy-safe tokens. This transformation contains no PII and only
-      // turns excess role tokens back into 나/상대/두 사람 before quality checks.
       const normalizedValue = normalizeNarrativeNameTokenDensity(parsed);
       const issues = [...new Set([
         ...args.qualityIssues(normalizedValue),
@@ -440,15 +434,23 @@ export async function requestStructuredSegment<T>(args: {
       lastFailure = "QUALITY_SHORTFALL";
       lastQualityIssues = issues;
       console.warn("[woorigunghap:v6-segment-quality]", JSON.stringify({ label: args.label, attempt, characters: candidate.characters, issues }));
-      if (attempt < 2) continue;
 
+      // Long paid segments already consume most of a Vercel request. Never use the
+      // small leftover budget to regenerate a full long report: fail this request and
+      // let the production client retry the segment in a fresh 240s server request.
+      if (isLongSegment) {
+        throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_RETRY_${issues.join("_")}`);
+      }
+
+      if (attempt < maxAttempts) continue;
       const critical = criticalIssues(issues);
       if (critical.length) {
-        criticalQualityFailure = critical;
-        break;
+        throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
       }
-      return { best: bestQualityCandidate, attempts: attempt, allUsage };
+      return { best: candidate, attempts: attempt, allUsage };
     } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (message.startsWith(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_`)) throw error;
       lastFailure = error instanceof Error && error.name === "AbortError" ? "TIMEOUT" : "REQUEST_FAILED";
       console.warn("[woorigunghap:v6-segment-request]", JSON.stringify({ label: args.label, attempt, reason: lastFailure, timeoutMs: attemptTimeoutMs }));
     } finally {
@@ -456,11 +458,14 @@ export async function requestStructuredSegment<T>(args: {
     }
   }
 
-  if (criticalQualityFailure) {
-    throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${criticalQualityFailure.join("_")}`);
-  }
+  // A previous valid candidate with critical issues must never be resurrected just
+  // because a later retry timed out or failed structurally.
   if (bestQualityCandidate) {
-    return { best: bestQualityCandidate, attempts: 2, allUsage };
+    const critical = criticalIssues(bestQualityCandidate.qualityIssues);
+    if (critical.length) {
+      throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
+    }
+    return { best: bestQualityCandidate, attempts: maxAttempts, allUsage };
   }
   throw new Error(`ANTHROPIC_SEGMENT_${args.label}_${lastFailure}`);
 }
