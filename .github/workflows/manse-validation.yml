@@ -72,6 +72,7 @@ jobs:
           npm run test:day21:relationship-editorial
           npm run test:day22:operating-policy
           npm run test:day23:system-qa
+          npm run test:day24:beta-freeze
           npm run test:pending-library-notify
           npm run test:one-to-one:partner-info
           npm run test:one-to-one:luck-cycle
