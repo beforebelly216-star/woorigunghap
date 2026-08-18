@@ -102,6 +102,64 @@ input:focus-visible,
   padding: 10px;
 }
 
+.library-notification-panel {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border: 1px solid #ddd4c8;
+  border-radius: 20px;
+  background: #fffdf9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.library-notification-panel > div {
+  min-width: 0;
+}
+
+.library-notification-panel strong {
+  display: block;
+}
+
+.library-notification-panel p {
+  margin: 6px 0 0;
+  color: #70675f;
+  font-size: .86rem;
+  line-height: 1.55;
+}
+
+.library-notification-panel .secondary-action {
+  margin: 0;
+  text-align: center;
+  text-decoration: none;
+}
+
+.library-notification-enabled {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 9px 12px;
+  background: #edf5ef;
+  color: #30513d;
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.library-notification-feedback {
+  font-weight: 700;
+}
+
+.library-notification-feedback-error {
+  color: #a3483e !important;
+}
+
+.library-card-generating p {
+  margin: 10px 0 0;
+  color: #716960;
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
 .v2-page,
 .report-page,
 .library-page,
@@ -276,6 +334,16 @@ input:focus-visible,
 
   .library-shell {
     width: 100%;
+  }
+
+  .library-notification-panel {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .library-notification-enabled {
+    align-self: flex-start;
   }
 
   .library-card {
