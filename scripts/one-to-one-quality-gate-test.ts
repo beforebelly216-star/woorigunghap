@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { collectPaidNarrativeQualityIssues } from "../src/lib/narrative/report-engine-v6-request";
+import { collectPaidNarrativeQualityIssues, groundPaidIntroWithServerEvidence } from "../src/lib/narrative/report-engine-v6-request";
 
 function issues(text: string) {
   return collectPaidNarrativeQualityIssues({ sample: text }, "TEST");
@@ -62,3 +62,29 @@ const introArtifactIssues = collectPaidNarrativeQualityIssues(
 assert.ok(introArtifactIssues.includes("ELEMENT_PSYCHOLOGY_OVERREACH"));
 assert.ok(introArtifactIssues.includes("MIND_READING_CERTAINTY"));
 assert.ok(introArtifactIssues.includes("DURATION_CAUSAL_OVERREACH"));
+
+
+const groundingPrompt = `server payload\n${JSON.stringify({
+  facts: {
+    A: { birthTimeKnown: true, dayPillar: "甲子" },
+    B: { birthTimeKnown: false, dayPillar: "丁卯" },
+  },
+  evidence: {
+    persons: {
+      A: { dayMaster: { stem: "甲", element: "wood" }, elementBalance: { strongest: ["wood"], weakest: ["water"] } },
+      B: { dayMaster: { stem: "丁", element: "fire" }, elementBalance: { strongest: ["fire"], weakest: ["metal"] } },
+    },
+  },
+})}`;
+const dirtyIntro = {
+  overview: { headline: "관계를 현실에서 확인하는 조합", detailedSummary: "서버 계산 근거를 바탕으로 관계의 장점과 조정점을 확인합니다. 실제 행동은 두 사람의 대화와 반응으로 검증해야 합니다.".repeat(6) },
+  personA: { overallProfile: "마음속 욕구가 강합니다.", elementAnalysis: "목이 강해서 공감 능력이 높습니다.", relationshipNeeds: "애착 욕구가 큽니다.", strengths: ["공감 능력"], cautions: ["상처"] },
+  personB: { overallProfile: "내면을 숨깁니다.", elementAnalysis: "화가 약해서 감정 표현이 부족합니다.", relationshipNeeds: "사랑받을 욕구가 큽니다.", strengths: ["직관"], cautions: ["불안"] },
+};
+const groundedIntro = groundPaidIntroWithServerEvidence(dirtyIntro, groundingPrompt) as typeof dirtyIntro;
+assert.notEqual(groundedIntro.personA.elementAnalysis, dirtyIntro.personA.elementAnalysis);
+assert.match(groundedIntro.personA.elementAnalysis, /목/);
+assert.match(groundedIntro.personB.elementAnalysis, /화/);
+const groundedIssues = collectPaidNarrativeQualityIssues(groundedIntro, "INTRO", groundingPrompt);
+assert.ok(!groundedIssues.includes("ELEMENT_PSYCHOLOGY_OVERREACH"));
+assert.ok(!groundedIssues.includes("MIND_READING_CERTAINTY"));
