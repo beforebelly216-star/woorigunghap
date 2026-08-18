@@ -39,8 +39,11 @@ export default function AccountReportsPage() {
   const resumeInFlight = useRef(new Set<string>());
 
   useEffect(() => {
-    const notify = new URLSearchParams(window.location.search).get("notify");
-    if (notify === "enabled" || notify === "failed") setNotificationFeedback(notify);
+    const feedbackTimer = window.setTimeout(() => {
+      const notify = new URLSearchParams(window.location.search).get("notify");
+      if (notify === "enabled" || notify === "failed") setNotificationFeedback(notify);
+    }, 0);
+    return () => window.clearTimeout(feedbackTimer);
   }, []);
 
   useEffect(() => {
