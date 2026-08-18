@@ -48,6 +48,10 @@ assert.match(relationshipPromptRules("lover"), /\{\{SELF\}\}/);
 assert.match(relationshipPromptRules("lover"), /\{\{PARTNER\}\}/);
 assert.match(relationshipPromptRules("lover"), /\{\{BOTH\}\}/);
 assert.match(relationshipPromptRules("lover"), /실제 이름·별칭은 서버가 응답 뒤에 결합/);
+assert.match(relationshipPromptRules("lover"), /관계 기간은 사용자가 제공한 현재 맥락일 뿐/);
+assert.match(relationshipPromptRules("lover"), /특정 연도, 대운·세운·월운/);
+assert.match(relationshipPromptRules("lover"), /내부 계산 변수명을 사용자 문장에 노출하지 말고/);
+assert.match(relationshipPromptRules("lover"), /관찰할 수 없는 무의식·갈망/);
 
 const baseCoworkerInput: OneToOneReportInput = {
   relationshipType: "coworker",
@@ -130,11 +134,15 @@ assert.equal(
 );
 
 const engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
-assert.match(engine, /paid-report-v7-editorial-v7-user-context/);
-assert.match(engine, /paid-report-evidence-v4/);
+assert.match(engine, /paid-report-v7-editorial-v8-safe-evidence/);
+assert.match(engine, /paid-report-evidence-v5/);
 assert.match(engine, /relationshipPromptRules\(/);
 assert.match(engine, /input\.coworkerHierarchy \?\? null/);
 assert.match(engine, /buildReportEditorialContext/);
+assert.match(engine, /paidEditorialEvidence/);
+assert.match(engine, /RELATIONSHIP_ROLE_SCORE_ONLY/);
+assert.match(engine, /aRoleSupply: _aRoleSupply/);
+assert.match(engine, /bRoleSupply: _bRoleSupply/);
 assert.match(engine, /가장 궁금한 점에 대한 답/);
 assert.match(engine, /relationshipDurationMonths/);
 assert.match(engine, /relationshipEditorialVersion/);
@@ -196,4 +204,4 @@ const resultV2 = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8")
 assert.match(resultV2, /threeYearTiming=\{snapshot\.threeYearTiming\}/);
 assert.doesNotMatch(resultV2, /dimension !== "luckCycleAlignment"/);
 
-console.log("Day 21 relationship editorial + user context + v4 binding + deep content contract checks: PASS");
+console.log("Day 21 relationship editorial + safe evidence + user context + v4 binding checks: PASS");
