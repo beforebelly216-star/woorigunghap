@@ -1,0 +1,42 @@
+name: Temporary intro cap patch
+
+on:
+  push:
+    branches:
+      - agent/predeploy-generation-kakao-hotfix
+    paths:
+      - .github/workflows/tmp-intro-cap-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/predeploy-generation-kakao-hotfix
+          fetch-depth: 0
+      - name: Patch INTRO cap only
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/lib/narrative/report-engine-v6-request.ts')
+          text = path.read_text()
+          old = 'args.label === "INTRO"\n        ? Math.min(args.maxTokens, 3_500)'
+          new = 'args.label === "INTRO"\n        ? Math.min(args.maxTokens, 4_400)'
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected exactly one INTRO cap match, found {count}')
+          path.write_text(text.replace(old, new))
+          PY
+          git diff --check
+          git diff -- src/lib/narrative/report-engine-v6-request.ts
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/lib/narrative/report-engine-v6-request.ts
+          git commit -m "fix: allow bounded intro output to finish"
+          git push origin HEAD:agent/predeploy-generation-kakao-hotfix
