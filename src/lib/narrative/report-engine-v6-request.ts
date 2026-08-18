@@ -2,6 +2,7 @@ import {
   calculateAnthropicUsageCost,
   type NarrativeUsage,
 } from "@/lib/narrative/report-engine";
+import { normalizeNarrativeNameTokenDensity } from "@/lib/narrative/name-personalization";
 
 export type AnthropicRawUsage = {
   input_tokens?: number;
@@ -200,7 +201,7 @@ export function collectPaidNarrativeQualityIssues(
   if (/(무조건|100%|확실히|틀림없이|반드시|운명적으로 정해|자동(?:으로|적)|확률이 높(?:아|습니다)|증명합니다|즉시[^.\n]{0,40}전환|바로[^.\n]{0,60}만듭니다)/.test(joined)) {
     issues.push("DETERMINISTIC_CERTAINTY");
   }
-  if (/(무의식적|무의식적으로|내부적으로|내면화|갈망|사랑받을 자격|마음속에서|심리 상태(?:입니다|다)|정말로[^.\n]{0,50}해서가 아니라)/.test(joined)) {
+  if (/(무의식적|무의식적으로|내부적으로|내면화|갈망|사랑받을 자격|마음속에서|내면은|심리 상태(?:입니다|다)|정말로[^.\n]{0,50}해서가 아니라)/.test(joined)) {
     issues.push("MIND_READING_CERTAINTY");
   }
   if (/(20\d{2}년|\b대운\b|\b세운\b|월운)/.test(joined)) issues.push("FUTURE_TIMING_LEAK");
@@ -417,14 +418,18 @@ export async function requestStructuredSegment<T>(args: {
         continue;
       }
 
+      // Keep direct-name placements readable and predictable even when the model
+      // overuses privacy-safe tokens. This transformation contains no PII and only
+      // turns excess role tokens back into 나/상대/두 사람 before quality checks.
+      const normalizedValue = normalizeNarrativeNameTokenDensity(parsed);
       const issues = [...new Set([
-        ...args.qualityIssues(parsed),
-        ...collectPaidNarrativeQualityIssues(parsed, args.label, args.user),
+        ...args.qualityIssues(normalizedValue),
+        ...collectPaidNarrativeQualityIssues(normalizedValue, args.label, args.user),
       ])];
       const candidate: SegmentAttempt<T> = {
-        value: parsed,
+        value: normalizedValue,
         usage: body?.usage ?? null,
-        characters: collectCharacters(parsed),
+        characters: collectCharacters(normalizedValue),
         qualityIssues: issues,
       };
       if (issues.length === 0) {
