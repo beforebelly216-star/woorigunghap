@@ -23,6 +23,7 @@ type LibraryState =
   | { status: "ready"; reports: ReportSummary[]; kakaoNotifyEnabled: boolean };
 
 type NotifyResult = "enabled" | "scope" | "setup" | "send_failed" | null;
+type NotifyDetail = "encryption_key" | "storage" | "unknown" | null;
 
 const GENERATION_RESUME_INTERVAL_MS = 120_000;
 
@@ -37,14 +38,20 @@ function reportHref(report: ReportSummary) {
   return `${path}?${new URLSearchParams({ paymentId: report.paymentId, source: "account" }).toString()}`;
 }
 
-function notificationFeedback(result: NotifyResult) {
+function notificationFeedback(result: NotifyResult, detail: NotifyDetail) {
   switch (result) {
     case "scope":
       return "카카오톡 메시지 전송 권한이 아직 동의되지 않았어요. 아래 버튼을 누르면 해당 권한 동의 화면을 다시 요청합니다.";
     case "setup":
-      return "카카오 권한과 별개로 알림 서버 설정을 확인해야 해요. 다시 연결해도 같은 안내가 나오면 운영 설정 점검이 필요합니다.";
+      if (detail === "encryption_key") {
+        return "KAKAO_TOKEN_ENCRYPTION_KEY가 Production에서 없거나 형식이 맞지 않아요. 64자리 hex 값으로 저장한 뒤 재배포해 주세요.";
+      }
+      if (detail === "storage") {
+        return "카카오 알림 토큰을 저장할 서버 DB 연결에 문제가 있어요. DATABASE_URL 또는 Neon 연결 상태를 확인해야 합니다.";
+      }
+      return "카카오 알림 서버 설정 중 오류가 발생했어요. 다시 연결해도 같으면 서버 로그의 kakao-notify-enable 항목을 확인해야 합니다.";
     case "send_failed":
-      return "권한 저장 뒤 시험 메시지 발송까지 확인했지만 카카오 전송에 실패했어요. 아래 버튼으로 다시 연결해 주세요.";
+      return "권한과 서버 저장은 통과했지만 카카오 시험 메시지 전송에 실패했어요. 아래 버튼으로 다시 연결해 주세요.";
     default:
       return null;
   }
@@ -56,12 +63,18 @@ export default function AccountReportsPage() {
   const [state, setState] = useState<LibraryState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
   const [notifyResult, setNotifyResult] = useState<NotifyResult>(null);
+  const [notifyDetail, setNotifyDetail] = useState<NotifyDetail>(null);
   const resumeAttemptedAt = useRef(new Map<string, number>());
 
   useEffect(() => {
-    const result = new URLSearchParams(window.location.search).get("notify");
+    const params = new URLSearchParams(window.location.search);
+    const result = params.get("notify");
+    const detail = params.get("notifyDetail");
     if (result === "enabled" || result === "scope" || result === "setup" || result === "send_failed") {
       setNotifyResult(result);
+    }
+    if (detail === "encryption_key" || detail === "storage" || detail === "unknown") {
+      setNotifyDetail(detail);
     }
   }, []);
 
@@ -133,7 +146,7 @@ export default function AccountReportsPage() {
     setReloadKey((value) => value + 1);
   }
 
-  const notifyFeedback = notificationFeedback(notifyResult);
+  const notifyFeedback = notificationFeedback(notifyResult, notifyDetail);
 
   return <main className="library-page">
     <section className="library-shell">

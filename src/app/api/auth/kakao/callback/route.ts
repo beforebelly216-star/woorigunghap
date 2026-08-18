@@ -28,6 +28,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type NotificationResult = "enabled" | "scope" | "setup" | "send_failed";
+type NotificationSetupDetail = "encryption_key" | "storage" | "unknown";
 
 function clearTransientCookies(response: NextResponse) {
   response.cookies.set(KAKAO_OAUTH_STATE_COOKIE, "", { maxAge: 0, path: "/api/auth/kakao" });
@@ -51,21 +52,30 @@ function notificationReturnResponse(request: NextRequest, returnTo: string, resu
   return response;
 }
 
-function notificationDestinationUrl() {
-  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (!raw) return null;
-  try {
-    const url = new URL(raw);
-    if (url.protocol !== "https:" && url.hostname !== "localhost") return null;
-    return new URL("/account/reports", url.origin).toString();
-  } catch {
-    return null;
-  }
+function notificationDestinationUrl(request: NextRequest) {
+  return new URL("/account/reports", request.nextUrl.origin).toString();
+}
+
+function kakaoTokenEncryptionKeyConfigured() {
+  const raw = process.env.KAKAO_TOKEN_ENCRYPTION_KEY?.trim();
+  return typeof raw === "string" && /^[a-fA-F0-9]{64}$/.test(raw);
 }
 
 function notificationFailureResult(error: unknown): NotificationResult {
   if (error instanceof KakaoAuthError && error.code === "memo_scope_required") return "scope";
   return "send_failed";
+}
+
+function notificationSetupFailureDetail(error: unknown): NotificationSetupDetail {
+  if (error instanceof Error && error.message === "kakao_token_encryption_key_missing") {
+    return "encryption_key";
+  }
+  if (error instanceof Error && (
+    error.message === "auth_store_unavailable"
+    || error.message.includes("DATABASE_URL")
+    || error.name.includes("Neon")
+  )) return "storage";
+  return "unknown";
 }
 
 export async function GET(request: NextRequest) {
@@ -104,24 +114,26 @@ export async function GET(request: NextRequest) {
   }
 
   let notificationResult: NotificationResult | null = null;
+  let notificationSetupDetail: NotificationSetupDetail | null = null;
   if (wantsMessageNotification) {
-    try {
-      const saved = await saveKakaoTokenBundle(userId, tokenBundle);
-      if (!saved) {
-        notificationResult = "setup";
-      } else if (!await isKakaoMessageEnabled(userId)) {
-        notificationResult = "scope";
-      } else {
-        const destinationUrl = notificationDestinationUrl();
-        if (!destinationUrl) {
-          await setKakaoMessageEnabled(userId, false);
+    if (!kakaoTokenEncryptionKeyConfigured()) {
+      notificationResult = "setup";
+      notificationSetupDetail = "encryption_key";
+      console.warn("[woorigunghap:kakao-notify-config]", "invalid_or_missing_encryption_key");
+    } else {
+      try {
+        const saved = await saveKakaoTokenBundle(userId, tokenBundle);
+        if (!saved) {
           notificationResult = "setup";
+          notificationSetupDetail = "storage";
+        } else if (!await isKakaoMessageEnabled(userId)) {
+          notificationResult = "scope";
         } else {
           try {
             await sendKakaoMemo(
               tokenBundle.accessToken,
               "우리궁합 완료 알림 연결이 확인됐어요. 결과 생성이 끝나면 이 채팅으로 알려드릴게요.",
-              destinationUrl,
+              notificationDestinationUrl(request),
             );
             notificationResult = "enabled";
           } catch (sendError) {
@@ -133,14 +145,17 @@ export async function GET(request: NextRequest) {
             }));
           }
         }
+      } catch (notificationError) {
+        console.error(
+          "[woorigunghap:kakao-notify-enable]",
+          notificationError instanceof Error
+            ? `${notificationError.name}:${notificationError.message}`
+            : "unknown",
+        );
+        await setKakaoMessageEnabled(userId, false).catch(() => false);
+        notificationResult = "setup";
+        notificationSetupDetail = notificationSetupFailureDetail(notificationError);
       }
-    } catch (notificationError) {
-      console.error(
-        "[woorigunghap:kakao-notify-enable]",
-        notificationError instanceof Error ? notificationError.name : "unknown",
-      );
-      await setKakaoMessageEnabled(userId, false).catch(() => false);
-      notificationResult = "setup";
     }
   }
 
@@ -155,6 +170,9 @@ export async function GET(request: NextRequest) {
   const destination = new URL(returnTo, request.nextUrl.origin);
   destination.searchParams.set("login", "success");
   if (notificationResult) destination.searchParams.set("notify", notificationResult);
+  if (notificationResult === "setup" && notificationSetupDetail) {
+    destination.searchParams.set("notifyDetail", notificationSetupDetail);
+  }
   const response = NextResponse.redirect(destination);
   clearTransientCookies(response);
   response.cookies.set(AUTH_SESSION_COOKIE, sessionToken, {

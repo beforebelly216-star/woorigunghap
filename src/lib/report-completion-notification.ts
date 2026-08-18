@@ -45,16 +45,23 @@ async function ensureNotificationSchema() {
   return true;
 }
 
-function appBaseUrl() {
-  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (!raw) return null;
+function normalizeAppBaseUrl(raw: string | undefined) {
+  const value = raw?.trim();
+  if (!value) return null;
   try {
-    const url = new URL(raw);
+    const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+    const url = new URL(withProtocol);
     if (url.protocol !== "https:" && url.hostname !== "localhost") return null;
     return url.origin;
   } catch {
     return null;
   }
+}
+
+function appBaseUrl() {
+  return normalizeAppBaseUrl(process.env.NEXT_PUBLIC_APP_URL)
+    ?? normalizeAppBaseUrl(process.env.VERCEL_PROJECT_PRODUCTION_URL)
+    ?? normalizeAppBaseUrl(process.env.VERCEL_URL);
 }
 
 async function resolveAccessToken(userId: string) {
