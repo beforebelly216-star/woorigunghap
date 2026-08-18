@@ -21,7 +21,7 @@ on:
       - .github/anthropic-qa-trigger
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   sample-qa:
@@ -32,7 +32,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
       - name: Check explicit QA trigger
         id: gate
         env:
@@ -46,34 +45,17 @@ jobs:
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "Skipping paid Anthropic QA: latest commit has no [anthropic-qa] marker."
           fi
-          if git log -1 --pretty=%B | grep -Fq '[quality-patch]'; then
-            echo "patch=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "patch=false" >> "$GITHUB_OUTPUT"
-          fi
       - uses: actions/setup-node@v4
         if: steps.gate.outputs.run == 'true'
         with:
           node-version: 24
           cache: npm
-      - name: Apply narrative safety hardening
-        if: steps.gate.outputs.patch == 'true'
-        run: python3 scripts/apply-narrative-safety-hardening.py
       - name: Install dependencies
         if: steps.gate.outputs.run == 'true'
         run: npm ci
       - name: Verify narrative quality gate
-        if: steps.gate.outputs.patch == 'true'
+        if: steps.gate.outputs.run == 'true'
         run: npm run test:one-to-one:quality-gate
-      - name: Persist narrative safety hardening
-        if: steps.gate.outputs.patch == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm scripts/apply-narrative-safety-hardening.py
-          git add src/lib/narrative/report-engine-v6-request.ts scripts/one-to-one-quality-gate-test.ts package.json .github/workflows/manse-validation.yml scripts/apply-narrative-safety-hardening.py
-          git commit -m "fix: harden generated narrative safety boundaries"
-          git push origin HEAD:agent/one-to-one-reference-upgrade
       - name: Check Anthropic secret
         if: steps.gate.outputs.run == 'true'
         env:
