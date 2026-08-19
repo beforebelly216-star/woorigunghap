@@ -32,14 +32,18 @@
   - 관련 코드 묶음: `a51adf8`
 
 - [x] 반복되는 Kakao `setup` 오류 원인 분리 + URL fallback hotfix
-  - 사용자 화면에서 환경변수 추가/재배포 후에도 `setup`이 재현됨.
-  - 연결 시험 메시지 URL은 현재 OAuth callback request origin을 사용하여 `NEXT_PUBLIC_APP_URL` 의존 제거.
-  - `notifyDetail=encryption_key`: `KAKAO_TOKEN_ENCRYPTION_KEY` 누락/형식 오류.
-  - `notifyDetail=storage`: token 저장/Neon DB 문제.
-  - `notifyDetail=unknown`: 기타 서버 예외.
-  - 결과 완료 알림 URL은 `NEXT_PUBLIC_APP_URL` → `VERCEL_PROJECT_PRODUCTION_URL` → `VERCEL_URL` fallback.
-  - 계약 테스트의 Kakao runtime fallback/진단 조건 갱신.
-  - 코드 commit: `89d1dbf`
+  - 연결 시험 URL은 현재 OAuth callback request origin 사용
+  - `encryption_key / storage / unknown / scope / send_failed` 진단 표시
+  - 결과 완료 알림 URL은 Vercel URL fallback 지원
+  - 코드: `89d1dbf`
+
+- [x] Kakao token 저장 SQL nullable parameter type hotfix
+  - 사용자 화면에서 `notifyDetail=storage` 재현.
+  - Kakao 로그인/보관함 DB가 정상이라 `DATABASE_URL` 단순 누락과 맞지 않아 token 저장 SQL 재검토.
+  - `CASE WHEN ${refreshToken ?? null} IS NULL`의 nullable parameter가 PostgreSQL에서 타입 추론에 실패할 수 있는 구조 확인.
+  - `saveKakaoTokenBundle`, `updateKakaoAccessToken` 두 쿼리의 해당 parameter에 `::text` cast 추가.
+  - 계약 테스트에 typed nullable parameter 회귀 조건 추가.
+  - 코드 commit: `7dc07fd4456495d1e26b0f2d968951754b3f82d3`
 
 - [ ] 사용자 QA 리포트 서술/표시 신뢰도 개선 — 다음 개발 작업
   - 공통: **일상 언어 결론/관계 장면 → 사주 용어와 계산 근거** 순서.
@@ -52,13 +56,9 @@
 
 ## 사용자 실사용으로 확인할 항목
 
-- [ ] 최신 Kakao hotfix 배포 후 `완료 알림 다시 연결` 1회 확인.
+- [ ] 최신 Kakao SQL hotfix 배포 후 `완료 알림 다시 연결` 1회 확인.
   - 성공: 연결 시험 메시지 수신.
-  - `encryption_key`: Vercel Production의 `KAKAO_TOKEN_ENCRYPTION_KEY` 값/환경 범위 확인.
-  - `storage`: `DATABASE_URL`/Neon 확인.
-  - `scope`: Kakao `talk_message` 추가 동의/앱 설정 확인.
-  - `send_failed`: Kakao API 전송 실패 원인 확인.
-  - `unknown`: `kakao-notify-enable` runtime 로그 확인.
+  - 실패 시 새 화면 분류를 기준으로 바로 후속 조치.
 
 - [ ] 새 1:1 실제 사용에서 생성시간 확인.
   - 5분 이상 반복 정체 시 `report-engine-v6-request.ts` long-segment timeout/token floor 및 `result-v2.tsx` 무기한 transient retry 조정.
@@ -96,10 +96,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 반복 Kakao setup 오류 hotfix — request-origin 링크 + Vercel URL fallback + setup 세부 원인 표시
+- Task: Kakao 완료 알림 storage 오류 원인 수정 — refresh-token nullable SQL parameter에 PostgreSQL text cast 추가
 - Status: partial
-- Validation: latest main/docs/code re-read; Kakao contract test 갱신; connector 환경에서 lint/build 실행 불가; Production 배포 결과 확인 필요
-- Commit: code 89d1dbf; docs handoff commit is the main tip
-- Remaining: main Production 배포 성공 확인 → 사용자가 `완료 알림 다시 연결` 1회 사용 → 표시되는 결과에 따라 필요 시 즉시 후속 조치 → 이후 리포트 서술/표시 신뢰도 개선
-- Risk: Vercel connector가 해당 프로젝트 runtime 로그/환경값을 404로 직접 읽지 못하므로 실제 Production 값 자체는 사용자 화면의 notifyDetail로 판별
+- Validation: latest main/docs/code 재확인; SQL 원인 코드 확인; contract test에 typed nullable parameter 조건 추가; connector 환경이라 lint/build 직접 실행 불가
+- Commit: code 7dc07fd4456495d1e26b0f2d968951754b3f82d3; docs handoff commit이 main tip
+- Remaining: main Production 배포 성공 확인 → 사용자가 `완료 알림 다시 연결` 1회 확인 → 성공 시 리포트 서술/표시 신뢰도 개선 작업 진행
+- Risk: Vercel runtime log connector 권한이 403이라 실제 Neon error code는 직접 열람 못했으나, 로그인/보관함 DB 정상 + token SQL의 untyped nullable parameter 결함이 코드상 확인됨
 ```

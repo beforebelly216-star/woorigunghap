@@ -21,24 +21,18 @@ const oneToMany = readFileSync("src/app/api/compatibility/one-to-many/route.ts",
 const reportV7 = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
 const anthropicSampleQa = readFileSync("scripts/one-to-one-anthropic-sample-qa.ts", "utf8");
 
-// Paid orders can be claimed/listed before report_json is complete.
 assert.doesNotMatch(accountStore, /payment_status = 'paid'\s+AND report_json IS NOT NULL/);
 assert.match(accountStore, /status: "generating" \| "ready"/);
 assert.match(accountStore, /completed \? "ready" : "generating"/);
 assert.match(accountClaim, /loadServerReportForAccess/);
 assert.match(accountPage, />생성중</);
 assert.match(accountPage, /setTimeout\(load, 4_000\)/);
-
-// The library can re-kick a stalled paid order when the same browser still owns its recovery key.
 assert.match(accountPage, /loadOrderDraft/);
 assert.match(accountPage, /GENERATION_RESUME_INTERVAL_MS = 120_000/);
 assert.match(accountPage, /fetch\("\/api\/payments\/verify"/);
 assert.match(accountPage, /order\.resultAccessToken/);
 assert.match(accountPage, /order\.inputSnapshot/);
 
-// Payment verification owns the server handoff. One-to-one preparation runs first,
-// then independent AI segments fan out in parallel so one function lifetime does not
-// accumulate three long Anthropic calls.
 assert.match(verify, /claimAccountReport\(user\.userId, paymentId, verified\.product\)/);
 assert.match(verify, /after\(async \(\) =>/);
 assert.match(verify, /kickOffPaidReportGeneration/);
@@ -50,15 +44,12 @@ assert.match(kickoff, /Promise\.all\(ONE_TO_ONE_SEGMENTS\.map/);
 assert.match(kickoff, /completed\.every\(Boolean\)/);
 assert.match(kickoff, /REPORT_GENERATION_IN_PROGRESS/);
 
-// Parallel segment writes must merge into report_json instead of replacing sibling writes.
 assert.match(serverStore, /export async function saveServerReportSegment/);
 assert.match(serverStore, /jsonb_set\(/);
 assert.match(serverStore, /COALESCE\(NULLIF\(report_json, ''\)/);
 assert.match(serverStore, /ARRAY\['segments', \$\{segment\}\]::text\[\]/);
 assert.match(serverStore, /ARRAY\['metas', \$\{segment\}\]::text\[\]/);
 
-// The paid report stays structurally rich but its generation contract must match the
-// product decision of roughly 5k-8k characters instead of drifting back to 13k+.
 assert.match(reportV7, /paid-report-v7-editorial-v10-latency-balanced/);
 assert.match(reportV7, /compactLength\(value\) < 1200/);
 assert.match(reportV7, /compactLength\(value\) < 2200/);
@@ -67,8 +58,6 @@ assert.match(anthropicSampleQa, /totalCharacters >= 5_000/);
 assert.match(anthropicSampleQa, /totalCharacters <= 10_000/);
 assert.doesNotMatch(anthropicSampleQa, /totalCharacters >= 13_000/);
 
-// Kakao messaging is explicit opt-in, can request additional consent again, and
-// is considered active only after an actual My Chatroom test message succeeds.
 assert.match(kakaoStart, /\["talk_message"\]/);
 assert.match(authPolicy, /KAKAO_NOTIFY_INTENT_COOKIE/);
 assert.match(kakaoStart, /KAKAO_NOTIFY_INTENT_COOKIE/);
@@ -90,6 +79,10 @@ assert.doesNotMatch(kakaoCallback, /tokenBundle\.scopes\.includes\("talk_message
 assert.match(tokenStore, /aes-256-gcm/);
 assert.match(tokenStore, /KAKAO_TOKEN_ENCRYPTION_KEY/);
 assert.match(tokenStore, /export async function setKakaoMessageEnabled/);
+assert.match(tokenStore, /bundle\.refreshToken \?\? null\}::text IS NULL/);
+assert.match(tokenStore, /refreshToken \?\? null\}::text IS NULL/);
+assert.doesNotMatch(tokenStore, /\$\{bundle\.refreshToken \?\? null\} IS NULL/);
+assert.doesNotMatch(tokenStore, /\$\{refreshToken \?\? null\} IS NULL/);
 assert.match(kakaoAuth, /\/v2\/api\/talk\/memo\/default\/send/);
 assert.match(kakaoAuth, /memo_scope_required/);
 assert.match(kakaoAuth, /required_scopes/);
@@ -105,8 +98,6 @@ assert.match(accountPage, /완료 알림이 활성화되었습니다/);
 assert.match(mobileCss, /\.library-notification-panel\s*\{/);
 assert.match(mobileCss, /\.library-notification-panel[\s\S]*gap: 20px/);
 
-// Completion notification is one-per-payment and only after a complete stored report exists.
-// A delivery/setup failure clears the enabled flag so the account can re-consent/reconnect.
 assert.match(notification, /payment_id TEXT PRIMARY KEY/);
 assert.match(notification, /loadCompletedServerReport\(paymentId\)/);
 assert.match(notification, /finishNotification\(paymentId, "sent"\)/);

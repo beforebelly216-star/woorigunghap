@@ -31,26 +31,28 @@
 - 1:1 AI 분량 계약은 `paid-report-v7-editorial-v10-latency-balanced`로 조정했다.
 - 전체 목표는 약 5,000~8,000자, 필요 시 약 10,000자까지다.
 - 기존 13,000자 이상 강제 QA는 제거했다.
-- Production 실제 생성시간은 사용자 실사용 결과로 추가 확인한다. 별도 과도한 QA 때문에 다음 개발을 지연시키지 않는다.
+- Production 실제 생성시간은 사용자 실사용 결과로 확인한다. 과도한 QA 때문에 다음 개발을 지연시키지 않는다.
 
 ## Kakao 완료 알림 현재 상태
 
-2026-08-19 운영 화면에서 `완료 알림 다시 연결` 후에도 `setup` 오류가 반복됐다.
+2026-08-19 운영 화면에서 `완료 알림 다시 연결`을 반복 확인한 결과, 최신 진단 UI가 `notifyDetail=storage`를 표시했다.
 
-기존 구조 문제:
+확인 결과:
 
-- 알림 연결 시험 메시지 URL을 `NEXT_PUBLIC_APP_URL`에 불필요하게 의존했다.
-- 서로 다른 서버 설정 실패를 모두 `setup` 하나로 표시해 원인을 구분할 수 없었다.
+- Kakao 로그인/보관함/세션이 정상 작동하므로 Production의 `DATABASE_URL` 자체가 단순 누락된 상황과는 맞지 않았다.
+- `KAKAO_TOKEN_ENCRYPTION_KEY`도 최신 진단 precheck를 통과했다.
+- 실제 원인은 Kakao token 저장 SQL의 nullable refresh-token 파라미터가 `CASE WHEN ${...} IS NULL` 형태로 사용되면서 PostgreSQL/Neon이 파라미터 타입을 추론하지 못할 수 있는 코드 결함이었다.
+- `saveKakaoTokenBundle`와 `updateKakaoAccessToken` 두 쿼리 모두 nullable refresh-token 조건 파라미터에 `::text` cast를 추가했다.
+- 계약 테스트에 두 쿼리의 typed nullable parameter 조건을 추가해 같은 형태로 회귀하지 않게 했다.
+- 코드 커밋: `7dc07fd4456495d1e26b0f2d968951754b3f82d3`.
 
-최신 hotfix 코드 `89d1dbf`:
+기존 Kakao 정책은 유지한다.
 
-- OAuth callback의 연결 시험 메시지 URL은 현재 요청 origin에서 직접 생성한다. `NEXT_PUBLIC_APP_URL`이 없어도 연결 시험 자체가 막히지 않는다.
-- `KAKAO_TOKEN_ENCRYPTION_KEY`가 없거나 64자리 hex 형식이 아니면 `notifyDetail=encryption_key`로 명확히 표시한다.
-- Kakao token 저장/Neon 쪽 문제가 있으면 `notifyDetail=storage`로 구분한다.
-- 기타 설정 예외는 `notifyDetail=unknown`으로 구분하고 서버 로그에 오류명/메시지를 남긴다.
-- 결과 완료 알림의 base URL은 `NEXT_PUBLIC_APP_URL` → Vercel `VERCEL_PROJECT_PRODUCTION_URL` → `VERCEL_URL` 순으로 fallback한다.
-- 기존 `talk_message` 재동의, 실제 시험 메시지 성공 후 활성화, 전송 실패 시 비활성화 정책은 유지한다.
-- 관련 계약 테스트 `test:pending-library-notify`의 Kakao runtime fallback/진단 조건을 갱신했다.
+- `talk_message` 미동의 시 추가 동의 재요청
+- token 저장 후 실제 Kakao `나에게 보내기` 시험 메시지가 성공해야 활성화
+- 실제 발송 실패 시 stale enabled 상태 제거
+- 연결 시험 URL은 현재 request origin 사용
+- 완료 알림 URL은 `NEXT_PUBLIC_APP_URL` → `VERCEL_PROJECT_PRODUCTION_URL` → `VERCEL_URL` fallback
 
 ## 아직 미완료인 사용자 요청
 
@@ -66,9 +68,8 @@
 
 ## 운영 확인이 남은 항목
 
-- 최신 Kakao hotfix Production 배포 후 `완료 알림 다시 연결` 결과 확인.
-- 성공 시 Kakao 연결 시험 메시지 수신 확인.
-- 실패 시 화면에 표시되는 `encryption_key / storage / unknown / scope / send_failed` 분류에 따라 바로 조치.
+- nullable refresh-token SQL cast hotfix가 Production에 배포된 뒤 `완료 알림 다시 연결` 재확인.
+- 성공 시 연결 시험 메시지 수신 확인.
 - 새 1:1 실제 사용에서 생성시간 확인. 5분 이상 반복 정체 시 long-segment timeout/token floor와 foreground 무기한 retry를 다음 hotfix 대상으로 한다.
 
 ## 출시 blocker 정의

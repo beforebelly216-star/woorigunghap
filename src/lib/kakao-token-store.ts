@@ -78,7 +78,7 @@ export async function saveKakaoTokenBundle(userId: string, bundle: KakaoTokenBun
     SET kakao_access_token_ciphertext = ${encrypt(bundle.accessToken)},
         kakao_access_token_expires_at = ${accessExpiresAt},
         kakao_refresh_token_ciphertext = CASE
-          WHEN ${bundle.refreshToken ?? null} IS NULL THEN kakao_refresh_token_ciphertext
+          WHEN ${bundle.refreshToken ?? null}::text IS NULL THEN kakao_refresh_token_ciphertext
           ELSE ${bundle.refreshToken ? encrypt(bundle.refreshToken) : null}
         END,
         kakao_refresh_token_expires_at = COALESCE(${refreshExpiresAt}, kakao_refresh_token_expires_at),
@@ -166,7 +166,7 @@ export async function updateKakaoAccessToken(
     SET kakao_access_token_ciphertext = ${encrypt(accessToken)},
         kakao_access_token_expires_at = ${accessExpiresAt},
         kakao_refresh_token_ciphertext = CASE
-          WHEN ${refreshToken ?? null} IS NULL THEN kakao_refresh_token_ciphertext
+          WHEN ${refreshToken ?? null}::text IS NULL THEN kakao_refresh_token_ciphertext
           ELSE ${refreshToken ? encrypt(refreshToken) : null}
         END,
         kakao_refresh_token_expires_at = COALESCE(${refreshExpiresAt}, kakao_refresh_token_expires_at),
