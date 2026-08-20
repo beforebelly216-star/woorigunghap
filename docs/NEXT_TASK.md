@@ -32,6 +32,7 @@
   - SMS 대체발송 비활성화.
   - 개인정보처리방침 및 `.env.example` 반영.
   - 운영 설정: `docs/KAKAO_CHANNEL_ALIMTALK_SETUP.md`.
+  - 코드/문서 묶음 커밋: `a01cf88d185f1c16610890876fb074f5e328e392`.
 
 - [ ] **외부 설정: 카카오톡 채널 알림톡 실제 발송 활성화 — 현재 최우선**
   - 우리궁합 카카오톡 비즈니스 채널 준비.
@@ -96,7 +97,7 @@ HANDOFF
 - Task: 결과 완료 알림을 Kakao OAuth 나에게 보내기에서 카카오톡 채널 알림톡(SOLAPI)으로 전환
 - Status: partial
 - Validation: Kakao 공식 문서에서 자동 정보성 알림=알림톡 확인; SOLAPI v4 HMAC/ATA 계약 반영; 계약 테스트 코드 갱신; connector 환경이라 lint/build 직접 실행 불가
-- Commit: 작업 종료 시 묶음 main commit으로 기록
+- Commit: a01cf88d185f1c16610890876fb074f5e328e392 (channel notification code/test/docs bundle); following handoff commit is main tip
 - Remaining: SOLAPI 채널/템플릿 준비 + Vercel 4개 env 설정 + 재배포 → 실제 알림톡 수신 확인 → 리포트 서술/표시 신뢰도 개선
 - Risk: 알림톡은 공식 딜러사 계정/채널 연동/템플릿 승인/수신 전화번호가 필수이므로 외부 설정 전에는 실제 발송 불가
 ```
