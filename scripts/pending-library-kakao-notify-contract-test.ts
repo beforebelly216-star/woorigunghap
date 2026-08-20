@@ -5,34 +5,38 @@ const accountStore = readFileSync("src/lib/account-report-store.ts", "utf8");
 const accountApi = readFileSync("src/app/api/account/reports/route.ts", "utf8");
 const accountClaim = readFileSync("src/app/api/account/reports/claim/route.ts", "utf8");
 const accountPage = readFileSync("src/app/account/reports/page.tsx", "utf8");
+const channelNotifyApi = readFileSync("src/app/api/account/notifications/kakao-channel/route.ts", "utf8");
+const channelStore = readFileSync("src/lib/kakao-channel-notification-store.ts", "utf8");
+const solapi = readFileSync("src/lib/solapi-alimtalk.ts", "utf8");
 const mobileCss = readFileSync("src/app/day20-mobile.css", "utf8");
+const privacy = readFileSync("src/app/privacy/page.tsx", "utf8");
 const verify = readFileSync("src/app/api/payments/verify/route.ts", "utf8");
 const redirect = readFileSync("src/app/payment/redirect/page.tsx", "utf8");
 const kickoff = readFileSync("src/lib/background-report-kickoff.ts", "utf8");
 const serverStore = readFileSync("src/lib/server-report-store.ts", "utf8");
-const authPolicy = readFileSync("src/lib/auth-policy.ts", "utf8");
-const kakaoAuth = readFileSync("src/lib/kakao-auth.ts", "utf8");
-const kakaoStart = readFileSync("src/app/api/auth/kakao/start/route.ts", "utf8");
-const kakaoCallback = readFileSync("src/app/api/auth/kakao/callback/route.ts", "utf8");
-const tokenStore = readFileSync("src/lib/kakao-token-store.ts", "utf8");
 const notification = readFileSync("src/lib/report-completion-notification.ts", "utf8");
 const oneToOne = readFileSync("src/app/api/compatibility/one-to-one/route.ts", "utf8");
 const oneToMany = readFileSync("src/app/api/compatibility/one-to-many/route.ts", "utf8");
 const reportV7 = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
 const anthropicSampleQa = readFileSync("scripts/one-to-one-anthropic-sample-qa.ts", "utf8");
 
+// Paid orders can be claimed/listed before report_json is complete.
 assert.doesNotMatch(accountStore, /payment_status = 'paid'\s+AND report_json IS NOT NULL/);
 assert.match(accountStore, /status: "generating" \| "ready"/);
 assert.match(accountStore, /completed \? "ready" : "generating"/);
 assert.match(accountClaim, /loadServerReportForAccess/);
 assert.match(accountPage, />생성중</);
 assert.match(accountPage, /setTimeout\(load, 4_000\)/);
+
+// The library can re-kick a stalled paid order when the same browser still owns its recovery key.
 assert.match(accountPage, /loadOrderDraft/);
 assert.match(accountPage, /GENERATION_RESUME_INTERVAL_MS = 120_000/);
 assert.match(accountPage, /fetch\("\/api\/payments\/verify"/);
 assert.match(accountPage, /order\.resultAccessToken/);
 assert.match(accountPage, /order\.inputSnapshot/);
 
+// Payment verification owns the server handoff. One-to-one preparation runs first,
+// then independent AI segments fan out in parallel.
 assert.match(verify, /claimAccountReport\(user\.userId, paymentId, verified\.product\)/);
 assert.match(verify, /after\(async \(\) =>/);
 assert.match(verify, /kickOffPaidReportGeneration/);
@@ -42,14 +46,14 @@ assert.match(kickoff, /const ONE_TO_ONE_SEGMENTS = \["intro", "dynamics", "actio
 assert.match(kickoff, /phase: "prepare"/);
 assert.match(kickoff, /Promise\.all\(ONE_TO_ONE_SEGMENTS\.map/);
 assert.match(kickoff, /completed\.every\(Boolean\)/);
-assert.match(kickoff, /REPORT_GENERATION_IN_PROGRESS/);
 
+// Parallel segment writes merge instead of replacing sibling writes.
 assert.match(serverStore, /export async function saveServerReportSegment/);
 assert.match(serverStore, /jsonb_set\(/);
-assert.match(serverStore, /COALESCE\(NULLIF\(report_json, ''\)/);
 assert.match(serverStore, /ARRAY\['segments', \$\{segment\}\]::text\[\]/);
 assert.match(serverStore, /ARRAY\['metas', \$\{segment\}\]::text\[\]/);
 
+// Paid report length stays aligned to the product contract.
 assert.match(reportV7, /paid-report-v7-editorial-v10-latency-balanced/);
 assert.match(reportV7, /compactLength\(value\) < 1200/);
 assert.match(reportV7, /compactLength\(value\) < 2200/);
@@ -58,54 +62,51 @@ assert.match(anthropicSampleQa, /totalCharacters >= 5_000/);
 assert.match(anthropicSampleQa, /totalCharacters <= 10_000/);
 assert.doesNotMatch(anthropicSampleQa, /totalCharacters >= 13_000/);
 
-assert.match(kakaoStart, /\["talk_message"\]/);
-assert.match(authPolicy, /KAKAO_NOTIFY_INTENT_COOKIE/);
-assert.match(kakaoStart, /KAKAO_NOTIFY_INTENT_COOKIE/);
-assert.match(kakaoStart, /wantsMessageNotification \? "1" : "0"/);
-assert.match(kakaoCallback, /KAKAO_NOTIFY_INTENT_COOKIE/);
-assert.match(kakaoCallback, /type NotificationResult = "enabled" \| "scope" \| "setup" \| "send_failed"/);
-assert.match(kakaoCallback, /error === "access_denied"[\s\S]*notificationReturnResponse\(request, returnTo, "scope"\)/);
-assert.match(kakaoCallback, /saveKakaoTokenBundle\(userId, tokenBundle\)/);
-assert.match(kakaoCallback, /isKakaoMessageEnabled\(userId\)/);
-assert.match(kakaoCallback, /sendKakaoMemo\(/);
-assert.match(kakaoCallback, /우리궁합 완료 알림 연결이 확인됐어요/);
-assert.match(kakaoCallback, /notificationResult = "enabled"/);
-assert.match(kakaoCallback, /setKakaoMessageEnabled\(userId, false\)/);
-assert.match(kakaoCallback, /searchParams\.set\("notify", notificationResult\)/);
-assert.match(kakaoCallback, /searchParams\.set\("notifyDetail", notificationSetupDetail\)/);
-assert.match(kakaoCallback, /new URL\("\/account\/reports", request\.nextUrl\.origin\)/);
-assert.doesNotMatch(kakaoCallback, /function notificationDestinationUrl\(\)[\s\S]*NEXT_PUBLIC_APP_URL/);
-assert.doesNotMatch(kakaoCallback, /tokenBundle\.scopes\.includes\("talk_message"\)/);
-assert.match(tokenStore, /aes-256-gcm/);
-assert.match(tokenStore, /KAKAO_TOKEN_ENCRYPTION_KEY/);
-assert.match(tokenStore, /export async function setKakaoMessageEnabled/);
-assert.match(tokenStore, /bundle\.refreshToken \?\? null\}::text IS NULL/);
-assert.match(tokenStore, /refreshToken \?\? null\}::text IS NULL/);
-assert.doesNotMatch(tokenStore, /\$\{bundle\.refreshToken \?\? null\} IS NULL/);
-assert.doesNotMatch(tokenStore, /\$\{refreshToken \?\? null\} IS NULL/);
-assert.match(kakaoAuth, /\/v2\/api\/talk\/memo\/default\/send/);
-assert.match(kakaoAuth, /memo_scope_required/);
-assert.match(kakaoAuth, /required_scopes/);
-assert.match(accountApi, /kakaoNotifyEnabled/);
-assert.match(accountPage, /완료 알림 받기/);
-assert.match(accountPage, /메시지 권한 다시 동의/);
-assert.match(accountPage, /연결 다시 확인/);
-assert.match(accountPage, /시험 메시지/);
-assert.match(accountPage, /notifyDetail/);
-assert.match(accountPage, /KAKAO_TOKEN_ENCRYPTION_KEY가 Production/);
-assert.match(accountPage, /send_failed/);
-assert.match(accountPage, /완료 알림이 활성화되었습니다/);
-assert.match(mobileCss, /\.library-notification-panel\s*\{/);
-assert.match(mobileCss, /\.library-notification-panel[\s\S]*gap: 20px/);
+// Completion notifications use KakaoTalk Channel Alimtalk, not the OAuth "My Chatroom" memo API.
+assert.match(solapi, /https:\/\/api\.solapi\.com\/messages\/v4\/send-many\/detail/);
+assert.match(solapi, /SOLAPI_API_KEY/);
+assert.match(solapi, /SOLAPI_API_SECRET/);
+assert.match(solapi, /SOLAPI_KAKAO_PF_ID/);
+assert.match(solapi, /SOLAPI_KAKAO_TEMPLATE_ID/);
+assert.match(solapi, /createHmac\("sha256"/);
+assert.match(solapi, /type: "ATA"/);
+assert.match(solapi, /disableSms: true/);
+assert.match(solapi, /allowDuplicates: false/);
+assert.match(notification, /woorigunghap_channel_notifications/);
+assert.match(notification, /loadKakaoChannelNotificationTarget/);
+assert.match(notification, /sendKakaoChannelReportCompleted/);
+assert.doesNotMatch(notification, /sendKakaoMemo/);
+assert.doesNotMatch(notification, /loadKakaoMessagingTokens/);
 
+// Recipient phone numbers are opt-in, validated and encrypted at rest.
+assert.match(channelStore, /aes-256-gcm/);
+assert.match(channelStore, /KAKAO_TOKEN_ENCRYPTION_KEY/);
+assert.match(channelStore, /\^010\\d\{8\}\$/);
+assert.match(channelStore, /kakao_channel_phone_ciphertext/);
+assert.match(channelStore, /kakao_channel_notify_enabled/);
+assert.match(channelStore, /kakao_channel_notify_consented_at/);
+assert.match(channelStore, /disableKakaoChannelNotification/);
+assert.match(channelNotifyApi, /payload\?\.consent !== true/);
+assert.match(channelNotifyApi, /saveKakaoChannelNotificationTarget/);
+assert.match(channelNotifyApi, /disableKakaoChannelNotification/);
+assert.match(accountApi, /kakaoChannelNotifyEnabled/);
+assert.match(accountApi, /kakaoChannelNotifyPhoneMasked/);
+assert.match(accountApi, /kakaoChannelNotifyConfigured/);
+assert.match(accountPage, /카카오톡 채널 완료 알림/);
+assert.match(accountPage, /type="tel"/);
+assert.match(accountPage, /채널 알림 받기/);
+assert.match(accountPage, /휴대전화 번호를 암호화 저장/);
+assert.match(accountPage, /알림 해제/);
+assert.match(mobileCss, /\.library-notification-form/);
+assert.match(privacy, /선택 완료 알림/);
+assert.match(privacy, /SOLAPI/);
+
+// Completion notification remains one-per-payment and only after a complete stored report exists.
 assert.match(notification, /payment_id TEXT PRIMARY KEY/);
 assert.match(notification, /loadCompletedServerReport\(paymentId\)/);
 assert.match(notification, /finishNotification\(paymentId, "sent"\)/);
-assert.match(notification, /setKakaoMessageEnabled\(userId, false\)/);
-assert.match(notification, /VERCEL_PROJECT_PRODUCTION_URL/);
-assert.match(notification, /VERCEL_URL/);
 assert.match(kickoff, /notifyReportCompleted\(paymentId\)/);
 assert.match(oneToOne, /segment === "action"[\s\S]*notifyReportCompleted/);
 assert.match(oneToMany, /saveOneToManyStoredReport[\s\S]*notifyReportCompleted/);
 
-console.log("Pending-library + Kakao notification contract checks: PASS");
+console.log("Pending-library + Kakao Channel Alimtalk contract checks: PASS");

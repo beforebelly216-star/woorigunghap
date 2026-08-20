@@ -17,35 +17,36 @@
 
 ## Hotfix
 
-- [x] 1:1 장시간 생성 정체 / 보관함 영구 `생성중` / segment 저장 race / Kakao 활성화 UI 수정
-  - 주요 코드: `6deedaf`, `919a008`, `5053492`, `7b43e88`, `d63ac4a`, `44a6f7f`
+- [x] 1:1 장시간 생성 정체 / 보관함 영구 `생성중` / segment 저장 race 수정
+- [x] 1:1 AI 분량 latency hotfix — 5,000~8,000자 목표
+- [x] Kakao OAuth `나에게 보내기` 연결/저장 오류 진단 및 SQL nullable parameter hotfix
 
-- [x] 1:1 AI 분량 latency hotfix
-  - `paid-report-v7-editorial-v10-latency-balanced`
-  - 5,000~8,000자 목표, 약 10,000자까지 허용
-  - 관련 코드/QA: `de693e3`, `8d06113`, `61f5b82`
+- [x] 결과 완료 알림을 카카오톡 채널 알림톡 구조로 전환
+  - 사용자 실사용에서 OAuth `나에게 보내기`는 결과 완료 후 수신 신뢰성이 확보되지 않아 사용자 지시로 폐기 방향 결정.
+  - 카카오 공식 용도에 맞춰 서비스 자동 정보성 알림은 카카오톡 채널 `알림톡` 사용.
+  - SOLAPI REST adapter 추가: `src/lib/solapi-alimtalk.ts`.
+  - 보관함에서 휴대전화 번호 직접 입력 + 명시적 동의 후 알림 활성화.
+  - 번호는 AES-256-GCM 암호화 저장, 화면에는 마스킹만 반환.
+  - 알림 해제 시 번호/동의 상태 삭제.
+  - 완료 시 `woorigunghap_channel_notifications`로 payment 단위 중복 발송 방지.
+  - SMS 대체발송 비활성화.
+  - 개인정보처리방침 및 `.env.example` 반영.
+  - 운영 설정: `docs/KAKAO_CHANNEL_ALIMTALK_SETUP.md`.
 
-- [x] Kakao 완료 알림 재동의 + 실제 시험 전송 검증
-  - `talk_message` 재동의
-  - 시험 메시지 성공 후에만 활성화
-  - 완료 전송 실패 시 stale enabled 상태 제거
-  - 관련 코드 묶음: `a51adf8`
+- [ ] **외부 설정: 카카오톡 채널 알림톡 실제 발송 활성화 — 현재 최우선**
+  - 우리궁합 카카오톡 비즈니스 채널 준비.
+  - SOLAPI 계정 생성/인증 및 채널 연동.
+  - 정보성 알림톡 템플릿 등록/카카오 승인.
+  - 권장 본문/버튼은 `docs/KAKAO_CHANNEL_ALIMTALK_SETUP.md` 참고.
+  - Vercel Production 환경값 입력:
+    - `SOLAPI_API_KEY`
+    - `SOLAPI_API_SECRET`
+    - `SOLAPI_KAKAO_PF_ID`
+    - `SOLAPI_KAKAO_TEMPLATE_ID`
+  - 저장 후 Production 재배포.
+  - 사용자 실사용에서 보관함 번호 등록 → 새 리포트 완료 → 채널 알림톡 수신 확인.
 
-- [x] 반복되는 Kakao `setup` 오류 원인 분리 + URL fallback hotfix
-  - 연결 시험 URL은 현재 OAuth callback request origin 사용
-  - `encryption_key / storage / unknown / scope / send_failed` 진단 표시
-  - 결과 완료 알림 URL은 Vercel URL fallback 지원
-  - 코드: `89d1dbf`
-
-- [x] Kakao token 저장 SQL nullable parameter type hotfix
-  - 사용자 화면에서 `notifyDetail=storage` 재현.
-  - Kakao 로그인/보관함 DB가 정상이라 `DATABASE_URL` 단순 누락과 맞지 않아 token 저장 SQL 재검토.
-  - `CASE WHEN ${refreshToken ?? null} IS NULL`의 nullable parameter가 PostgreSQL에서 타입 추론에 실패할 수 있는 구조 확인.
-  - `saveKakaoTokenBundle`, `updateKakaoAccessToken` 두 쿼리의 해당 parameter에 `::text` cast 추가.
-  - 계약 테스트에 typed nullable parameter 회귀 조건 추가.
-  - 코드 commit: `7dc07fd4456495d1e26b0f2d968951754b3f82d3`
-
-- [ ] 사용자 QA 리포트 서술/표시 신뢰도 개선 — 다음 개발 작업
+- [ ] 사용자 QA 리포트 서술/표시 신뢰도 개선 — 외부 알림톡 설정 후 다음 개발 작업
   - 공통: **일상 언어 결론/관계 장면 → 사주 용어와 계산 근거** 순서.
   - 1:1 해시태그 모바일 잘림 수정.
   - 1:1 계산된 일주가 있는데 `일주 미확인`이 출력되는 data-shape 문제 수정.
@@ -55,10 +56,6 @@
   - 1:N `운의 실현도`, `기본 호흡의 안정성` 등 추상 표현 → 연락·갈등·신뢰·생활·장기관계 등 직관적 언어.
 
 ## 사용자 실사용으로 확인할 항목
-
-- [ ] 최신 Kakao SQL hotfix 배포 후 `완료 알림 다시 연결` 1회 확인.
-  - 성공: 연결 시험 메시지 수신.
-  - 실패 시 새 화면 분류를 기준으로 바로 후속 조치.
 
 - [ ] 새 1:1 실제 사용에서 생성시간 확인.
   - 5분 이상 반복 정체 시 `report-engine-v6-request.ts` long-segment timeout/token floor 및 `result-v2.tsx` 무기한 transient retry 조정.
@@ -96,10 +93,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: Kakao 완료 알림 storage 오류 원인 수정 — refresh-token nullable SQL parameter에 PostgreSQL text cast 추가
+- Task: 결과 완료 알림을 Kakao OAuth 나에게 보내기에서 카카오톡 채널 알림톡(SOLAPI)으로 전환
 - Status: partial
-- Validation: latest main/docs/code 재확인; SQL 원인 코드 확인; contract test에 typed nullable parameter 조건 추가; connector 환경이라 lint/build 직접 실행 불가
-- Commit: code 7dc07fd4456495d1e26b0f2d968951754b3f82d3; docs handoff commit이 main tip
-- Remaining: main Production 배포 성공 확인 → 사용자가 `완료 알림 다시 연결` 1회 확인 → 성공 시 리포트 서술/표시 신뢰도 개선 작업 진행
-- Risk: Vercel runtime log connector 권한이 403이라 실제 Neon error code는 직접 열람 못했으나, 로그인/보관함 DB 정상 + token SQL의 untyped nullable parameter 결함이 코드상 확인됨
+- Validation: Kakao 공식 문서에서 자동 정보성 알림=알림톡 확인; SOLAPI v4 HMAC/ATA 계약 반영; 계약 테스트 코드 갱신; connector 환경이라 lint/build 직접 실행 불가
+- Commit: 작업 종료 시 묶음 main commit으로 기록
+- Remaining: SOLAPI 채널/템플릿 준비 + Vercel 4개 env 설정 + 재배포 → 실제 알림톡 수신 확인 → 리포트 서술/표시 신뢰도 개선
+- Risk: 알림톡은 공식 딜러사 계정/채널 연동/템플릿 승인/수신 전화번호가 필수이므로 외부 설정 전에는 실제 발송 불가
 ```

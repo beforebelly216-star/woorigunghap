@@ -31,28 +31,43 @@
 - 1:1 AI 분량 계약은 `paid-report-v7-editorial-v10-latency-balanced`로 조정했다.
 - 전체 목표는 약 5,000~8,000자, 필요 시 약 10,000자까지다.
 - 기존 13,000자 이상 강제 QA는 제거했다.
-- Production 실제 생성시간은 사용자 실사용 결과로 확인한다. 과도한 QA 때문에 다음 개발을 지연시키지 않는다.
+- Production 실제 생성시간은 사용자 실사용 결과로 확인하며 과도한 QA로 다음 개발을 지연시키지 않는다.
 
-## Kakao 완료 알림 현재 상태
+## 카카오 완료 알림 구조 전환 — 2026-08-21
 
-2026-08-19 운영 화면에서 `완료 알림 다시 연결`을 반복 확인한 결과, 최신 진단 UI가 `notifyDetail=storage`를 표시했다.
+사용자 실사용에서 OAuth `나에게 보내기` 연결 자체를 고친 뒤에도 **실제 결과 완료 후 메시지가 수신되지 않는 문제**가 확인됐다. 사용자 지시에 따라 기존 완료 알림 경로를 카카오톡 채널(구 플러스친구) 기반 알림톡으로 전환한다.
 
-확인 결과:
+카카오 공식 문서 기준:
 
-- Kakao 로그인/보관함/세션이 정상 작동하므로 Production의 `DATABASE_URL` 자체가 단순 누락된 상황과는 맞지 않았다.
-- `KAKAO_TOKEN_ENCRYPTION_KEY`도 최신 진단 precheck를 통과했다.
-- 실제 원인은 Kakao token 저장 SQL의 nullable refresh-token 파라미터가 `CASE WHEN ${...} IS NULL` 형태로 사용되면서 PostgreSQL/Neon이 파라미터 타입을 추론하지 못할 수 있는 코드 결함이었다.
-- `saveKakaoTokenBundle`와 `updateKakaoAccessToken` 두 쿼리 모두 nullable refresh-token 조건 파라미터에 `::text` cast를 추가했다.
-- 계약 테스트에 두 쿼리의 typed nullable parameter 조건을 추가해 같은 형태로 회귀하지 않게 했다.
-- 코드 커밋: `7dc07fd4456495d1e26b0f2d968951754b3f82d3`.
+- 회원가입/주문/결제/서비스 이용 내역처럼 서비스가 고객에게 자동으로 보내는 정보성 메시지는 `카카오톡 메시지 API`보다 **알림톡**이 적합하다.
+- 알림톡은 서비스의 카카오톡 채널을 발신자로 사용하며 공식 딜러사를 통해 제공된다.
+- 알림톡은 휴대전화 번호 기반 발송이다.
 
-기존 Kakao 정책은 유지한다.
+최신 구현:
 
-- `talk_message` 미동의 시 추가 동의 재요청
-- token 저장 후 실제 Kakao `나에게 보내기` 시험 메시지가 성공해야 활성화
-- 실제 발송 실패 시 stale enabled 상태 제거
-- 연결 시험 URL은 현재 request origin 사용
-- 완료 알림 URL은 `NEXT_PUBLIC_APP_URL` → `VERCEL_PROJECT_PRODUCTION_URL` → `VERCEL_URL` fallback
+- 완료 알림 전송은 Kakao OAuth access token과 `talk_message` scope를 더 이상 사용하지 않는다.
+- SOLAPI REST API를 이용한 카카오톡 채널 알림톡(`ATA`) adapter를 추가했다.
+- 필요한 서버 환경값: `SOLAPI_API_KEY`, `SOLAPI_API_SECRET`, `SOLAPI_KAKAO_PF_ID`, `SOLAPI_KAKAO_TEMPLATE_ID`.
+- 보관함에 `카카오톡 채널 완료 알림` 설정 UI를 추가했다.
+- 사용자가 직접 `010` 휴대전화 번호를 입력하고 알림 발송/저장에 동의한 경우에만 활성화한다.
+- 번호는 기존 `KAKAO_TOKEN_ENCRYPTION_KEY`를 이용해 AES-256-GCM으로 암호화 저장한다. 원문 번호는 로그나 AI에 전달하지 않는다.
+- 알림 해제 시 암호화 번호, 활성 플래그, 동의 시각을 제거한다.
+- 완료 알림은 새 `woorigunghap_channel_notifications` 테이블로 payment 단위 idempotency를 유지한다.
+- 알림톡 실패 시 SMS/LMS 대체발송은 하지 않는다(`disableSms: true`).
+- 개인정보처리방침에 선택 완료 알림용 휴대전화 번호 및 SOLAPI 처리 목적을 반영했다.
+- 운영 설정 문서: `docs/KAKAO_CHANNEL_ALIMTALK_SETUP.md`.
+
+### 아직 필요한 외부 운영 설정
+
+코드는 준비됐지만 실제 채널 알림톡 발송을 위해 아래 외부 작업이 필요하다.
+
+1. 우리궁합 카카오톡 비즈니스 채널 준비/연동
+2. SOLAPI 계정 및 카카오톡 채널 연동
+3. 정보성 알림톡 템플릿 등록 및 카카오 승인
+4. Vercel Production에 SOLAPI 4개 환경변수 저장
+5. 새 Production 배포
+
+권장 템플릿/버튼은 `docs/KAKAO_CHANNEL_ALIMTALK_SETUP.md`에 기록한다.
 
 ## 아직 미완료인 사용자 요청
 
@@ -65,12 +80,6 @@
 - 1:1: 원본 개인정보를 늘리지 않는 범위에서 이미 계산된 일주/일간, 오행 균형, 합충·상호작용 등 근거를 AI에 더 풍부하게 제공.
 - 1:N: `첫 번째/두 번째/세 번째`, `강점 1/2/3` 같은 순번형 명명을 후보 이름/의미형 제목으로 변경.
 - 1:N: `운의 실현도`, `기본 호흡의 안정성` 같은 추상 표현을 연락·갈등·신뢰·생활·장기관계 등 직관적인 언어로 변경.
-
-## 운영 확인이 남은 항목
-
-- nullable refresh-token SQL cast hotfix가 Production에 배포된 뒤 `완료 알림 다시 연결` 재확인.
-- 성공 시 연결 시험 메시지 수신 확인.
-- 새 1:1 실제 사용에서 생성시간 확인. 5분 이상 반복 정체 시 long-segment timeout/token floor와 foreground 무기한 retry를 다음 hotfix 대상으로 한다.
 
 ## 출시 blocker 정의
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { AccountDeletionPanel } from "@/components/account-deletion-panel";
 import { loadOrderDraft } from "@/lib/order-storage";
 
@@ -20,10 +20,13 @@ type LibraryState =
   | { status: "loading" }
   | { status: "guest" }
   | { status: "failed" }
-  | { status: "ready"; reports: ReportSummary[]; kakaoNotifyEnabled: boolean };
-
-type NotifyResult = "enabled" | "scope" | "setup" | "send_failed" | null;
-type NotifyDetail = "encryption_key" | "storage" | "unknown" | null;
+  | {
+      status: "ready";
+      reports: ReportSummary[];
+      kakaoChannelNotifyEnabled: boolean;
+      kakaoChannelNotifyPhoneMasked: string | null;
+      kakaoChannelNotifyConfigured: boolean;
+    };
 
 const GENERATION_RESUME_INTERVAL_MS = 120_000;
 
@@ -38,45 +41,14 @@ function reportHref(report: ReportSummary) {
   return `${path}?${new URLSearchParams({ paymentId: report.paymentId, source: "account" }).toString()}`;
 }
 
-function notificationFeedback(result: NotifyResult, detail: NotifyDetail) {
-  switch (result) {
-    case "scope":
-      return "카카오톡 메시지 전송 권한이 아직 동의되지 않았어요. 아래 버튼을 누르면 해당 권한 동의 화면을 다시 요청합니다.";
-    case "setup":
-      if (detail === "encryption_key") {
-        return "KAKAO_TOKEN_ENCRYPTION_KEY가 Production에서 없거나 형식이 맞지 않아요. 64자리 hex 값으로 저장한 뒤 재배포해 주세요.";
-      }
-      if (detail === "storage") {
-        return "카카오 알림 토큰을 저장할 서버 DB 연결에 문제가 있어요. DATABASE_URL 또는 Neon 연결 상태를 확인해야 합니다.";
-      }
-      return "카카오 알림 서버 설정 중 오류가 발생했어요. 다시 연결해도 같으면 서버 로그의 kakao-notify-enable 항목을 확인해야 합니다.";
-    case "send_failed":
-      return "권한과 서버 저장은 통과했지만 카카오 시험 메시지 전송에 실패했어요. 아래 버튼으로 다시 연결해 주세요.";
-    default:
-      return null;
-  }
-}
-
-const KAKAO_NOTIFY_RECONNECT_HREF = "/api/auth/kakao/start?notify=1&returnTo=%2Faccount%2Freports";
-
 export default function AccountReportsPage() {
   const [state, setState] = useState<LibraryState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
-  const [notifyResult, setNotifyResult] = useState<NotifyResult>(null);
-  const [notifyDetail, setNotifyDetail] = useState<NotifyDetail>(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [notifyConsent, setNotifyConsent] = useState(false);
+  const [notificationBusy, setNotificationBusy] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
   const resumeAttemptedAt = useRef(new Map<string, number>());
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const result = params.get("notify");
-    const detail = params.get("notifyDetail");
-    if (result === "enabled" || result === "scope" || result === "setup" || result === "send_failed") {
-      setNotifyResult(result);
-    }
-    if (detail === "encryption_key" || detail === "storage" || detail === "unknown") {
-      setNotifyDetail(detail);
-    }
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -104,7 +76,7 @@ export default function AccountReportsPage() {
           cache: "no-store",
         });
       } catch {
-        // The library poll will retry this recovery handoff after the throttle interval.
+        // The library poll retries the recovery handoff after the throttle interval.
       }
     }
 
@@ -119,9 +91,15 @@ export default function AccountReportsPage() {
         }
         if (response.ok && Array.isArray(payload?.reports)) {
           const reports = payload.reports as ReportSummary[];
-          const kakaoNotifyEnabled = payload?.kakaoNotifyEnabled === true;
-          setState({ status: "ready", reports, kakaoNotifyEnabled });
-          if (kakaoNotifyEnabled) setNotifyResult("enabled");
+          setState({
+            status: "ready",
+            reports,
+            kakaoChannelNotifyEnabled: payload?.kakaoChannelNotifyEnabled === true,
+            kakaoChannelNotifyPhoneMasked: typeof payload?.kakaoChannelNotifyPhoneMasked === "string"
+              ? payload.kakaoChannelNotifyPhoneMasked
+              : null,
+            kakaoChannelNotifyConfigured: payload?.kakaoChannelNotifyConfigured === true,
+          });
           if (reports.some((report) => report.status === "generating")) {
             for (const report of reports) void resumeGeneratingReport(report);
             timer = window.setTimeout(load, 4_000);
@@ -146,7 +124,54 @@ export default function AccountReportsPage() {
     setReloadKey((value) => value + 1);
   }
 
-  const notifyFeedback = notificationFeedback(notifyResult, notifyDetail);
+  async function enableChannelNotification(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!notifyConsent) {
+      setNotificationMessage("완료 알림을 받으려면 휴대전화 번호 저장 및 알림 발송에 동의해 주세요.");
+      return;
+    }
+    setNotificationBusy(true);
+    setNotificationMessage(null);
+    try {
+      const response = await fetch("/api/account/notifications/kakao-channel", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ phoneNumber, consent: true }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        setNotificationMessage(typeof payload?.error === "string" ? payload.error : "완료 알림 설정에 실패했습니다.");
+        return;
+      }
+      setPhoneNumber("");
+      setNotifyConsent(false);
+      setNotificationMessage("카카오톡 채널 완료 알림을 설정했습니다.");
+      setReloadKey((value) => value + 1);
+    } catch {
+      setNotificationMessage("네트워크 상태를 확인한 뒤 다시 시도해 주세요.");
+    } finally {
+      setNotificationBusy(false);
+    }
+  }
+
+  async function disableChannelNotification() {
+    setNotificationBusy(true);
+    setNotificationMessage(null);
+    try {
+      const response = await fetch("/api/account/notifications/kakao-channel", { method: "DELETE" });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        setNotificationMessage(typeof payload?.error === "string" ? payload.error : "완료 알림 해제에 실패했습니다.");
+        return;
+      }
+      setNotificationMessage("카카오톡 채널 완료 알림을 해제했습니다.");
+      setReloadKey((value) => value + 1);
+    } catch {
+      setNotificationMessage("네트워크 상태를 확인한 뒤 다시 시도해 주세요.");
+    } finally {
+      setNotificationBusy(false);
+    }
+  }
 
   return <main className="library-page">
     <section className="library-shell">
@@ -168,24 +193,44 @@ export default function AccountReportsPage() {
         </div> : null}
         {state.status === "ready" ? <div className="library-notification-panel">
           <div className="library-notification-copy">
-            <strong>카카오톡 완료 알림</strong>
-            <p>{state.kakaoNotifyEnabled
-              ? "현재 연결 상태예요. ‘연결 다시 확인’을 누르면 시험 메시지를 다시 보내 실제 작동 여부를 언제든 확인할 수 있어요."
-              : "처음에 메시지 권한을 넘겼더라도 언제든 다시 동의할 수 있어요. 연결할 때 시험 메시지를 실제로 보내 작동 여부까지 확인합니다."}</p>
-            {notifyFeedback && !state.kakaoNotifyEnabled ? <p className="library-notification-feedback library-notification-feedback-error" role="alert">
-              {notifyFeedback}
-            </p> : null}
-            {notifyResult === "enabled" && state.kakaoNotifyEnabled ? <p className="library-notification-feedback">
-              완료 알림이 활성화되었습니다. 카카오톡에 연결 확인 메시지가 도착했는지 확인해 주세요.
-            </p> : null}
+            <strong>카카오톡 채널 완료 알림</strong>
+            {state.kakaoChannelNotifyEnabled ? <>
+              <p>결과 생성이 끝나면 우리궁합 카카오톡 채널의 알림톡으로 알려드려요.</p>
+              {state.kakaoChannelNotifyPhoneMasked ? <p className="library-notification-feedback">수신번호 {state.kakaoChannelNotifyPhoneMasked}</p> : null}
+            </> : state.kakaoChannelNotifyConfigured ? <>
+              <p>휴대전화 번호를 등록하면 결과가 완성되는 즉시 우리궁합 채널 알림톡을 1회 발송합니다.</p>
+              <form className="library-notification-form" onSubmit={enableChannelNotification}>
+                <label htmlFor="kakao-channel-phone">휴대전화 번호</label>
+                <input
+                  id="kakao-channel-phone"
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  placeholder="01012345678"
+                  value={phoneNumber}
+                  onChange={(event) => setPhoneNumber(event.target.value)}
+                  maxLength={13}
+                  disabled={notificationBusy}
+                  required
+                />
+                <label className="library-notification-consent">
+                  <input
+                    type="checkbox"
+                    checked={notifyConsent}
+                    onChange={(event) => setNotifyConsent(event.target.checked)}
+                    disabled={notificationBusy}
+                  />
+                  <span>결과 완료 알림 발송을 위해 휴대전화 번호를 암호화 저장하는 데 동의합니다. <Link href="/privacy">개인정보처리방침</Link></span>
+                </label>
+                <button type="submit" className="secondary-action" disabled={notificationBusy}>{notificationBusy ? "저장 중…" : "채널 알림 받기"}</button>
+              </form>
+            </> : <p className="library-notification-feedback library-notification-feedback-error">카카오톡 채널 알림톡 발송 설정이 아직 완료되지 않았습니다.</p>}
+            {notificationMessage ? <p className="library-notification-feedback" role="status">{notificationMessage}</p> : null}
           </div>
-          {!state.kakaoNotifyEnabled ? <Link
-            className="secondary-action"
-            href={KAKAO_NOTIFY_RECONNECT_HREF}
-          >{notifyResult === "scope" ? "메시지 권한 다시 동의" : notifyResult ? "완료 알림 다시 연결" : "완료 알림 받기"}</Link> : <div className="library-notification-actions">
+          {state.kakaoChannelNotifyEnabled ? <div className="library-notification-actions">
             <span className="library-notification-enabled">알림 사용 중</span>
-            <Link className="secondary-action" href={KAKAO_NOTIFY_RECONNECT_HREF}>연결 다시 확인</Link>
-          </div>}
+            <button type="button" className="secondary-action" onClick={disableChannelNotification} disabled={notificationBusy}>알림 해제</button>
+          </div> : null}
         </div> : null}
         {state.status === "ready" && state.reports.length === 0 ? <div className="library-state">
           <h2>아직 저장한 리포트가 없어요</h2>
