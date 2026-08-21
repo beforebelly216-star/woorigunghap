@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - gpt/report-p1-p2-20260821
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -54,5 +57,3 @@ jobs:
           git commit -m "fix: preserve paid narrative content and remove report duplication"
       - name: Push validated commits
         run: git push origin HEAD:gpt/report-p1-p2-20260821
-
-# trigger: 2026-08-21 P1/P2
