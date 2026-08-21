@@ -134,7 +134,7 @@ assert.equal(
 );
 
 const engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
-assert.match(engine, /paid-report-v7-editorial-v12-persona-inner-mind/);
+assert.match(engine, /paid-report-v7-editorial-v13-saju-boy-magic-school/);
 assert.match(engine, /paid-report-evidence-v7/);
 assert.match(engine, /relationshipPromptRules\(/);
 assert.match(engine, /input\.coworkerHierarchy \?\? null/);

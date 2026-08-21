@@ -54,7 +54,7 @@ assert.match(serverStore, /ARRAY\['segments', \$\{segment\}\]::text\[\]/);
 assert.match(serverStore, /ARRAY\['metas', \$\{segment\}\]::text\[\]/);
 
 // Paid report length stays aligned to the product contract.
-assert.match(reportV7, /paid-report-v7-editorial-v12-persona-inner-mind/);
+assert.match(reportV7, /paid-report-v7-editorial-v13-saju-boy-magic-school/);
 assert.match(reportV7, /compactLength\(value\) < 1200/);
 assert.match(reportV7, /compactLength\(value\) < 2200/);
 assert.match(reportV7, /전체 리포트는 5,000~8,000자 수준을 목표/);

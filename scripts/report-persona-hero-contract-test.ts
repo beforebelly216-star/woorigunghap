@@ -7,9 +7,12 @@ const deep = readFileSync("src/lib/narrative/report-deep-content.ts", "utf8");
 const chapter = readFileSync("src/app/one-to-one/result/report-v2-chapters-a.tsx", "utf8");
 const css = readFileSync("src/app/report-extra.css", "utf8");
 
-assert.match(engine, /paid-report-v7-editorial-v12-persona-inner-mind/);
-assert.match(engine, /사주를 좀 볼 줄 아는, 눈치 빠른 관계 상담 친구/);
-assert.match(engine, /도사체·점집체·논문체·상담 기록체는 피하세요/);
+assert.match(engine, /paid-report-v7-editorial-v13-saju-boy-magic-school/);
+assert.match(engine, /화자 캐릭터 '사주소년'/);
+assert.match(engine, /마법학교 도서관/);
+assert.match(engine, /특정 소설·영화의 인물·학교·주문·고유명사·대사를 흉내 내거나 인용하지 마세요/);
+assert.match(engine, /소년다운 호기심 40%/);
+assert.match(engine, /유치한 아동체, 과한 역할극, 도사체·점집체·논문체·상담 기록체는 피하세요/);
 assert.match(engine, /짝사랑은 신호 해석과 거리 조절/);
 assert.match(engine, /partnerInnerMindHero: PARTNER_INNER_MIND_HERO_SCHEMA/);
 assert.match(engine, /validPartnerInnerMindHero/);
