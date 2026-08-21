@@ -40,7 +40,8 @@ jobs:
           npm run build
       - name: Commit P1
         run: |
-          git add src/lib/narrative/report-engine-v6-request.ts src/lib/narrative/report-engine-v7.ts scripts/paid-intro-day-pillar-test.ts package.json .github/workflows/manse-validation.yml
+          git restore .github/workflows/manse-validation.yml
+          git add src/lib/narrative/report-engine-v6-request.ts src/lib/narrative/report-engine-v7.ts scripts/paid-intro-day-pillar-test.ts package.json
           git commit -m "fix: repair paid intro day pillar contract"
       - name: Apply P2
         run: |
@@ -113,7 +114,8 @@ jobs:
           npm run build
       - name: Commit P2
         run: |
-          git add src/lib/narrative/report-engine-v6-request.ts src/lib/narrative/name-personalization.ts src/lib/narrative/report-deep-content.ts src/lib/narrative/report-engine-v7.ts src/app/one-to-one/result/result-v2.tsx src/app/one-to-one/result/report-v2-chapters-a.tsx src/app/one-to-one/result/report-v2-chapters-b.tsx scripts/paid-intro-day-pillar-test.ts scripts/report-dedup-personalization-test.ts scripts/one-to-one-quality-gate-test.ts scripts/one-to-one-anthropic-sample-qa.ts package.json .github/workflows/manse-validation.yml
+          git restore .github/workflows/manse-validation.yml
+          git add src/lib/narrative/report-engine-v6-request.ts src/lib/narrative/name-personalization.ts src/lib/narrative/report-deep-content.ts src/lib/narrative/report-engine-v7.ts src/app/one-to-one/result/result-v2.tsx src/app/one-to-one/result/report-v2-chapters-a.tsx src/app/one-to-one/result/report-v2-chapters-b.tsx scripts/paid-intro-day-pillar-test.ts scripts/report-dedup-personalization-test.ts scripts/one-to-one-quality-gate-test.ts scripts/one-to-one-anthropic-sample-qa.ts package.json
           git commit -m "fix: preserve paid narrative content and remove report duplication"
       - name: Push validated commits
         run: git push origin HEAD:gpt/report-p1-p2-20260821
