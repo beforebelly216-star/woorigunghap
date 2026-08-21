@@ -10,7 +10,7 @@ export default function PrivacyPage() {
     </PolicySection>
     <PolicySection title="2. AI 처리 경계와 이름 표시 방식">
       <p>이름·별칭, 원본 생년월일, 원본 출생시간, 완료 알림용 휴대전화 번호는 AI 서술 생성 요청에 전달하지 않습니다. AI에는 서버에서 계산한 사주·궁합 근거 중 직접 식별정보를 제거한 정보만 전달합니다.</p>
-      <p>AI가 작성한 해설을 받은 뒤 우리궁합 서버가 이용자가 입력한 이름 또는 별칭을 결합해 결과 화면에 “OOO님”처럼 표시합니다. 따라서 이름을 직접 부르는 형태의 가독성을 제공하면서도 외부 AI 사업자에게 이름 원문을 전송하지 않습니다.</p>
+      <p>AI가 작성한 해설을 받은 뒤 우리사주 서버가 이용자가 입력한 이름 또는 별칭을 결합해 결과 화면에 “OOO님”처럼 표시합니다. 따라서 이름을 직접 부르는 형태의 가독성을 제공하면서도 외부 AI 사업자에게 이름 원문을 전송하지 않습니다.</p>
     </PolicySection>
     <PolicySection title="3. 보유기간과 파기">
       <p>{OPERATING_POLICY.reportRetention}</p><p>따라서 일반 리포트 데이터 보유기간은 구매일로부터 {REPORT_RETENTION_MONTHS}개월을 기본으로 합니다.</p><p>{OPERATING_POLICY.transactionRetention}</p>
