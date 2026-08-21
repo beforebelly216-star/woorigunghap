@@ -2,9 +2,9 @@ import { PolicyPage, PolicySection } from "@/components/policy-page";
 import { OPERATING_POLICY, OPERATOR_PUBLIC_INFO } from "@/lib/operating-policy";
 
 export default function TermsPage() {
-  return <PolicyPage title="이용약관" updatedAt="2026-08-17">
+  return <PolicyPage title="이용약관" updatedAt="2026-08-21">
     <PolicySection title="1. 서비스와 상품">
-      <p>우리궁합은 사용자가 입력한 생년월일시와 관계 유형을 바탕으로 1:1 궁합 리포트와 1:다 비교 리포트를 제공하는 디지털 콘텐츠 서비스입니다.</p>
+      <p>우리사주는 사용자가 입력한 생년월일시와 관계 유형을 바탕으로 1:1 궁합 리포트와 1:다 비교 리포트를 제공하는 디지털 콘텐츠 서비스입니다.</p>
       <p>1:1 상품은 1,000원, 1:다 상품은 3,000원이며 결제 승인과 서버 검증이 완료된 뒤 계산과 리포트 생성이 시작됩니다.</p>
     </PolicySection>
     <PolicySection title="2. 이용 조건과 책임 범위">
