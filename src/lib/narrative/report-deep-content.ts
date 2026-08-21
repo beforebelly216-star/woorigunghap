@@ -13,6 +13,13 @@ export type PartnerDeepDive = {
   profileTags: string[];
 };
 
+export type PartnerInnerMindHero = {
+  headline: string;
+  innerVoice: string;
+  sceneTranslation: string;
+  sajuBasis: string;
+};
+
 export type PersonalLeverage = {
   topStrengths: Array<{
     title: string;
@@ -57,6 +64,7 @@ export type ChapterKeyTakeaways = Partial<Record<ReportChapterKey, string[]>>;
 export type DeepReportExtension = {
   keyTakeaways?: ChapterKeyTakeaways;
   partnerDeepDive?: PartnerDeepDive;
+  partnerInnerMindHero?: PartnerInnerMindHero;
   personalLeverage?: PersonalLeverage;
   situationStrategy?: SituationStrategy;
   actionPlan30?: ActionPlan30;

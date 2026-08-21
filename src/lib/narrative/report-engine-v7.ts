@@ -14,6 +14,7 @@ import {
 import type {
   ActionPlan30,
   PartnerDeepDive,
+  PartnerInnerMindHero,
   PersonalLeverage,
   SituationStrategy,
   EnhancedDetailedReportContent,
@@ -29,7 +30,7 @@ import {
   relationshipPromptRules,
 } from "@/lib/relationship-editorial";
 
-export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-editorial-v11-conclusion-first" as const;
+export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-editorial-v12-persona-inner-mind" as const;
 export const PAID_REPORT_V7_PAYLOAD_VERSION = "paid-report-evidence-v7" as const;
 export const PAID_REPORT_SEGMENTS = ["intro", "dynamics", "action"] as const;
 export type PaidReportSegmentName = (typeof PAID_REPORT_SEGMENTS)[number];
@@ -69,6 +70,13 @@ const PARTNER_DEEP_DIVE_SCHEMA = objectSchema({
     }),
   },
   profileTags: STRING_ARRAY,
+});
+
+const PARTNER_INNER_MIND_HERO_SCHEMA = objectSchema({
+  headline: { type: "string" },
+  innerVoice: { type: "string" },
+  sceneTranslation: { type: "string" },
+  sajuBasis: { type: "string" },
 });
 
 const PERSONAL_LEVERAGE_SCHEMA = objectSchema({
@@ -117,6 +125,7 @@ const DYNAMICS_SCHEMA = objectSchema({
     asymmetry: { type: "string" },
   }),
   partnerDeepDive: PARTNER_DEEP_DIVE_SCHEMA,
+  partnerInnerMindHero: PARTNER_INNER_MIND_HERO_SCHEMA,
   personalLeverage: PERSONAL_LEVERAGE_SCHEMA,
   keyTakeaways: objectSchema({ ch2: STRING_ARRAY, ch3: STRING_ARRAY }),
 });
@@ -191,6 +200,7 @@ export type IntroSegment = Pick<DetailedReportContent, "overview" | "personA" | 
 };
 export type DynamicsSegment = Pick<DetailedReportContent, "chemistry" | "bondAndFriction" | "directionalImpact"> & {
   partnerDeepDive: PartnerDeepDive;
+  partnerInnerMindHero: PartnerInnerMindHero;
   personalLeverage: PersonalLeverage;
   keyTakeaways: { ch2: string[]; ch3: string[] };
 };
@@ -263,6 +273,10 @@ function validPartnerDeepDive(value: unknown): value is PartnerDeepDive {
     && hasArray(value, "observableScenes")
     && hasArray(value, "profileTags");
 }
+function validPartnerInnerMindHero(value: unknown): value is PartnerInnerMindHero {
+  if (!isObject(value)) return false;
+  return ["headline", "innerVoice", "sceneTranslation", "sajuBasis"].every((key) => hasString(value, key));
+}
 function validPersonalLeverage(value: unknown): value is PersonalLeverage {
   if (!isObject(value)) return false;
   return hasArray(value, "topStrengths")
@@ -297,6 +311,7 @@ function validDynamics(value: unknown): value is DynamicsSegment {
     && hasArray(value.bondAndFriction, "realLifeManifestations")
     && ["overview", "aToB", "bToA", "beneficialSupply", "burdenSupply", "asymmetry"].every((key) => hasString(value.directionalImpact as Record<string, unknown>, key))
     && validPartnerDeepDive(value.partnerDeepDive)
+    && validPartnerInnerMindHero(value.partnerInnerMindHero)
     && validPersonalLeverage(value.personalLeverage)
     && validKeyTakeaways(value.keyTakeaways, ["ch2", "ch3"]);
 }
@@ -337,6 +352,7 @@ function dynamicsIssues(value: DynamicsSegment) {
   const issues: string[] = [];
   if (compactLength(value) < 2200) issues.push("DYNAMICS_SHORT");
   if (compactLength(value.partnerDeepDive) < 650) issues.push("PARTNER_DEEP_DIVE_SHORT");
+  if (compactLength(value.partnerInnerMindHero) < 120) issues.push("PARTNER_INNER_MIND_HERO_SHORT");
   if (compactLength(value.personalLeverage) < 450) issues.push("PERSONAL_LEVERAGE_SHORT");
   if (value.bondAndFriction.realLifeManifestations.length < 2) issues.push("REAL_LIFE_CASES_SHORT");
   if (value.partnerDeepDive.observableScenes.length < 2) issues.push("PARTNER_SCENES_SHORT");
@@ -357,7 +373,10 @@ function actionIssues(value: ActionSegment) {
 }
 
 const BASE_RULES = [
-  "당신은 '우리사주'의 1,000원 유료 관계 사주 리포트를 쓰는 한국어 전문 편집자입니다.",
+  "당신은 '우리사주'에서 사주를 좀 볼 줄 아는, 눈치 빠른 관계 상담 친구처럼 말하는 한국어 해설자입니다.",
+  "목소리는 관계 해설자가 중심이고, 친한 친구가 옆에서 핵심을 짚어 주는 친근함을 더하며, 명리 전문가는 필요한 근거를 짧고 정확하게 설명하는 정도로만 드러내세요. 도사체·점집체·논문체·상담 기록체는 피하세요.",
+  "재미를 위해 핵심을 숨기지 마세요. '이건 꽤 잘 맞아요', '여기서 자주 꼬입니다', '상대는 이 장면에서 속도가 느려집니다'처럼 관계 결론을 또렷하게 말하되, 근거 없는 운명론·공포 조장·희망고문은 만들지 마세요.",
+  "관계 유형에 따라 미세 톤을 조정하세요. 짝사랑은 신호 해석과 거리 조절, 썸은 속도와 확신, 연인은 반복 패턴과 회복, 친구는 편안함과 경계, 직장동료는 신뢰와 역할 조율을 중심으로 말하세요.",
   "핵심 결론을 먼저 말합니다. 계산 근거가 충분한 내용은 '이 조합은', '이 관계에서는'처럼 분명하게 쓰고, 매 문장을 '~일 수 있습니다', '~가능성이 있습니다' 같은 유보형 끝맺음으로 흐리지 마세요.",
   "기본 편집 순서는 '관계에서 바로 체감할 결론 → 연락·약속·갈등·표현·의사결정 같은 구체적 장면 → 사주 용어와 계산 근거'입니다. 사주 용어부터 설명하는 교과서식 문단을 만들지 마세요.",
   "한 문단 안에서도 사용자가 먼저 자기 관계를 떠올릴 수 있게 장면을 제시한 뒤, 일주·일간·일지·오행 균형·천간/지지 상호작용 중 실제 payload에 있는 근거를 뒤에 붙이세요.",
@@ -468,7 +487,7 @@ async function generateDynamics(apiKey: string, model: string, payloadText: stri
     label: "DYNAMICS",
     validate: validDynamics,
     qualityIssues: dynamicsIssues,
-    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[담당 범위: CH2 상대 해부 + CH3 나의 강점 + 기본 케미]\n- chemistry.overview는 2~3문장, dayMaster/dayBranch/yinYang/elements는 각각 1~2문장으로 첫 문장에서 현실 장면의 결론을 말하고, 다음 문장에서 계산 의미를 근거로 연결하세요.\n- bondAndFriction.overview는 2~3문장. positiveInteractions와 frictionInteractions는 evidence가 있는 것만 각각 2개를 우선하고 한두 문장 안에서 풀이하세요.\n- realLifeManifestations는 2개 이상으로 연락, 약속, 감정표현, 의사결정 같은 실제 장면을 고르세요.\n- directionalImpact.overview는 2~3문장, aToB/bToA/beneficialSupply/burdenSupply/asymmetry는 각각 1~2문장. 두 방향을 분명히 구분하고 같은 문장을 뒤집어 쓰지 마세요.\n- 관계 역할 맞물림 점수에서 보살핌 욕구, 존재감, 사랑 방식 같은 숨은 심리를 추론하지 마세요.\n- partnerDeepDive.outerInnerContrast는 3문장 안팎. 상황에 따라 실제로 드러나기 쉬운 반응 차이를 먼저 설명하고, 계산 근거를 뒤에 붙이세요.\n- comfortTriggers / sensitiveTriggers / preferredInteraction은 각각 2개를 우선하고 상황→관찰 반응→배려 방법을 짧게 담으세요.\n- observableScenes는 2개 이상. situation, likelyReaction, considerateResponse를 구체적으로 쓰세요.\n- profileTags는 3~5개로 압축하세요.\n- personalLeverage.topStrengths는 2개를 우선하고 whyItWorks/howToUse는 각각 1~2문장으로 쓰세요.\n- conversationScripts는 2개, backfireHabits는 2개를 우선해 실제 사용할 수 있게 쓰세요.\n- keyTakeaways.ch2/ch3은 각각 정확히 3개, 각 40자 이내의 결론 한 줄로 작성하세요. 같은 챕터 본문 문장을 복사하지 말고 서로 다른 소재를 요약하세요.`,
+    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[담당 범위: CH2 상대 해부 + CH3 나의 강점 + 기본 케미]\n- chemistry.overview는 2~3문장, dayMaster/dayBranch/yinYang/elements는 각각 1~2문장으로 첫 문장에서 현실 장면의 결론을 말하고, 다음 문장에서 계산 의미를 근거로 연결하세요.\n- bondAndFriction.overview는 2~3문장. positiveInteractions와 frictionInteractions는 evidence가 있는 것만 각각 2개를 우선하고 한두 문장 안에서 풀이하세요.\n- realLifeManifestations는 2개 이상으로 연락, 약속, 감정표현, 의사결정 같은 실제 장면을 고르세요.\n- directionalImpact.overview는 2~3문장, aToB/bToA/beneficialSupply/burdenSupply/asymmetry는 각각 1~2문장. 두 방향을 분명히 구분하고 같은 문장을 뒤집어 쓰지 마세요.\n- 관계 역할 맞물림 점수에서 보살핌 욕구, 존재감, 사랑 방식 같은 숨은 심리를 추론하지 마세요.\n- partnerDeepDive.outerInnerContrast는 3문장 안팎. 상황에 따라 실제로 드러나기 쉬운 반응 차이를 먼저 설명하고, 계산 근거를 뒤에 붙이세요.\n- partnerInnerMindHero는 CH2 상단의 '그 사람의 속마음' 히어로 카드입니다. 실제 내면을 안다고 주장하지 말고 계산된 관계 반응을 사용자가 바로 이해하도록 1인칭 가상 독백으로 번역하세요.\n- partnerInnerMindHero.headline은 28자 안팎의 결론형 제목, innerVoice는 따옴표 없이 1~2문장의 자연스러운 1인칭 독백, sceneTranslation은 그 독백이 연락·약속·갈등·표현 같은 실제 장면에서 어떻게 드러나는지 2문장, sajuBasis는 일간·일지·오행·천간/지지 상호작용 중 실제 payload 근거를 1~2문장으로 설명하세요.\n- innerVoice에 '진짜 속마음', '마음속에서는', '사실은'처럼 숨은 심리를 사실로 확정하는 표현을 쓰지 마세요. 상대를 대신해 고백문을 창작하지 말고 관계 반응의 방향만 번역하세요.\n- comfortTriggers / sensitiveTriggers / preferredInteraction은 각각 2개를 우선하고 상황→관찰 반응→배려 방법을 짧게 담으세요.\n- observableScenes는 2개 이상. situation, likelyReaction, considerateResponse를 구체적으로 쓰세요.\n- profileTags는 3~5개로 압축하세요.\n- personalLeverage.topStrengths는 2개를 우선하고 whyItWorks/howToUse는 각각 1~2문장으로 쓰세요.\n- conversationScripts는 2개, backfireHabits는 2개를 우선해 실제 사용할 수 있게 쓰세요.\n- keyTakeaways.ch2/ch3은 각각 정확히 3개, 각 40자 이내의 결론 한 줄로 작성하세요. 같은 챕터 본문 문장을 복사하지 말고 서로 다른 소재를 요약하세요.`,
     user: `다음 계산 근거와 비식별 편집 참고문맥만 사용해 상대 해부, 나의 강점, 두 사람의 케미를 상세 작성하세요.\n${payloadText}`,
   });
 }
