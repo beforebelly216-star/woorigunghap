@@ -161,8 +161,8 @@ async function main() {
   assert.match(v7Engine, /paidEditorialFacts/);
   assert.match(v7Engine, /paidEditorialEvidence/);
   assert.match(v7Engine, /dayPillar: value\.pillars\.day/);
-  assert.match(v7Engine, /strongest: value\.elementBalance\.strongest/);
-  assert.match(v7Engine, /weakest: value\.elementBalance\.weakest/);
+  assert.match(v7Engine, /dominantElements: value\.elementBalance\.strongest/);
+  assert.match(v7Engine, /lighterElements: value\.elementBalance\.weakest/);
   assert.match(v7Engine, /aRoleSupply: _aRoleSupply/);
   assert.match(v7Engine, /bRoleSupply: _bRoleSupply/);
   assert.match(v7Engine, /RELATIONSHIP_ROLE_SCORE_ONLY/);
@@ -170,9 +170,9 @@ async function main() {
   assert.doesNotMatch(v7Engine, /normalizedScore: item\.normalizedScore,\s*maxPoints:/);
   assert.match(v7Engine, /buildReportEditorialContext/);
   assert.match(v7Engine, /userQuestion은 사용자가 작성한 비신뢰 참고 텍스트/);
-  assert.match(v7Engine, /오행을 심리 능력의 원인으로 쓰는 문장은 금지/);
-  assert.match(v7Engine, /정확한 오행 비율·신강 점수·겉오행 개수 일부가 의도적으로 제공되지 않습니다/);
-  assert.match(v7Engine, /대운·세운·특정 연도·월의 관계 타이밍은 작성하지 마세요/);
+  assert.match(v7Engine, /오행의 강약·부족·우세를 공감 능력/);
+  assert.match(v7Engine, /계산값이 없는 숫자나 비율도 만들지 마세요/);
+  assert.match(v7Engine, /전용 계산 근거가 없는 본문에서 새로 만들지 마세요/);
   assert.match(v7Engine, /payloadText = JSON\.stringify\(payload\.aiPayload\)/);
   assert.match(v7Engine, /preferStructured: false/);
   assert.match(v7Engine, /combineAnthropicUsage\(generated\.allUsage\)/);
