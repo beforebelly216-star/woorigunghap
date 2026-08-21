@@ -2,12 +2,12 @@ import { PolicyPage, PolicySection } from "@/components/policy-page";
 import { OPERATING_POLICY, OPERATOR_PUBLIC_INFO } from "@/lib/operating-policy";
 
 export default function RefundPage() {
-  return <PolicyPage title="환불·청약철회 안내" updatedAt="2026-08-17">
+  return <PolicyPage title="환불·청약철회 안내" updatedAt="2026-08-21">
     <PolicySection title="1. 결제 전">
       <p>결제 승인 전에는 언제든 결제를 중단하거나 입력 내용을 수정할 수 있습니다.</p>
     </PolicySection>
     <PolicySection title="2. 결제 후 디지털 콘텐츠 제공">
-      <p>우리궁합은 결제가 승인되면 서버가 즉시 궁합 계산과 유료 리포트 생성을 시작하는 디지털 콘텐츠입니다. 결제 화면에서 이용약관·개인정보 처리와 함께 이 즉시 제공 사실을 확인받습니다.</p>
+      <p>우리사주는 결제가 승인되면 서버가 즉시 궁합 계산과 유료 리포트 생성을 시작하는 디지털 콘텐츠입니다. 결제 화면에서 이용약관·개인정보 처리와 함께 이 즉시 제공 사실을 확인받습니다.</p>
       <p>{OPERATING_POLICY.refundSummary}</p>
     </PolicySection>
     <PolicySection title="3. 환불을 확인하는 경우">
