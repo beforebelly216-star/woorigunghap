@@ -92,7 +92,7 @@ assert.match(requestEngine, /totalBudgetMs = isLongSegment \? 220_000 : 180_000/
 
 // Paid AI payload deliberately removes raw person-level numbers that caused unsupported
 // psychological interpretations in real Claude samples, while keeping server scores authoritative.
-assert.match(paidEngine, /paid-report-v7-editorial-v9-reduced-ai-facts/);
+assert.match(paidEngine, /paid-report-v7-editorial-v10-latency-balanced/);
 assert.match(paidEngine, /paid-report-evidence-v6/);
 assert.match(paidEngine, /paidEditorialFacts/);
 assert.match(paidEngine, /dayPillar: value\.pillars\.day/);
