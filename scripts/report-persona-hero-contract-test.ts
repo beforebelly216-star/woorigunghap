@@ -16,11 +16,11 @@ assert.match(engine, /1인칭 가상 독백/);
 assert.match(engine, /실제 내면을 안다고 주장하지 말고/);
 assert.match(engine, /PARTNER_INNER_MIND_HERO_SHORT/);
 assert.match(deep, /export type PartnerInnerMindHero/);
-assert.match(deep, /partnerInnerMindHero?: PartnerInnerMindHero/);
+assert.ok(deep.includes("partnerInnerMindHero?: PartnerInnerMindHero"));
 assert.match(chapter, /partner-inner-mind-hero/);
 assert.match(chapter, />그 사람의 속마음</);
 assert.match(chapter, />사주로 보면</);
-assert.match(css, /.partner-inner-mind-hero/);
-assert.match(css, /@media (max-width: 700px).*partner-inner-mind-hero/s);
+assert.ok(css.includes(".partner-inner-mind-hero"));
+assert.ok(css.includes("@media (max-width: 700px) { .partner-inner-mind-hero"));
 
 console.log("paid report P4 persona + inner-mind hero contract: PASS");
