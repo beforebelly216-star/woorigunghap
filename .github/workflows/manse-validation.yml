@@ -26,108 +26,7 @@ on:
       - "package-lock.json"
       - ".github/workflows/manse-validation.yml"
 
-permissions:
-  contents: write
-
 jobs:
-  apply-report-p1-p2:
-    if: github.event_name == 'pull_request' && github.head_ref == 'gpt/report-p1-p2-20260821'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: gpt/report-p1-p2-20260821
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - name: Install dependencies
-        run: npm ci
-      - name: Apply and validate P1/P2 once
-        run: |
-          if [ -f scripts/report-dedup-personalization-test.ts ]; then
-            echo "P1/P2 patch already applied; skipping bootstrap."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          node .github/scripts/gpt-p1-p2-patch.mjs p1
-          npm run test:intro:day-pillar # bootstrap-p1
-          npm run lint
-          npm run build
-          git add src/lib/narrative/report-engine-v6-request.ts src/lib/narrative/report-engine-v7.ts scripts/paid-intro-day-pillar-test.ts package.json .github/workflows/manse-validation.yml
-          git commit -m "fix: repair paid intro day pillar contract"
-
-          node .github/scripts/gpt-p1-p2-patch.mjs p2
-          cat > scripts/report-dedup-personalization-test.ts <<'EOF'
-          import assert from "node:assert/strict";
-          import { readFileSync } from "node:fs";
-          import {
-            collectPaidNarrativeQualityIssues,
-            groundPaidIntroWithServerEvidence,
-          } from "../src/lib/narrative/report-engine-v6-request";
-          import { personalizeNarrativeNames } from "../src/lib/narrative/name-personalization";
-
-          const duplicate = "두 사람의 관계에서 같은 장문이 여러 필드에 그대로 반복되면 유료 리포트의 체감 가치가 크게 떨어집니다.";
-          const duplicateIssues = collectPaidNarrativeQualityIssues({ a: duplicate, b: duplicate }, "TEST");
-          assert.ok(duplicateIssues.includes("EXACT_LONG_TEXT_DUPLICATE"), "40자 이상 동일 문장은 반드시 탐지해야 합니다");
-
-          const aiIntro = {
-            personA: { overallProfile: "기해(己亥)인 A는 A만의 문장입니다." },
-            personB: { overallProfile: "갑자(甲子)인 B는 완전히 다른 문장입니다." },
-          };
-          assert.equal(groundPaidIntroWithServerEvidence(aiIntro, "payload"), aiIntro, "AI intro must not be replaced by a server template");
-          assert.notEqual(
-            aiIntro.personA.overallProfile.replace(/[AB]/g, ""),
-            aiIntro.personB.overallProfile.replace(/[AB]/g, ""),
-            "person A/B intro copy must remain distinct",
-          );
-          assert.doesNotMatch(JSON.stringify(aiIntro), /서버 계산상/);
-
-          const personalized = personalizeNarrativeNames({
-            doubleQuoted: "\"나도 같이 가도 돼?\"",
-            singleQuoted: "'내가 네 생각 많이 했어'",
-            curlyQuoted: "“나도 같이 가도 돼?”",
-            prose: "나는 먼저 설명하고 상대에게 선택권을 줍니다.",
-          }, { self: "전종윤", partner: "이유빈" });
-          assert.equal(personalized.doubleQuoted, "\"나도 같이 가도 돼?\"");
-          assert.equal(personalized.singleQuoted, "'내가 네 생각 많이 했어'");
-          assert.equal(personalized.curlyQuoted, "“나도 같이 가도 돼?”");
-          assert.match(personalized.prose, /전종윤님은/, "legacy unquoted role phrase replacement must remain active");
-          assert.match(personalized.prose, /이유빈님에게/, "legacy partner replacement must remain active");
-
-          const requestSource = readFileSync("src/lib/narrative/report-engine-v6-request.ts", "utf8");
-          assert.ok(requestSource.includes('"EXACT_LONG_TEXT_DUPLICATE"'), "duplicate issue must be promoted into the critical quality set");
-          assert.ok(!requestSource.includes("return { ...value, personA, personB }"), "server must not wholesale-replace personA/personB");
-          assert.ok(requestSource.includes("서버 계산상"), "internal-term detector keeps an explicit regression guard for this phrase");
-
-          const engineSource = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
-          assert.ok(engineSource.includes("keyTakeaways: objectSchema({ ch0: STRING_ARRAY, ch1: STRING_ARRAY })"));
-          assert.ok(engineSource.includes("mergePaidReportSegmentContents"));
-
-          for (const path of [
-            "src/app/one-to-one/result/report-v2-chapters-a.tsx",
-            "src/app/one-to-one/result/report-v2-chapters-b.tsx",
-          ]) {
-            const source = readFileSync(path, "utf8");
-            assert.ok(!source.includes("summary={[content."), `${path} must not reuse body fields as chapter summary`);
-            assert.ok(source.includes('chapterSummary(content, "ch'), `${path} must render dedicated keyTakeaways`);
-          }
-
-          console.log("report dedup and personalization contract: PASS");
-          EOF
-          npm run test:intro:day-pillar # bootstrap-p2
-          npm run test:report:dedup # bootstrap-p2
-          npm run test:one-to-one:quality-gate # bootstrap-p2
-          npm run lint
-          npm run build
-          git add src/lib/narrative/report-engine-v6-request.ts src/lib/narrative/name-personalization.ts src/lib/narrative/report-deep-content.ts src/lib/narrative/report-engine-v7.ts src/app/one-to-one/result/result-v2.tsx src/app/one-to-one/result/report-v2-chapters-a.tsx src/app/one-to-one/result/report-v2-chapters-b.tsx scripts/paid-intro-day-pillar-test.ts scripts/report-dedup-personalization-test.ts scripts/one-to-one-quality-gate-test.ts scripts/one-to-one-anthropic-sample-qa.ts package.json .github/workflows/manse-validation.yml
-          git commit -m "fix: preserve paid narrative content and remove report duplication"
-          git push origin HEAD:gpt/report-p1-p2-20260821
-
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -179,6 +78,8 @@ jobs:
           npm run test:one-to-one:luck-cycle
           npm run test:one-to-one:three-year-timing
           npm run test:one-to-one:quality-gate
+          npm run test:intro:day-pillar
+          npm run test:report:dedup
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi
