@@ -28,10 +28,10 @@
   - 개인정보처리방침 반영
   - 운영 문서: `docs/KAKAO_CHANNEL_ALIMTALK_SETUP.md`
 
-- [x] **브랜드 변경: 우리궁합 → 우리사주**
+- [x] **브랜드 변경: 우리사주**
   - 공식 프로젝트명/서비스명은 `우리사주`로 확정.
-  - 헤더, SEO/metadata, 결제 상품명, 이용약관, 개인정보처리방침, 환불 안내, 카카오 채널 운영 문구, 공용 상태 문서 변경.
-  - 새 사용자 노출 카피에서 `우리궁합` 사용 금지.
+  - 헤더, SEO/metadata, 결제 상품명, 이용약관, 개인정보처리방침, 환불 안내, 카카오 채널 운영 문구, AI 프롬프트, 공용 상태/명세 문서 변경.
+  - 새 사용자 노출 카피에서 이전 브랜드명 사용 금지.
   - GitHub 저장소명, 기존 Vercel 도메인, `woorigunghap_*` DB 테이블·저장 버전 같은 레거시 기술 식별자는 기존 구매 데이터/배포 호환을 위해 별도 마이그레이션 전까지 유지.
 
 - [ ] **외부 설정: 우리사주 카카오톡 채널 알림톡 실제 발송 활성화 — 현재 최우선 운영 작업**
@@ -93,10 +93,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 프로젝트명/서비스명 전면 변경 — 우리궁합 → 우리사주
-- Status: partial
-- Validation: 최신 main/docs 확인; 사용자 노출 브랜드·정책·결제명·알림톡 문구 및 공용 상태문서 변경; connector 환경이라 lint/build 직접 실행 불가
-- Commit: 작업 branch에서 변경 누적 후 main tip에 묶어서 반영 예정
-- Remaining: 변경 diff 확인 → main 한 번 갱신 → Vercel 배포 상태 확인 → 외부 우리사주 카카오톡 채널/SOLAPI 설정
-- Risk: repo/Vercel URL/DB prefix `woorigunghap`은 기존 데이터·배포 호환을 위해 레거시 내부 식별자로 유지
+- Task: 프로젝트명/서비스명 전면 변경 — 공식 브랜드 `우리사주` 적용
+- Status: complete
+- Validation: 최신 main/docs 확인; 저장소 텍스트 sweep으로 사용자 노출/AI 프롬프트/정책/명세의 브랜드명 변경; diff 확인; connector 환경이라 lint/build 직접 실행 불가
+- Commit: brand 작업 branch tip을 main에 fast-forward하여 한 번에 반영
+- Remaining: Vercel 배포 확인 → 우리사주 카카오톡 채널/SOLAPI 외부 설정 → 리포트 서술/표시 신뢰도 개선
+- Risk: repo/Vercel URL/DB prefix `woorigunghap`은 기존 데이터·배포 호환을 위한 레거시 내부 식별자로 유지
 ```
