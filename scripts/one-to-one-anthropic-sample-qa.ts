@@ -4,6 +4,7 @@ import { dirname, resolve } from "node:path";
 import { calculateOneToOneCompatibility } from "../src/lib/compatibility/engine";
 import {
   generatePaidReportSegmentV7,
+  mergePaidReportSegmentContents,
   PAID_REPORT_SEGMENTS,
   type PaidReportSegmentContent,
   type PaidReportSegmentMeta,
@@ -86,7 +87,7 @@ async function main() {
 
   function writeProgress(status: "partial" | "complete", error: string | null = null) {
     if (!outputPath) return;
-    const merged = Object.assign({}, ...contents) as Record<string, unknown>;
+    const merged = mergePaidReportSegmentContents(contents);
     const personalized = personalizeNarrativeNames(merged, {
       self: input.personA.displayName,
       partner: input.personB.displayName,
@@ -135,7 +136,7 @@ async function main() {
     }
   }
 
-  const merged = Object.assign({}, ...contents) as Record<string, unknown>;
+  const merged = mergePaidReportSegmentContents(contents);
   const personalized = personalizeNarrativeNames(merged, {
     self: input.personA.displayName,
     partner: input.personB.displayName,

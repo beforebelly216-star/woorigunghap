@@ -82,9 +82,7 @@ const dirtyIntro = {
   personB: { overallProfile: "내면을 숨깁니다.", elementAnalysis: "화가 약해서 감정 표현이 부족합니다.", relationshipNeeds: "사랑받을 욕구가 큽니다.", strengths: ["직관"], cautions: ["불안"] },
 };
 const groundedIntro = groundPaidIntroWithServerEvidence(dirtyIntro, groundingPrompt) as typeof dirtyIntro;
-assert.notEqual(groundedIntro.personA.elementAnalysis, dirtyIntro.personA.elementAnalysis);
-assert.match(groundedIntro.personA.elementAnalysis, /목/);
-assert.match(groundedIntro.personB.elementAnalysis, /화/);
+assert.equal(groundedIntro, dirtyIntro, "server evidence must validate/retry instead of overwriting AI-authored intro");
 const groundedIssues = collectPaidNarrativeQualityIssues(groundedIntro, "INTRO", groundingPrompt);
-assert.ok(!groundedIssues.includes("ELEMENT_PSYCHOLOGY_OVERREACH"));
-assert.ok(!groundedIssues.includes("MIND_READING_CERTAINTY"));
+assert.ok(groundedIssues.includes("ELEMENT_PSYCHOLOGY_OVERREACH"));
+assert.ok(groundedIssues.includes("MIND_READING_CERTAINTY"));

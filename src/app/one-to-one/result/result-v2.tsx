@@ -5,13 +5,15 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { CompatibilityCalculationSnapshot } from "@/lib/compatibility/engine";
 import type { CompatibilityDimension } from "@/lib/compatibility/types";
-import type { DetailedReportContent, PaidReportFacts } from "@/lib/narrative/report-engine-v5";
-import type {
-  ActionSegment,
-  DynamicsSegment,
-  IntroSegment,
-  PaidReportSegmentMeta,
-  PaidReportSegmentName,
+import type { PaidReportFacts } from "@/lib/narrative/report-engine-v5";
+import type { EnhancedDetailedReportContent } from "@/lib/narrative/report-deep-content";
+import {
+  mergePaidReportSegmentContents,
+  type ActionSegment,
+  type DynamicsSegment,
+  type IntroSegment,
+  type PaidReportSegmentMeta,
+  type PaidReportSegmentName,
 } from "@/lib/narrative/report-engine-v7";
 import { loadOrderDraft, saveOrderDraft } from "@/lib/order-storage";
 import type { OneToOneOrderDraft } from "@/lib/orders";
@@ -71,10 +73,10 @@ function retryDelay(attempt: number) {
   return Math.min(20_000, 1_500 * 2 ** Math.min(4, Math.max(0, attempt - 1)));
 }
 
-function completeContent(progress: Pick<ReportProgress, "segments">): DetailedReportContent | null {
+function completeContent(progress: Pick<ReportProgress, "segments">): EnhancedDetailedReportContent | null {
   const { intro, dynamics, action } = progress.segments;
   if (!intro || !dynamics || !action) return null;
-  return { ...intro, ...dynamics, ...action };
+  return mergePaidReportSegmentContents([intro, dynamics, action]);
 }
 
 type RecoveryPayload = {
@@ -127,7 +129,7 @@ export default function ResultV2() {
   const debug = params.get("debug") === "1";
   const [order, setOrder] = useState<DisplayOneToOneOrder | null>(null);
   const [snapshot, setSnapshot] = useState<CompatibilityCalculationSnapshot | null>(null);
-  const [content, setContent] = useState<DetailedReportContent | null>(null);
+  const [content, setContent] = useState<EnhancedDetailedReportContent | null>(null);
   const [facts, setFacts] = useState<PaidReportFacts | null>(null);
   const [segmentMetas, setSegmentMetas] = useState<Partial<Record<PaidReportSegmentName, PaidReportSegmentMeta>>>({});
   const [status, setStatus] = useState<"loading" | "ready" | "missing" | "fatal">("loading");

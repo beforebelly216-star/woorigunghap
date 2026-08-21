@@ -7,6 +7,10 @@ function itemAt(items: string[], index: number, fallback: string) {
   return items[index] ?? items[0] ?? fallback;
 }
 
+function chapterSummary(content: EnhancedDetailedReportContent, key: "ch4" | "ch5" | "ch6" | "ch7" | "ch8" | "ch9") {
+  return content.keyTakeaways?.[key] ?? [];
+}
+
 const TIMING_PHASE_LABEL: Record<TimingPhase, string> = {
   rising: "상승",
   adjusting: "조율",
@@ -44,25 +48,25 @@ export default function ReportChaptersB({
       {
         week: "1주차",
         goal: "관계의 기본 리듬 관찰",
-        action: itemAt(content.practicalManual.do, 0, content.relationshipFlow.overview),
+        action: itemAt(content.practicalManual.do, 0, "평소 관계 장면 하나를 기록하고 서로 편한 지점을 확인하세요."),
         check: "상대의 반응과 내 체감이 전보다 편해졌는지 확인하세요.",
       },
       {
         week: "2주차",
         goal: "잘 통하는 방식 한 가지 반복",
-        action: itemAt(content.practicalManual.do, 1, content.directionalImpact.beneficialSupply),
+        action: itemAt(content.practicalManual.do, 1, "지난주에 잘 통했던 방식 하나를 골라 자연스럽게 반복하세요."),
         check: "같은 행동을 반복했을 때 관계의 부담이 줄었는지 확인하세요.",
       },
       {
         week: "3주차",
         goal: "마찰이 생길 때 대응 순서 바꾸기",
-        action: itemAt(content.practicalManual.conflictProtocol, 0, content.strengthsAndRisks.warning),
+        action: itemAt(content.practicalManual.conflictProtocol, 0, "마찰이 생기면 결론보다 서로의 설명 순서를 먼저 맞춰 보세요."),
         check: "갈등 뒤 회복 시간이 짧아졌는지 확인하세요.",
       },
       {
         week: "4주차",
         goal: "둘에게 맞는 좋은 경험 만들기",
-        action: itemAt(content.practicalManual.recommendedActivities, 0, content.chemistry.overview),
+        action: itemAt(content.practicalManual.recommendedActivities, 0, "둘 다 부담 없이 참여할 수 있는 활동 하나를 함께 골라 보세요."),
         check: "둘 다 억지 없이 편하게 참여했는지 확인하세요.",
       },
     ];
@@ -73,7 +77,7 @@ export default function ReportChaptersB({
       eyebrow="RELATIONSHIP STRATEGY"
       title={editorial.ui.strategyTitle}
       intro={editorial.ui.strategyIntro}
-      summary={[content.relationshipSpecific.overview, content.situationStrategy?.priority ?? content.directionalImpact.asymmetry, ...content.practicalManual.do.slice(0, 1)]}
+      summary={chapterSummary(content, "ch4")}
     >
       <div className="reference-strategy-lead">
         <span>{relationshipLabel} 전용 해석</span>
@@ -119,7 +123,7 @@ export default function ReportChaptersB({
       intro={threeYearTiming
         ? `${threeYearTiming.baseYear}년부터 3개 연도의 세운과 두 사람의 대운 후보를 함께 계산해 관계 흐름을 봅니다. 출생시간 미상은 단일 날짜를 확정하지 않고 범위로 표시합니다.`
         : "현재 계산으로 확인할 수 있는 관계 역할·주도권·친밀도와 반복 갈등을 중심으로 봅니다. 저장된 구버전 결과에는 3년 타이밍 계산이 없을 수 있습니다."}
-      summary={[content.relationshipFlow.roles, content.relationshipFlow.initiative, content.relationshipFlow.intimacy]}
+      summary={chapterSummary(content, "ch5")}
     >
       <Paragraph>{content.relationshipFlow.overview}</Paragraph>
       <div className="reference-flow-grid">
@@ -169,7 +173,7 @@ export default function ReportChaptersB({
       eyebrow="CLOSENESS & CHEMISTRY"
       title={editorial.ui.closenessTitle}
       intro="친밀감은 ‘잘 맞는다/안 맞는다’ 한 줄로 끝나지 않습니다. 가까워지는 속도, 편안함, 부담이 되는 신호를 같이 봅니다."
-      summary={[content.chemistry.overview, ...content.bondAndFriction.positiveInteractions.slice(0, 1), content.directionalImpact.bToA]}
+      summary={chapterSummary(content, "ch6")}
     >
       <div className="reference-closeness-lead">
         <small>두 사람의 거리감 리듬</small>
@@ -191,7 +195,7 @@ export default function ReportChaptersB({
       eyebrow="FUTURE CONDITIONS"
       title="이 관계의 미래를 가르는 조건"
       intro="결혼·이별 시점을 예언하는 대신, 이 조합이 장기적으로 좋아지는 조건과 반대로 소모되기 쉬운 조건을 나눠 봅니다."
-      summary={[content.strengthsAndRisks.strengths[0], content.strengthsAndRisks.redFlag, content.strengthsAndRisks.warning]}
+      summary={chapterSummary(content, "ch7")}
     >
       <div className="reference-future-split">
         <article className="is-positive">
@@ -223,7 +227,7 @@ export default function ReportChaptersB({
       intro={content.actionPlan30
         ? "이번 달에 실제로 실행할 수 있도록 새 리포트가 1~4주차 목표·행동·확인 기준을 각각 작성했습니다."
         : "기존 저장 리포트는 실전 조언을 4주 실행 순서로 재배치해 보여드립니다."}
-      summary={[...content.practicalManual.do.slice(0, 2), ...content.practicalManual.dont.slice(0, 1)]}
+      summary={chapterSummary(content, "ch8")}
     >
       <div className="reference-30day-grid">
         {thirtyDayPlan.map((item) => <article key={item.week}>
@@ -250,7 +254,7 @@ export default function ReportChaptersB({
       eyebrow="EVIDENCE & LIMITS"
       title="이 리포트를 어디까지 믿고 보면 좋은가"
       intro="점수와 명리 계산은 서버 엔진이 고정하고, AI는 그 계산 결과를 읽기 쉬운 문장으로만 풀어씁니다."
-      summary={[content.directionalImpact.overview, content.strengthsAndRisks.warning, "출생시간 미상인 경우 화면 상단의 불확실성 점수 범위를 함께 확인하세요."]}
+      summary={chapterSummary(content, "ch9")}
     >
       <h3>양방향 영향은 따로 계산해 읽습니다</h3><Paragraph>{content.directionalImpact.overview}</Paragraph>
       <h3>확정적으로 말하지 않는 영역</h3><Paragraph>{content.strengthsAndRisks.warning}</Paragraph>

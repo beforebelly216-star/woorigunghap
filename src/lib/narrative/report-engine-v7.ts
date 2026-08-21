@@ -16,6 +16,7 @@ import type {
   PartnerDeepDive,
   PersonalLeverage,
   SituationStrategy,
+  EnhancedDetailedReportContent,
 } from "@/lib/narrative/report-deep-content";
 import { buildReportEditorialContext } from "@/lib/narrative/report-editorial-context";
 import {
@@ -51,6 +52,7 @@ const INTRO_SCHEMA = objectSchema({
   overview: objectSchema({ headline: { type: "string" }, detailedSummary: { type: "string" } }),
   personA: PERSON_SCHEMA,
   personB: PERSON_SCHEMA,
+  keyTakeaways: objectSchema({ ch0: STRING_ARRAY, ch1: STRING_ARRAY }),
 });
 
 const PARTNER_DEEP_DIVE_SCHEMA = objectSchema({
@@ -116,6 +118,7 @@ const DYNAMICS_SCHEMA = objectSchema({
   }),
   partnerDeepDive: PARTNER_DEEP_DIVE_SCHEMA,
   personalLeverage: PERSONAL_LEVERAGE_SCHEMA,
+  keyTakeaways: objectSchema({ ch2: STRING_ARRAY, ch3: STRING_ARRAY }),
 });
 
 const SITUATION_STRATEGY_SCHEMA = objectSchema({
@@ -177,18 +180,32 @@ const ACTION_SCHEMA = objectSchema({
   }),
   situationStrategy: SITUATION_STRATEGY_SCHEMA,
   actionPlan30: ACTION_PLAN_30_SCHEMA,
+  keyTakeaways: objectSchema({
+    ch4: STRING_ARRAY, ch5: STRING_ARRAY, ch6: STRING_ARRAY,
+    ch7: STRING_ARRAY, ch8: STRING_ARRAY, ch9: STRING_ARRAY,
+  }),
 });
 
-export type IntroSegment = Pick<DetailedReportContent, "overview" | "personA" | "personB">;
+export type IntroSegment = Pick<DetailedReportContent, "overview" | "personA" | "personB"> & {
+  keyTakeaways: { ch0: string[]; ch1: string[] };
+};
 export type DynamicsSegment = Pick<DetailedReportContent, "chemistry" | "bondAndFriction" | "directionalImpact"> & {
   partnerDeepDive: PartnerDeepDive;
   personalLeverage: PersonalLeverage;
+  keyTakeaways: { ch2: string[]; ch3: string[] };
 };
 export type ActionSegment = Pick<DetailedReportContent, "relationshipFlow" | "relationshipSpecific" | "strengthsAndRisks" | "practicalManual"> & {
   situationStrategy: SituationStrategy;
   actionPlan30: ActionPlan30;
+  keyTakeaways: { ch4: string[]; ch5: string[]; ch6: string[]; ch7: string[]; ch8: string[]; ch9: string[] };
 };
 export type PaidReportSegmentContent = IntroSegment | DynamicsSegment | ActionSegment;
+
+export function mergePaidReportSegmentContents(contents: PaidReportSegmentContent[]): EnhancedDetailedReportContent {
+  const merged = Object.assign({}, ...contents) as DetailedReportContent;
+  const keyTakeaways = Object.assign({}, ...contents.map((content) => content.keyTakeaways ?? {}));
+  return { ...merged, keyTakeaways };
+}
 
 export type PaidReportSegmentMeta = {
   provider: "anthropic";
@@ -219,6 +236,15 @@ function hasString(obj: Record<string, unknown>, key: string) {
 }
 function hasArray(obj: Record<string, unknown>, key: string) {
   return Array.isArray(obj[key]);
+}
+function validKeyTakeaways(value: unknown, keys: string[]) {
+  if (!isObject(value)) return false;
+  return keys.every((key) => {
+    const items = value[key];
+    return Array.isArray(items)
+      && items.length === 3
+      && items.every((item) => typeof item === "string" && item.trim().length > 0 && item.trim().length <= 40);
+  });
 }
 function validPerson(value: unknown) {
   if (!isObject(value)) return false;
@@ -259,7 +285,8 @@ function validIntro(value: unknown): value is IntroSegment {
   return hasString(value.overview, "headline")
     && hasString(value.overview, "detailedSummary")
     && validPerson(value.personA)
-    && validPerson(value.personB);
+    && validPerson(value.personB)
+    && validKeyTakeaways(value.keyTakeaways, ["ch0", "ch1"]);
 }
 function validDynamics(value: unknown): value is DynamicsSegment {
   if (!isObject(value) || !isObject(value.chemistry) || !isObject(value.bondAndFriction) || !isObject(value.directionalImpact)) return false;
@@ -270,7 +297,8 @@ function validDynamics(value: unknown): value is DynamicsSegment {
     && hasArray(value.bondAndFriction, "realLifeManifestations")
     && ["overview", "aToB", "bToA", "beneficialSupply", "burdenSupply", "asymmetry"].every((key) => hasString(value.directionalImpact as Record<string, unknown>, key))
     && validPartnerDeepDive(value.partnerDeepDive)
-    && validPersonalLeverage(value.personalLeverage);
+    && validPersonalLeverage(value.personalLeverage)
+    && validKeyTakeaways(value.keyTakeaways, ["ch2", "ch3"]);
 }
 function validAction(value: unknown): value is ActionSegment {
   if (!isObject(value) || !isObject(value.relationshipFlow) || !isObject(value.relationshipSpecific) || !isObject(value.strengthsAndRisks) || !isObject(value.practicalManual)) return false;
@@ -287,7 +315,8 @@ function validAction(value: unknown): value is ActionSegment {
     && hasArray(value.practicalManual, "conflictProtocol")
     && hasArray(value.practicalManual, "recommendedActivities")
     && validSituationStrategy(value.situationStrategy)
-    && validActionPlan30(value.actionPlan30);
+    && validActionPlan30(value.actionPlan30)
+    && validKeyTakeaways(value.keyTakeaways, ["ch4", "ch5", "ch6", "ch7", "ch8", "ch9"]);
 }
 
 function compactLength(value: unknown): number {
@@ -418,7 +447,7 @@ async function generateIntro(apiKey: string, model: string, payloadText: string,
     label: "INTRO",
     validate: validIntro,
     qualityIssues: introIssues,
-    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[담당 범위: CH0~CH1 기본 진단]\n- overview.detailedSummary: 3~4개의 완결된 문장으로 강점, 마찰, 양방향 영향, 핵심 조언을 압축하세요.\n- editorialContext.relationshipDurationMonths가 있으면 현재 관계가 이미 이어져 온 기간을 현실 맥락으로만 참고하세요. 사주 계산값을 바꾸거나 기간 자체를 운세 근거로 사용하지 마세요.\n- personA.overallProfile / personB.overallProfile: 각각 3~4문장. 일주와 상대적 오행 균형을 설명하되 성격·감정·공감 능력을 사실처럼 확정하지 마세요.\n- elementAnalysis: 각각 2~3문장. strongest/weakest 순위만 사용하고 정확한 퍼센트·개수·신강 점수를 만들지 마세요.\n- relationshipNeeds: 각각 2~3문장. 심리 진단 대신 두 사람이 시험해 볼 소통·속도·경계 조건으로 번역하세요.\n- strengths / cautions: 각각 2개를 우선하고 항목마다 한 문장 중심으로 구체적으로 쓰세요.`,
+    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[담당 범위: CH0~CH1 기본 진단]\n- overview.detailedSummary: 3~4개의 완결된 문장으로 강점, 마찰, 양방향 영향, 핵심 조언을 압축하세요.\n- editorialContext.relationshipDurationMonths가 있으면 현재 관계가 이미 이어져 온 기간을 현실 맥락으로만 참고하세요. 사주 계산값을 바꾸거나 기간 자체를 운세 근거로 사용하지 마세요.\n- personA.overallProfile / personB.overallProfile: 각각 3~4문장. 일주와 상대적 오행 균형을 설명하되 성격·감정·공감 능력을 사실처럼 확정하지 마세요.\n- elementAnalysis: 각각 2~3문장. strongest/weakest 순위만 사용하고 정확한 퍼센트·개수·신강 점수를 만들지 마세요.\n- relationshipNeeds: 각각 2~3문장. 심리 진단 대신 두 사람이 시험해 볼 소통·속도·경계 조건으로 번역하세요.\n- strengths / cautions: 각각 2개를 우선하고 항목마다 한 문장 중심으로 구체적으로 쓰세요.\n- keyTakeaways.ch0/ch1은 각각 정확히 3개, 각 40자 이내의 결론 한 줄로 작성하세요. 같은 챕터 본문 문장을 복사하지 말고 서로 다른 소재를 요약하세요.`,
     user: `다음 서버 계산 근거와 비식별 편집 참고문맥만 사용해 기본 진단과 두 사람의 기본판을 작성하세요.\n${payloadText}`,
   });
 }
@@ -434,7 +463,7 @@ async function generateDynamics(apiKey: string, model: string, payloadText: stri
     label: "DYNAMICS",
     validate: validDynamics,
     qualityIssues: dynamicsIssues,
-    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[담당 범위: CH2 상대 해부 + CH3 나의 강점 + 기본 케미]\n- chemistry.overview는 2~3문장, dayMaster/dayBranch/yinYang/elements는 각각 1~2문장으로 핵심 계산 의미와 현실 장면을 연결하세요.\n- bondAndFriction.overview는 2~3문장. positiveInteractions와 frictionInteractions는 evidence가 있는 것만 각각 2개를 우선하고 한두 문장 안에서 풀이하세요.\n- realLifeManifestations는 2개 이상으로 연락, 약속, 감정표현, 의사결정 같은 실제 장면을 고르세요.\n- directionalImpact.overview는 2~3문장, aToB/bToA/beneficialSupply/burdenSupply/asymmetry는 각각 1~2문장. 두 방향을 분명히 구분하고 같은 문장을 뒤집어 쓰지 마세요.\n- 관계 역할 맞물림 점수에서 보살핌 욕구, 존재감, 사랑 방식 같은 숨은 심리를 추론하지 마세요.\n- partnerDeepDive.outerInnerContrast는 3문장 안팎. 상황에 따른 관찰 가능한 반응 차이만 설명하세요.\n- comfortTriggers / sensitiveTriggers / preferredInteraction은 각각 2개를 우선하고 상황→관찰 반응→배려 방법을 짧게 담으세요.\n- observableScenes는 2개 이상. situation, likelyReaction, considerateResponse를 구체적으로 쓰세요.\n- profileTags는 3~5개로 압축하세요.\n- personalLeverage.topStrengths는 2개를 우선하고 whyItWorks/howToUse는 각각 1~2문장으로 쓰세요.\n- conversationScripts는 2개, backfireHabits는 2개를 우선해 실제 사용할 수 있게 쓰세요.`,
+    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[담당 범위: CH2 상대 해부 + CH3 나의 강점 + 기본 케미]\n- chemistry.overview는 2~3문장, dayMaster/dayBranch/yinYang/elements는 각각 1~2문장으로 핵심 계산 의미와 현실 장면을 연결하세요.\n- bondAndFriction.overview는 2~3문장. positiveInteractions와 frictionInteractions는 evidence가 있는 것만 각각 2개를 우선하고 한두 문장 안에서 풀이하세요.\n- realLifeManifestations는 2개 이상으로 연락, 약속, 감정표현, 의사결정 같은 실제 장면을 고르세요.\n- directionalImpact.overview는 2~3문장, aToB/bToA/beneficialSupply/burdenSupply/asymmetry는 각각 1~2문장. 두 방향을 분명히 구분하고 같은 문장을 뒤집어 쓰지 마세요.\n- 관계 역할 맞물림 점수에서 보살핌 욕구, 존재감, 사랑 방식 같은 숨은 심리를 추론하지 마세요.\n- partnerDeepDive.outerInnerContrast는 3문장 안팎. 상황에 따른 관찰 가능한 반응 차이만 설명하세요.\n- comfortTriggers / sensitiveTriggers / preferredInteraction은 각각 2개를 우선하고 상황→관찰 반응→배려 방법을 짧게 담으세요.\n- observableScenes는 2개 이상. situation, likelyReaction, considerateResponse를 구체적으로 쓰세요.\n- profileTags는 3~5개로 압축하세요.\n- personalLeverage.topStrengths는 2개를 우선하고 whyItWorks/howToUse는 각각 1~2문장으로 쓰세요.\n- conversationScripts는 2개, backfireHabits는 2개를 우선해 실제 사용할 수 있게 쓰세요.\n- keyTakeaways.ch2/ch3은 각각 정확히 3개, 각 40자 이내의 결론 한 줄로 작성하세요. 같은 챕터 본문 문장을 복사하지 말고 서로 다른 소재를 요약하세요.`,
     user: `다음 서버 계산 근거와 비식별 편집 참고문맥만 사용해 상대 해부, 나의 강점, 두 사람의 케미를 상세 작성하세요.\n${payloadText}`,
   });
 }
@@ -450,7 +479,7 @@ async function generateAction(apiKey: string, model: string, payloadText: string
     label: "ACTION",
     validate: validAction,
     qualityIssues: actionIssues,
-    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[담당 범위: CH4 관계별 전략 + 갈등/미래 조건 + CH8 실행 계획]\n- relationshipFlow.overview/roles/initiative/intimacy는 각각 2~3문장 안에서 관계 단계에 맞는 핵심만 설명하세요.\n- editorialContext.relationshipDurationMonths가 있으면 현재 관계가 이어져 온 기간을 현실 맥락으로만 반영하고 운세 근거로 쓰지 마세요.\n- editorialContext.userQuestion이 있으면 relationshipSpecific.points의 마지막 항목 제목을 '가장 궁금한 점에 대한 답'으로 두고 질문의 핵심에 직접 답하세요.\n- conflictScenarios는 2개를 우선하며 상황→반복 패턴→대응이 한눈에 읽히게 작성하세요.\n- relationshipSpecific.overview는 3~4문장, points는 3개 이상이며 각 detail은 2~3문장으로 관계 유형에 특화해 쓰세요.\n- situationStrategy.priority는 2~3문장, stepByStep은 3단계 이상으로 실제 행동과 관찰 신호를 짝지으세요.\n- progressSignals와 stopSignals는 각각 2개를 우선하고 감정을 확정하지 말고 행동 기준으로 쓰세요.\n- strengthsAndRisks.strengths와 repeatedFrictions는 각각 2개를 우선하고 redFlag/warning은 각각 2문장 안팎으로 쓰세요.\n- practicalManual.do는 3개, dont는 2개, conflictProtocol은 3단계, recommendedActivities는 2개를 우선하세요.\n- actionPlan30.weeks는 반드시 1~4주차 정확히 4개로 유지하되 각 goal/action/check는 한두 문장 안에서 간결하게 작성하세요. 서버가 주지 않은 횟수·시간 기준은 만들지 마세요.\n- 짝사랑에서는 상대 호감을 확정하거나 연인처럼 갈등 해결을 전제하지 마세요. 썸에서는 교제·독점성을 전제하지 마세요. 친구와 직장동료에는 연애·성적 문구를 넣지 마세요.`,
+    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[담당 범위: CH4 관계별 전략 + 갈등/미래 조건 + CH8 실행 계획]\n- relationshipFlow.overview/roles/initiative/intimacy는 각각 2~3문장 안에서 관계 단계에 맞는 핵심만 설명하세요.\n- editorialContext.relationshipDurationMonths가 있으면 현재 관계가 이어져 온 기간을 현실 맥락으로만 반영하고 운세 근거로 쓰지 마세요.\n- editorialContext.userQuestion이 있으면 relationshipSpecific.points의 마지막 항목 제목을 '가장 궁금한 점에 대한 답'으로 두고 질문의 핵심에 직접 답하세요.\n- conflictScenarios는 2개를 우선하며 상황→반복 패턴→대응이 한눈에 읽히게 작성하세요.\n- relationshipSpecific.overview는 3~4문장, points는 3개 이상이며 각 detail은 2~3문장으로 관계 유형에 특화해 쓰세요.\n- situationStrategy.priority는 2~3문장, stepByStep은 3단계 이상으로 실제 행동과 관찰 신호를 짝지으세요.\n- progressSignals와 stopSignals는 각각 2개를 우선하고 감정을 확정하지 말고 행동 기준으로 쓰세요.\n- strengthsAndRisks.strengths와 repeatedFrictions는 각각 2개를 우선하고 redFlag/warning은 각각 2문장 안팎으로 쓰세요.\n- practicalManual.do는 3개, dont는 2개, conflictProtocol은 3단계, recommendedActivities는 2개를 우선하세요.\n- actionPlan30.weeks는 반드시 1~4주차 정확히 4개로 유지하되 각 goal/action/check는 한두 문장 안에서 간결하게 작성하세요. 서버가 주지 않은 횟수·시간 기준은 만들지 마세요.\n- 짝사랑에서는 상대 호감을 확정하거나 연인처럼 갈등 해결을 전제하지 마세요. 썸에서는 교제·독점성을 전제하지 마세요. 친구와 직장동료에는 연애·성적 문구를 넣지 마세요.\n- keyTakeaways.ch4~ch9는 각 챕터마다 정확히 3개, 각 40자 이내의 결론 한 줄로 작성하세요. 같은 챕터 본문 문장을 복사하지 말고 서로 다른 소재를 요약하세요.`,
     user: `다음 서버 계산 근거와 비식별 편집 참고문맥만 사용해 관계별 전략과 실전 행동 계획을 상세 작성하세요.\n${payloadText}`,
   });
 }

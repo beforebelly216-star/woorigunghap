@@ -51,7 +51,11 @@ export type ActionPlan30 = {
   monthlyDont: string[];
 };
 
+export type ReportChapterKey = "ch0" | "ch1" | "ch2" | "ch3" | "ch4" | "ch5" | "ch6" | "ch7" | "ch8" | "ch9";
+export type ChapterKeyTakeaways = Partial<Record<ReportChapterKey, string[]>>;
+
 export type DeepReportExtension = {
+  keyTakeaways?: ChapterKeyTakeaways;
   partnerDeepDive?: PartnerDeepDive;
   personalLeverage?: PersonalLeverage;
   situationStrategy?: SituationStrategy;
