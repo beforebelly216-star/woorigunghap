@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
           try {
             await sendKakaoMemo(
               tokenBundle.accessToken,
-              "우리궁합 완료 알림 연결이 확인됐어요. 결과 생성이 끝나면 이 채팅으로 알려드릴게요.",
+              "우리사주 완료 알림 연결이 확인됐어요. 결과 생성이 끝나면 이 채팅으로 알려드릴게요.",
               notificationDestinationUrl(request),
             );
             notificationResult = "enabled";

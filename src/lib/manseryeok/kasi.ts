@@ -79,7 +79,7 @@ async function fetchWithRetry(url: URL, solarDate: string) {
 }
 
 /**
- * KASI OpenAPI는 우리궁합의 런타임 계산 엔진이 아니라 Day 5 검산용 oracle이다.
+ * KASI OpenAPI는 우리사주의 런타임 계산 엔진이 아니라 Day 5 검산용 oracle이다.
  *
  * 주의: KASI 응답의 lunSecha/lunWolgeon을 입춘·절기 기준 사주 연주/월주의
  * 직접 정답으로 취급하지 않는다. 공식 검산은 음양력 변환과 일진(lunIljin)을 중심으로 하고,

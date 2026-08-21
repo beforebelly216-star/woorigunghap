@@ -1,4 +1,4 @@
-# 우리궁합 관계별 편집 계약 v1
+# 우리사주 관계별 편집 계약 v1
 
 기준: `relationship-editorial-v1`
 

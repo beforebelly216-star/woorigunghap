@@ -118,7 +118,7 @@ function PaymentResult() {
 
   return (
     <main className="result-page payment-result-page" aria-live="polite" aria-busy={state === "checking"}>
-      <p className="eyebrow">우리궁합</p>
+      <p className="eyebrow">우리사주</p>
       <h1>{copy[0]}</h1>
       <p>{copy[1]}</p>
       {state === "success" && paymentId ? (

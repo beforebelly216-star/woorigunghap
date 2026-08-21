@@ -345,7 +345,7 @@ export function calculateAnthropicUsageCost(
   const cacheCreationInputTokens = positiveInteger(usage.cache_creation_input_tokens);
   const cacheReadInputTokens = positiveInteger(usage.cache_read_input_tokens);
 
-  // 현재 우리궁합 요청은 prompt caching을 사용하지 않는다. 따라서 표준 입력/출력 토큰만 비용에 반영한다.
+  // 현재 우리사주 요청은 prompt caching을 사용하지 않는다. 따라서 표준 입력/출력 토큰만 비용에 반영한다.
   // cache token이 생기는 구조로 바뀌면 해당 시점에 cache 전용 단가를 별도로 추가한다.
   const estimatedUsd =
     (inputTokens / 1_000_000) * HAIKU_INPUT_USD_PER_MTOK +
@@ -404,7 +404,7 @@ async function generateWithAnthropic(snapshot: CompatibilityCalculationSnapshot)
         model,
         max_tokens: 900,
         system: [
-          "당신은 우리궁합 리포트의 한국어 편집자입니다.",
+          "당신은 우리사주 리포트의 한국어 편집자입니다.",
           "입력으로 주어진 compact compatibility payload의 계산값과 근거만 사용하세요.",
           "새 점수, 새 순위, 새로운 사주 사실을 만들지 마세요.",
           "점수의 좋고 나쁨을 과장하거나 관계 성공/실패를 단정적으로 예언하지 마세요.",

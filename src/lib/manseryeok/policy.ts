@@ -2,7 +2,7 @@ export const MANSE_POLICY_VERSION = "manse-policy-v1" as const;
 export const MANSE_ENGINE_VERSION = "manseryeok-2.0.0" as const;
 
 /**
- * 우리궁합 MVP 만세력 정책.
+ * 우리사주 MVP 만세력 정책.
  *
  * - 한국 표준시(KST, Asia/Seoul) 기준
  * - 일주 경계는 자정(midnight). 23:00~23:59를 다음 날로 넘기지 않는다.

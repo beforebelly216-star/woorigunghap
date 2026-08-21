@@ -195,10 +195,10 @@ export default function AccountReportsPage() {
           <div className="library-notification-copy">
             <strong>카카오톡 채널 완료 알림</strong>
             {state.kakaoChannelNotifyEnabled ? <>
-              <p>결과 생성이 끝나면 우리궁합 카카오톡 채널의 알림톡으로 알려드려요.</p>
+              <p>결과 생성이 끝나면 우리사주 카카오톡 채널의 알림톡으로 알려드려요.</p>
               {state.kakaoChannelNotifyPhoneMasked ? <p className="library-notification-feedback">수신번호 {state.kakaoChannelNotifyPhoneMasked}</p> : null}
             </> : state.kakaoChannelNotifyConfigured ? <>
-              <p>휴대전화 번호를 등록하면 결과가 완성되는 즉시 우리궁합 채널 알림톡을 1회 발송합니다.</p>
+              <p>휴대전화 번호를 등록하면 결과가 완성되는 즉시 우리사주 채널 알림톡을 1회 발송합니다.</p>
               <form className="library-notification-form" onSubmit={enableChannelNotification}>
                 <label htmlFor="kakao-channel-phone">휴대전화 번호</label>
                 <input

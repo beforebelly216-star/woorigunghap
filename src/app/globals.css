@@ -265,7 +265,7 @@ button, input, select { font: inherit; }
   .comparison-actions a, .comparison-actions button { width: 100%; text-align: center; }
 }
 /* Day 17 account shell. Day 19 will replace this functional styling with the
-   full 우리궁합 design system. */
+   full 우리사주 design system. */
 .site-header {
   width: min(100%, 720px);
   margin: 0 auto;

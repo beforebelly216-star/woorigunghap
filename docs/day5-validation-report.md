@@ -93,7 +93,7 @@ KASI `lunSecha`, `lunWolgeon`은 사주 연주/월주의 입춘·절입 기준�
 
 따라서 특정 앱과의 단일 결과 일치 여부보다 `KASI 한국 달력 기준 + 명시된 사주 계산 정책 + 회귀 테스트`를 제품 기준으로 삼는다.
 
-## 우리궁합 MVP 고정 정책
+## 우리사주 MVP 고정 정책
 - policy version: `manse-policy-v1`
 - engine: `manseryeok-2.0.0`
 - timezone: `Asia/Seoul` (`UTC+09:00`)

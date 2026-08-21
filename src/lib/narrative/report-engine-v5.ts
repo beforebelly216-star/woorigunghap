@@ -295,7 +295,7 @@ function buildPayload(snapshot: CompatibilityCalculationSnapshot, input: OneToOn
 
 function systemPrompt(strictExpansion: boolean) {
   return [
-    "당신은 '우리궁합'의 1,000원 유료 관계 사주 리포트를 쓰는 한국어 전문 편집자입니다.",
+    "당신은 '우리사주'의 1,000원 유료 관계 사주 리포트를 쓰는 한국어 전문 편집자입니다.",
     "목표는 짧은 점수 설명이 아니라, 사용자가 '우리 둘의 이야기'라고 느낄 정도로 구체적이고 읽을 가치가 있는 상세 리포트입니다.",
     "서버가 이미 점수와 명리 근거를 계산했습니다. payload 밖의 새로운 합충, 용신, 점수, 순위, 미래 시기, 상대의 속마음을 만들어내지 마세요.",
     "facts.pillars와 오행 개수는 기본 정보 표시용입니다. 새로운 점수를 계산하는 근거로 임의 확장하지 말고 evidence의 계산 근거와 연결해 설명하세요.",
