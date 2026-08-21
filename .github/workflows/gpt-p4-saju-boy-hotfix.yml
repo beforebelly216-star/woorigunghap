@@ -1,0 +1,50 @@
+name: Temporary P4 saju-boy hotfix
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    if: github.head_ref == 'gpt/p4-persona-saju-boy-hotfix-20260822'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/p4-persona-saju-boy-hotfix-20260822
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Apply hotfix once
+        run: |
+          if grep -q 'paid-report-v7-editorial-v13-saju-boy-magic-school' src/lib/narrative/report-engine-v7.ts; then
+            echo 'already applied'
+            exit 0
+          fi
+          node .github/scripts/gpt-p4-saju-boy-hotfix.mjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- src/lib/narrative/report-engine-v7.ts scripts/*.ts docs/PROJECT_STATE.md docs/NEXT_TASK.md docs/DECISIONS.md
+          git commit -m 'fix: restore saju-boy narrator persona'
+          git push origin HEAD:gpt/p4-persona-saju-boy-hotfix-20260822
+      - name: Validate persona and core report regressions
+        run: |
+          npm run test:report:persona
+          npm run test:report:tone
+          npm run test:report:dedup
+          npm run test:intro:day-pillar
+          npm run test:one-to-one:quality-gate
+          npm run test:day9:narrative-boundary
+          npm run test:day10:editorial
+          npm run test:day21:relationship-editorial
+          npm run test:day23:system-qa
+          npm run test:pending-library-notify
+      - run: npm run lint
+      - run: npm run build
