@@ -45,7 +45,6 @@ jobs:
             scripts/one-to-one-quality-gate-test.ts \
             scripts/report-tone-contract-test.ts \
             package.json \
-            .github/workflows/manse-validation.yml \
             docs/DECISIONS.md \
             docs/PROJECT_STATE.md \
             docs/NEXT_TASK.md
