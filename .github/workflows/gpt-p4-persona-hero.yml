@@ -1,0 +1,62 @@
+name: Temporary P4 persona hero
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    if: github.head_ref == 'gpt/report-p4-persona-hero-20260822'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/report-p4-persona-hero-20260822
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply P4 patch once
+        run: |
+          if [ -f scripts/report-persona-hero-contract-test.ts ]; then
+            echo "P4 patch already applied; skipping patch step."
+            exit 0
+          fi
+          node .github/scripts/gpt-p4-persona-hero-patch.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            src/lib/narrative/report-deep-content.ts \
+            src/lib/narrative/report-engine-v7.ts \
+            src/app/one-to-one/result/report-v2-chapters-a.tsx \
+            src/app/report-extra.css \
+            scripts/*.ts \
+            package.json \
+            docs/PROJECT_STATE.md \
+            docs/NEXT_TASK.md \
+            docs/DECISIONS.md
+          git commit -m "feat: add paid report P4 persona and inner-mind hero"
+          git push origin HEAD:gpt/report-p4-persona-hero-20260822
+      - name: Run P4 and report regressions
+        run: |
+          npm run test:report:persona
+          npm run test:report:tone
+          npm run test:intro:day-pillar
+          npm run test:report:dedup
+          npm run test:one-to-one:quality-gate
+          npm run test:day9:narrative-boundary
+          npm run test:day10:editorial
+          npm run test:day21:relationship-editorial
+          npm run test:day23:system-qa
+          npm run test:pending-library-notify
+      - name: Lint
+        run: npm run lint
+      - name: Production build
+        run: npm run build
