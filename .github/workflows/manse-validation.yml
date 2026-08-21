@@ -55,16 +55,16 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           node .github/scripts/gpt-p1-p2-patch.mjs p1
-          npm run test:intro:day-pillar
+          npm run test:intro:day-pillar # bootstrap-p1
           npm run lint
           npm run build
           git add src/lib/narrative/report-engine-v6-request.ts src/lib/narrative/report-engine-v7.ts scripts/paid-intro-day-pillar-test.ts package.json .github/workflows/manse-validation.yml
           git commit -m "fix: repair paid intro day pillar contract"
 
           node .github/scripts/gpt-p1-p2-patch.mjs p2
-          npm run test:intro:day-pillar
-          npm run test:report:dedup
-          npm run test:one-to-one:quality-gate
+          npm run test:intro:day-pillar # bootstrap-p2
+          npm run test:report:dedup # bootstrap-p2
+          npm run test:one-to-one:quality-gate # bootstrap-p2
           npm run lint
           npm run build
           git add src/lib/narrative/report-engine-v6-request.ts src/lib/narrative/name-personalization.ts src/lib/narrative/report-deep-content.ts src/lib/narrative/report-engine-v7.ts src/app/one-to-one/result/result-v2.tsx src/app/one-to-one/result/report-v2-chapters-a.tsx src/app/one-to-one/result/report-v2-chapters-b.tsx scripts/paid-intro-day-pillar-test.ts scripts/report-dedup-personalization-test.ts scripts/one-to-one-quality-gate-test.ts scripts/one-to-one-anthropic-sample-qa.ts package.json .github/workflows/manse-validation.yml
