@@ -1,0 +1,62 @@
+name: Temporary brand rename sweep
+
+on:
+  push:
+    branches:
+      - gpt/brand-woorisaju-20260821
+
+permissions:
+  contents: write
+
+jobs:
+  replace-brand:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/brand-woorisaju-20260821
+          fetch-depth: 0
+      - name: Replace remaining legacy Korean brand strings
+        shell: python
+        run: |
+          from pathlib import Path
+          import subprocess
+
+          excluded = {
+              '.github/workflows/brand-rename-temp.yml',
+              'AGENTS.md',
+              'README.md',
+              'docs/PROJECT_STATE.md',
+              'docs/NEXT_TASK.md',
+              'docs/DECISIONS.md',
+              'docs/KAKAO_CHANNEL_ALIMTALK_SETUP.md',
+          }
+          files = subprocess.check_output(['git', 'ls-files'], text=True).splitlines()
+          changed = []
+          for name in files:
+              if name in excluded:
+                  continue
+              path = Path(name)
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, OSError):
+                  continue
+              if '우리궁합' not in text:
+                  continue
+              path.write_text(text.replace('우리궁합', '우리사주'), encoding='utf-8')
+              changed.append(name)
+          print('changed files:')
+          print('\n'.join(changed) if changed else '(none)')
+      - name: Commit sweep
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No remaining legacy Korean brand strings."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "brand: sweep remaining 우리사주 references"
+          git push origin HEAD:gpt/brand-woorisaju-20260821
