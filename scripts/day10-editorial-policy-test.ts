@@ -11,7 +11,7 @@ assert.match(style, /근거/);
 assert.match(style, /체감/);
 assert.match(style, /행동/);
 assert.match(style, /단정/);
-assert.match(engine, /paid-report-v7-editorial-v11-conclusion-first/);
+assert.match(engine, /paid-report-v7-editorial-v12-persona-inner-mind/);
 assert.match(engine, /paid-report-evidence-v7/);
 assert.match(engine, /relationshipPromptRules/);
 assert.match(engine, /input\.coworkerHierarchy \?\? null/);

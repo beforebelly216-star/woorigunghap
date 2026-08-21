@@ -106,6 +106,14 @@ export default function ReportChaptersA({
       intro="상대가 관계 안에서 어떤 속도로 반응하고 무엇에서 가까워지거나 멀어지는지 장면부터 짚습니다. 뒤에서 일간·일지와 합충 근거를 연결해 왜 그런 패턴이 나오는지 설명합니다."
       summary={chapterSummary(content, "ch2")}
     >
+      {content.partnerInnerMindHero ? <aside className="partner-inner-mind-hero" aria-label="그 사람의 속마음">
+        <small>그 사람의 속마음</small>
+        <h3>{content.partnerInnerMindHero.headline}</h3>
+        <blockquote>“{content.partnerInnerMindHero.innerVoice}”</blockquote>
+        <p>{content.partnerInnerMindHero.sceneTranslation}</p>
+        <div><span>사주로 보면</span><p>{content.partnerInnerMindHero.sajuBasis}</p></div>
+      </aside> : null}
+
       <div className="reference-partner-lead">
         <span>상대 해부 핵심</span>
         <h3>{content.personB.relationshipNeeds}</h3>
