@@ -134,18 +134,18 @@ assert.equal(
 );
 
 const engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
-assert.match(engine, /paid-report-v7-editorial-v10-latency-balanced/);
-assert.match(engine, /paid-report-evidence-v6/);
+assert.match(engine, /paid-report-v7-editorial-v11-conclusion-first/);
+assert.match(engine, /paid-report-evidence-v7/);
 assert.match(engine, /relationshipPromptRules\(/);
 assert.match(engine, /input\.coworkerHierarchy \?\? null/);
 assert.match(engine, /buildReportEditorialContext/);
 assert.match(engine, /paidEditorialFacts/);
 assert.match(engine, /paidEditorialEvidence/);
 assert.match(engine, /dayPillar: value\.pillars\.day/);
-assert.match(engine, /strongest: value\.elementBalance\.strongest/);
-assert.match(engine, /weakest: value\.elementBalance\.weakest/);
-assert.match(engine, /정확한 오행 비율·신강 점수·겉오행 개수 일부가 의도적으로 제공되지 않습니다/);
-assert.match(engine, /오행을 심리 능력의 원인으로 쓰는 문장은 금지/);
+assert.match(engine, /dominantElements: value\.elementBalance\.strongest/);
+assert.match(engine, /lighterElements: value\.elementBalance\.weakest/);
+assert.match(engine, /계산값이 없는 숫자나 비율도 만들지 마세요/);
+assert.match(engine, /오행의 강약·부족·우세를 공감 능력/);
 assert.match(engine, /RELATIONSHIP_ROLE_SCORE_ONLY/);
 assert.match(engine, /aRoleSupply: _aRoleSupply/);
 assert.match(engine, /bRoleSupply: _bRoleSupply/);

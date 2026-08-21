@@ -170,12 +170,18 @@
   margin: 20px 0;
 }
 .reference-keywords span {
+  display: inline-flex;
+  max-width: 100%;
   border-radius: 999px;
   padding: 8px 11px;
   background: #eee7dc;
   color: #5b685f;
   font-size: .78rem;
   font-weight: 700;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .reference-diagnosis-grid,
 .reference-partner-grid,
@@ -323,6 +329,8 @@
   .reference-30day-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 700px) {
+  .reference-keywords { align-items: flex-start; }
+  .reference-keywords span { flex: 0 1 auto; }
   .day19-chapter { margin-top: 58px; }
   .day19-chapter .v2-chapter-heading { grid-template-columns: 1fr; gap: 12px; }
   .day19-chapter .v2-chapter-heading > span { width: 56px; min-height: 38px; }

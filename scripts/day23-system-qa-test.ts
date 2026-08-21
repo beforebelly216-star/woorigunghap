@@ -92,19 +92,19 @@ assert.match(requestEngine, /totalBudgetMs = isLongSegment \? 220_000 : 180_000/
 
 // Paid AI payload deliberately removes raw person-level numbers that caused unsupported
 // psychological interpretations in real Claude samples, while keeping server scores authoritative.
-assert.match(paidEngine, /paid-report-v7-editorial-v10-latency-balanced/);
-assert.match(paidEngine, /paid-report-evidence-v6/);
+assert.match(paidEngine, /paid-report-v7-editorial-v11-conclusion-first/);
+assert.match(paidEngine, /paid-report-evidence-v7/);
 assert.match(paidEngine, /paidEditorialFacts/);
 assert.match(paidEngine, /dayPillar: value\.pillars\.day/);
-assert.match(paidEngine, /strongest: value\.elementBalance\.strongest/);
-assert.match(paidEngine, /weakest: value\.elementBalance\.weakest/);
+assert.match(paidEngine, /dominantElements: value\.elementBalance\.strongest/);
+assert.match(paidEngine, /lighterElements: value\.elementBalance\.weakest/);
 assert.match(paidEngine, /aRoleSupply: _aRoleSupply/);
 assert.match(paidEngine, /bRoleSupply: _bRoleSupply/);
 assert.match(paidEngine, /RELATIONSHIP_ROLE_SCORE_ONLY/);
 assert.match(paidEngine, /normalizedScore: item\.normalizedScore/);
 assert.doesNotMatch(paidEngine, /normalizedScore: item\.normalizedScore,\s*maxPoints:/);
-assert.match(paidEngine, /정확한 오행 비율·신강 점수·겉오행 개수 일부가 의도적으로 제공되지 않습니다/);
-assert.match(paidEngine, /오행을 심리 능력의 원인으로 쓰는 문장은 금지/);
+assert.match(paidEngine, /계산값이 없는 숫자나 비율도 만들지 마세요/);
+assert.match(paidEngine, /오행의 강약·부족·우세를 공감 능력/);
 
 const repeated = "업무 상황에서는 감정 추정보다 확인 가능한 기준과 책임 범위를 먼저 맞추는 편이 좋습니다.";
 const badCoworkerOutput = {

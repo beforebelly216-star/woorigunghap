@@ -52,10 +52,10 @@
   - [x] P2: 40자 이상 동일 장문 중복을 critical quality issue로 승격하고 재시도 근거에 포함.
   - [x] P2: CH0~CH9 전용 `keyTakeaways`를 추가해 본문 재사용형 챕터 요약 제거.
   - [x] P2: 따옴표 안 대사의 `나/내가/너` 이름 오치환 방지.
-  - [ ] P3: 공통 **일상 언어 결론/관계 장면 → 사주 용어와 계산 근거** 편집 순서 강화.
-  - [ ] P3: 1:1 해시태그 모바일 잘림 수정.
-  - [ ] P3: `서버가 제공한`, `strongest`, `weakest` 등 남은 내부 표현 제거. `서버 계산상` 감지는 P2 완료.
-  - [ ] P3: 개인정보 원문을 늘리지 않고 이미 계산된 일주/일간, 오행 균형, 합충·상호작용 등 근거를 AI payload에 더 제공.
+  - [x] P3: 공통 **일상 언어 결론/관계 장면 → 사주 용어와 계산 근거** 편집 순서 강화.
+  - [x] P3: 1:1 해시태그 모바일 잘림 수정.
+  - [x] P3: `서버가 제공한`, `strongest`, `weakest` 등 남은 내부 표현 제거. `서버 계산상` 포함 출력 검증 강화.
+  - [x] P3: 개인정보 원문을 늘리지 않고 이미 계산된 일주/일간, 오행 균형, 합충·상호작용 등 근거를 AI payload에 더 제공.
   - [ ] 후속: 1:N 순번형 설명을 후보 이름/의미형 제목으로 변경.
   - [ ] 후속: 1:N 추상 표현을 연락·갈등·신뢰·생활·장기관계 등 직관적 언어로 변경.
 
@@ -97,10 +97,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 1:1 리포트 P1/P2 — 일주 data-shape + AI 원문/중복/챕터 요약/인칭 보호
+- Task: 1:1 리포트 P3 — 결론형 톤/내부표현 차단/근거 payload/모바일 태그
 - Status: complete
-- Validation: day9 narrative boundary, intro day-pillar, report dedup, 1:1 quality-gate, lint, build PASS; lint warning 3
-- Commit: 075a12c (validated product/test tip before final docs+CI cleanup)
-- Remaining: P3 — 모바일 해시태그, 남은 내부 표현, 일상 결론→사주 근거 편집, 근거 payload 보강
-- Risk: 우리사주 Kakao/SOLAPI Production 외부 설정 미완료; P1/P2 코드/빌드 blocker 없음
+- Validation: clean PR tip에서 Core validation 전체 PASS — 만세력/경계/궁합, 결제·서술, 1:N, 계정·정책·알림, P1/P2/P3 회귀, lint, production build
+- Commit: 03d2af0011d7bae37d7e69b0201d26ae5ce45c95 (PR #19 clean validated tip; 최종 기준은 main squash merge SHA)
+- Remaining: P4 — 화자 페르소나/속마음 히어로/궁합 유형·공유 카드/60일주 캐릭터를 작은 단계로 진행; 1:N 서술 개선은 hotfix 후속 유지
+- Risk: Kakao/SOLAPI Production 외부 설정 미완료; P3는 계산·결제·저장 구조 변경 없음
 ```

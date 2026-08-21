@@ -103,7 +103,7 @@ export default function ReportChaptersA({
       index={2}
       eyebrow="PARTNER DECONSTRUCTION"
       title={`${personBName}, 관계 안에서는 이런 사람입니다`}
-      intro="1:1 궁합에서 가장 오래 읽게 되는 장입니다. 상대를 단정적으로 규정하지 않고, 계산 근거에서 반복될 가능성이 높은 욕구·반응·부담 지점을 관찰 가능한 장면과 함께 봅니다."
+      intro="상대가 관계 안에서 어떤 속도로 반응하고 무엇에서 가까워지거나 멀어지는지 장면부터 짚습니다. 뒤에서 일간·일지와 합충 근거를 연결해 왜 그런 패턴이 나오는지 설명합니다."
       summary={chapterSummary(content, "ch2")}
     >
       <div className="reference-partner-lead">
@@ -135,11 +135,11 @@ export default function ReportChaptersA({
           </article>
         </div>
 
-        <h3>실제로 이런 장면에서 확인해 보세요</h3>
+        <h3>이런 장면에서 상대의 패턴이 드러납니다</h3>
         <div className="deep-observable-scenes">
           {content.partnerDeepDive.observableScenes.map((scene, index) => <article key={`${index}-${scene.situation}`}>
             <span>{String(index + 1).padStart(2, "0")}</span>
-            <div><h4>{scene.situation}</h4><p><strong>관찰될 수 있는 반응</strong>{scene.likelyReaction}</p><p><strong>배려하는 대응</strong>{scene.considerateResponse}</p></div>
+            <div><h4>{scene.situation}</h4><p><strong>이때 나오는 반응</strong>{scene.likelyReaction}</p><p><strong>배려하는 대응</strong>{scene.considerateResponse}</p></div>
           </article>)}
         </div>
       </> : <>
