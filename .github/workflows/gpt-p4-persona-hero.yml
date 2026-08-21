@@ -44,6 +44,20 @@ jobs:
             docs/DECISIONS.md
           git commit -m "feat: add paid report P4 persona and inner-mind hero"
           git push origin HEAD:gpt/report-p4-persona-hero-20260822
+      - name: Protect inner voice personalization once
+        run: |
+          if grep -q 'preserveRolePronouns' src/lib/narrative/name-personalization.ts; then
+            echo "innerVoice protection already applied; skipping fix step."
+            exit 0
+          fi
+          node .github/scripts/gpt-p4-inner-voice-fix.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            src/lib/narrative/name-personalization.ts \
+            scripts/report-persona-hero-contract-test.ts
+          git commit -m "fix: preserve first-person inner voice personalization"
+          git push origin HEAD:gpt/report-p4-persona-hero-20260822
       - name: Run P4 and report regressions
         run: |
           npm run test:report:persona
