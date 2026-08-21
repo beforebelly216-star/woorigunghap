@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { personalizeNarrativeNames } from "../src/lib/narrative/name-personalization";
 
 const engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
 const deep = readFileSync("src/lib/narrative/report-deep-content.ts", "utf8");
@@ -22,5 +23,14 @@ assert.match(chapter, />그 사람의 속마음</);
 assert.match(chapter, />사주로 보면</);
 assert.ok(css.includes(".partner-inner-mind-hero"));
 assert.ok(css.includes("@media (max-width: 700px) { .partner-inner-mind-hero"));
+
+const personalizedHero = personalizeNarrativeNames({
+  partnerInnerMindHero: {
+    innerVoice: "나는 좋아도 내 속도를 지켜주면 더 가까워지고 싶어.",
+  },
+  ordinary: "나는 상대에게 먼저 말한다.",
+}, { self: "민지", partner: "서준" });
+assert.equal(personalizedHero.partnerInnerMindHero.innerVoice, "나는 좋아도 내 속도를 지켜주면 더 가까워지고 싶어.");
+assert.notEqual(personalizedHero.ordinary, "나는 상대에게 먼저 말한다.");
 
 console.log("paid report P4 persona + inner-mind hero contract: PASS");

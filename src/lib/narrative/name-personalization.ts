@@ -248,7 +248,7 @@ export function personalizeNarrativeNames<T>(
   const tokenReplacements = narrativeNameReplacements(names);
   const roleReplacements = rolePhraseReplacements(names);
 
-  function personalizeText(source: string) {
+  function personalizeText(source: string, preserveRolePronouns = false) {
     const hadNameToken = Object.values(NARRATIVE_NAME_TOKENS).some((token) => source.includes(token));
     const tokenized = Object.entries(tokenReplacements).reduce(
       (text, [token, replacement]) => replaceNameTokenWithParticle(text, token, replacement),
@@ -259,7 +259,7 @@ export function personalizeNarrativeNames<T>(
     // When a field already contains a token, preserve the remaining 나/상대 pronouns
     // instead of turning every role reference into a repeated name. For legacy reports
     // without tokens, keep a restrained fallback: at most one replacement per phrase.
-    if (hadNameToken) return tokenized;
+    if (hadNameToken || preserveRolePronouns) return tokenized;
     return replaceRolePhrasesOutsideQuotes(tokenized, roleReplacements);
   }
 
@@ -269,7 +269,9 @@ export function personalizeNarrativeNames<T>(
     if (node && typeof node === "object") {
       return Object.fromEntries(
         Object.entries(node as Record<string, unknown>)
-          .map(([key, child]) => [key, visit(child)]),
+          .map(([key, child]) => [key, key === "innerVoice" && typeof child === "string"
+            ? personalizeText(child, true)
+            : visit(child)]),
       );
     }
     return node;
