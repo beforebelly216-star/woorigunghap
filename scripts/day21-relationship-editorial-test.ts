@@ -134,8 +134,8 @@ assert.equal(
 );
 
 const engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
-assert.match(engine, /paid-report-v7-editorial-v10-latency-balanced/);
-assert.match(engine, /paid-report-evidence-v6/);
+assert.match(engine, /paid-report-v7-editorial-v11-conclusion-first/);
+assert.match(engine, /paid-report-evidence-v7/);
 assert.match(engine, /relationshipPromptRules\(/);
 assert.match(engine, /input\.coworkerHierarchy \?\? null/);
 assert.match(engine, /buildReportEditorialContext/);

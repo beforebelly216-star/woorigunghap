@@ -156,8 +156,8 @@ async function main() {
 
   const v7Engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
   assert.match(v7Engine, /PAID_REPORT_SEGMENTS = \["intro", "dynamics", "action"\]/);
-  assert.match(v7Engine, /paid-report-v7-editorial-v10-latency-balanced/);
-  assert.match(v7Engine, /paid-report-evidence-v6/);
+  assert.match(v7Engine, /paid-report-v7-editorial-v11-conclusion-first/);
+  assert.match(v7Engine, /paid-report-evidence-v7/);
   assert.match(v7Engine, /paidEditorialFacts/);
   assert.match(v7Engine, /paidEditorialEvidence/);
   assert.match(v7Engine, /dayPillar: value\.pillars\.day/);

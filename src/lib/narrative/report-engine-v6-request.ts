@@ -183,8 +183,8 @@ function collectPaidIntroEvidenceIssues(value: unknown, userPrompt: string) {
     if (!pillarMatches) issues.push("INTRO_DAY_PILLAR_MISMATCH");
 
     const balance = evidence && isPlainObject(evidence.elementBalance) ? evidence.elementBalance : null;
-    const strongest = expectedIntroElementLabels(balance?.strongest);
-    const weakest = expectedIntroElementLabels(balance?.weakest);
+    const strongest = expectedIntroElementLabels(balance?.dominantElements ?? balance?.strongest);
+    const weakest = expectedIntroElementLabels(balance?.lighterElements ?? balance?.weakest);
     const elementAnalysis = typeof person.elementAnalysis === "string" ? person.elementAnalysis : "";
     if ((strongest.length && !strongest.some((label) => elementAnalysis.includes(label)))
       || (weakest.length && !weakest.some((label) => elementAnalysis.includes(label)))) {
@@ -351,8 +351,10 @@ export function collectPaidNarrativeQualityIssues(
   if ([...duplicateCounts.values()].some((count) => count >= 2)) issues.push("EXACT_LONG_TEXT_DUPLICATE");
 
   if (hasStandaloneDeveloperLabel(joined)) issues.push("DEVELOPER_LABEL_A_B_EXPOSED");
-  if (/\b(WEAK|STRONG|BALANCED|confidence)\b|soft signal|서버 계산상/i.test(joined)) issues.push("INTERNAL_TERM_EXPOSED");
+  if (/\b(WEAK|STRONG|BALANCED|confidence|strongest|weakest|dominantElements|lighterElements|payload|evidence)\b|soft signal|서버 계산상|서버가 제공한|서버에서 제공한|참고 신호|참고값/i.test(joined)) issues.push("INTERNAL_TERM_EXPOSED");
   if (/(역할 공급도|배우자 역할 점수|유용신 적합도|범위값|aRoleSupply|bRoleSupply|weightedPoints|maxPoints)/.test(joined)) issues.push("INTERNAL_METRIC_EXPOSED");
+  const hedgingCount = joined.match(/(?:일 수 있습니다|가능성이 있습니다|보일 수 있습니다|느낄 수 있습니다|수도 있습니다)/g)?.length ?? 0;
+  if (hedgingCount >= 5) issues.push("HEDGING_LANGUAGE_REPEATED");
   if (/(무조건|100%|확실히|틀림없이|반드시|운명적으로 정해|자동(?:으로|적)|확률이 높(?:아|습니다)|증명합니다|즉시[^.\n]{0,40}전환|바로[^.\n]{0,60}만듭니다)/.test(joined)) {
     issues.push("DETERMINISTIC_CERTAINTY");
   }
