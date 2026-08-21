@@ -50,6 +50,18 @@ jobs:
             docs/NEXT_TASK.md
           git commit -m "fix: strengthen paid report P3 narrative contract"
           git push origin HEAD:gpt/report-p3-20260822
+      - name: Align legacy narrative contracts once
+        run: |
+          node .github/scripts/gpt-p3-align-tests.mjs
+          if git diff --quiet -- scripts/day9-narrative-boundary-test.ts scripts/day10-editorial-policy-test.ts scripts/day21-relationship-editorial-test.ts scripts/day23-system-qa-test.ts; then
+            echo "Legacy contracts already aligned."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/day9-narrative-boundary-test.ts scripts/day10-editorial-policy-test.ts scripts/day21-relationship-editorial-test.ts scripts/day23-system-qa-test.ts
+          git commit -m "test: align narrative contracts with P3 payload"
+          git push origin HEAD:gpt/report-p3-20260822
       - name: Run P3 narrative contracts
         run: |
           npm run test:report:tone
