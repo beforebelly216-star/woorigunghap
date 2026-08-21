@@ -26,7 +26,51 @@ on:
       - "package-lock.json"
       - ".github/workflows/manse-validation.yml"
 
+permissions:
+  contents: write
+
 jobs:
+  apply-report-p1-p2:
+    if: github.event_name == 'pull_request' && github.head_ref == 'gpt/report-p1-p2-20260821'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/report-p1-p2-20260821
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply and validate P1/P2 once
+        run: |
+          if [ -f scripts/report-dedup-personalization-test.ts ]; then
+            echo "P1/P2 patch already applied; skipping bootstrap."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          node .github/scripts/gpt-p1-p2-patch.mjs p1
+          npm run test:intro:day-pillar
+          npm run lint
+          npm run build
+          git add src/lib/narrative/report-engine-v6-request.ts src/lib/narrative/report-engine-v7.ts scripts/paid-intro-day-pillar-test.ts package.json .github/workflows/manse-validation.yml
+          git commit -m "fix: repair paid intro day pillar contract"
+
+          node .github/scripts/gpt-p1-p2-patch.mjs p2
+          npm run test:intro:day-pillar
+          npm run test:report:dedup
+          npm run test:one-to-one:quality-gate
+          npm run lint
+          npm run build
+          git add src/lib/narrative/report-engine-v6-request.ts src/lib/narrative/name-personalization.ts src/lib/narrative/report-deep-content.ts src/lib/narrative/report-engine-v7.ts src/app/one-to-one/result/result-v2.tsx src/app/one-to-one/result/report-v2-chapters-a.tsx src/app/one-to-one/result/report-v2-chapters-b.tsx scripts/paid-intro-day-pillar-test.ts scripts/report-dedup-personalization-test.ts scripts/one-to-one-quality-gate-test.ts scripts/one-to-one-anthropic-sample-qa.ts package.json .github/workflows/manse-validation.yml
+          git commit -m "fix: preserve paid narrative content and remove report duplication"
+          git push origin HEAD:gpt/report-p1-p2-20260821
+
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
