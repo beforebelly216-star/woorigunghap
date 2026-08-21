@@ -41,6 +41,10 @@ const CRITICAL_QUALITY_ISSUES = new Set([
   "INTERNAL_TERM_EXPOSED",
   "INTERNAL_METRIC_EXPOSED",
   "RELATIONSHIP_ROMANCE_LEAK",
+  "EXACT_LONG_TEXT_DUPLICATE",
+  "INTRO_DAY_PILLAR_MISMATCH",
+  "INTRO_ELEMENT_RANK_MISMATCH",
+  "INTRO_UNSUPPORTED_NUMERIC_FACT",
 ]);
 
 function safeError(body: unknown) {
@@ -101,6 +105,30 @@ const INTRO_ELEMENT_LABELS: Record<string, string> = {
   water: "수",
 };
 
+export type PaidEditorialPillarFact = {
+  korean: string;
+  hanja: string;
+  stem: string;
+  branch: string;
+};
+
+export type PaidEditorialFactsPayload = Record<"A" | "B", {
+  birthTimeKnown: boolean;
+  dayPillar: PaidEditorialPillarFact;
+}>;
+
+export function formatPaidIntroDayPillar(value: unknown) {
+  if (typeof value === "string") {
+    const legacy = value.trim();
+    return legacy || "일주 미확인";
+  }
+  if (!isPlainObject(value)) return "일주 미확인";
+  const korean = typeof value.korean === "string" ? value.korean.trim() : "";
+  const hanja = typeof value.hanja === "string" ? value.hanja.trim() : "";
+  if (!korean) return "일주 미확인";
+  return hanja ? `${korean}(${hanja})` : korean;
+}
+
 function parseAiPayloadFromUserPrompt(userPrompt: string) {
   const firstBrace = userPrompt.indexOf("{");
   if (firstBrace < 0) return null;
@@ -121,57 +149,63 @@ function introElementList(value: unknown) {
   return labels.length ? labels.join("·") : "뚜렷한 단일 기운 없음";
 }
 
-function buildGroundedIntroPerson(payload: Record<string, unknown>, key: "A" | "B") {
-  const factsRoot = isPlainObject(payload.facts) ? payload.facts : null;
-  const fact = factsRoot && isPlainObject(factsRoot[key]) ? factsRoot[key] : null;
-  const evidenceRoot = isPlainObject(payload.evidence) ? payload.evidence : null;
-  const persons = evidenceRoot && isPlainObject(evidenceRoot.persons) ? evidenceRoot.persons : null;
-  const evidence = persons && isPlainObject(persons[key]) ? persons[key] : null;
-  if (!fact || !evidence) return null;
-
-  const placeholder = key === "A" ? "{{SELF}}" : "{{PARTNER}}";
-  const dayPillar = typeof fact.dayPillar === "string" ? fact.dayPillar : "일주 미확인";
-  const birthTimeKnown = fact.birthTimeKnown === true;
-  const dayMaster = isPlainObject(evidence.dayMaster) ? evidence.dayMaster : null;
-  const dayMasterStem = dayMaster && typeof dayMaster.stem === "string" ? dayMaster.stem : null;
-  const dayMasterElement = dayMaster && typeof dayMaster.element === "string"
-    ? introElementList(dayMaster.element)
-    : null;
-  const balance = isPlainObject(evidence.elementBalance) ? evidence.elementBalance : null;
-  const strongest = introElementList(balance?.strongest);
-  const weakest = introElementList(balance?.weakest);
-  const timeSentence = birthTimeKnown
-    ? "출생시간까지 확인된 입력을 사용했으므로 현재 입력 범위 안에서 시주를 포함한 계산 결과를 참고할 수 있습니다."
-    : "출생시간이 확인되지 않은 입력이므로 시주에 따라 달라질 수 있는 부분은 이 기본판에서 확정하지 않습니다.";
-  const dayMasterSentence = dayMasterStem && dayMasterElement
-    ? `일간은 ${dayMasterStem}(${dayMasterElement})로 계산되었습니다.`
-    : "일간 정보는 서버가 제공한 계산 범위 안에서만 사용합니다.";
-
-  return {
-    overallProfile: `${placeholder}의 일주는 서버 계산상 ${dayPillar}입니다. ${dayMasterSentence} 이 값들은 출생정보를 사주 구조로 변환한 식별값이며 개인의 성향이나 관계 반응을 직접 확정하는 값이 아닙니다. ${timeSentence} 따라서 이 기본판은 계산된 구조와 입력 확실성만 설명하고, 실제 관계 행동은 두 사람이 현실에서 보이는 반응으로 확인해야 합니다. 뒤의 관계 해설에서도 사주 구조와 관찰 가능한 행동을 구분해 읽는 것이 기준입니다.`,
-    elementAnalysis: `${placeholder}의 오행 분포에서는 ${strongest}이 상대적으로 강하고 ${weakest}이 상대적으로 약한 방향으로 계산되었습니다. 여기서 강함과 약함은 오행 사이의 상대적 배치에 대한 설명이며 개인의 성향이나 행동 수준을 평가하는 값이 아닙니다. 정확한 비율이나 개수를 새로 추정하지 않고 서버가 제공한 strongest/weakest 순위만 사용합니다. 두 사람의 오행을 비교할 때도 어느 한쪽이 다른 쪽의 결핍을 자동으로 채운다고 단정하지 않고, 구조상 겹치는 부분과 다른 부분을 관계 해설의 참고 신호로만 사용합니다.`,
-    relationshipNeeds: `${placeholder}에게 필요한 관계 조건을 사주의 심리 진단으로 정하지 않습니다. 실제로 확인할 기준은 대화 속도, 약속을 정하는 방식, 의견이 다를 때 설명하는 방식, 각자가 편안하다고 말하는 경계입니다. 차이가 보이면 상대의 속마음을 추측하기보다 어떤 상황에서 어떤 반응이 반복되는지 먼저 확인합니다. 이후 조언은 이 관찰 결과와 서버 계산 근거가 함께 맞을 때 적용하는 것이 안전합니다.`,
-    strengths: [
-      `${placeholder}의 계산 구조는 두 사람의 차이를 설명할 때 비교 기준으로 활용할 수 있습니다. 단독으로 성격의 장점이라고 확정하지 않습니다.`,
-      "일주와 오행의 상대적 배치를 서로의 구조와 나란히 보면 겹치는 지점과 다른 지점을 구분하기 쉽습니다. 실제 장점 여부는 관계 장면에서 확인합니다.",
-      "출생시간 확인 여부를 함께 표시하므로 계산이 확실한 부분과 열어 두어야 할 부분을 구분할 수 있습니다. 불확실한 부분은 단정하지 않습니다.",
-    ],
-    cautions: [
-      "구조의 상대적 강약을 개인의 특성에 대한 원인 설명으로 바꾸지 않습니다. 계산 구조와 사람 평가를 분리합니다.",
-      "일주 하나만으로 상대의 속마음이나 미래 행동을 확정하지 않습니다. 실제 반응과 대화를 우선 확인합니다.",
-      "출생시간이 없거나 계산 경계가 있는 경우 가능한 범위를 남겨 둡니다. 단일 해석을 사실처럼 고정하지 않습니다.",
-    ],
-  };
+function expectedIntroElementLabels(value: unknown) {
+  const values = Array.isArray(value) ? value : typeof value === "string" ? [value] : [];
+  return values
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => INTRO_ELEMENT_LABELS[item] ?? item)
+    .filter(Boolean);
 }
 
-export function groundPaidIntroWithServerEvidence(value: unknown, userPrompt: string): unknown {
-  if (!isPlainObject(value)) return value;
+function collectPaidIntroEvidenceIssues(value: unknown, userPrompt: string) {
+  if (!isPlainObject(value)) return [];
   const payload = parseAiPayloadFromUserPrompt(userPrompt);
-  if (!payload) return value;
-  const personA = buildGroundedIntroPerson(payload, "A");
-  const personB = buildGroundedIntroPerson(payload, "B");
-  if (!personA || !personB) return value;
-  return { ...value, personA, personB };
+  if (!payload) return [];
+  const factsRoot = isPlainObject(payload.facts) ? payload.facts : null;
+  const evidenceRoot = isPlainObject(payload.evidence) ? payload.evidence : null;
+  const persons = evidenceRoot && isPlainObject(evidenceRoot.persons) ? evidenceRoot.persons : null;
+  const issues: string[] = [];
+
+  for (const [factKey, personKey] of [["A", "personA"], ["B", "personB"]] as const) {
+    const fact = factsRoot && isPlainObject(factsRoot[factKey]) ? factsRoot[factKey] : null;
+    const evidence = persons && isPlainObject(persons[factKey]) ? persons[factKey] : null;
+    const person = isPlainObject(value[personKey]) ? value[personKey] : null;
+    if (!fact || !person) continue;
+
+    const personText = collectStrings(person).join("\n");
+    const dayPillar = isPlainObject(fact.dayPillar) ? fact.dayPillar : null;
+    const korean = dayPillar && typeof dayPillar.korean === "string" ? dayPillar.korean.trim() : "";
+    const hanja = dayPillar && typeof dayPillar.hanja === "string" ? dayPillar.hanja.trim() : "";
+    const legacyDayPillar = typeof fact.dayPillar === "string" ? fact.dayPillar.trim() : "";
+    const pillarMatches = legacyDayPillar
+      ? personText.includes(legacyDayPillar)
+      : Boolean(korean && personText.includes(korean) && (!hanja || personText.includes(hanja)));
+    if (!pillarMatches) issues.push("INTRO_DAY_PILLAR_MISMATCH");
+
+    const balance = evidence && isPlainObject(evidence.elementBalance) ? evidence.elementBalance : null;
+    const strongest = expectedIntroElementLabels(balance?.strongest);
+    const weakest = expectedIntroElementLabels(balance?.weakest);
+    const elementAnalysis = typeof person.elementAnalysis === "string" ? person.elementAnalysis : "";
+    if ((strongest.length && !strongest.some((label) => elementAnalysis.includes(label)))
+      || (weakest.length && !weakest.some((label) => elementAnalysis.includes(label)))) {
+      issues.push("INTRO_ELEMENT_RANK_MISMATCH");
+    }
+
+    if (/\d+(?:\.\d+)?\s*%|\d+(?:\.\d+)?\s*점/.test(personText)) {
+      issues.push("INTRO_UNSUPPORTED_NUMERIC_FACT");
+    }
+  }
+
+  return [...new Set(issues)];
+}
+
+/**
+ * Legacy compatibility export. P2 deliberately preserves the AI-authored intro;
+ * server evidence is now used for validation/retry rather than wholesale replacement.
+ */
+export function groundPaidIntroWithServerEvidence(value: unknown, userPrompt: string): unknown {
+  void userPrompt;
+  return value;
 }
 
 export function matchesJsonSchema(value: unknown, schema: unknown): boolean {
@@ -236,6 +270,19 @@ function normalizeForDuplicateCheck(value: string) {
   return value.replace(/\s+/g, " ").replace(/[“”‘’"']/g, "").trim();
 }
 
+function duplicateLongTextSamples(value: unknown) {
+  const seen = new Map<string, number>();
+  for (const source of collectStrings(value)) {
+    const normalized = normalizeForDuplicateCheck(source);
+    if (normalized.length < 40) continue;
+    seen.set(normalized, (seen.get(normalized) ?? 0) + 1);
+  }
+  return [...seen.entries()]
+    .filter(([, count]) => count >= 2)
+    .map(([text]) => text.slice(0, 120))
+    .slice(0, 3);
+}
+
 function hasStandaloneDeveloperLabel(text: string) {
   return /(^|[^A-Za-z0-9])[AB](?=(?:은|는|이|가|을|를|와|과|에게|의|도|만|쪽)|[^A-Za-z가-힣0-9]|$)/.test(text);
 }
@@ -292,6 +339,7 @@ export function collectPaidNarrativeQualityIssues(
   const characters = collectCharacters(value);
   const minCharacters = label === "INTRO" ? 1200 : label === "DYNAMICS" || label === "ACTION" ? 1800 : 0;
 
+  if (label === "INTRO") issues.push(...collectPaidIntroEvidenceIssues(value, userPrompt));
   if (minCharacters > 0 && characters < minCharacters) issues.push(`${label}_TOTAL_DENSITY_SHORT`);
 
   const duplicateCounts = new Map<string, number>();
@@ -303,7 +351,7 @@ export function collectPaidNarrativeQualityIssues(
   if ([...duplicateCounts.values()].some((count) => count >= 2)) issues.push("EXACT_LONG_TEXT_DUPLICATE");
 
   if (hasStandaloneDeveloperLabel(joined)) issues.push("DEVELOPER_LABEL_A_B_EXPOSED");
-  if (/\b(WEAK|STRONG|BALANCED|confidence)\b|soft signal/i.test(joined)) issues.push("INTERNAL_TERM_EXPOSED");
+  if (/\b(WEAK|STRONG|BALANCED|confidence)\b|soft signal|서버 계산상/i.test(joined)) issues.push("INTERNAL_TERM_EXPOSED");
   if (/(역할 공급도|배우자 역할 점수|유용신 적합도|범위값|aRoleSupply|bRoleSupply|weightedPoints|maxPoints)/.test(joined)) issues.push("INTERNAL_METRIC_EXPOSED");
   if (/(무조건|100%|확실히|틀림없이|반드시|운명적으로 정해|자동(?:으로|적)|확률이 높(?:아|습니다)|증명합니다|즉시[^.\n]{0,40}전환|바로[^.\n]{0,60}만듭니다)/.test(joined)) {
     issues.push("DETERMINISTIC_CERTAINTY");
@@ -453,6 +501,7 @@ export async function requestStructuredSegment<T>(args: {
   const allUsage: AnthropicRawUsage[] = [];
   let lastFailure = "UNKNOWN";
   let lastQualityIssues: string[] = [];
+  let lastDuplicateSamples: string[] = [];
   const autoStructuredHaiku45 = args.preferStructured === false
     && args.model.startsWith("claude-haiku-4-5");
   let structuredRejected = args.preferStructured !== true && !autoStructuredHaiku45;
@@ -472,8 +521,11 @@ export async function requestStructuredSegment<T>(args: {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), attemptTimeoutMs);
     try {
+      const duplicateDetail = lastDuplicateSamples.length
+        ? ` 중복된 문장 예시: ${lastDuplicateSamples.map((item) => `[${item}]`).join(" / ")} 같은 문장을 다른 필드에 재사용하지 마세요.`
+        : "";
       const retryReason = lastFailure === "QUALITY_SHORTFALL"
-        ? `직전 응답은 다음 출시 차단 이슈를 포함했습니다: ${lastQualityIssues.join(", ")}. JSON 구조를 유지하면서 개발자용 내부값과 관계 유형에 맞지 않는 문구만 제거하세요.`
+        ? `직전 응답은 다음 출시 차단 이슈를 포함했습니다: ${lastQualityIssues.join(", ")}.${duplicateDetail} JSON 구조를 유지하면서 해당 이슈를 제거하세요.`
         : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고 완결된 객체를 출력하세요.";
       const expandedSystem = attempt === 1 ? baseSystem : `${baseSystem}\n\n[재시도 지시] ${retryReason}`;
       const firstAttemptMaxTokens = args.label === "INTRO"
@@ -564,9 +616,7 @@ export async function requestStructuredSegment<T>(args: {
       }
 
       const normalizedValue = normalizeNarrativeNameTokenDensity(parsed) as T;
-      const candidateValue = (args.label === "INTRO"
-        ? groundPaidIntroWithServerEvidence(normalizedValue, args.user)
-        : normalizedValue) as T;
+      const candidateValue = normalizedValue;
       const issues = [...new Set([
         ...args.qualityIssues(candidateValue),
         ...collectPaidNarrativeQualityIssues(candidateValue, args.label, args.user),
@@ -596,6 +646,9 @@ export async function requestStructuredSegment<T>(args: {
       bestQualityCandidate = betterCandidate(bestQualityCandidate, candidate);
       lastFailure = "QUALITY_SHORTFALL";
       lastQualityIssues = critical;
+      lastDuplicateSamples = critical.includes("EXACT_LONG_TEXT_DUPLICATE")
+        ? duplicateLongTextSamples(candidateValue)
+        : [];
       if (attempt < maxAttempts) continue;
       throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
     } catch (error) {

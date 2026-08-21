@@ -47,13 +47,17 @@
   - 저장 후 Production 재배포.
 
 - [ ] 사용자 QA 리포트 서술/표시 신뢰도 개선
-  - 공통: **일상 언어 결론/관계 장면 → 사주 용어와 계산 근거** 순서.
-  - 1:1 해시태그 모바일 잘림 수정.
-  - 1:1 계산된 일주가 있는데 `일주 미확인`이 출력되는 data-shape 문제 수정.
-  - `서버가 제공한`, `서버 계산상`, `strongest`, `weakest` 등 내부 표현 제거.
-  - 개인정보 원문을 늘리지 않고 이미 계산된 일주/일간, 오행 균형, 합충·상호작용 등 근거를 AI payload에 더 제공.
-  - 1:N 순번형 설명을 후보 이름/의미형 제목으로 변경.
-  - 1:N 추상 표현을 연락·갈등·신뢰·생활·장기관계 등 직관적 언어로 변경.
+  - [x] P1: 계산된 일주가 있는데 `일주 미확인`이 출력되는 data-shape 문제 수정.
+  - [x] P2: AI INTRO 원문을 서버 템플릿으로 덮어쓰는 동작 제거; 계산 근거는 검증/재시도에 사용.
+  - [x] P2: 40자 이상 동일 장문 중복을 critical quality issue로 승격하고 재시도 근거에 포함.
+  - [x] P2: CH0~CH9 전용 `keyTakeaways`를 추가해 본문 재사용형 챕터 요약 제거.
+  - [x] P2: 따옴표 안 대사의 `나/내가/너` 이름 오치환 방지.
+  - [ ] P3: 공통 **일상 언어 결론/관계 장면 → 사주 용어와 계산 근거** 편집 순서 강화.
+  - [ ] P3: 1:1 해시태그 모바일 잘림 수정.
+  - [ ] P3: `서버가 제공한`, `strongest`, `weakest` 등 남은 내부 표현 제거. `서버 계산상` 감지는 P2 완료.
+  - [ ] P3: 개인정보 원문을 늘리지 않고 이미 계산된 일주/일간, 오행 균형, 합충·상호작용 등 근거를 AI payload에 더 제공.
+  - [ ] 후속: 1:N 순번형 설명을 후보 이름/의미형 제목으로 변경.
+  - [ ] 후속: 1:N 추상 표현을 연락·갈등·신뢰·생활·장기관계 등 직관적 언어로 변경.
 
 ## 사용자 실사용으로 확인할 항목
 
@@ -93,10 +97,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 프로젝트명/서비스명 전면 변경 — 공식 브랜드 `우리사주` 적용
+- Task: 1:1 리포트 P1/P2 — 일주 data-shape + AI 원문/중복/챕터 요약/인칭 보호
 - Status: complete
-- Validation: 최신 main/docs 확인; 저장소 텍스트 sweep으로 사용자 노출/AI 프롬프트/정책/명세의 브랜드명 변경; diff 확인; connector 환경이라 lint/build 직접 실행 불가
-- Commit: brand 작업 branch tip을 main에 fast-forward하여 한 번에 반영
-- Remaining: Vercel 배포 확인 → 우리사주 카카오톡 채널/SOLAPI 외부 설정 → 리포트 서술/표시 신뢰도 개선
-- Risk: repo/Vercel URL/DB prefix `woorigunghap`은 기존 데이터·배포 호환을 위한 레거시 내부 식별자로 유지
+- Validation: day9 narrative boundary, intro day-pillar, report dedup, 1:1 quality-gate, lint, build PASS; lint warning 3
+- Commit: 075a12c (validated product/test tip before final docs+CI cleanup)
+- Remaining: P3 — 모바일 해시태그, 남은 내부 표현, 일상 결론→사주 근거 편집, 근거 payload 보강
+- Risk: 우리사주 Kakao/SOLAPI Production 외부 설정 미완료; P1/P2 코드/빌드 blocker 없음
 ```

@@ -78,6 +78,8 @@ jobs:
           npm run test:one-to-one:luck-cycle
           npm run test:one-to-one:three-year-timing
           npm run test:one-to-one:quality-gate
+          npm run test:intro:day-pillar
+          npm run test:report:dedup
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi

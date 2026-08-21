@@ -20,7 +20,7 @@ assert.match(deleteRoute, /confirmation !== "탈퇴"/);
 assert.match(accountStore, /legal-retention-v1/);
 assert.match(accountStore, /report_json = NULL/);
 assert.match(accountStore, /access_token_hash = NULL/);
-assert.match(privacy, /이름·별칭, 원본 생년월일, 원본 출생시간은 AI 서술 생성 요청에 전달하지 않습니다/);
+assert.match(privacy, /이름·별칭, 원본 생년월일, 원본 출생시간, 완료 알림용 휴대전화 번호는 AI 서술 생성 요청에 전달하지 않습니다/);
 assert.match(privacy, /“OOO님”처럼 표시/);
 assert.match(privacy, /Anthropic API/);
 assert.match(privacy, /30일 이내 삭제/);

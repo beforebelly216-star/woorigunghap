@@ -220,6 +220,27 @@ export function normalizeNarrativeNameTokenDensity<T>(
   return visit(value) as T;
 }
 
+function replaceRolePhrasesOutsideQuotes(
+  source: string,
+  replacements: readonly (readonly [string, string])[],
+) {
+  const apply = (chunk: string) => replacements.reduce(
+    (text, [rolePhrase, replacement]) => replaceIndependentRolePhraseOnce(text, rolePhrase, replacement),
+    chunk,
+  );
+  const quotePattern = /("[^"\n]*"|'[^'\n]*'|“[^”\n]*”|‘[^’\n]*’)/g;
+  let result = "";
+  let cursor = 0;
+  for (const match of source.matchAll(quotePattern)) {
+    const index = match.index ?? 0;
+    result += apply(source.slice(cursor, index));
+    result += match[0];
+    cursor = index + match[0].length;
+  }
+  result += apply(source.slice(cursor));
+  return result;
+}
+
 export function personalizeNarrativeNames<T>(
   value: T,
   names: { self: string; partner: string },
@@ -239,10 +260,7 @@ export function personalizeNarrativeNames<T>(
     // instead of turning every role reference into a repeated name. For legacy reports
     // without tokens, keep a restrained fallback: at most one replacement per phrase.
     if (hadNameToken) return tokenized;
-    return roleReplacements.reduce(
-      (text, [rolePhrase, replacement]) => replaceIndependentRolePhraseOnce(text, rolePhrase, replacement),
-      tokenized,
-    );
+    return replaceRolePhrasesOutsideQuotes(tokenized, roleReplacements);
   }
 
   function visit(node: unknown): unknown {

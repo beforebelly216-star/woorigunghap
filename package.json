@@ -36,7 +36,9 @@
     "test:one-to-one:luck-cycle": "tsx scripts/one-to-one-luck-cycle-foundation-test.ts",
     "test:one-to-one:three-year-timing": "tsx scripts/one-to-one-three-year-timing-test.ts",
     "qa:one-to-one:anthropic": "tsx scripts/one-to-one-anthropic-sample-qa.ts",
-    "test:one-to-one:quality-gate": "tsx scripts/one-to-one-quality-gate-test.ts"
+    "test:one-to-one:quality-gate": "tsx scripts/one-to-one-quality-gate-test.ts",
+    "test:intro:day-pillar": "tsx scripts/paid-intro-day-pillar-test.ts",
+    "test:report:dedup": "tsx scripts/report-dedup-personalization-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

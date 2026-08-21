@@ -1,8 +1,12 @@
 import type { EnhancedDetailedReportContent } from "@/lib/narrative/report-deep-content";
 import { BulletList, Chapter, Paragraph } from "./report-v2-components";
 
-function safeItems(items: string[], fallback: string) {
-  return items.length > 0 ? items : [fallback];
+function safeItems(items: string[]) {
+  return items.filter(Boolean);
+}
+
+function chapterSummary(content: EnhancedDetailedReportContent, key: "ch0" | "ch1" | "ch2" | "ch3") {
+  return content.keyTakeaways?.[key] ?? [];
 }
 
 export default function ReportChaptersA({
@@ -22,7 +26,7 @@ export default function ReportChaptersA({
 
   const attractionCards = content.personalLeverage?.topStrengths.length
     ? content.personalLeverage.topStrengths.slice(0, 3).map((item) => item.title)
-    : safeItems(content.personA.strengths.slice(0, 3), content.directionalImpact.aToB);
+    : safeItems(content.personA.strengths.slice(0, 3));
 
   return <>
     <Chapter
@@ -30,7 +34,7 @@ export default function ReportChaptersA({
       eyebrow="TOTAL DIAGNOSIS"
       title="두 사람의 궁합, 먼저 이것부터 보세요"
       intro="첫 화면에서는 점수 자체보다 이 관계를 살리는 힘, 반복해서 어긋날 수 있는 지점, 그리고 지금 가장 효과적인 대응 방향을 먼저 잡습니다."
-      summary={[content.overview.headline, content.bondAndFriction.overview, content.directionalImpact.asymmetry]}
+      summary={chapterSummary(content, "ch0")}
     >
       <div className="reference-opening-quote">
         <span>RELATIONSHIP ONE-LINER</span>
@@ -46,12 +50,12 @@ export default function ReportChaptersA({
         <article>
           <small>이 관계를 살리는 힘</small>
           <h3>가장 먼저 키울 것</h3>
-          <BulletList items={safeItems(content.strengthsAndRisks.strengths.slice(0, 2), content.chemistry.overview)} />
+          <BulletList items={safeItems(content.strengthsAndRisks.strengths.slice(0, 2))} />
         </article>
         <article>
           <small>반복 주의 지점</small>
           <h3>먼저 끊어야 할 패턴</h3>
-          <BulletList items={safeItems(content.strengthsAndRisks.repeatedFrictions.slice(0, 2), content.strengthsAndRisks.warning)} />
+          <BulletList items={safeItems(content.strengthsAndRisks.repeatedFrictions.slice(0, 2))} />
         </article>
         <article>
           <small>관계의 방향</small>
@@ -66,7 +70,7 @@ export default function ReportChaptersA({
       eyebrow="BASE MAP"
       title="두 사람의 기본판"
       intro="각자의 관계 성향을 따로 본 뒤, 둘이 만났을 때 어떤 기운이 강해지고 어떤 부분에서 체감 차이가 생기는지 연결합니다."
-      summary={[content.personA.relationshipNeeds, content.personB.relationshipNeeds, content.chemistry.overview]}
+      summary={chapterSummary(content, "ch1")}
     >
       <div className="day19-profile-pair">
         <article>
@@ -100,7 +104,7 @@ export default function ReportChaptersA({
       eyebrow="PARTNER DECONSTRUCTION"
       title={`${personBName}, 관계 안에서는 이런 사람입니다`}
       intro="1:1 궁합에서 가장 오래 읽게 되는 장입니다. 상대를 단정적으로 규정하지 않고, 계산 근거에서 반복될 가능성이 높은 욕구·반응·부담 지점을 관찰 가능한 장면과 함께 봅니다."
-      summary={[content.personB.relationshipNeeds, ...content.personB.strengths.slice(0, 1), ...content.personB.cautions.slice(0, 1)]}
+      summary={chapterSummary(content, "ch2")}
     >
       <div className="reference-partner-lead">
         <span>상대 해부 핵심</span>
@@ -163,13 +167,13 @@ export default function ReportChaptersA({
         </div>
 
         <div className="v2-two-column">
-          <div><h3>상대의 강점</h3><BulletList items={safeItems(content.personB.strengths, content.chemistry.overview)} /></div>
-          <div><h3>상대가 예민해질 수 있는 지점</h3><BulletList items={safeItems(content.personB.cautions, content.strengthsAndRisks.warning)} /></div>
+          <div><h3>상대의 강점</h3><BulletList items={safeItems(content.personB.strengths)} /></div>
+          <div><h3>상대가 예민해질 수 있는 지점</h3><BulletList items={safeItems(content.personB.cautions)} /></div>
         </div>
 
         <h3>두 사람 사이에서 실제로 드러나기 쉬운 장면</h3>
         <div className="reference-scene-list">
-          {safeItems(content.bondAndFriction.realLifeManifestations, content.bondAndFriction.overview).map((item, index) => (
+          {safeItems(content.bondAndFriction.realLifeManifestations).map((item, index) => (
             <div key={`${index}-${item}`}><span>{String(index + 1).padStart(2, "0")}</span><p>{item}</p></div>
           ))}
         </div>
@@ -181,7 +185,7 @@ export default function ReportChaptersA({
       eyebrow="YOUR LEVERAGE"
       title={`${personAName}이 ${personBName}에게 잘 통하는 방식`}
       intro="일반적인 내 장점이 아니라, 이 상대와의 조합에서 실제로 강점으로 작동하기 쉬운 부분과 과하게 쓰면 역효과가 나는 부분을 분리합니다."
-      summary={[...content.personA.strengths.slice(0, 2), content.directionalImpact.aToB]}
+      summary={chapterSummary(content, "ch3")}
     >
       {content.personalLeverage ? <>
         <div className="reference-top3 deep-leverage-top3">
@@ -226,11 +230,11 @@ export default function ReportChaptersA({
           <div>
             <h3>상대에게 실제로 도움이 되는 방식</h3>
             <Paragraph>{content.directionalImpact.beneficialSupply}</Paragraph>
-            <BulletList items={safeItems(content.practicalManual.do.slice(0, 2), content.directionalImpact.aToB)} />
+            <BulletList items={safeItems(content.practicalManual.do.slice(0, 2))} />
           </div>
           <div>
             <h3>반대로 역효과가 날 수 있는 습관</h3>
-            <BulletList items={safeItems(content.personA.cautions, content.directionalImpact.burdenSupply)} />
+            <BulletList items={safeItems(content.personA.cautions)} />
           </div>
         </div>
       </>}
