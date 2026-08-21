@@ -17,7 +17,7 @@ assert.match(engine, /lighterElements/);
 assert.match(engine, /interactionEvidence/);
 assert.match(engine, /heavenlyStemInteraction/);
 assert.match(engine, /earthlyBranchInteraction/);
-assert.doesNotMatch(engine, /elementAnalysis: 각각 2~3문장. strongest/weakest/);
+assert.doesNotMatch(engine, /elementAnalysis: 각각 2~3문장\. strongest\/weakest/);
 
 const internalIssues = collectPaidNarrativeQualityIssues({
   detail: "서버가 제공한 evidence의 strongest와 weakest를 참고값으로 설명합니다.",
