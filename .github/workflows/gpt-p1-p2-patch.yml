@@ -45,7 +45,18 @@ jobs:
           git commit -m "fix: repair paid intro day pillar contract"
       - name: Apply P2
         run: |
-          sed -i '/npm run test:one-to-one:quality-gate/a\          npm run test:intro:day-pillar' .github/workflows/manse-validation.yml
+          node <<'NODE'
+          const fs = require("node:fs");
+          const path = ".github/scripts/gpt-p1-p2-patch.mjs";
+          let source = fs.readFileSync(path, "utf8");
+          const start = source.lastIndexOf('  update(".github/workflows/manse-validation.yml"');
+          if (start < 0) throw new Error("P2 CI helper block not found");
+          const marker = "  ));\n";
+          const end = source.indexOf(marker, start);
+          if (end < 0) throw new Error("P2 CI helper block end not found");
+          source = source.slice(0, start) + source.slice(end + marker.length);
+          fs.writeFileSync(path, source, "utf8");
+          NODE
           node .github/scripts/gpt-p1-p2-patch.mjs p2
           sed -i 's/  type EnhancedDetailedReportContent,/  EnhancedDetailedReportContent,/' src/lib/narrative/report-engine-v7.ts
           sed -i 's/safeItems(content.personA.cautions, content.directionalImpact.burdenSupply)/safeItems(content.personA.cautions)/' src/app/one-to-one/result/report-v2-chapters-a.tsx
@@ -116,6 +127,7 @@ jobs:
       - name: Commit P2
         run: |
           git restore .github/workflows/manse-validation.yml
+          git restore .github/scripts/gpt-p1-p2-patch.mjs
           git add src/lib/narrative/report-engine-v6-request.ts src/lib/narrative/name-personalization.ts src/lib/narrative/report-deep-content.ts src/lib/narrative/report-engine-v7.ts src/app/one-to-one/result/result-v2.tsx src/app/one-to-one/result/report-v2-chapters-a.tsx src/app/one-to-one/result/report-v2-chapters-b.tsx scripts/paid-intro-day-pillar-test.ts scripts/report-dedup-personalization-test.ts scripts/one-to-one-quality-gate-test.ts scripts/one-to-one-anthropic-sample-qa.ts package.json
           git commit -m "fix: preserve paid narrative content and remove report duplication"
       - name: Push validated commits
