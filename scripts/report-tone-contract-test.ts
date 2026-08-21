@@ -7,7 +7,7 @@ const requestEngine = readFileSync("src/lib/narrative/report-engine-v6-request.t
 const css = readFileSync("src/app/report-extra.css", "utf8");
 const chapterA = readFileSync("src/app/one-to-one/result/report-v2-chapters-a.tsx", "utf8");
 
-assert.match(engine, /paid-report-v7-editorial-v12-persona-inner-mind/);
+assert.match(engine, /paid-report-v7-editorial-v13-saju-boy-magic-school/);
 assert.match(engine, /paid-report-evidence-v7/);
 assert.match(engine, /관계에서 바로 체감할 결론/);
 assert.match(engine, /구체적 장면/);

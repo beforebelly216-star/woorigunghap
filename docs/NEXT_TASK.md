@@ -56,7 +56,7 @@
   - [x] P3: 1:1 해시태그 모바일 잘림 수정.
   - [x] P3: `서버가 제공한`, `strongest`, `weakest` 등 남은 내부 표현 제거. `서버 계산상` 포함 출력 검증 강화.
   - [x] P3: 개인정보 원문을 늘리지 않고 이미 계산된 일주/일간, 오행 균형, 합충·상호작용 등 근거를 AI payload에 더 제공.
-  - [x] P4-1: 유료 1:1 화자를 '사주 좀 볼 줄 아는, 눈치 빠른 관계 상담 친구'로 고정하고 관계 유형별 미세 톤 적용.
+  - [x] P4-1 hotfix: 유료 1:1 화자를 '사주소년'으로 교정. 마법학교 소년 탐험가의 신비감/호기심을 쓰되 특정 작품 요소는 직접 모사하지 않고 관계 유형별 미세 톤을 유지.
   - [x] P4-1: CH2 상단 '그 사람의 속마음' 히어로 추가. 실제 내면 단정이 아닌 계산 기반 1인칭 가상 독백으로 제한하고 기존 저장 리포트 호환 유지.
   - [ ] P4-2: 궁합 유형/공유 카드 구조를 작은 단위로 구현.
   - [ ] P4-3: 60일주 캐릭터 체계와 리포트 연결 규칙 구현.
@@ -101,10 +101,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 1:1 리포트 P4-1 — 화자 페르소나 + '그 사람의 속마음' 히어로
+- Task: P4-1 hotfix — 화자 페르소나를 '사주소년' 마법학교 탐험가 감성으로 교정
 - Status: complete
-- Validation: test:report:persona + 기존 P1/P2/P3 회귀 + Core validation + lint + production build 확인 후 main 병합
-- Commit: P4-1 PR 검증 후 main squash merge SHA 기준
+- Validation: test:report:persona + 기존 P1~P4 회귀 + Core validation + lint + production build
+- Commit: clean PR 검증 후 main squash merge SHA 기준
 - Remaining: P4-2 궁합 유형/공유 카드 → P4-3 60일주 캐릭터; 1:N 서술 개선은 hotfix 후속 유지
-- Risk: 속마음 히어로는 계산 기반 편집 장치이며 실제 내면 단정 금지; 기존 저장 리포트는 optional fallback 유지
+- Risk: 특정 작품 고유명사/인물/주문/대사 직접 모사 금지; 계산·결제·저장 구조 변경 없음
 ```
