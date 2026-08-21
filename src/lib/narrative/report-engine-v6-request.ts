@@ -101,6 +101,30 @@ const INTRO_ELEMENT_LABELS: Record<string, string> = {
   water: "수",
 };
 
+export type PaidEditorialPillarFact = {
+  korean: string;
+  hanja: string;
+  stem: string;
+  branch: string;
+};
+
+export type PaidEditorialFactsPayload = Record<"A" | "B", {
+  birthTimeKnown: boolean;
+  dayPillar: PaidEditorialPillarFact;
+}>;
+
+export function formatPaidIntroDayPillar(value: unknown) {
+  if (typeof value === "string") {
+    const legacy = value.trim();
+    return legacy || "일주 미확인";
+  }
+  if (!isPlainObject(value)) return "일주 미확인";
+  const korean = typeof value.korean === "string" ? value.korean.trim() : "";
+  const hanja = typeof value.hanja === "string" ? value.hanja.trim() : "";
+  if (!korean) return "일주 미확인";
+  return hanja ? `${korean}(${hanja})` : korean;
+}
+
 function parseAiPayloadFromUserPrompt(userPrompt: string) {
   const firstBrace = userPrompt.indexOf("{");
   if (firstBrace < 0) return null;
@@ -130,7 +154,7 @@ function buildGroundedIntroPerson(payload: Record<string, unknown>, key: "A" | "
   if (!fact || !evidence) return null;
 
   const placeholder = key === "A" ? "{{SELF}}" : "{{PARTNER}}";
-  const dayPillar = typeof fact.dayPillar === "string" ? fact.dayPillar : "일주 미확인";
+  const dayPillar = formatPaidIntroDayPillar(fact.dayPillar);
   const birthTimeKnown = fact.birthTimeKnown === true;
   const dayMaster = isPlainObject(evidence.dayMaster) ? evidence.dayMaster : null;
   const dayMasterStem = dayMaster && typeof dayMaster.stem === "string" ? dayMaster.stem : null;

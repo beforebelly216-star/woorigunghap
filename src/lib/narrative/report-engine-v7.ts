@@ -21,6 +21,7 @@ import { buildReportEditorialContext } from "@/lib/narrative/report-editorial-co
 import {
   combineAnthropicUsage,
   requestStructuredSegment,
+  type PaidEditorialFactsPayload,
 } from "@/lib/narrative/report-engine-v6-request";
 import {
   RELATIONSHIP_EDITORIAL_VERSION,
@@ -347,7 +348,7 @@ const BASE_RULES = [
   "조언은 '더 잘해 보세요'로 끝내지 말고 누가·어떤 상황에서·어떤 말이나 행동을 하면 좋은지 한 번에 실행할 수 있게 쓰세요. 서버 근거 없는 시각·횟수·기간을 새로 정하지 마세요.",
 ].join("\n");
 
-function paidEditorialFacts(facts: PaidReportFacts) {
+function paidEditorialFacts(facts: PaidReportFacts): PaidEditorialFactsPayload {
   const person = (value: PaidReportFacts["A"]) => ({
     birthTimeKnown: value.birthTimeKnown,
     dayPillar: value.pillars.day,
