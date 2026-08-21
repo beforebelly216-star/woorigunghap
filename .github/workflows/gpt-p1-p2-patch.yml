@@ -46,6 +46,7 @@ jobs:
         run: |
           node .github/scripts/gpt-p1-p2-patch.mjs p2
           sed -i 's/  type EnhancedDetailedReportContent,/  EnhancedDetailedReportContent,/' src/lib/narrative/report-engine-v7.ts
+          sed -i 's/safeItems(content.personA.cautions, content.directionalImpact.burdenSupply)/safeItems(content.personA.cautions)/' src/app/one-to-one/result/report-v2-chapters-a.tsx
           cat > scripts/report-dedup-personalization-test.ts <<'EOF'
           import assert from "node:assert/strict";
           import { readFileSync } from "node:fs";
