@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { OneToManyResultView } from "@/lib/compatibility/one-to-many-view";
+import { getCompatibilityScoreBand } from "@/lib/compatibility/score-scale";
 
 function formatScore(score: number) {
   return Number.isInteger(score) ? String(score) : score.toFixed(1);
@@ -26,7 +27,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
           <div className="comparison-section-heading">
             <p className="card-label">종합 결과</p>
             <h2 id="ranking-title">한눈에 보는 순위</h2>
-            <p>0~2점 차이는 공동 수준으로 보고, 점수 범위가 겹치면 확정적인 우열 표현을 피했어요.</p>
+            <p>종합점수는 관계의 차이를 더 직관적으로 느낄 수 있도록 45~100점 구간으로 보정해 보여드려요. 0~2점 차이는 공동 수준으로 보고, 점수 범위가 겹치면 확정적인 우열 표현을 피했어요.</p>
           </div>
           <ol className="ranking-grid">
             {view.rankings.map((candidate) => (
@@ -40,6 +41,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
                   <span>{candidate.score}</span>
                   <small>점</small>
                 </div>
+                <small className="ranking-score-level">{getCompatibilityScoreBand(candidate.score).label}</small>
                 <p>{candidate.confidenceLabel}</p>
               </li>
             ))}

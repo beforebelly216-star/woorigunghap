@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { calculateOneToOneCompatibility } from "../src/lib/compatibility/engine";
+import { calibrateCompatibilityScore, getCompatibilityScoreBand } from "../src/lib/compatibility/score-scale";
 import type { OneToOneReportInput, PersonBirthInput } from "../src/lib/report-input";
 
 function person(
@@ -32,7 +33,12 @@ const second = calculateOneToOneCompatibility(base, TIMING_OPTIONS);
 assert.deepEqual(first, second, "같은 입력과 기준연도는 완전히 동일한 계산 스냅샷을 반환해야 합니다.");
 assert.equal(first.profile, "romance");
 assert.equal(Object.keys(first.dimensions).length, 9);
-assert.ok(first.score >= 30 && first.score <= 100);
+assert.ok(first.score >= 45 && first.score <= 100);
+assert.equal(first.score, calibrateCompatibilityScore(first.rawTotal));
+assert.equal(calibrateCompatibilityScore(30), 45);
+assert.equal(calibrateCompatibilityScore(100), 100);
+assert.ok(calibrateCompatibilityScore(74) > 74, "public score calibration should raise the absolute score for entertainment value");
+assert.ok(getCompatibilityScoreBand(first.score).label.length > 0);
 assert.equal(first.scenarioPolicy.pairScenarios, 1);
 assert.equal(first.aiBoundary.scoreMutableByAi, false);
 assert.equal(first.aiBoundary.rankingMutableByAi, false);
@@ -94,7 +100,7 @@ assert.equal(bothUnknown.profile, "coworker");
 assert.equal(bothUnknown.scenarioPolicy.personAScenarios, 12);
 assert.equal(bothUnknown.scenarioPolicy.personBScenarios, 12);
 assert.equal(bothUnknown.scenarioPolicy.pairScenarios, 144);
-assert.ok(bothUnknown.score >= 30 && bothUnknown.score <= 100);
+assert.ok(bothUnknown.score >= 45 && bothUnknown.score <= 100);
 assert.equal(bothUnknown.threeYearTiming?.confidence === "high", false);
 
 const boundaryUnknown = person("boundary", "2024-02-04", null);

@@ -49,6 +49,14 @@ function safeSet(storage: Storage, key: string, value: string) {
   }
 }
 
+function safeRemove(storage: Storage, key: string) {
+  try {
+    storage.removeItem(key);
+  } catch {
+    // Browser storage cleanup is best effort.
+  }
+}
+
 export function saveOrderDraft(order: OrderDraft) {
   if (typeof window === "undefined") return;
   const serialized = JSON.stringify(order);
@@ -74,4 +82,11 @@ export function loadOrderDraft(paymentId: string): OrderDraft | null {
   const fromLocal = parseOrderDraft(safeGet(window.localStorage, key), paymentId);
   if (fromLocal) saveOrderDraft(fromLocal);
   return fromLocal;
+}
+
+export function removeOrderDraft(paymentId: string) {
+  if (typeof window === "undefined") return;
+  const key = storageKey(paymentId);
+  safeRemove(window.sessionStorage, key);
+  safeRemove(window.localStorage, key);
 }

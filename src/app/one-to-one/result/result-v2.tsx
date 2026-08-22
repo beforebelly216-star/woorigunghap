@@ -37,6 +37,8 @@ import { buildCompatibilityShareArchetype } from "@/lib/narrative/compatibility-
 import { getDayPillarCharacter } from "@/lib/narrative/day-pillar-characters";
 import { normalizeStoredPaidReportForDisplay } from "@/lib/narrative/stored-report-compat";
 import { DayPillarCharacterCard } from "./day-pillar-character-card";
+import { calibrateCompatibilityScore, COMPATIBILITY_SCORE_BANDS, getCompatibilityScoreBand } from "@/lib/compatibility/score-scale";
+import { COMPATIBILITY_SCORING_VERSION } from "@/lib/compatibility/weights";
 
 const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
   dayMaster: "일간 상성", dayBranch: "일지 상성", usefulGodFit: "필요한 기운 보완",
@@ -415,7 +417,19 @@ export default function ResultV2() {
   const coworkerHierarchyLabel = relationshipType === "coworker" && order.inputSnapshot.coworkerHierarchy
     ? COWORKER_HIERARCHY_LABELS[order.inputSnapshot.coworkerHierarchy]
     : null;
-  const shareArchetype = buildCompatibilityShareArchetype(snapshot);
+  const publicScore = calibrateCompatibilityScore(snapshot.rawTotal);
+  const scoreBand = getCompatibilityScoreBand(publicScore);
+  const publicUncertaintyRange = snapshot.scoringVersion === COMPATIBILITY_SCORING_VERSION
+    ? snapshot.uncertaintyRange
+    : (() => {
+        const min = calibrateCompatibilityScore(snapshot.uncertaintyRange.min);
+        const max = calibrateCompatibilityScore(snapshot.uncertaintyRange.max);
+        return { min, max, width: max - min };
+      })();
+  const displaySnapshot = snapshot.score === publicScore && snapshot.uncertaintyRange.min === publicUncertaintyRange.min
+    ? snapshot
+    : { ...snapshot, score: publicScore, uncertaintyRange: publicUncertaintyRange };
+  const shareArchetype = buildCompatibilityShareArchetype(displaySnapshot);
   const personACharacter = getDayPillarCharacter(facts.A.pillars.day.korean);
   const personBCharacter = getDayPillarCharacter(facts.B.pillars.day.korean);
   const displayContent = normalizeStoredPaidReportForDisplay(content, facts);
@@ -435,17 +449,26 @@ export default function ResultV2() {
         <strong>{shareArchetype.label}</strong>
         <span>{shareArchetype.subtitle}</span>
       </div>
-      <div className="v2-score-gauge" style={{ "--score": snapshot.score } as React.CSSProperties}>
-        <div><span>{gradeFor(snapshot.score)}</span><strong>{snapshot.score}</strong><small>/ 100</small></div>
+      <div className="v2-score-gauge" style={{ "--score": publicScore } as React.CSSProperties}>
+        <div><span>{gradeFor(publicScore)}</span><strong>{publicScore}</strong><small>/ 100</small></div>
       </div>
-      {(!personA.birthTimeKnown || !personB.birthTimeKnown) && <p className="v2-uncertainty">출생시간 미상 시나리오 {snapshot.scenarioPolicy.pairScenarios.toLocaleString("ko-KR")}개를 함께 비교했어요. 현재 입력 기준 점수 범위는 {snapshot.uncertaintyRange.min}~{snapshot.uncertaintyRange.max}점입니다.</p>}
+      <div className="v2-score-meaning" role="note">
+        <small>이 점수는 어느 정도?</small>
+        <strong>{scoreBand.label}</strong>
+        <p>{scoreBand.description}</p>
+        <details>
+          <summary>전체 점수 기준 보기</summary>
+          <div className="v2-score-band-grid">{COMPATIBILITY_SCORE_BANDS.map((band) => <span key={band.min}><b>{band.min}~{band.max}</b>{band.shortLabel}</span>)}</div>
+        </details>
+      </div>
+      {(!personA.birthTimeKnown || !personB.birthTimeKnown) && <p className="v2-uncertainty">출생시간 미상 시나리오 {snapshot.scenarioPolicy.pairScenarios.toLocaleString("ko-KR")}개를 함께 비교했어요. 현재 입력 기준 점수 범위는 {publicUncertaintyRange.min}~{publicUncertaintyRange.max}점입니다.</p>}
     </header>
 
     <CompatibilityShareCard
       selfName={personA.displayName}
       partnerName={personB.displayName}
       relationshipLabel={relationshipLabel}
-      score={snapshot.score}
+      score={publicScore}
       archetype={shareArchetype}
     />
 

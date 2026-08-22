@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { AccountDeletionPanel } from "@/components/account-deletion-panel";
-import { loadOrderDraft } from "@/lib/order-storage";
+import { loadOrderDraft, removeOrderDraft } from "@/lib/order-storage";
+import { removeReportProgress } from "@/lib/report-progress-storage";
 
 type ReportSummary = {
   paymentId: string;
@@ -48,6 +49,8 @@ export default function AccountReportsPage() {
   const [notifyConsent, setNotifyConsent] = useState(false);
   const [notificationBusy, setNotificationBusy] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
+  const [deleteBusyPaymentId, setDeleteBusyPaymentId] = useState<string | null>(null);
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
   const resumeAttemptedAt = useRef(new Map<string, number>());
 
   useEffect(() => {
@@ -154,6 +157,31 @@ export default function AccountReportsPage() {
     }
   }
 
+  async function deleteReport(report: ReportSummary) {
+    const confirmed = window.confirm("이 결과를 삭제하면 복구할 수 없습니다. 상세 리포트와 입력정보는 삭제되고, 결제 거래기록은 법정 보존 의무에 필요한 최소 정보만 남습니다. 삭제할까요?");
+    if (!confirmed) return;
+    setDeleteBusyPaymentId(report.paymentId);
+    setDeleteMessage(null);
+    try {
+      const response = await fetch(`/api/account/reports/${encodeURIComponent(report.paymentId)}`, { method: "DELETE" });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        setDeleteMessage(typeof payload?.error === "string" ? payload.error : "결과 삭제에 실패했습니다.");
+        return;
+      }
+      removeOrderDraft(report.paymentId);
+      removeReportProgress(report.paymentId, report.createdAt);
+      setState((current) => current.status === "ready"
+        ? { ...current, reports: current.reports.filter((item) => item.paymentId !== report.paymentId) }
+        : current);
+      setDeleteMessage("보관함 결과를 삭제했습니다.");
+    } catch {
+      setDeleteMessage("네트워크 상태를 확인한 뒤 다시 시도해 주세요.");
+    } finally {
+      setDeleteBusyPaymentId(null);
+    }
+  }
+
   async function disableChannelNotification() {
     setNotificationBusy(true);
     setNotificationMessage(null);
@@ -237,14 +265,23 @@ export default function AccountReportsPage() {
           <p>로그인 상태에서 결제가 확인되면 결과 생성 중부터 이곳에 자동으로 표시됩니다.</p>
           <Link className="primary-link" href="/">새 궁합 보기</Link>
         </div> : null}
+        {state.status === "ready" && deleteMessage ? <p className="library-delete-feedback" role="status">{deleteMessage}</p> : null}
         {state.status === "ready" && state.reports.length > 0 ? <ul className="library-grid">
           {state.reports.map((report) => <li key={report.paymentId}>
-            {report.status === "ready" ? <Link className="library-card" href={reportHref(report)}>
-              <span>{report.productLabel} · {report.relationshipLabel}</span>
-              <strong>{report.title}</strong>
-              <small>{formatDate(report.createdAt)} 구매</small>
-              <b>저장된 결과 열기</b>
-            </Link> : <article className="library-card library-card-generating" aria-busy="true">
+            {report.status === "ready" ? <article className="library-card-shell">
+              <Link className="library-card" href={reportHref(report)}>
+                <span>{report.productLabel} · {report.relationshipLabel}</span>
+                <strong>{report.title}</strong>
+                <small>{formatDate(report.createdAt)} 구매</small>
+                <b>저장된 결과 열기</b>
+              </Link>
+              <button
+                type="button"
+                className="library-delete-button"
+                onClick={() => void deleteReport(report)}
+                disabled={deleteBusyPaymentId === report.paymentId}
+              >{deleteBusyPaymentId === report.paymentId ? "삭제 중…" : "결과 삭제"}</button>
+            </article> : <article className="library-card library-card-generating" aria-busy="true">
               <span>{report.productLabel} · {report.relationshipLabel}</span>
               <strong>{report.title}</strong>
               <small>{formatDate(report.createdAt)} 구매</small>

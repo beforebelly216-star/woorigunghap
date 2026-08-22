@@ -18,6 +18,7 @@ import {
   type PreparedCompatibilityPerson,
 } from "./simple-dimensions";
 import { calculateThreeYearTimingAlignment, type ThreeYearTimingAssessment } from "./timing-alignment";
+import { calibrateCompatibilityScore } from "./score-scale";
 import type { CompatibilityDimension, CompatibilityProfile } from "./types";
 import {
   COMPATIBILITY_SCORE_WEIGHTS,
@@ -25,7 +26,7 @@ import {
   getCompatibilityDimensionWeight,
 } from "./weights";
 
-export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.3.0";
+export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.4.0";
 
 export const COMPATIBILITY_DIMENSIONS = [
   "dayMaster",
@@ -289,18 +290,20 @@ export function calculateOneToOneCompatibility(
     30,
     100,
   ));
-  const score = Math.round(rawTotal);
+  const score = calibrateCompatibilityScore(rawTotal);
 
   // 각 출생시간 시나리오 총점에는 기존 중립 타이밍 70점이 들어 있다.
   // 실제 3년 타이밍 범위와의 차이를 5점 배점에 환산해 최종 불확실성 범위에 더한다.
   const timingMinDelta = ((threeYearTiming.scoreRange.min - 70) / 100) * timingWeight;
   const timingMaxDelta = ((threeYearTiming.scoreRange.max - 70) / 100) * timingWeight;
-  const min = Math.round(Math.min(...scenarioResults.map(
+  const rawMin = Math.min(...scenarioResults.map(
     (scenario) => clamp(scenario.rawTotal + timingMinDelta, 30, 100),
-  )));
-  const max = Math.round(Math.max(...scenarioResults.map(
+  ));
+  const rawMax = Math.max(...scenarioResults.map(
     (scenario) => clamp(scenario.rawTotal + timingMaxDelta, 30, 100),
-  )));
+  ));
+  const min = calibrateCompatibilityScore(rawMin);
+  const max = calibrateCompatibilityScore(rawMax);
   const width = max - min;
 
   const representativeTimingDelta = ((threeYearTiming.normalizedScore - 70) / 100) * timingWeight;
