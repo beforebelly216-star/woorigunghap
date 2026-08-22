@@ -1,0 +1,88 @@
+/* P5 mobile QA hardening for 360 / 390 / 430px widths. */
+@media (max-width: 430px) {
+  .v2-page {
+    overflow-x: clip;
+  }
+
+  .v2-page .v2-shell,
+  .v2-page .v2-facts-grid > article,
+  .v2-page .v2-radar-layout,
+  .v2-page .v2-radar-legend > div,
+  .v2-page .day19-chapter,
+  .v2-page .day19-chapter-body,
+  .v2-page .day-pillar-character-card {
+    min-width: 0;
+  }
+
+  .v2-page .v2-hero h1,
+  .v2-page .v2-section-title h2,
+  .v2-page .v2-chapter h2,
+  .v2-page .partner-inner-mind-hero h3,
+  .v2-page .day-pillar-character-card h3 {
+    overflow-wrap: anywhere;
+  }
+
+  /* Keep the circular Saju Boy marker fully on-screen at 0% and 100%. */
+  .v2-reading-progress {
+    left: 14px;
+    width: calc(100% - 28px);
+  }
+
+  .v2-page .v2-radar-layout {
+    padding-inline: 14px;
+  }
+
+  .v2-page .v2-radar-legend {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .v2-page .v2-radar-legend > div {
+    align-items: flex-start;
+  }
+
+  .v2-page .v2-radar-legend span {
+    overflow-wrap: anywhere;
+  }
+
+  .checkout-row,
+  .checkout-total,
+  .checkout-person {
+    min-width: 0;
+  }
+
+  .checkout-row strong,
+  .checkout-total strong,
+  .checkout-person span,
+  .checkout-unlock-preview h2,
+  .checkout-unlock-preview article p {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 640px) {
+  /* 52px button + vertical padding + iOS home indicator + breathing room. */
+  .checkout-shell {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  }
+
+  .checkout-sticky-cta {
+    box-shadow: 0 -10px 30px rgba(84, 70, 122, .08);
+  }
+}
+
+@media (max-width: 390px) {
+  .checkout-unlock-preview {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .checkout-unlock-preview article {
+    grid-template-columns: 32px minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .checkout-unlock-preview article > span {
+    width: 30px;
+    height: 30px;
+  }
+}
