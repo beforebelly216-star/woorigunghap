@@ -20,6 +20,7 @@ import type {
   EnhancedDetailedReportContent,
 } from "@/lib/narrative/report-deep-content";
 import { buildReportEditorialContext } from "@/lib/narrative/report-editorial-context";
+import { getDayPillarCharacter } from "@/lib/narrative/day-pillar-characters";
 import {
   combineAnthropicUsage,
   requestStructuredSegment,
@@ -30,7 +31,7 @@ import {
   relationshipPromptRules,
 } from "@/lib/relationship-editorial";
 
-export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-editorial-v13-saju-boy-magic-school" as const;
+export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v7-editorial-v14-day-pillar-characters" as const;
 export const PAID_REPORT_V7_PAYLOAD_VERSION = "paid-report-evidence-v7" as const;
 export const PAID_REPORT_SEGMENTS = ["intro", "dynamics", "action"] as const;
 export type PaidReportSegmentName = (typeof PAID_REPORT_SEGMENTS)[number];
@@ -382,6 +383,7 @@ const BASE_RULES = [
   "핵심 결론을 먼저 말합니다. 계산 근거가 충분한 내용은 '이 조합은', '이 관계에서는'처럼 분명하게 쓰고, 매 문장을 '~일 수 있습니다', '~가능성이 있습니다' 같은 유보형 끝맺음으로 흐리지 마세요.",
   "기본 편집 순서는 '관계에서 바로 체감할 결론 → 연락·약속·갈등·표현·의사결정 같은 구체적 장면 → 사주 용어와 계산 근거'입니다. 사주 용어부터 설명하는 교과서식 문단을 만들지 마세요.",
   "한 문단 안에서도 사용자가 먼저 자기 관계를 떠올릴 수 있게 장면을 제시한 뒤, 일주·일간·일지·오행 균형·천간/지지 상호작용 중 실제 payload에 있는 근거를 뒤에 붙이세요.",
+  "일주 캐릭터는 보조 편집 렌즈입니다. 캐릭터의 제목·관계 단서는 CH0~CH2에서 설명을 쉽게 만드는 데만 사용하고, 전체 궁합 점수·합충·용신·미래 시기·상대의 숨은 심리를 새로 판단하거나 기존 계산 근거를 덮어쓰는 근거로 쓰지 마세요.",
   "서버 계산값만 근거로 쓰고 새로운 점수·합충·용신·미래 시기·확인되지 않은 사실을 만들어내지 마세요. 계산값이 없는 숫자나 비율도 만들지 마세요.",
   "사주 용어를 쓰면 바로 쉬운 한국어 의미를 붙이세요. WEAK, STRONG, BALANCED, soft signal, confidence, strongest, weakest, dominantElements, lighterElements, payload, evidence 같은 내부 필드명은 출력하지 마세요.",
   "'서버 계산상', '서버가 제공한', '참고 신호', '참고값'처럼 구현 과정이나 면책문처럼 들리는 표현을 사용자 본문에 쓰지 마세요. 계산 근거는 자연스러운 사주 설명으로 녹여 쓰세요.",
@@ -397,10 +399,20 @@ const BASE_RULES = [
 ].join("\n");
 
 function paidEditorialFacts(facts: PaidReportFacts): PaidEditorialFactsPayload {
-  const person = (value: PaidReportFacts["A"]) => ({
-    birthTimeKnown: value.birthTimeKnown,
-    dayPillar: value.pillars.day,
-  });
+  const person = (value: PaidReportFacts["A"]) => {
+    const dayPillarCharacter = getDayPillarCharacter(value.pillars.day.korean);
+    return {
+      birthTimeKnown: value.birthTimeKnown,
+      dayPillar: value.pillars.day,
+      dayPillarCharacter: dayPillarCharacter ? {
+        title: dayPillarCharacter.title,
+        tagline: dayPillarCharacter.tagline,
+        strengths: dayPillarCharacter.strengths,
+        watchOut: dayPillarCharacter.watchOut,
+        relationshipCue: dayPillarCharacter.relationshipCue,
+      } : null,
+    };
+  };
   return {
     A: person(facts.A),
     B: person(facts.B),
