@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import "../../report-theme.css";
 import "../../report-v2-base.css";
 import "../../report-v2-detail.css";
 import ResultV2 from "./result-v2";
