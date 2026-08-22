@@ -31,6 +31,9 @@ assert.match(serverStore, /loadCompletedServerReportForAccess/);
 assert.match(serverStore, /isCompleteOneToOneProgress/);
 assert.match(serverStore, /parseOneToManyStoredReport/);
 assert.match(serverStore, /payment_status = 'paid'/);
+assert.match(serverStore, /generation_status <> 'deleted'/);
+assert.match(serverStore, /generation_status = 'deleted'[\s\S]*access_token_hash[\s\S]*NULL/);
+assert.match(accountStore, /payment_status = 'paid'[\s\S]*generation_status <> 'deleted'/);
 
 assert.match(claimRoute, /isSameOriginPost\(request\)/);
 assert.match(claimRoute, /loadAuthenticatedRequestUser/);

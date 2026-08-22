@@ -124,6 +124,7 @@ export async function claimAccountReport(
     FROM woorigunghap_order_records
     WHERE payment_id = ${paymentId}
       AND payment_status = 'paid'
+      AND generation_status <> 'deleted'
     ON CONFLICT (payment_id) DO UPDATE SET
       updated_at = NOW()
     WHERE woorigunghap_account_reports.user_id = EXCLUDED.user_id
