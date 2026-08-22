@@ -13,6 +13,8 @@ const checkout = readFileSync("src/app/one-to-one/checkout/page.tsx", "utf8");
 const payment = readFileSync("src/components/payment-button.tsx", "utf8");
 const share = readFileSync("src/app/one-to-one/result/compatibility-share-card.tsx", "utf8");
 const shareCss = readFileSync("src/app/one-to-one/result/compatibility-share-card.module.css", "utf8");
+const home = readFileSync("src/app/page.tsx", "utf8");
+const homeCss = readFileSync("src/app/home-p5.module.css", "utf8");
 
 for (const token of [
   "#FFFBF5", "#FFFFFF", "#3A3550", "#7B7396", "#B8A9E8", "#8B7BC7", "#FFB088", "#8FD9C4", "#FFC4D6",
@@ -30,6 +32,13 @@ assert.match(base, /line-height:\s*1\.75/);
 assert.match(overrides, /partner-inner-mind-hero/);
 assert.match(overrides, /day-pillar-character-card/);
 assert.match(overrides, /day19-chapter \.v2-chapter-heading > span/);
+assert.match(overrides, /deep-strategy-steps/);
+assert.match(overrides, /deep-strategy-signals/);
+assert.match(overrides, /deep-observable-scenes/);
+assert.match(home, /home-p5\.module\.css/);
+assert.match(home, /report-theme\.css/);
+assert.match(home, /사주소년 용한/);
+assert.match(homeCss, /var\(--saju-primary-deep\)/);
 assert.match(components, /v2-saju-char/);
 assert.match(components, /pillar\.stem/);
 assert.match(components, /pillar\.branch/);

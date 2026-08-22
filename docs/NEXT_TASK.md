@@ -47,6 +47,8 @@
   - 저장 후 Production 재배포.
 
 - [ ] 사용자 QA 리포트 서술/표시 신뢰도 개선
+  - [x] hotfix: 기존 저장본 `일주 미확인` 표시 교정 + 신규 INTRO 재발 차단. 기존 결과는 AI 재생성 없이 확정 facts로 표시만 보정.
+  - [x] hotfix: P5 미적용 deep-report 블록(STEP/PROGRESS/STOP 등)과 홈 화면을 파스텔 마스코트 디자인으로 통일.
   - [x] P1: 계산된 일주가 있는데 `일주 미확인`이 출력되는 data-shape 문제 수정.
   - [x] P2: AI INTRO 원문을 서버 템플릿으로 덮어쓰는 동작 제거; 계산 근거는 검증/재시도에 사용.
   - [x] P2: 40자 이상 동일 장문 중복을 critical quality issue로 승격하고 재시도 근거에 포함.
@@ -104,10 +106,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: P5 360/390/430px 모바일 코드/계약 QA hotfix
-- Status: partial
-- Validation: Core validation #535 PASS; test:report:p5-ui 포함, lint PASS, production build PASS
-- Commit: PR #27 검증 후 main squash merge SHA 기준
-- Remaining: Vercel build limit 해제 후 최신 P5를 360/390/430px 실제 뷰포트로 육안 확인; 외부 SOLAPI/Kakao 실제 발송 설정
-- Risk: 최신 P5 Preview/Production이 Vercel Hobby 일일 build rate limit으로 생성되지 않아 이번 턴의 모바일 QA는 코드/계약 수준까지 완료
+- Task: 기존 저장본 일주 표시 오류 + P5 누락 UI + 홈 화면 hotfix
+- Status: complete
+- Validation: test:intro:day-pillar + test:report:p5-ui + Core validation + lint + production build
+- Commit: PR 검증 후 main squash merge SHA 기준
+- Remaining: 사용자 1:1 실결제/새 생성 결과 확인; 360/390/430 실제 뷰포트 육안 QA; 외부 SOLAPI/Kakao 발송 설정
+- Risk: 저장된 AI 원문/계산/점수는 수정하지 않고 화면 표시만 확정 facts로 정정; none otherwise
 ```

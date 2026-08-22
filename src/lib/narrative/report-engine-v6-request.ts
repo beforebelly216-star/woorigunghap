@@ -43,6 +43,7 @@ const CRITICAL_QUALITY_ISSUES = new Set([
   "RELATIONSHIP_ROMANCE_LEAK",
   "EXACT_LONG_TEXT_DUPLICATE",
   "INTRO_DAY_PILLAR_MISMATCH",
+  "INTRO_DAY_PILLAR_UNKNOWN_EXPOSED",
   "INTRO_ELEMENT_RANK_MISMATCH",
   "INTRO_UNSUPPORTED_NUMERIC_FACT",
 ]);
@@ -339,7 +340,10 @@ export function collectPaidNarrativeQualityIssues(
   const characters = collectCharacters(value);
   const minCharacters = label === "INTRO" ? 1200 : label === "DYNAMICS" || label === "ACTION" ? 1800 : 0;
 
-  if (label === "INTRO") issues.push(...collectPaidIntroEvidenceIssues(value, userPrompt));
+  if (label === "INTRO") {
+    issues.push(...collectPaidIntroEvidenceIssues(value, userPrompt));
+    if (/일주\s*(?:는|가)?\s*미확인|일주\s*미확인/.test(joined)) issues.push("INTRO_DAY_PILLAR_UNKNOWN_EXPOSED");
+  }
   if (minCharacters > 0 && characters < minCharacters) issues.push(`${label}_TOTAL_DENSITY_SHORT`);
 
   const duplicateCounts = new Map<string, number>();
