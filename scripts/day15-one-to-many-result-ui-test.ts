@@ -11,14 +11,17 @@ import {
   buildSummaryMetrics,
   ONE_TO_MANY_VIEW_VERSION,
 } from "../src/lib/compatibility/one-to-many-view";
-import { buildOneToManyNarrativeEvidence } from "../src/lib/narrative/one-to-many-report-engine";
+import {
+  buildOneToManyNarrativeEvidence,
+  type OneToManyNarrativeContent,
+} from "../src/lib/narrative/one-to-many-report-engine";
 
 const snapshot = calculateOneToManyCompatibility(ONE_TO_MANY_DEMO_INPUT);
 const metrics = buildSummaryMetrics(snapshot);
 const recommendations = buildSituationalRecommendations(snapshot, metrics);
 const view = buildOneToManyResultView(snapshot, ONE_TO_MANY_DEMO_NAMES);
 const evidence = buildOneToManyNarrativeEvidence(snapshot);
-const semanticNarrative = {
+const semanticNarrative: OneToManyNarrativeContent = {
   rankingSummary: { headline: "비교 결론", summary: "비교 요약", closenessNotice: "차이 안내" },
   candidates: snapshot.candidates.map((candidate) => ({
     candidateId: candidate.candidateId,
@@ -27,7 +30,9 @@ const semanticNarrative = {
     cautions: ["조율 설명 A"],
     practicalTip: "확인할 행동을 하나 정해 보세요.",
   })),
-  situationalRecommendations: Object.fromEntries(recommendations.map((item) => [item.id, { candidateIds: item.candidateIds, reason: "상황별 이유를 설명합니다." }])) as ReturnType<typeof buildOneToManyResultView> extends never ? never : any,
+  situationalRecommendations: Object.fromEntries(
+    recommendations.map((item) => [item.id, { candidateIds: item.candidateIds, reason: "상황별 이유를 설명합니다." }]),
+  ) as OneToManyNarrativeContent["situationalRecommendations"],
   finalSummary: "비교 결과를 실제 관계 대화에 활용하세요.",
 };
 const semanticView = buildOneToManyResultView(snapshot, ONE_TO_MANY_DEMO_NAMES, semanticNarrative);
