@@ -23,6 +23,7 @@ jobs:
         run: |
           python .github/scripts/gpt-score-library-delete-final.py
           python .github/scripts/gpt-score-library-delete-fix.py
+          python .github/scripts/gpt-score-library-delete-guard.py
       - name: Stop when already patched
         id: diff
         run: |
@@ -49,5 +50,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src scripts
-          git commit -m "feat: add report deletion and recalibrate compatibility scores"
+          git commit -m "fix: prevent deleted reports from being restored"
           git push origin HEAD:gpt/score-library-delete-20260822
