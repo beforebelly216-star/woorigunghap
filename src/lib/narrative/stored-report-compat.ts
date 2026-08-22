@@ -14,9 +14,19 @@ function stripLegacyInternalLanguage(text: string) {
 
 export function sanitizeStoredReportTextForPerson(text: string, dayPillar: PillarFact) {
   const label = pillarLabel(dayPillar);
-  return stripLegacyInternalLanguage(text)
-    .replace(/일주\s*(?:는|가)?\s*미확인(?:입니다|으로\s*표시됩니다|\s*상태입니다)?/g, `일주는 ${label}입니다`)
-    .replace(/일주\s*미확인/g, label);
+  const labelSentence = `일주는 ${label}입니다`;
+
+  return stripLegacyInternalLanguage(
+    text
+      .replace(
+        /일주\s*(?:는|가)\s*(?:서버\s*계산상\s*)?일주\s*미확인(?:입니다|으로\s*표시됩니다|\s*상태입니다)?/g,
+        labelSentence,
+      )
+      .replace(
+        /(?:서버\s*계산상\s*)?일주\s*미확인(?:입니다|으로\s*표시됩니다|\s*상태입니다)?/g,
+        labelSentence,
+      ),
+  );
 }
 
 function mapStrings(value: unknown, transform: (text: string) => string): unknown {
@@ -38,11 +48,11 @@ export function normalizeStoredPaidReportForDisplay(
   return {
     ...globallyClean,
     personA: mapStrings(
-      globallyClean.personA,
+      content.personA,
       (text) => sanitizeStoredReportTextForPerson(text, facts.A.pillars.day),
     ) as EnhancedDetailedReportContent["personA"],
     personB: mapStrings(
-      globallyClean.personB,
+      content.personB,
       (text) => sanitizeStoredReportTextForPerson(text, facts.B.pillars.day),
     ) as EnhancedDetailedReportContent["personB"],
   };
