@@ -148,7 +148,6 @@
 - Vercel Hobby build rate limit은 코드 실패가 아니다.
 - 의미 있는 작업 후 `PROJECT_STATE`, `NEXT_TASK/HANDOFF`를 갱신한다.
 
-
 ## 2026-08-22 1:1 리포트 P5 UI/UX 개선
 
 - Google Drive의 `우리궁합 1:1 리포트 개선 프롬프트팩 v1` P5를 최신 **우리사주** 브랜드/현재 9개 계산 지표에 맞춰 구현했다.
@@ -160,3 +159,12 @@
 - 결제 전에는 유료 AI 본문을 CSS로 가리지 않고, 생성 전에도 안전한 일반 기능 예고만 보여준다. 모바일 하단 고정 CTA는 `속마음까지 다 보기 · 1,000원`으로 변경했다.
 - 결제 직후 만족도가 높은 구간에 9:16 공유 카드를 앞당기고 Canvas PNG 생성/저장/파일 공유를 추가했다. 공유 이미지 이름은 기본 OFF이며 생년월일시·유료 본문·결과 URL·접근 토큰은 포함하지 않는다.
 - `test:report:p5-ui` 계약 테스트를 추가했다.
+
+## 2026-08-22 P5 모바일 QA hotfix
+
+- 360px 폭에서 9:16 공유 카드 내부 콘텐츠가 세로로 넘칠 수 있는 구성을 축소하고, 379px 이하 전용 타이포·간격·점수 원형 크기를 추가했다.
+- 결과 화면은 430px 이하에서 `overflow-x: clip`, grid child `min-width: 0`, 긴 제목 `overflow-wrap`을 적용해 가로 스크롤 위험을 줄였다.
+- 읽기 진행률의 사주소년 `용` 마커는 0%/100%에서 반쯤 화면 밖으로 잘리지 않도록 모바일 진행 트랙 자체를 좌우 14px 안쪽으로 배치했다.
+- 모바일 결제 고정 CTA는 iOS `safe-area-inset-bottom`까지 포함해 본문 하단 여백을 확보하고, 390px 이하 결제 예고 카드 패딩을 줄였다.
+- `test:report:p5-ui`에 360/390/430 모바일 safeguard 계약을 추가했다. Core validation #535에서 전체 회귀·lint·production build가 통과했다.
+- 최신 P5 Preview/Production은 Vercel Hobby 일일 build rate limit 때문에 생성되지 않아 실제 360/390/430px 육안 확인은 아직 미완료다.
