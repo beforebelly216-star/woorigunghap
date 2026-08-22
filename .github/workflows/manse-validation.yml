@@ -86,6 +86,7 @@ jobs:
           npm run test:report:persona
           npm run test:report:share-card
           npm run test:report:day-pillar-characters
+          npm run test:report:p5-ui
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi

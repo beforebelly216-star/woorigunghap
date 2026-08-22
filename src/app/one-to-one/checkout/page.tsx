@@ -97,8 +97,20 @@ function CheckoutContent() {
         </div>
       </section>
 
+      <section className="checkout-unlock-preview" aria-labelledby="checkout-unlock-title">
+        <p className="card-label">결제 후 바로 열리는 것</p>
+        <h2 id="checkout-unlock-title">사주소년이 두 사람의 관계를 끝까지 읽어드려요.</h2>
+        <div>
+          <article><span>01</span><strong>그 사람의 속마음</strong><p>계산된 관계 반응을 바탕으로, 겉으로 드러나는 모습과 속의 반응 차이를 풀어봅니다.</p></article>
+          <article><span>02</span><strong>갈등과 회복의 사용법</strong><p>어떤 장면에서 자주 어긋나고 어떻게 다시 대화하면 좋은지 정리합니다.</p></article>
+          <article><span>03</span><strong>실전 관계 매뉴얼</strong><p>연락, 표현, 거리 조절과 앞으로 써먹을 행동 가이드를 챕터별로 제공합니다.</p></article>
+        </div>
+        <p className="checkout-price-anchor">한 번 결제로 완성된 리포트 전체를 저장해 다시 볼 수 있어요.</p>
+      </section>
       <PurchasePolicyConsent checked={policyAccepted} onChange={setPolicyAccepted} />
-      <PaymentButton product="oneToOne" paymentId={order.paymentId} inputSnapshot={order.inputSnapshot} agreementAccepted={policyAccepted} />
+      <div className="checkout-sticky-cta">
+        <PaymentButton product="oneToOne" paymentId={order.paymentId} inputSnapshot={order.inputSnapshot} agreementAccepted={policyAccepted} buttonLabel="속마음까지 다 보기 · 1,000원" />
+      </div>
       <Link href="/one-to-one" className="back-link checkout-back">입력 수정하기</Link>
       <p className="checkout-note">결제 승인 후 서버가 입력 해시와 금액을 검증한 뒤 결과를 생성·저장합니다. 결제창을 닫거나 네트워크가 끊겨도 같은 주문으로 다시 확인할 수 있고, 완료된 결과는 복구키 또는 로그인 계정 보관함에서 재열람할 수 있습니다.</p>
     </>

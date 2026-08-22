@@ -1,5 +1,6 @@
 import type { FiveElement } from "@/lib/compatibility/types";
 import type { BasicPersonFacts } from "@/lib/narrative/report-engine-v5";
+import { getDayPillarCharacter } from "@/lib/narrative/day-pillar-characters";
 import {
   PARTNER_INFORMATION_LEVEL_COPY,
   partnerInformationLevelFromFacts,
@@ -10,16 +11,81 @@ const ELEMENT_LABELS: Record<FiveElement, string> = {
 };
 const ELEMENT_ORDER: FiveElement[] = ["wood", "fire", "earth", "metal", "water"];
 
+const STEM_ELEMENT: Record<string, FiveElement> = {
+  갑: "wood", 을: "wood", 병: "fire", 정: "fire", 무: "earth", 기: "earth", 경: "metal", 신: "metal", 임: "water", 계: "water",
+};
+const BRANCH_ELEMENT: Record<string, FiveElement> = {
+  인: "wood", 묘: "wood", 사: "fire", 오: "fire", 진: "earth", 술: "earth", 축: "earth", 미: "earth", 신: "metal", 유: "metal", 해: "water", 자: "water",
+};
+
+function SajuCharacterTile({ label, korean, hanja, element, emphasis = false }: {
+  label: string;
+  korean: string;
+  hanja: string;
+  element?: FiveElement;
+  emphasis?: boolean;
+}) {
+  return <div className={`v2-saju-char ${element ? `is-${element}` : "is-unknown"} ${emphasis ? "is-day" : ""}`}>
+    <small>{label}</small>
+    <strong>{korean}</strong>
+    <span className="v2-hanja">{hanja}</span>
+  </div>;
+}
+
 export function PillarGrid({ facts }: { facts: BasicPersonFacts }) {
   const entries = [
-    ["년주", facts.pillars.year], ["월주", facts.pillars.month], ["일주", facts.pillars.day], ["시주", facts.pillars.hour],
+    ["년", facts.pillars.year], ["월", facts.pillars.month], ["일", facts.pillars.day], ["시", facts.pillars.hour],
   ] as const;
-  return <div className="v2-pillar-grid">{entries.map(([label, pillar]) => (
-    <div className="v2-pillar" key={label}>
-      <span>{label}</span>
-      {pillar ? <><strong>{pillar.korean}</strong><small>{pillar.hanja}</small></> : <><strong>미상</strong><small>출생시간 미입력</small></>}
+  const character = getDayPillarCharacter(facts.pillars.day.korean);
+
+  return <div className="v2-saju-board">
+    <div className="v2-pillar-grid">{entries.map(([label, pillar]) => {
+      const hanjaChars = pillar ? [...pillar.hanja] : [];
+      const emphasis = label === "일";
+      return <div className={`v2-pillar-pair ${emphasis ? "is-day-pair" : ""}`} key={label}>
+        <span className="v2-pillar-pair-label">{label}주</span>
+        {pillar ? <>
+          <SajuCharacterTile label="천간" korean={pillar.stem} hanja={hanjaChars[0] ?? ""} element={STEM_ELEMENT[pillar.stem]} emphasis={emphasis} />
+          <SajuCharacterTile label="지지" korean={pillar.branch} hanja={hanjaChars[1] ?? ""} element={BRANCH_ELEMENT[pillar.branch]} emphasis={emphasis} />
+        </> : <>
+          <SajuCharacterTile label="천간" korean="?" hanja="미상" />
+          <SajuCharacterTile label="지지" korean="?" hanja="미상" />
+        </>}
+      </div>;
+    })}</div>
+    {character ? <div className="v2-day-character-note"><span>✦ 오늘의 핵심 타일 · {facts.pillars.day.korean}</span><strong>{character.title}</strong><p>{character.tagline}</p></div> : null}
+  </div>;
+}
+
+export function CompatibilityRadar({ dimensions }: { dimensions: Array<{ label: string; score: number }> }) {
+  const size = 280;
+  const center = size / 2;
+  const radius = 96;
+  const count = Math.max(3, dimensions.length);
+  const point = (index: number, ratio: number) => {
+    const angle = -Math.PI / 2 + (Math.PI * 2 * index) / count;
+    return [center + Math.cos(angle) * radius * ratio, center + Math.sin(angle) * radius * ratio] as const;
+  };
+  const polygon = (ratio: number) => Array.from({ length: count }, (_, index) => point(index, ratio).join(",")).join(" ");
+  const scorePolygon = dimensions.map((dimension, index) => point(index, Math.min(1, Math.max(0, dimension.score / 100))).join(",")).join(" ");
+
+  return <div className="v2-radar-layout">
+    <div className="v2-radar-chart" aria-label="9개 핵심 궁합 지표 레이더 차트">
+      <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-hidden="true">
+        {[.25, .5, .75, 1].map((ratio) => <polygon className="v2-radar-grid" key={ratio} points={polygon(ratio)} />)}
+        {dimensions.map((_, index) => {
+          const [x, y] = point(index, 1);
+          return <line className="v2-radar-axis" key={index} x1={center} y1={center} x2={x} y2={y} />;
+        })}
+        <polygon className="v2-radar-score" points={scorePolygon} />
+        {dimensions.map((dimension, index) => {
+          const [x, y] = point(index, Math.min(1, Math.max(0, dimension.score / 100)));
+          return <circle className="v2-radar-point" key={dimension.label} cx={x} cy={y} r="3.5" />;
+        })}
+      </svg>
     </div>
-  ))}</div>;
+    <div className="v2-radar-legend">{dimensions.map((dimension) => <div key={dimension.label}><span>{dimension.label}</span><strong>{Math.round(dimension.score)}</strong></div>)}</div>
+  </div>;
 }
 
 export function ElementFacts({ facts }: { facts: BasicPersonFacts }) {
@@ -40,6 +106,37 @@ export function ElementFacts({ facts }: { facts: BasicPersonFacts }) {
 
 export function BulletList({ items }: { items: string[] }) {
   return <ul className="v2-bullets">{items.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul>;
+}
+
+const SAJU_BOY_CHAPTER_LINES: Record<number, string> = {
+  0: "첫 장부터 단서가 보여요. 둘 사이의 전체 그림부터 잡아볼게요.",
+  1: "각자 어떤 방식으로 움직이는지 알면, 관계의 절반은 이미 읽은 셈이에요.",
+  2: "여긴 좀 중요해요. 상대가 관계에서 보이는 반응을 가까이 들여다볼게요.",
+  3: "둘이 붙었을 때 생기는 케미는 혼자 있을 때와 전혀 다를 수 있어요.",
+  4: "좋을 때보다 어긋날 때 패턴을 보면 이 관계의 진짜 사용법이 보여요.",
+  5: "누가 먼저 움직이고 누가 기다리는지, 관계의 리듬을 확인해볼 차례예요.",
+  6: "오래 가는 관계는 우연보다 반복되는 습관에서 갈려요.",
+  7: "갈등은 피하는 것보다 회복하는 방식이 더 중요해요.",
+  8: "이제 실제 행동으로 옮길 차례예요. 써먹을 수 있는 것만 남겨볼게요.",
+  9: "마지막 장이에요. 앞의 단서를 한 번에 쓸 수 있게 정리해둘게요.",
+};
+
+function SajuBoyBubble({ chapter }: { chapter: number }) {
+  const line = SAJU_BOY_CHAPTER_LINES[chapter] ?? "관계의 다음 단서를 같이 읽어볼게요.";
+  return <aside className="v2-saju-boy-bubble" aria-label="사주소년 용한의 코멘트">
+    <div className="v2-saju-boy-avatar" aria-hidden="true">
+      <svg viewBox="0 0 72 72">
+        <circle cx="36" cy="36" r="31" className="boy-face" />
+        <path d="M18 29c4-13 31-16 38 0-9-3-12-8-18-7-7 0-11 5-20 7Z" className="boy-hair" />
+        <circle cx="27" cy="37" r="8" className="boy-glass" />
+        <circle cx="45" cy="37" r="8" className="boy-glass" />
+        <path d="M35 37h2" className="boy-bridge" />
+        <path d="M30 50c4 3 8 3 12 0" className="boy-smile" />
+        <path d="M18 61c5-8 31-8 36 0" className="boy-robe" />
+      </svg>
+    </div>
+    <div><small>사주소년 용한</small><p>{line}</p></div>
+  </aside>;
 }
 
 export function Chapter({
@@ -63,6 +160,7 @@ export function Chapter({
       <span>CH{index}</span>
       <div><small>{eyebrow}</small><h2>{title}</h2>{intro ? <p>{intro}</p> : null}</div>
     </div>
+    <SajuBoyBubble chapter={index} />
     <div className="day19-chapter-body">{children}</div>
     {summaryItems.length > 0 ? <div className="day19-summary" aria-label={`${title} 핵심 요약`}>
       <strong>이 장의 핵심</strong>

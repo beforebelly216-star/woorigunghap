@@ -1,0 +1,174 @@
+/* P5 final override layer for legacy Day 19/P4 report blocks loaded globally. */
+.v2-page .day19-chapter .v2-chapter-heading {
+  border-bottom-color: var(--saju-border);
+}
+.v2-page .day19-chapter .v2-chapter-heading > span {
+  min-height: 44px;
+  background: var(--saju-primary-deep);
+  color: #fff;
+  font-family: var(--saju-font-sans);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--saju-primary-deep) 18%, transparent);
+}
+.v2-page .day19-chapter .v2-chapter-heading small {
+  color: var(--saju-primary-deep);
+}
+.v2-page .day19-chapter .v2-chapter-heading h2 {
+  color: var(--saju-ink);
+  font-family: var(--saju-font-sans);
+  font-weight: 800;
+}
+.v2-page .day19-chapter .v2-chapter-heading p,
+.v2-page .day19-evidence-boundary p {
+  color: var(--saju-ink-soft);
+}
+.v2-page .day19-profile-pair > article,
+.v2-page .reference-diagnosis-grid article,
+.v2-page .reference-partner-grid article,
+.v2-page .reference-flow-grid article,
+.v2-page .reference-future-split article,
+.v2-page .reference-top3 article,
+.v2-page .reference-30day-grid article,
+.v2-page .reference-scene-list,
+.v2-page .reference-opening-quote,
+.v2-page .reference-partner-lead,
+.v2-page .reference-strategy-lead,
+.v2-page .reference-closeness-lead,
+.v2-page .reference-conversation-card,
+.v2-page .reference-focus-box {
+  border-color: var(--saju-border);
+  background: var(--saju-bg-card);
+  color: var(--saju-ink);
+}
+.v2-page .day19-profile-label,
+.v2-page .reference-keywords span,
+.v2-page .reference-30day-grid span {
+  background: color-mix(in srgb, var(--saju-primary) 20%, var(--saju-bg-card));
+  color: var(--saju-ink);
+}
+.v2-page .day19-evidence-boundary {
+  border-left-color: var(--saju-primary-deep);
+  background: color-mix(in srgb, var(--saju-primary) 12%, var(--saju-bg-card));
+}
+.v2-page .day19-evidence-boundary strong,
+.v2-page .reference-opening-quote span,
+.v2-page .reference-partner-lead > span,
+.v2-page .reference-strategy-lead > span,
+.v2-page .reference-closeness-lead > small,
+.v2-page .reference-conversation-card > small,
+.v2-page .reference-focus-box > small,
+.v2-page .reference-diagnosis-grid small,
+.v2-page .reference-partner-grid small,
+.v2-page .reference-flow-grid small,
+.v2-page .reference-future-split small,
+.v2-page .reference-top3 span {
+  color: var(--saju-primary-deep);
+}
+.v2-page .reference-opening-quote {
+  background: linear-gradient(145deg,
+    color-mix(in srgb, var(--saju-primary) 38%, var(--saju-bg-card)),
+    color-mix(in srgb, var(--saju-blush) 20%, var(--saju-bg-card)));
+  color: var(--saju-ink);
+}
+.v2-page .reference-opening-quote strong {
+  color: var(--saju-ink);
+  font-family: var(--saju-font-sans);
+  font-weight: 800;
+}
+.v2-page .reference-diagnosis-grid p,
+.v2-page .reference-partner-grid p,
+.v2-page .reference-flow-grid p,
+.v2-page .reference-future-split p,
+.v2-page .reference-top3 p,
+.v2-page .reference-30day-grid p,
+.v2-page .reference-scene-list p,
+.v2-page .reference-focus-box p,
+.v2-page .reference-conversation-card p {
+  color: var(--saju-ink-soft);
+}
+.v2-page .reference-scene-list > div + div {
+  border-top-color: var(--saju-border);
+}
+.v2-page .reference-focus-box {
+  border-left-color: var(--saju-mint);
+  background: color-mix(in srgb, var(--saju-mint) 12%, var(--saju-bg-card));
+}
+.v2-page .reference-focus-box strong,
+.v2-page .reference-conversation-card strong {
+  color: var(--saju-ink);
+}
+.v2-page .reference-strategy-lead {
+  background: color-mix(in srgb, var(--saju-accent) 10%, var(--saju-bg-card));
+}
+.v2-page .reference-future-split .is-positive {
+  background: color-mix(in srgb, var(--saju-mint) 12%, var(--saju-bg-card));
+}
+.v2-page .reference-future-split .is-caution {
+  background: color-mix(in srgb, var(--saju-accent) 12%, var(--saju-bg-card));
+}
+
+.v2-page .partner-inner-mind-hero {
+  border-color: color-mix(in srgb, var(--saju-primary-deep) 62%, var(--saju-border));
+  background: linear-gradient(145deg,
+    color-mix(in srgb, var(--saju-primary) 30%, var(--saju-bg-card)),
+    color-mix(in srgb, var(--saju-blush) 17%, var(--saju-bg-card)));
+  color: var(--saju-ink);
+  box-shadow: var(--saju-shadow);
+}
+.v2-page .partner-inner-mind-hero::after {
+  color: color-mix(in srgb, var(--saju-primary-deep) 8%, transparent);
+}
+.v2-page .partner-inner-mind-hero > small,
+.v2-page .partner-inner-mind-hero > div span {
+  color: var(--saju-primary-deep);
+}
+.v2-page .partner-inner-mind-hero h3,
+.v2-page .partner-inner-mind-hero blockquote {
+  color: var(--saju-ink);
+  font-family: var(--saju-font-sans);
+}
+.v2-page .partner-inner-mind-hero > p,
+.v2-page .partner-inner-mind-hero > div p {
+  color: var(--saju-ink-soft);
+}
+.v2-page .partner-inner-mind-hero > div {
+  border-top-color: var(--saju-border);
+}
+
+.v2-page .day-pillar-character-card {
+  border-color: var(--saju-border);
+  background: linear-gradient(145deg,
+    color-mix(in srgb, var(--saju-primary) 14%, var(--saju-bg-card)),
+    color-mix(in srgb, var(--saju-mint) 10%, var(--saju-bg-card)));
+  box-shadow: var(--saju-shadow);
+}
+.v2-page .day-pillar-character-card__eyebrow,
+.v2-page .day-pillar-character-card__name,
+.v2-page .day-pillar-character-card__tagline,
+.v2-page .day-pillar-character-card__clues small {
+  color: var(--saju-ink-soft);
+}
+.v2-page .day-pillar-character-card h3,
+.v2-page .day-pillar-character-card__clues p,
+.v2-page .day-pillar-character-card__watch {
+  color: var(--saju-ink);
+}
+.v2-page .day-pillar-character-card__clues div {
+  background: color-mix(in srgb, var(--saju-bg-card) 88%, transparent);
+}
+.v2-page .day-pillar-character-card__watch {
+  border-top-color: var(--saju-border);
+}
+.v2-page .day-pillar-character-card__watch strong {
+  color: var(--saju-primary-deep);
+}
+
+@media (max-width: 700px) {
+  .v2-page .day19-chapter .v2-chapter-heading {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .v2-page .day19-chapter .v2-chapter-heading > span {
+    width: 56px;
+    min-height: 38px;
+  }
+}

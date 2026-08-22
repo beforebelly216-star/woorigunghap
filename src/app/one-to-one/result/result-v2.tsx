@@ -29,7 +29,7 @@ import {
   buildOneToOneResultUrl,
   isResultAccessToken,
 } from "@/lib/result-access-token";
-import { ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
+import { CompatibilityRadar, ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
 import ReportChaptersA from "./report-v2-chapters-a";
 import ReportChaptersB from "./report-v2-chapters-b";
 import { CompatibilityShareCard } from "./compatibility-share-card";
@@ -143,6 +143,23 @@ export default function ResultV2() {
   const [completedSegments, setCompletedSegments] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [accountOwned, setAccountOwned] = useState(false);
+  const [readingProgress, setReadingProgress] = useState(0);
+
+  useEffect(() => {
+    if (status !== "ready") return;
+    function updateReadingProgress() {
+      const root = document.documentElement;
+      const max = Math.max(1, root.scrollHeight - window.innerHeight);
+      setReadingProgress(Math.min(100, Math.max(0, Math.round((window.scrollY / max) * 100))));
+    }
+    updateReadingProgress();
+    window.addEventListener("scroll", updateReadingProgress, { passive: true });
+    window.addEventListener("resize", updateReadingProgress);
+    return () => {
+      window.removeEventListener("scroll", updateReadingProgress);
+      window.removeEventListener("resize", updateReadingProgress);
+    };
+  }, [status]);
 
   useEffect(() => {
     if (status !== "loading") return;
@@ -400,15 +417,35 @@ export default function ResultV2() {
   const shareArchetype = buildCompatibilityShareArchetype(snapshot);
   const personACharacter = getDayPillarCharacter(facts.A.pillars.day.korean);
   const personBCharacter = getDayPillarCharacter(facts.B.pillars.day.korean);
-  return <main className="v2-page"><div className="v2-shell">
+  return <main className="v2-page">
+    <div className="v2-reading-progress" role="progressbar" aria-label="리포트 읽기 진행률" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readingProgress}>
+      <span style={{ width: `${readingProgress}%` }} />
+      <b style={{ left: `${readingProgress}%` }} aria-hidden="true">용</b>
+    </div>
+    <div className="v2-shell">
     <header className="v2-hero">
       <p className="v2-kicker">{relationshipLabel}{coworkerHierarchyLabel ? ` · ${coworkerHierarchyLabel}` : ""} 궁합 리포트</p>
       <h1>{personA.displayName} <span>×</span> {personB.displayName}</h1>
       <h2>{content.overview.headline}</h2>
       <Paragraph>{content.overview.detailedSummary}</Paragraph>
-      <div className="v2-score"><span>{gradeFor(snapshot.score)}</span><strong>{snapshot.score}</strong><small>/ 100</small></div>
+      <div className="v2-pair-type">
+        <small>두 사람의 궁합 유형</small>
+        <strong>{shareArchetype.label}</strong>
+        <span>{shareArchetype.subtitle}</span>
+      </div>
+      <div className="v2-score-gauge" style={{ "--score": snapshot.score } as React.CSSProperties}>
+        <div><span>{gradeFor(snapshot.score)}</span><strong>{snapshot.score}</strong><small>/ 100</small></div>
+      </div>
       {(!personA.birthTimeKnown || !personB.birthTimeKnown) && <p className="v2-uncertainty">출생시간 미상 시나리오 {snapshot.scenarioPolicy.pairScenarios.toLocaleString("ko-KR")}개를 함께 비교했어요. 현재 입력 기준 점수 범위는 {snapshot.uncertaintyRange.min}~{snapshot.uncertaintyRange.max}점입니다.</p>}
     </header>
+
+    <CompatibilityShareCard
+      selfName={personA.displayName}
+      partnerName={personB.displayName}
+      relationshipLabel={relationshipLabel}
+      score={snapshot.score}
+      archetype={shareArchetype}
+    />
 
     <section className="v2-basic-facts">
       <div className="v2-section-title"><small>FOUR PILLARS & FIVE ELEMENTS</small><h2>두 사람의 사주팔자와 오행</h2><p>어떤 명식을 바탕으로 계산했는지 먼저 보여드려요. 오행의 겉개수와 실제 세력 비중은 서로 다른 정보입니다.</p></div>
@@ -420,7 +457,7 @@ export default function ResultV2() {
 
     <section className="v2-score-section">
       <div className="v2-section-title"><small>COMPATIBILITY SCORE</small><h2>핵심 궁합 지표</h2><p>점수는 해설의 근거 강도를 보여주는 참고값입니다. 본문에서 실제 관계에서 어떤 의미인지 자세히 설명합니다.</p></div>
-      <div className="v2-score-grid">{visibleDimensions.map(([dimension, value]) => <div key={dimension}><span>{DIMENSION_LABELS[dimension]}</span><strong>{Math.round(value.normalizedScore)}</strong><i><b style={{ width: `${Math.min(100, Math.max(0, value.normalizedScore))}%` }} /></i></div>)}</div>
+      <CompatibilityRadar dimensions={visibleDimensions.map(([dimension, value]) => ({ label: DIMENSION_LABELS[dimension], score: value.normalizedScore }))} />
     </section>
 
     {(personACharacter || personBCharacter) && <section className="day-pillar-character-section">
@@ -431,13 +468,6 @@ export default function ResultV2() {
       </div>
     </section>}
 
-    <CompatibilityShareCard
-      selfName={personA.displayName}
-      partnerName={personB.displayName}
-      relationshipLabel={relationshipLabel}
-      score={snapshot.score}
-      archetype={shareArchetype}
-    />
 
     <ReportChaptersA content={content} personAName={personA.displayName} personBName={personB.displayName} />
     <ReportChaptersB
