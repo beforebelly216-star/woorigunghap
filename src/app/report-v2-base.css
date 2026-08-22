@@ -118,3 +118,17 @@
   .v2-score-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .v2-facts-grid > article { padding: 24px; }
 }
+
+/* P5 typography: readable long-form rhythm without shipping font binaries. */
+.v2-page { font-family: var(--saju-font-sans); font-size: 16px; }
+.v2-page h1, .v2-page h2, .v2-page h3, .v2-page h4, .v2-page strong { text-wrap: pretty; }
+.v2-hero h1 { font-size: clamp(2rem, 9vw, 3.6rem); }
+.v2-section-title h2, .v2-chapter h2 { font-size: clamp(2rem, 7vw, 2.65rem); }
+.v2-hero h2, .v2-chapter h3 { font-size: 1.25rem; }
+.v2-long-text, .v2-detail-grid p, .v2-direction p, .v2-scenarios p, .v2-numbered p, .v2-bullets li { font-size: 1rem; line-height: 1.75; }
+.v2-kicker, .v2-section-title small, .v2-chapter-heading small, .v2-note { font-size: .8125rem; }
+.v2-score strong, .v2-score-grid strong, .v2-element-counts strong, .v2-share-list strong { font-variant-numeric: tabular-nums; }
+.v2-hanja { font-family: var(--saju-font-serif); font-weight: 700; }
+@media (min-width: 761px) {
+  .v2-hero h1 { font-size: clamp(3rem, 6vw, 5.2rem); }
+}
