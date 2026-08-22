@@ -1,9 +1,9 @@
 name: Temporary score and library delete patch
 
 on:
-  push:
+  pull_request:
     branches:
-      - gpt/score-library-delete-20260822
+      - main
 
 permissions:
   contents: write
@@ -20,7 +20,7 @@ jobs:
           node-version: 24
           cache: npm
       - name: Apply patch
-        run: python .github/scripts/gpt-score-library-delete.py
+        run: python .github/scripts/gpt-score-library-delete-final.py
       - name: Stop when already patched
         id: diff
         run: |
@@ -38,6 +38,7 @@ jobs:
           npm run test:compatibility:engine
           npm run test:day18:account-report-library
           npm run test:day15:one-to-many-result-ui
+          npm run test:report:p5-ui
           npm run lint
           npm run build
       - name: Commit patch
