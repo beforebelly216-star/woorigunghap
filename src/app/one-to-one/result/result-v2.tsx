@@ -29,7 +29,7 @@ import {
   buildOneToOneResultUrl,
   isResultAccessToken,
 } from "@/lib/result-access-token";
-import { ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
+import { CompatibilityRadar, ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
 import ReportChaptersA from "./report-v2-chapters-a";
 import ReportChaptersB from "./report-v2-chapters-b";
 import { CompatibilityShareCard } from "./compatibility-share-card";
@@ -406,7 +406,14 @@ export default function ResultV2() {
       <h1>{personA.displayName} <span>×</span> {personB.displayName}</h1>
       <h2>{content.overview.headline}</h2>
       <Paragraph>{content.overview.detailedSummary}</Paragraph>
-      <div className="v2-score"><span>{gradeFor(snapshot.score)}</span><strong>{snapshot.score}</strong><small>/ 100</small></div>
+      <div className="v2-pair-type">
+        <small>두 사람의 궁합 유형</small>
+        <strong>{shareArchetype.label}</strong>
+        <span>{shareArchetype.subtitle}</span>
+      </div>
+      <div className="v2-score-gauge" style={{ "--score": snapshot.score } as React.CSSProperties}>
+        <div><span>{gradeFor(snapshot.score)}</span><strong>{snapshot.score}</strong><small>/ 100</small></div>
+      </div>
       {(!personA.birthTimeKnown || !personB.birthTimeKnown) && <p className="v2-uncertainty">출생시간 미상 시나리오 {snapshot.scenarioPolicy.pairScenarios.toLocaleString("ko-KR")}개를 함께 비교했어요. 현재 입력 기준 점수 범위는 {snapshot.uncertaintyRange.min}~{snapshot.uncertaintyRange.max}점입니다.</p>}
     </header>
 
@@ -420,7 +427,7 @@ export default function ResultV2() {
 
     <section className="v2-score-section">
       <div className="v2-section-title"><small>COMPATIBILITY SCORE</small><h2>핵심 궁합 지표</h2><p>점수는 해설의 근거 강도를 보여주는 참고값입니다. 본문에서 실제 관계에서 어떤 의미인지 자세히 설명합니다.</p></div>
-      <div className="v2-score-grid">{visibleDimensions.map(([dimension, value]) => <div key={dimension}><span>{DIMENSION_LABELS[dimension]}</span><strong>{Math.round(value.normalizedScore)}</strong><i><b style={{ width: `${Math.min(100, Math.max(0, value.normalizedScore))}%` }} /></i></div>)}</div>
+      <CompatibilityRadar dimensions={visibleDimensions.map(([dimension, value]) => ({ label: DIMENSION_LABELS[dimension], score: value.normalizedScore }))} />
     </section>
 
     {(personACharacter || personBCharacter) && <section className="day-pillar-character-section">
