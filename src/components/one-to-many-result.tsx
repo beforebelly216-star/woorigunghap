@@ -149,7 +149,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
               </span>
               <b>펼쳐보기</b>
             </summary>
-            <div className="detail-table-scroll" tabIndex={0} aria-label="명리 9개 항목 비교표, 좌우로 스크롤 가능">
+            <div className="detail-table-scroll" tabIndex={0} aria-label="관계 9개 기준 비교표, 좌우로 스크롤 가능">
               <table className="detail-score-table">
                 <caption>후보별 연락·생활·갈등·신뢰·장기관계 관련 9개 기준 점수</caption>
                 <thead>
