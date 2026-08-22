@@ -66,6 +66,12 @@
   - [x] 후속: 1:N 순번형 설명을 후보 이름/의미형 제목으로 변경. 후보 상세은 이름 + 계산 강점 기반 제목, 강점/조율 라벨은 실제 차원명 사용.
   - [x] 후속: 1:N 추상 표현을 연락·갈등·신뢰·생활·장기관계 중심의 직관적 언어로 변경. 계산 키/점수는 유지하고 사용자 라벨·기본 카피·AI 프롬프트만 개선.
 
+- [x] **사용자 요청: 보관함 개별 결과 삭제 + 공개 궁합 점수 상향/구간 설명**
+  - 완성된 계정 보관함 결과를 개별 영구 삭제. 상세 리포트·입력정보·접근 토큰 제거, 법정 보존 최소 결제기록만 유지.
+  - 삭제 결과는 stale 탭/복구키/토큰 재등록/리포트 재저장으로 살아나지 않도록 `generation_status=deleted` 서버 경계를 적용.
+  - 결정론적 raw 계산과 9개 차원은 유지하고 공개 종합점수만 45~100점으로 단조 보정. 1:1/1:N 기존 저장본도 재생성 없이 같은 public scale로 표시.
+  - 45~54부터 95~100까지 10개 궁합 수준 라벨/설명을 결과 UI에 추가.
+
 ## 사용자 실사용으로 확인할 항목
 
 - [ ] 새 1:1 실제 사용에서 생성시간 확인.
@@ -106,10 +112,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 기존 저장본 일주 표시 오류 + P5 누락 UI + 홈 화면 hotfix
+- Task: 보관함 완성 결과 개별 삭제 + 궁합 공개 점수 45~100 상향 보정 + 점수 구간 설명
 - Status: complete
-- Validation: test:intro:day-pillar + test:report:p5-ui + Core validation + lint + production build
-- Commit: PR 검증 후 main squash merge SHA 기준
-- Remaining: 사용자 1:1 실결제/새 생성 결과 확인; 360/390/430 실제 뷰포트 육안 QA; 외부 SOLAPI/Kakao 발송 설정
-- Risk: 저장된 AI 원문/계산/점수는 수정하지 않고 화면 표시만 확정 facts로 정정; none otherwise
+- Validation: test:compatibility:engine + test:day18:account-report-library + test:day15:one-to-many-result-ui + test:report:p5-ui + lint + production build + PR Core validation 예정
+- Commit: PR #29 검증 후 main squash merge SHA 기준
+- Remaining: Production에서 실제 계정 보관함 삭제 1회 확인; 1:1/1:N 실결제에서 새 점수 분포 관찰; 360/390/430 실제 뷰포트 육안 QA; 외부 SOLAPI/Kakao 발송 설정
+- Risk: 공개 종합점수만 상향 보정하며 raw 9차원 계산/AI 경계는 유지. 삭제 시 상세 데이터는 복구 불가하며 법정 의무 최소 결제기록은 유지.
 ```
