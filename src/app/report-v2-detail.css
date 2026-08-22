@@ -37,3 +37,22 @@
   .v2-chapter { padding: 58px 0; }
   .v2-two-column, .v2-detail-grid, .v2-direction, .v2-scenarios { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* P5 Saju Boy chapter guide + messenger-style scenes. */
+.v2-saju-boy-bubble { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 12px; align-items: center; margin: 0 0 22px; border: 1px solid color-mix(in srgb, var(--saju-primary) 65%, var(--saju-border)); border-radius: 20px 20px 20px 7px; padding: 13px 15px; background: color-mix(in srgb, var(--saju-primary) 16%, var(--saju-bg-card)); }
+.v2-saju-boy-avatar { width: 54px; height: 54px; border-radius: 18px; background: color-mix(in srgb, var(--saju-blush) 30%, var(--saju-bg-card)); overflow: hidden; }
+.v2-saju-boy-avatar svg { width: 100%; height: 100%; }
+.v2-saju-boy-avatar .boy-face { fill: #F6D5B9; }
+.v2-saju-boy-avatar .boy-hair { fill: #3A3550; }
+.v2-saju-boy-avatar .boy-glass { fill: none; stroke: #3A3550; stroke-width: 2; }
+.v2-saju-boy-avatar .boy-bridge, .v2-saju-boy-avatar .boy-smile { fill: none; stroke: #3A3550; stroke-width: 2; stroke-linecap: round; }
+.v2-saju-boy-avatar .boy-robe { fill: var(--saju-primary-deep); }
+.v2-saju-boy-bubble small { display: block; color: var(--saju-primary-deep); font-size: .72rem; font-weight: 900; letter-spacing: .04em; }
+.v2-saju-boy-bubble p { margin: 4px 0 0; color: var(--saju-ink); font-size: .92rem; line-height: 1.55; letter-spacing: -.01em; }
+.day19-summary { border-color: color-mix(in srgb, var(--saju-mint) 55%, var(--saju-border)); background: color-mix(in srgb, var(--saju-mint) 14%, var(--saju-bg-card)); }
+.day19-summary > strong { color: var(--saju-ink); }
+.day19-summary ol { list-style: none; padding: 0; counter-reset: p5-summary; }
+.day19-summary li { position: relative; margin: 8px 0; border-radius: 13px; padding: 10px 12px 10px 38px; background: var(--saju-bg-card); color: var(--saju-ink); line-height: 1.55; }
+.day19-summary li::before { content: "✓"; position: absolute; left: 12px; top: 9px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: var(--saju-mint); color: #283B35; font-size: .7rem; font-weight: 900; }
+.v2-scenarios article, .reference-conversation-card { position: relative; border-radius: 18px 18px 18px 6px !important; background: color-mix(in srgb, var(--saju-primary) 13%, var(--saju-bg-card)) !important; }
+.v2-scenarios article:nth-child(even) { border-radius: 18px 18px 6px 18px !important; background: color-mix(in srgb, var(--saju-blush) 13%, var(--saju-bg-card)) !important; }
