@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import "../../report-p5-mobile.css";
 import { PaymentButton } from "@/components/payment-button";
 import { PurchasePolicyConsent } from "@/components/purchase-policy-consent";
 import { loadOrderDraft } from "@/lib/order-storage";
