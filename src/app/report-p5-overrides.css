@@ -172,3 +172,74 @@
     min-height: 38px;
   }
 }
+
+/* Hotfix: P5 coverage for deep-report.css blocks that previously leaked legacy beige/green styles. */
+.v2-page .deep-partner-grid article,
+.v2-page .deep-strategy-signals article,
+.v2-page .deep-conversation-grid article,
+.v2-page .deep-observable-scenes,
+.v2-page .deep-backfire-list,
+.v2-page .deep-strategy-steps {
+  border-color: var(--saju-border);
+  background: var(--saju-bg-card);
+  color: var(--saju-ink);
+  box-shadow: var(--saju-shadow);
+}
+.v2-page .deep-observable-scenes article + article,
+.v2-page .deep-backfire-list article + article,
+.v2-page .deep-strategy-steps article + article,
+.v2-page .deep-leverage-top3 article strong,
+.v2-page .deep-week-check {
+  border-color: var(--saju-border);
+}
+.v2-page .deep-partner-grid small,
+.v2-page .deep-strategy-signals small,
+.v2-page .deep-conversation-grid small,
+.v2-page .deep-strategy-priority small,
+.v2-page .deep-observable-scenes article > span,
+.v2-page .deep-backfire-list article > span,
+.v2-page .deep-strategy-steps article > span,
+.v2-page .deep-strategy-steps article small,
+.v2-page .deep-week-check {
+  color: var(--saju-primary-deep);
+  font-family: var(--saju-font-sans);
+}
+.v2-page .deep-partner-grid h3,
+.v2-page .deep-strategy-signals h3,
+.v2-page .deep-conversation-grid h3,
+.v2-page .deep-observable-scenes h4,
+.v2-page .deep-backfire-list h4,
+.v2-page .deep-strategy-steps h3,
+.v2-page .deep-leverage-top3 article h3,
+.v2-page .deep-strategy-priority strong {
+  color: var(--saju-ink);
+  font-family: var(--saju-font-sans);
+}
+.v2-page .deep-observable-scenes p,
+.v2-page .deep-backfire-list p,
+.v2-page .deep-strategy-steps p,
+.v2-page .deep-conversation-grid p,
+.v2-page .deep-partner-grid p,
+.v2-page .deep-strategy-signals li {
+  color: var(--saju-ink-soft);
+}
+.v2-page .deep-observable-scenes p strong,
+.v2-page .deep-conversation-grid p strong,
+.v2-page .deep-leverage-top3 article strong {
+  color: var(--saju-ink);
+}
+.v2-page .deep-strategy-priority {
+  border-left-color: var(--saju-accent);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--saju-accent) 16%, var(--saju-bg-card)),
+    color-mix(in srgb, var(--saju-primary) 12%, var(--saju-bg-card)));
+}
+.v2-page .deep-strategy-steps article:nth-child(2n) {
+  background: color-mix(in srgb, var(--saju-primary) 8%, var(--saju-bg-card));
+}
+.v2-page .deep-strategy-signals article:first-child {
+  background: color-mix(in srgb, var(--saju-mint) 12%, var(--saju-bg-card));
+}
+.v2-page .deep-strategy-signals article:last-child {
+  background: color-mix(in srgb, var(--saju-blush) 12%, var(--saju-bg-card));
+}

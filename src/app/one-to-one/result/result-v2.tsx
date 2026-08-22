@@ -35,6 +35,7 @@ import ReportChaptersB from "./report-v2-chapters-b";
 import { CompatibilityShareCard } from "./compatibility-share-card";
 import { buildCompatibilityShareArchetype } from "@/lib/narrative/compatibility-share-card";
 import { getDayPillarCharacter } from "@/lib/narrative/day-pillar-characters";
+import { normalizeStoredPaidReportForDisplay } from "@/lib/narrative/stored-report-compat";
 import { DayPillarCharacterCard } from "./day-pillar-character-card";
 
 const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
@@ -417,6 +418,7 @@ export default function ResultV2() {
   const shareArchetype = buildCompatibilityShareArchetype(snapshot);
   const personACharacter = getDayPillarCharacter(facts.A.pillars.day.korean);
   const personBCharacter = getDayPillarCharacter(facts.B.pillars.day.korean);
+  const displayContent = normalizeStoredPaidReportForDisplay(content, facts);
   return <main className="v2-page">
     <div className="v2-reading-progress" role="progressbar" aria-label="리포트 읽기 진행률" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readingProgress}>
       <span style={{ width: `${readingProgress}%` }} />
@@ -426,8 +428,8 @@ export default function ResultV2() {
     <header className="v2-hero">
       <p className="v2-kicker">{relationshipLabel}{coworkerHierarchyLabel ? ` · ${coworkerHierarchyLabel}` : ""} 궁합 리포트</p>
       <h1>{personA.displayName} <span>×</span> {personB.displayName}</h1>
-      <h2>{content.overview.headline}</h2>
-      <Paragraph>{content.overview.detailedSummary}</Paragraph>
+      <h2>{displayContent.overview.headline}</h2>
+      <Paragraph>{displayContent.overview.detailedSummary}</Paragraph>
       <div className="v2-pair-type">
         <small>두 사람의 궁합 유형</small>
         <strong>{shareArchetype.label}</strong>
@@ -469,9 +471,9 @@ export default function ResultV2() {
     </section>}
 
 
-    <ReportChaptersA content={content} personAName={personA.displayName} personBName={personB.displayName} />
+    <ReportChaptersA content={displayContent} personAName={personA.displayName} personBName={personB.displayName} />
     <ReportChaptersB
-      content={content}
+      content={displayContent}
       personAName={personA.displayName}
       personBName={personB.displayName}
       relationshipLabel={relationshipLabel}

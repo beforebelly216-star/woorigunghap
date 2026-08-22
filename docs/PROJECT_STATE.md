@@ -168,3 +168,12 @@
 - 모바일 결제 고정 CTA는 iOS `safe-area-inset-bottom`까지 포함해 본문 하단 여백을 확보하고, 390px 이하 결제 예고 카드 패딩을 줄였다.
 - `test:report:p5-ui`에 360/390/430 모바일 safeguard 계약을 추가했다. Core validation #535에서 전체 회귀·lint·production build가 통과했다.
 - 최신 P5 Preview/Production은 Vercel Hobby 일일 build rate limit 때문에 생성되지 않아 실제 360/390/430px 육안 확인은 아직 미완료다.
+
+
+## 2026-08-22 기존 저장본 일주 표시 + P5 누락 UI hotfix
+
+- 사용자 실사용 스크린샷에서 P1 이전 저장 리포트의 `서버 계산상 일주 미확인` 문장이 재열람 시 계속 노출되는 문제를 확인했다. 신규 생성 경로는 이미 해당 내부 표현을 critical로 차단했지만, 기존 구매 결과는 재생성하지 않는 정책 때문에 과거 문장이 그대로 남아 있던 것이 원인이었다.
+- 기존 구매 결과는 AI 재호출/재결제 없이 `facts.A/B.pillars.day`의 확정 일주로 표시 시점에만 결정론적으로 교정한다. 저장 원문/점수/계산 snapshot은 덮어쓰지 않는다.
+- 신규 INTRO에는 `INTRO_DAY_PILLAR_UNKNOWN_EXPOSED` critical gate를 추가해 `일주 미확인` 문구 자체를 저장 전에 차단한다.
+- `deep-report.css`의 STEP/PROGRESS/STOP, 관찰 장면, 대화 카드 등 P5에서 빠졌던 레거시 블록을 파스텔 토큰 기반으로 전면 override해 라이트/다크 모두에서 혼합 스타일과 저대비 텍스트가 나오지 않게 했다.
+- 홈 화면을 P5 파스텔/사주소년 디자인 시스템으로 전환했다. 1:1·1:N 상품 범위와 가격은 변경하지 않았다.
