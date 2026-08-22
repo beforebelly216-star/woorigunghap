@@ -34,8 +34,6 @@ import ReportChaptersA from "./report-v2-chapters-a";
 import ReportChaptersB from "./report-v2-chapters-b";
 import { CompatibilityShareCard } from "./compatibility-share-card";
 import { buildCompatibilityShareArchetype } from "@/lib/narrative/compatibility-share-card";
-import { CompatibilityShareCard } from "./compatibility-share-card";
-import { buildCompatibilityShareArchetype } from "@/lib/narrative/compatibility-share-card";
 
 const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
   dayMaster: "일간 상성", dayBranch: "일지 상성", usefulGodFit: "필요한 기운 보완",
@@ -398,7 +396,6 @@ export default function ResultV2() {
     ? COWORKER_HIERARCHY_LABELS[order.inputSnapshot.coworkerHierarchy]
     : null;
   const shareArchetype = buildCompatibilityShareArchetype(snapshot);
-  const shareArchetype = buildCompatibilityShareArchetype(snapshot);
   return <main className="v2-page"><div className="v2-shell">
     <header className="v2-hero">
       <p className="v2-kicker">{relationshipLabel}{coworkerHierarchyLabel ? ` · ${coworkerHierarchyLabel}` : ""} 궁합 리포트</p>
@@ -421,14 +418,6 @@ export default function ResultV2() {
       <div className="v2-section-title"><small>COMPATIBILITY SCORE</small><h2>핵심 궁합 지표</h2><p>점수는 해설의 근거 강도를 보여주는 참고값입니다. 본문에서 실제 관계에서 어떤 의미인지 자세히 설명합니다.</p></div>
       <div className="v2-score-grid">{visibleDimensions.map(([dimension, value]) => <div key={dimension}><span>{DIMENSION_LABELS[dimension]}</span><strong>{Math.round(value.normalizedScore)}</strong><i><b style={{ width: `${Math.min(100, Math.max(0, value.normalizedScore))}%` }} /></i></div>)}</div>
     </section>
-
-    <CompatibilityShareCard
-      selfName={personA.displayName}
-      partnerName={personB.displayName}
-      relationshipLabel={relationshipLabel}
-      score={snapshot.score}
-      archetype={shareArchetype}
-    />
 
     <CompatibilityShareCard
       selfName={personA.displayName}
