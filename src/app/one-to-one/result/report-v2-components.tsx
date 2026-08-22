@@ -1,7 +1,6 @@
 import type { FiveElement } from "@/lib/compatibility/types";
 import type { BasicPersonFacts } from "@/lib/narrative/report-engine-v5";
 import { getDayPillarCharacter } from "@/lib/narrative/day-pillar-characters";
-import { getDayPillarCharacter } from "@/lib/narrative/day-pillar-characters";
 import {
   PARTNER_INFORMATION_LEVEL_COPY,
   partnerInformationLevelFromFacts,
