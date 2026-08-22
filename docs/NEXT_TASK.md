@@ -72,6 +72,8 @@
 ## Post-beta 운영 QA
 
 - [ ] 360 / 390 / 430px 모바일 핵심 플로우 확인
+  - [x] 코드/계약 QA: 360px 9:16 공유 카드 세로 fit, 결과 화면 horizontal overflow, 읽기 진행 마커 양끝 잘림, iOS safe-area 고정 결제 CTA 여백 보강.
+  - [ ] 최신 P5 배포본을 실제 360 / 390 / 430px 뷰포트에서 육안 확인. 현재 Vercel Hobby 일일 build rate limit으로 최신 Preview/Production 생성이 막혀 있음.
 - [ ] 1:1 실제 결제 반복 사용
 - [ ] 1:N 실제 결제 반복 사용
 - [ ] 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
@@ -102,10 +104,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: P5 — 1:1 리포트 파스텔 마스코트 UI/UX 개편
-- Status: complete
-- Validation: test:report:p5-ui + 기존 1:1 P1~P4 계약 + Core validation + lint + production build
-- Commit: clean PR 검증 후 main squash merge SHA 기준
-- Remaining: 360/390/430px 모바일 핵심 플로우 QA; 외부 SOLAPI/Kakao 실제 발송 설정
-- Risk: UI/표현 계층만 변경; 계산·점수·결제 검증·저장 schema 불변. 실제 통계 없는 일주 희귀도는 표시하지 않음
+- Task: P5 360/390/430px 모바일 코드/계약 QA hotfix
+- Status: partial
+- Validation: Core validation #535 PASS; test:report:p5-ui 포함, lint PASS, production build PASS
+- Commit: PR #27 검증 후 main squash merge SHA 기준
+- Remaining: Vercel build limit 해제 후 최신 P5를 360/390/430px 실제 뷰포트로 육안 확인; 외부 SOLAPI/Kakao 실제 발송 설정
+- Risk: 최신 P5 Preview/Production이 Vercel Hobby 일일 build rate limit으로 생성되지 않아 이번 턴의 모바일 QA는 코드/계약 수준까지 완료
 ```
