@@ -25,9 +25,10 @@ jobs:
       - name: Apply P4-3 integration once
         run: |
           node .github/scripts/gpt-p4-3-day-pillar-characters.mjs
+          git checkout -- .github/workflows/manse-validation.yml
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add src scripts package.json .github/workflows/manse-validation.yml docs
+          git add src scripts package.json docs
           if ! git diff --cached --quiet; then
             git commit -m "feat: connect 60 day-pillar characters to paid report"
             git push origin HEAD:gpt/p4-3-day-pillar-characters-20260822
