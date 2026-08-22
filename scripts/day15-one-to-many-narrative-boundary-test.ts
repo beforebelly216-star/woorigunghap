@@ -79,6 +79,9 @@ assert.match(engineSource, /첫 번째\/두 번째\/세 번째 후보/);
 assert.match(engineSource, /강점 1\/2\/3/);
 assert.match(engineSource, /ONE_TO_MANY_REPORT_FAILED_MODE_NOT_ANTHROPIC/);
 assert.match(engineSource, /ONE_TO_MANY_REPORT_PROMPT_VERSION/);
-assert.equal(ONE_TO_MANY_REPORT_PROMPT_VERSION, "one-to-many-report-v2-semantic-titles");
+assert.match(engineSource, /연락 빈도·답장 속도/);
+assert.match(engineSource, /갈등 뒤 회복/);
+assert.match(engineSource, /장기 계획/);
+assert.equal(ONE_TO_MANY_REPORT_PROMPT_VERSION, "one-to-many-report-v3-direct-relationship-language");
 
 console.log("Day 15 one-to-many AI narrative boundary checks: PASS");

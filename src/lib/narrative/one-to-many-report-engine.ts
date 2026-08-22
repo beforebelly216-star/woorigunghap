@@ -16,19 +16,19 @@ import {
   requestStructuredSegment,
 } from "@/lib/narrative/report-engine-v6-request";
 
-export const ONE_TO_MANY_REPORT_PROMPT_VERSION = "one-to-many-report-v2-semantic-titles" as const;
+export const ONE_TO_MANY_REPORT_PROMPT_VERSION = "one-to-many-report-v3-direct-relationship-language" as const;
 export const ONE_TO_MANY_REPORT_PAYLOAD_VERSION = "one-to-many-evidence-v1" as const;
 
 const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
-  dayMaster: "기본 기운의 호흡",
-  dayBranch: "생활·정서 리듬",
-  usefulGodFit: "필요한 기운의 보완",
-  elementComplementarity: "오행 상보성",
-  heavenlyStemInteraction: "천간의 결속과 긴장",
-  earthlyBranchInteraction: "지지의 결속과 마찰",
-  specialStars: "귀인 신호",
-  spouseStarRealization: "관계 역할의 맞물림",
-  luckCycleAlignment: "대운 동조",
+  dayMaster: "대화 템포",
+  dayBranch: "생활 리듬",
+  usefulGodFit: "편안함·회복",
+  elementComplementarity: "역할 보완",
+  heavenlyStemInteraction: "연락·표현 호흡",
+  earthlyBranchInteraction: "생활 속 갈등",
+  specialStars: "도움·신뢰",
+  spouseStarRealization: "애정 표현·관계 역할",
+  luckCycleAlignment: "장기관계 방향",
 };
 
 const STRING_ARRAY = { type: "array", items: { type: "string" } } as const;
@@ -273,7 +273,9 @@ const BASE_RULES = [
   "gapBand가 EQUIVALENT이거나 uncertaintyRangesOverlapLeader가 true이면 절대적 우열·확정적 1등이라는 표현을 금지하세요. decisiveWordingAllowed가 false인 후보도 우열을 단정하지 마세요.",
   "동점 그룹에는 동점 사실을 명확히 쓰고, 점수가 비슷해도 상황별 강점이 다름을 설명하세요. '누가 더 좋은 사람'이라는 표현은 금지합니다.",
   "WEAK, STRONG, confidence, scenario, gapBand 같은 내부 용어를 출력하지 말고 쉬운 한국어로 바꾸세요.",
-  "사주 용어를 쓰면 바로 쉬운 의미를 덧붙이고, 일반론만 반복하지 마세요. 각 후보의 강점·주의점·팁은 입력된 차이를 최소 하나 반영해야 합니다.",
+  "사용자가 바로 떠올릴 수 있는 생활 장면을 먼저 쓰세요. 연락 빈도·답장 속도·대화 방식·약속·생활 습관·서운함과 갈등 뒤 회복·신뢰·역할 분담·장기 계획 중 관련된 장면을 최소 하나 포함하세요.",
+  "기운의 호흡, 오행 상보성, 천간의 결속, 지지의 마찰, 대운 동조 같은 추상 명리 표현을 결론으로 그대로 내놓지 마세요. 필요한 경우 뒤에서 근거로 짧게 설명하고, 앞문장은 연락·갈등·신뢰·생활·장기관계 같은 일상 언어로 번역하세요.",
+  "각 후보의 강점·주의점·팁은 입력된 차이를 최소 하나 반영하고, 사용자가 실제로 할 수 있는 확인 행동까지 이어지게 쓰세요.",
   "상황별 추천의 candidateIds는 서버가 확정한다. 배열의 후보를 추가·삭제·재정렬하지 말고, 공동 추천이면 모두를 같은 비중으로 설명하세요.",
   "상황별 추천은 한 사람의 절대적 승자를 선언하는 곳이 아닙니다. 각 상황에서 상대적으로 잘 맞을 수 있는 이유와 확인할 행동 기준을 함께 쓰세요.",
 ].join("\n");
@@ -303,7 +305,7 @@ export async function generateOneToManyNarrative(
       label: "ONE_TO_MANY",
       validate: (value) => validNarrative(value, expectedCandidateIds, evidence.situationalRecommendations),
       qualityIssues: narrativeQualityIssues,
-      system: `${BASE_RULES}\n\n[출력 구성]\n- rankingSummary.headline: 첫 화면에서 읽히는 비교 결론 1~2문장.\n- rankingSummary.summary: 공동 순위, 점수 차이, 근거가 되는 비교 축을 포함한 3~4문장.\n- rankingSummary.closenessNotice: 근소 차이·불확실성 범위가 있을 때 읽는 방법 2~3문장.\n- candidates: 모든 후보를 한 번씩 반드시 쓰세요. oneLine은 한 줄, strengths는 최소 2개, cautions는 최소 1개, practicalTip은 한 번에 실행할 수 있는 행동 한 가지입니다.\n- situationalRecommendations: 소통·정서 안정·장기 지속·갈등 관리·관계 목적별로 서버가 준 candidateIds를 그대로 복사하고, 공동 추천이면 모든 후보가 해당되는 이유와 확인 행동을 2~3문장으로 쓰세요.\n- finalSummary: 누가 절대적으로 더 낫다는 말 없이 기준 인물이 비교 결과를 관계 선택과 대화에 활용하는 방법을 3~4문장으로 마무리하세요.`,
+      system: `${BASE_RULES}\n\n[출력 구성]\n- rankingSummary.headline: 첫 화면에서 읽히는 비교 결론 1~2문장.\n- rankingSummary.summary: 공동 순위, 점수 차이, 근거가 되는 비교 축을 포함한 3~4문장.\n- rankingSummary.closenessNotice: 근소 차이·불확실성 범위가 있을 때 읽는 방법 2~3문장.\n- candidates: 모든 후보를 한 번씩 반드시 쓰세요. oneLine은 한 줄, strengths는 최소 2개, cautions는 최소 1개, practicalTip은 한 번에 실행할 수 있는 행동 한 가지입니다.\n- situationalRecommendations: 연락·대화, 편안함·신뢰, 생활·장기관계, 갈등 회복, 관계 목적별로 서버가 준 candidateIds를 그대로 복사하고, 공동 추천이면 모든 후보가 해당되는 현실 장면과 확인 행동을 2~3문장으로 쓰세요.\n- finalSummary: 누가 절대적으로 더 낫다는 말 없이 기준 인물이 비교 결과를 관계 선택과 대화에 활용하는 방법을 3~4문장으로 마무리하세요.`,
       user: `아래는 익명화된 서버 계산 근거입니다. 이 정보만 사용해 1:N 비교 리포트를 작성하세요.\n${payloadText}`,
     });
     const usage = combineAnthropicUsage(generated.allUsage);

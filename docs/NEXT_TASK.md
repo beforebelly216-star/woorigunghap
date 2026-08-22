@@ -61,7 +61,7 @@
   - [x] P4-2: 기존 계산 snapshot으로 6개 궁합 유형을 결정론적으로 분류하고 9:16 공유 카드 + Web Share/복사 fallback 구현. 유료 결과 URL/accessToken은 공유하지 않음.
   - [x] P4-3: 60갑자 전체 캐릭터 체계 + 결과 UI + AI 보조 편집 payload 연결. 캐릭터는 계산값을 덮어쓰지 않는 보조 렌즈로 제한.
   - [x] 후속: 1:N 순번형 설명을 후보 이름/의미형 제목으로 변경. 후보 상세은 이름 + 계산 강점 기반 제목, 강점/조율 라벨은 실제 차원명 사용.
-  - [ ] 후속: 1:N 추상 표현을 연락·갈등·신뢰·생활·장기관계 등 직관적 언어로 변경.
+  - [x] 후속: 1:N 추상 표현을 연락·갈등·신뢰·생활·장기관계 중심의 직관적 언어로 변경. 계산 키/점수는 유지하고 사용자 라벨·기본 카피·AI 프롬프트만 개선.
 
 ## 사용자 실사용으로 확인할 항목
 
@@ -101,10 +101,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 1:N 순번형 설명 → 후보 이름/의미형 제목 개선
+- Task: 1:N 추상 표현 → 연락·갈등·신뢰·생활·장기관계 중심 직관적 언어 개선
 - Status: complete
-- Validation: day15 1:N narrative/result UI contracts + Core validation + lint + production build
+- Validation: day15 1:N narrative/result UI + day16 paid E2E + Core validation + lint + production build
 - Commit: clean PR 검증 후 main squash merge SHA 기준
-- Remaining: 1:N 추상 표현을 연락·갈등·신뢰·생활·장기관계 중심의 직관적 언어로 개선; 외부 SOLAPI/Kakao 설정은 운영 작업으로 유지
-- Risk: 전체 순위의 1위/2위 표시는 핵심 비교 기능이라 유지; 기존 저장 narrative 배열 schema는 변경하지 않음
+- Remaining: 외부 SOLAPI/Kakao 설정은 운영 작업으로 유지; 코드 측 다음 실행 가능 항목은 360/390/430px 모바일 핵심 플로우 QA
+- Risk: 사용자 라벨/카피/AI 편집 규칙만 변경; 1:N 계산 키·점수·순위·저장 schema·결제 구조는 변경 없음
 ```

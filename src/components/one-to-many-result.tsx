@@ -49,8 +49,8 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
         <section className="comparison-section" aria-labelledby="summary-metrics-title">
           <div className="comparison-section-heading">
             <p className="card-label">쉬운 비교</p>
-            <h2 id="summary-metrics-title">관계에서 체감할 핵심 지표</h2>
-            <p>명리 9개 항목을 관계에서 이해하기 쉬운 6개 관점으로 묶었어요.</p>
+            <h2 id="summary-metrics-title">연락부터 장기관계까지 한눈에</h2>
+            <p>연락·대화, 편안함·신뢰, 갈등 회복, 생활·장기관계를 같은 기준으로 비교했어요.</p>
           </div>
           <div className="summary-metric-list">
             {view.summaryMetrics.map((metric) => (
@@ -80,7 +80,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
         <section className="comparison-section" aria-labelledby="situations-title">
           <div className="comparison-section-heading">
             <p className="card-label">상황별 추천</p>
-            <h2 id="situations-title">한 명의 승자보다, 상황에 맞는 관계</h2>
+            <h2 id="situations-title">연락·갈등·장기관계, 누구와 더 편한가</h2>
             <p>차이가 2점 이내이거나 출생시간 변수의 범위가 겹치면 공동 추천으로 표시해요.</p>
           </div>
           <div className="situation-grid">
@@ -100,8 +100,8 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
         <section className="comparison-section" aria-labelledby="candidate-insights-title">
           <div className="comparison-section-heading">
             <p className="card-label">후보별 해석</p>
-            <h2 id="candidate-insights-title">잘 맞는 지점과 조율할 지점</h2>
-            <p>각 후보의 상대적 강점과 주의점을 실제 행동으로 연결했어요.</p>
+            <h2 id="candidate-insights-title">실제 관계에서 잘 맞는 장면과 부딪힐 장면</h2>
+            <p>연락, 약속, 생활 습관, 갈등 뒤 대화처럼 실제로 겪을 장면으로 풀었어요.</p>
           </div>
           <div className="candidate-insight-list">
             {view.candidateInsights.map((candidate, index) => (
@@ -145,13 +145,13 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
             <summary>
               <span>
                 <small className="card-label">분석 근거</small>
-                <strong id="detail-score-title">명리 9개 항목 상세 점수</strong>
+                <strong id="detail-score-title">관계 9개 기준 상세 점수</strong>
               </span>
               <b>펼쳐보기</b>
             </summary>
             <div className="detail-table-scroll" tabIndex={0} aria-label="명리 9개 항목 비교표, 좌우로 스크롤 가능">
               <table className="detail-score-table">
-                <caption>후보별 명리 9개 항목 정규화 점수</caption>
+                <caption>후보별 연락·생활·갈등·신뢰·장기관계 관련 9개 기준 점수</caption>
                 <thead>
                   <tr>
                     <th scope="col">항목</th>

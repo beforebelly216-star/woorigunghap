@@ -45,6 +45,10 @@ assert.equal(view.recommendations.length, 5);
 assert.deepEqual(view.rankings.map((candidate) => candidate.displayName).sort(), ["도윤", "민서", "하린"]);
 assert.equal(view.rankings.some((candidate) => candidate.uncertaintyRange.width > 0), true);
 assert.equal(view.recommendations.some((recommendation) => recommendation.shared), true);
+assert.deepEqual(view.summaryMetrics.slice(0, 5).map((metric) => metric.label), ["전체 관계 궁합", "연락·대화", "편안함·신뢰", "갈등 회복", "생활·장기관계"]);
+for (const oldLabel of ["기본 기운의 호흡", "오행 상보성", "천간의 결속과 긴장", "지지의 결속과 마찰", "대운 동조"]) {
+  assert.equal(JSON.stringify(view).includes(oldLabel), false, `사용자 뷰에 추상 명리 라벨이 남으면 안 됩니다: ${oldLabel}`);
+}
 for (const candidate of semanticView.candidateInsights) {
   assert.ok(candidate.insightTitle.includes("관계"));
   assert.ok(!/^(강점|조율) \d+$/.test(candidate.insightTitle));
@@ -73,6 +77,9 @@ const demoSource = readFileSync("src/app/one-to-many/result/demo/page.tsx", "utf
 const errorSource = readFileSync("src/app/one-to-many/result/demo/error.tsx", "utf8");
 const formSource = readFileSync("src/components/one-to-many-form.tsx", "utf8");
 assert.match(resultSource, /한눈에 보는 순위/);
+assert.match(resultSource, /연락부터 장기관계까지 한눈에/);
+assert.match(resultSource, /실제 관계에서 잘 맞는 장면과 부딪힐 장면/);
+assert.match(resultSource, /관계 9개 기준 상세 점수/);
 assert.match(resultSource, /공동 추천/);
 assert.match(resultSource, /명리 9개 항목 상세 점수/);
 assert.match(resultSource, /<details/);
