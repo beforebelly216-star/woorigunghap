@@ -108,6 +108,37 @@ export function BulletList({ items }: { items: string[] }) {
   return <ul className="v2-bullets">{items.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul>;
 }
 
+const SAJU_BOY_CHAPTER_LINES: Record<number, string> = {
+  0: "첫 장부터 단서가 보여요. 둘 사이의 전체 그림부터 잡아볼게요.",
+  1: "각자 어떤 방식으로 움직이는지 알면, 관계의 절반은 이미 읽은 셈이에요.",
+  2: "여긴 좀 중요해요. 상대가 관계에서 보이는 반응을 가까이 들여다볼게요.",
+  3: "둘이 붙었을 때 생기는 케미는 혼자 있을 때와 전혀 다를 수 있어요.",
+  4: "좋을 때보다 어긋날 때 패턴을 보면 이 관계의 진짜 사용법이 보여요.",
+  5: "누가 먼저 움직이고 누가 기다리는지, 관계의 리듬을 확인해볼 차례예요.",
+  6: "오래 가는 관계는 우연보다 반복되는 습관에서 갈려요.",
+  7: "갈등은 피하는 것보다 회복하는 방식이 더 중요해요.",
+  8: "이제 실제 행동으로 옮길 차례예요. 써먹을 수 있는 것만 남겨볼게요.",
+  9: "마지막 장이에요. 앞의 단서를 한 번에 쓸 수 있게 정리해둘게요.",
+};
+
+function SajuBoyBubble({ chapter }: { chapter: number }) {
+  const line = SAJU_BOY_CHAPTER_LINES[chapter] ?? "관계의 다음 단서를 같이 읽어볼게요.";
+  return <aside className="v2-saju-boy-bubble" aria-label="사주소년 용한의 코멘트">
+    <div className="v2-saju-boy-avatar" aria-hidden="true">
+      <svg viewBox="0 0 72 72">
+        <circle cx="36" cy="36" r="31" className="boy-face" />
+        <path d="M18 29c4-13 31-16 38 0-9-3-12-8-18-7-7 0-11 5-20 7Z" className="boy-hair" />
+        <circle cx="27" cy="37" r="8" className="boy-glass" />
+        <circle cx="45" cy="37" r="8" className="boy-glass" />
+        <path d="M35 37h2" className="boy-bridge" />
+        <path d="M30 50c4 3 8 3 12 0" className="boy-smile" />
+        <path d="M18 61c5-8 31-8 36 0" className="boy-robe" />
+      </svg>
+    </div>
+    <div><small>사주소년 용한</small><p>{line}</p></div>
+  </aside>;
+}
+
 export function Chapter({
   index,
   eyebrow,
@@ -129,6 +160,7 @@ export function Chapter({
       <span>CH{index}</span>
       <div><small>{eyebrow}</small><h2>{title}</h2>{intro ? <p>{intro}</p> : null}</div>
     </div>
+    <SajuBoyBubble chapter={index} />
     <div className="day19-chapter-body">{children}</div>
     {summaryItems.length > 0 ? <div className="day19-summary" aria-label={`${title} 핵심 요약`}>
       <strong>이 장의 핵심</strong>
