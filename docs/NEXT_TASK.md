@@ -58,7 +58,7 @@
   - [x] P3: 개인정보 원문을 늘리지 않고 이미 계산된 일주/일간, 오행 균형, 합충·상호작용 등 근거를 AI payload에 더 제공.
   - [x] P4-1 hotfix: 유료 1:1 화자를 '사주소년'으로 교정. 마법학교 소년 탐험가의 신비감/호기심을 쓰되 특정 작품 요소는 직접 모사하지 않고 관계 유형별 미세 톤을 유지.
   - [x] P4-1: CH2 상단 '그 사람의 속마음' 히어로 추가. 실제 내면 단정이 아닌 계산 기반 1인칭 가상 독백으로 제한하고 기존 저장 리포트 호환 유지.
-  - [ ] P4-2: 궁합 유형/공유 카드 구조를 작은 단위로 구현.
+  - [x] P4-2: 기존 계산 snapshot으로 6개 궁합 유형을 결정론적으로 분류하고 9:16 공유 카드 + Web Share/복사 fallback 구현. 유료 결과 URL/accessToken은 공유하지 않음.
   - [ ] P4-3: 60일주 캐릭터 체계와 리포트 연결 규칙 구현.
   - [ ] 후속: 1:N 순번형 설명을 후보 이름/의미형 제목으로 변경.
   - [ ] 후속: 1:N 추상 표현을 연락·갈등·신뢰·생활·장기관계 등 직관적 언어로 변경.
@@ -101,10 +101,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: P4-1 hotfix — 화자 페르소나를 '사주소년' 마법학교 탐험가 감성으로 교정
+- Task: P4-2 — 결정론적 궁합 유형 + 9:16 공유 카드 + 안전한 공유 동작
 - Status: complete
-- Validation: test:report:persona + 기존 P1~P4 회귀 + Core validation + lint + production build
+- Validation: test:report:share-card + 기존 P1~P4 회귀 + Core validation + lint + production build
 - Commit: clean PR 검증 후 main squash merge SHA 기준
-- Remaining: P4-2 궁합 유형/공유 카드 → P4-3 60일주 캐릭터; 1:N 서술 개선은 hotfix 후속 유지
-- Risk: 특정 작품 고유명사/인물/주문/대사 직접 모사 금지; 계산·결제·저장 구조 변경 없음
+- Remaining: P4-3 60일주 캐릭터 체계/리포트 연결 → 1:N 서술 개선 후속
+- Risk: 공유 기능은 현재 유료 결과 URL/accessToken을 절대 공유하지 않고 우리사주 홈만 공유; 생년월일시·유료 장문 본문도 카드에서 제외
 ```
