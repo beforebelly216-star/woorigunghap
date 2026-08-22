@@ -114,8 +114,8 @@ HANDOFF
 - Worker: GPT
 - Task: 보관함 완성 결과 개별 삭제 + 궁합 공개 점수 45~100 상향 보정 + 점수 구간 설명
 - Status: complete
-- Validation: test:compatibility:engine + test:day18:account-report-library + test:day15:one-to-many-result-ui + test:report:p5-ui + lint + production build + PR Core validation 예정
-- Commit: PR #29 검증 후 main squash merge SHA 기준
+- Validation: test:compatibility:engine + test:day18:account-report-library + test:day15:one-to-many-result-ui + test:report:p5-ui + lint + production build + Core validation #572 success
+- Commit: PR #29 clean head 019ca074fd248c1589c609ead7131115dbf8817e; main은 squash merge SHA 기준
 - Remaining: Production에서 실제 계정 보관함 삭제 1회 확인; 1:1/1:N 실결제에서 새 점수 분포 관찰; 360/390/430 실제 뷰포트 육안 QA; 외부 SOLAPI/Kakao 발송 설정
 - Risk: 공개 종합점수만 상향 보정하며 raw 9차원 계산/AI 경계는 유지. 삭제 시 상세 데이터는 복구 불가하며 법정 의무 최소 결제기록은 유지.
 ```
