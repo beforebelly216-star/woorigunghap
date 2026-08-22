@@ -7,18 +7,18 @@ import {
 import type { CompatibilityDimension, CompatibilityProfile } from "./types";
 import type { OneToManyNarrativeContent } from "@/lib/narrative/one-to-many-report-engine";
 
-export const ONE_TO_MANY_VIEW_VERSION = "one-to-many-view-v1.1.0" as const;
+export const ONE_TO_MANY_VIEW_VERSION = "one-to-many-view-v1.2.0" as const;
 
 export const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
-  dayMaster: "기본 기운의 호흡",
-  dayBranch: "생활·정서 리듬",
-  usefulGodFit: "필요한 기운의 보완",
-  elementComplementarity: "오행 상보성",
-  heavenlyStemInteraction: "천간의 결속과 긴장",
-  earthlyBranchInteraction: "지지의 결속과 마찰",
-  specialStars: "귀인 신호",
-  spouseStarRealization: "관계 역할의 맞물림",
-  luckCycleAlignment: "대운 동조",
+  dayMaster: "대화 템포",
+  dayBranch: "생활 리듬",
+  usefulGodFit: "편안함·회복",
+  elementComplementarity: "역할 보완",
+  heavenlyStemInteraction: "연락·표현 호흡",
+  earthlyBranchInteraction: "생활 속 갈등",
+  specialStars: "도움·신뢰",
+  spouseStarRealization: "애정 표현·관계 역할",
+  luckCycleAlignment: "장기관계 방향",
 };
 
 const DIMENSION_GUIDES: Record<CompatibilityDimension, {
@@ -27,49 +27,49 @@ const DIMENSION_GUIDES: Record<CompatibilityDimension, {
   action: string;
 }> = {
   dayMaster: {
-    strength: "서로의 기본 반응 방식이 비교적 자연스럽게 이어져요.",
-    caution: "판단 기준이 다르게 느껴질 때 결론부터 단정하지 않는 편이 좋아요.",
-    action: "중요한 선택 전에는 각자 우선순위를 한 문장씩 먼저 말해 보세요.",
+    strength: "대화할 때 반응 속도와 결론을 내리는 방식이 자연스럽게 이어져요.",
+    caution: "의견이 갈릴 때 서로 결론을 재촉하면 말이 짧아지고 오해가 커질 수 있어요.",
+    action: "중요한 선택 전에는 각자 가장 중요한 기준을 한 문장씩 먼저 말해 보세요.",
   },
   dayBranch: {
-    strength: "가까워진 뒤의 생활 리듬과 정서적 반응이 잘 맞는 편이에요.",
-    caution: "편안함을 당연하게 여기면 작은 서운함이 뒤늦게 커질 수 있어요.",
-    action: "일상에서 편했던 순간과 불편했던 순간을 구체적으로 나눠 보세요.",
+    strength: "연락 간격, 약속 시간, 쉬는 방식 같은 생활 리듬을 맞추기 쉬운 편이에요.",
+    caution: "연락이나 약속의 작은 차이를 오래 참으면 뒤늦게 서운함이 커질 수 있어요.",
+    action: "연락 빈도와 약속에서 꼭 지켜줬으면 하는 기준을 하나씩 말해 보세요.",
   },
   usefulGodFit: {
-    strength: "서로에게 필요한 기운을 보완하는 방향이 비교적 선명해요.",
-    caution: "도움을 주는 방식이 상대에게는 간섭처럼 느껴질 수 있어요.",
-    action: "도움이 필요할 때 원하는 방식부터 서로 확인해 보세요.",
+    strength: "한쪽이 지치거나 예민할 때 다른 쪽이 분위기를 안정시키는 역할을 하기 쉬워요.",
+    caution: "챙겨주는 행동도 상대가 원하지 않을 때는 간섭처럼 느껴질 수 있어요.",
+    action: "힘들 때 듣고 싶은 말과 받고 싶은 도움을 서로 먼저 물어보세요.",
   },
   elementComplementarity: {
-    strength: "서로 다른 장점이 한쪽으로 치우치지 않게 균형을 만들어 줘요.",
-    caution: "차이를 장점이 아니라 성격 결함으로 해석하지 않도록 주의하세요.",
-    action: "각자 잘하는 역할을 나누고 결과 기준을 미리 합의해 보세요.",
+    strength: "역할을 나눌 때 서로 다른 장점을 맡아 빈틈을 메우기 쉬워요.",
+    caution: "잘하는 방식이 다르다는 이유로 상대의 방식을 틀렸다고 판단하지 않는 게 중요해요.",
+    action: "함께 할 일이 생기면 누가 무엇을 맡을지와 완료 기준을 먼저 정해 보세요.",
   },
   heavenlyStemInteraction: {
-    strength: "겉으로 드러나는 의사 표현과 관계의 추진력이 잘 이어져요.",
-    caution: "표현 속도나 말투 차이가 생기면 의도보다 태도가 먼저 보일 수 있어요.",
-    action: "민감한 대화는 메신저보다 짧은 통화나 대면으로 확인해 보세요.",
+    strength: "연락 빈도, 답장 속도, 감정이나 의견을 표현하는 방식이 잘 맞는 편이에요.",
+    caution: "말투나 답장 속도가 다르면 의도보다 태도를 먼저 문제 삼을 수 있어요.",
+    action: "민감한 이야기는 긴 메신저 대신 짧은 통화나 대면으로 확인해 보세요.",
   },
   earthlyBranchInteraction: {
-    strength: "반복되는 일상 속에서 서로의 습관을 받아들이기 쉬운 편이에요.",
-    caution: "생활 방식의 작은 차이가 누적되면 반복 마찰이 될 수 있어요.",
-    action: "자주 부딪히는 한 가지 상황의 기준을 먼저 정해 보세요.",
+    strength: "약속 시간, 정리 습관, 쉬는 방식 같은 반복되는 생활 장면에서 맞추기 쉬워요.",
+    caution: "생활 습관의 작은 차이를 방치하면 같은 문제로 계속 부딪힐 수 있어요.",
+    action: "자주 부딪히는 생활 장면 하나를 골라 서로 지킬 기준을 정해 보세요.",
   },
   specialStars: {
-    strength: "필요한 순간에 서로를 돕는 계기와 연결 신호가 비교적 좋아요.",
-    caution: "좋은 첫인상이나 우연한 계기만으로 관계 전체를 판단하지 마세요.",
-    action: "실제로 도움을 주고받았던 행동을 기준으로 관계를 살펴보세요.",
+    strength: "힘든 일이 생겼을 때 실제로 도와주거나 믿고 맡길 수 있는 장면이 생기기 쉬워요.",
+    caution: "좋은 첫인상보다 약속을 지키고 실제로 돕는 행동을 더 중요하게 보세요.",
+    action: "최근 서로에게 실제 도움이 됐던 행동 한 가지를 떠올려 보세요.",
   },
   spouseStarRealization: {
-    strength: "연애 관계에서 기대하는 역할과 애정 표현이 맞물리기 쉬워요.",
-    caution: "관계 역할에 대한 기대가 다르면 애정의 크기를 오해할 수 있어요.",
-    action: "연락·데이트·표현 중 가장 중요한 한 가지를 서로 말해 보세요.",
+    strength: "연락, 데이트, 애정 표현, 관계에서 맡는 역할에 대한 기대가 맞물리기 쉬워요.",
+    caution: "표현 방식이 다르면 애정의 크기보다 방식 차이 때문에 서운해질 수 있어요.",
+    action: "연락·데이트·표현 중 나에게 가장 중요한 한 가지를 서로 말해 보세요.",
   },
   luckCycleAlignment: {
-    strength: "관계의 장기적인 방향을 함께 조율할 여지가 있어요.",
-    caution: "현재 점수만으로 미래의 성공이나 시기를 단정할 수는 없어요.",
-    action: "가까운 3개월 동안 함께 지키고 싶은 계획 하나를 정해 보세요.",
+    strength: "생활 변화나 장기 계획을 함께 맞춰 갈 때 방향을 조율하기 쉬운 편이에요.",
+    caution: "지금의 좋은 점수만으로 미래의 관계 결과나 시기를 확정할 수는 없어요.",
+    action: "앞으로 3개월 동안 함께 지키고 싶은 일정이나 계획 하나를 정해 보세요.",
   },
 };
 
@@ -183,9 +183,9 @@ function relationshipPurposeScore(
 }
 
 function purposeCopy(profile: CompatibilityProfile) {
-  if (profile === "romance") return { label: "연애 호흡", description: "끌림과 생활 리듬, 관계 역할의 조화를 함께 봐요." };
-  if (profile === "friend") return { label: "우정의 편안함", description: "기본 호흡과 보완성, 서로 돕는 신호를 함께 봐요." };
-  return { label: "협업 적합도", description: "업무 호흡과 역할 보완, 소통·마찰 신호를 함께 봐요." };
+  if (profile === "romance") return { label: "연애 템포", description: "연락 빈도, 애정 표현, 데이트와 생활 리듬이 얼마나 잘 맞는지 봐요." };
+  if (profile === "friend") return { label: "우정 신뢰", description: "연락 간격, 함께 있을 때의 편안함, 실제로 서로 돕는 힘을 봐요." };
+  return { label: "협업 신뢰", description: "소통 속도, 역할 분담, 의견 충돌 뒤 조율이 얼마나 잘 되는지 봐요." };
 }
 
 export function buildSummaryMetrics(snapshot: OneToManyCalculationSnapshot): SummaryMetricRow[] {
@@ -207,11 +207,11 @@ export function buildSummaryMetrics(snapshot: OneToManyCalculationSnapshot): Sum
   });
   const purpose = purposeCopy(snapshot.profile);
   const definitions: Array<[SummaryMetricId, string, string]> = [
-    ["overall", "종합 궁합", "관계 유형별 9개 항목의 가중 점수를 합산한 결과예요."],
-    ["communication", "소통 궁합", "기본 반응과 겉으로 드러나는 표현의 호흡을 봐요."],
-    ["emotionalStability", "정서 안정", "가까워진 뒤의 리듬과 필요한 기운의 보완을 봐요."],
-    ["conflictManagement", "갈등 관리", "표현의 긴장과 반복 마찰을 조율하기 쉬운지 봐요."],
-    ["longTerm", "지속성", "서로의 균형과 장기 방향을 안정적으로 맞출 여지를 봐요."],
+    ["overall", "전체 관계 궁합", "연락·생활·갈등·신뢰·장기관계를 포함한 9개 기준의 종합 결과예요."],
+    ["communication", "연락·대화", "연락 빈도, 답장 속도, 대화할 때 반응과 표현 방식이 잘 맞는지 봐요."],
+    ["emotionalStability", "편안함·신뢰", "가까워진 뒤 생활 리듬이 편한지, 힘들 때 서로 안정감을 주는지 봐요."],
+    ["conflictManagement", "갈등 회복", "말다툼이나 생활 마찰이 생긴 뒤 다시 대화하고 기준을 맞추기 쉬운지 봐요."],
+    ["longTerm", "생활·장기관계", "생활 습관과 역할을 맞추고 장기 계획을 함께 조율하기 쉬운지 봐요."],
     ["relationshipPurpose", purpose.label, purpose.description],
   ];
 
@@ -300,11 +300,11 @@ function semanticDimensionLabel(
   return dimension ? DIMENSION_LABELS[dimension] : fallback;
 }
 
-function recommendationReason(basis: SituationalRecommendation["basis"]) {
-  if (basis === "SINGLE") return "이 상황의 관련 지표에서 가장 높은 점수를 보였어요.";
-  if (basis === "WITHIN_TWO_POINTS") return "관련 지표 차이가 2점 이내라 한 명으로 단정하지 않았어요.";
-  if (basis === "UNCERTAINTY_OVERLAP") return "출생시간 변수에 따른 점수 범위가 겹쳐 공동으로 보는 편이 안전해요.";
-  return "관련 지표 차이가 작고 출생시간 변수에 따른 범위도 겹쳐 공동으로 추천해요.";
+function recommendationReason(basis: SituationalRecommendation["basis"], label: string) {
+  if (basis === "SINGLE") return `${label} 기준에서 가장 안정적으로 높은 점수를 보였어요.`;
+  if (basis === "WITHIN_TWO_POINTS") return `${label} 점수 차이가 2점 이내라 한 명만 더 낫다고 단정하지 않았어요.`;
+  if (basis === "UNCERTAINTY_OVERLAP") return `${label}에서 출생시간 변수에 따른 점수 범위가 겹쳐 공동 추천으로 봤어요.`;
+  return `${label} 점수 차이가 작고 출생시간 변수에 따른 범위도 겹쳐 공동으로 추천해요.`;
 }
 
 export function buildOneToManyResultView(
@@ -329,7 +329,7 @@ export function buildOneToManyResultView(
     headline: narrative?.rankingSummary.headline ?? (topNames.length > 1
       ? `${topNames.join("·")}님이 종합 공동 1위예요.`
       : `${topNames[0]}님이 종합 점수에서는 가장 앞서요.`),
-    summary: narrative?.rankingSummary.summary ?? `같은 ${RELATIONSHIP_LABELS[snapshot.relationshipType]} 기준으로 ${snapshot.candidateCount}명을 비교했어요. 종합 순위만 보지 않고 소통, 정서 안정, 갈등 관리, 지속성과 관계 목적별 강점을 함께 확인해 보세요.`,
+    summary: narrative?.rankingSummary.summary ?? `같은 ${RELATIONSHIP_LABELS[snapshot.relationshipType]} 기준으로 ${snapshot.candidateCount}명을 비교했어요. 종합 순위뿐 아니라 연락·대화, 편안함·신뢰, 갈등 회복, 생활·장기관계까지 같이 확인해 보세요.`,
     closenessNotice: narrative?.rankingSummary.closenessNotice ?? closenessNotice,
     finalSummary: narrative?.finalSummary ?? "이 비교는 사람의 우열을 정하는 답이 아니라, 각 관계에서 잘 맞는 지점과 확인할 대화를 찾는 기준이에요. 점수와 상황별 강점을 함께 보고 실제 관계의 경험과 대화로 확인해 보세요.",
     rankings: snapshot.candidates.map((candidate) => ({
@@ -354,7 +354,7 @@ export function buildOneToManyResultView(
     recommendations: recommendations.map((recommendation) => ({
       ...recommendation,
       displayNames: recommendation.candidateIds.map((id) => displayNameFor(id, names)),
-      reason: narrative?.situationalRecommendations[recommendation.id].reason ?? recommendationReason(recommendation.basis),
+      reason: narrative?.situationalRecommendations[recommendation.id].reason ?? recommendationReason(recommendation.basis, recommendation.label),
     })),
     candidateInsights: snapshot.candidates.map((candidate) => {
       const strengths = candidate.calculationSnapshot.strengths.slice(0, 2);
