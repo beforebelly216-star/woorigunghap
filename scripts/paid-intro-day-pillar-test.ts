@@ -17,13 +17,11 @@ const aiIntro = {
 const preserved = groundPaidIntroWithServerEvidence(aiIntro, "payload") as typeof aiIntro;
 assert.equal(preserved, aiIntro, "P2 must preserve valid AI-authored intro content");
 assert.doesNotMatch(JSON.stringify(preserved), /일주 미확인/);
-console.log("paid intro day pillar contract: PASS");
-
 
 const storedLegacyText = "존종윤님의 일주는 서버 계산상 일주 미확인입니다. 일간은 기(土)로 읽습니다.";
 const repairedStoredText = sanitizeStoredReportTextForPerson(storedLegacyText, gihe);
-assert.doesNotMatch(repairedStoredText, /서버 계산상|일주 미확인/);
-assert.match(repairedStoredText, /기해\(己亥\)/, "stored pre-P1 reports must display the computed day pillar without AI regeneration");
+assert.doesNotMatch(repairedStoredText, /서버 계산상|일주 미확인|일주는\s*일주는/);
+assert.match(repairedStoredText, /존종윤님의 일주는 기해\(己亥\)입니다\./, "stored pre-P1 reports must display the computed day pillar without AI regeneration");
 
 const invalidIntro = {
   ...aiIntro,
@@ -43,3 +41,5 @@ const payload = JSON.stringify({
 });
 const issues = collectPaidNarrativeQualityIssues(invalidIntro, "INTRO", `payload ${payload}`);
 assert.ok(issues.includes("INTRO_DAY_PILLAR_UNKNOWN_EXPOSED"), "new INTRO output must reject any day-pillar unknown wording");
+
+console.log("paid intro day pillar contract: PASS");
