@@ -30,7 +30,7 @@
 
 - `prepare` 후 `intro` / `dynamics` / `action`을 병렬 fan-out한다.
 - 병렬 segment 저장은 PostgreSQL `jsonb_set` 원자 업데이트를 사용한다.
-- 1:1 AI 분량 계약은 `paid-report-v7-editorial-v13-saju-boy-magic-school`로 조정했다.
+- 1:1 AI 분량 계약은 `paid-report-v7-editorial-v14-day-pillar-characters`로 조정했다.
 - 전체 목표는 약 5,000~8,000자, 필요 시 약 10,000자까지다.
 - 기존 13,000자 이상 강제 QA는 제거했다.
 - Production 실제 생성시간은 사용자 실사용 결과로 확인하며 과도한 QA로 다음 개발을 지연시키지 않는다.
@@ -67,6 +67,14 @@
 - 공유 버튼은 Web Share API를 우선 사용하고 미지원 환경에서는 공유 문구를 클립보드에 복사한다.
 - 보안상 현재 유료 결과 URL이나 `accessToken`은 공유하지 않는다. 공유 대상 URL은 우리사주 홈 주소로 고정한다.
 - 전용 `test:report:share-card` 계약 테스트를 Core validation에 추가했다.
+
+## 2026-08-22 1:1 리포트 P4-3 개선
+
+- 계산된 일주를 기준으로 60갑자 전체를 빠짐없이 커버하는 **60일주 캐릭터** 레이어를 추가했다. 10개 천간의 기본 드라이브와 12개 지지의 관계 장면을 결합하되 유효한 60갑자 조합만 허용한다.
+- 각 캐릭터는 고유한 일주 제목, 한 줄 캐릭터 설명, 잘 쓰는 힘, 주의점, 관계 단서를 가진다. 이는 성격 진단이나 새로운 사주 계산이 아니라 일주를 쉽게 읽게 하는 편집 레이어다.
+- 1:1 결과 화면에서 두 사람의 캐릭터 카드를 보여주고, AI 비식별 편집 payload에도 캐릭터 요약을 연결했다.
+- AI는 캐릭터를 CH0~CH2 설명 보조에만 쓸 수 있으며 전체 궁합 점수·합충·용신·미래 시기·숨은 심리 판단을 덮어쓸 수 없다.
+- 프롬프트 버전은 `paid-report-v7-editorial-v14-day-pillar-characters`이며, 60개 전수·유일성·UI/payload 연결을 검증하는 `test:report:day-pillar-characters`를 Core validation에 추가했다.
 
 ## 카카오 완료 알림 구조
 

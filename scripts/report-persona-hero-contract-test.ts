@@ -7,7 +7,7 @@ const deep = readFileSync("src/lib/narrative/report-deep-content.ts", "utf8");
 const chapter = readFileSync("src/app/one-to-one/result/report-v2-chapters-a.tsx", "utf8");
 const css = readFileSync("src/app/report-extra.css", "utf8");
 
-assert.match(engine, /paid-report-v7-editorial-v13-saju-boy-magic-school/);
+assert.match(engine, /paid-report-v7-editorial-v14-day-pillar-characters/);
 assert.match(engine, /화자 캐릭터 '사주소년'/);
 assert.match(engine, /마법학교 도서관/);
 assert.match(engine, /특정 소설·영화의 인물·학교·주문·고유명사·대사를 흉내 내거나 인용하지 마세요/);

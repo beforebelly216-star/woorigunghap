@@ -34,6 +34,8 @@ import ReportChaptersA from "./report-v2-chapters-a";
 import ReportChaptersB from "./report-v2-chapters-b";
 import { CompatibilityShareCard } from "./compatibility-share-card";
 import { buildCompatibilityShareArchetype } from "@/lib/narrative/compatibility-share-card";
+import { getDayPillarCharacter } from "@/lib/narrative/day-pillar-characters";
+import { DayPillarCharacterCard } from "./day-pillar-character-card";
 
 const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
   dayMaster: "일간 상성", dayBranch: "일지 상성", usefulGodFit: "필요한 기운 보완",
@@ -396,6 +398,8 @@ export default function ResultV2() {
     ? COWORKER_HIERARCHY_LABELS[order.inputSnapshot.coworkerHierarchy]
     : null;
   const shareArchetype = buildCompatibilityShareArchetype(snapshot);
+  const personACharacter = getDayPillarCharacter(facts.A.pillars.day.korean);
+  const personBCharacter = getDayPillarCharacter(facts.B.pillars.day.korean);
   return <main className="v2-page"><div className="v2-shell">
     <header className="v2-hero">
       <p className="v2-kicker">{relationshipLabel}{coworkerHierarchyLabel ? ` · ${coworkerHierarchyLabel}` : ""} 궁합 리포트</p>
@@ -418,6 +422,14 @@ export default function ResultV2() {
       <div className="v2-section-title"><small>COMPATIBILITY SCORE</small><h2>핵심 궁합 지표</h2><p>점수는 해설의 근거 강도를 보여주는 참고값입니다. 본문에서 실제 관계에서 어떤 의미인지 자세히 설명합니다.</p></div>
       <div className="v2-score-grid">{visibleDimensions.map(([dimension, value]) => <div key={dimension}><span>{DIMENSION_LABELS[dimension]}</span><strong>{Math.round(value.normalizedScore)}</strong><i><b style={{ width: `${Math.min(100, Math.max(0, value.normalizedScore))}%` }} /></i></div>)}</div>
     </section>
+
+    {(personACharacter || personBCharacter) && <section className="day-pillar-character-section">
+      <div className="v2-section-title"><small>60 DAY-PILLAR CHARACTERS</small><h2>두 사람의 60일주 캐릭터</h2><p>일주는 각자의 기본 반응 결을 읽는 한 가지 렌즈예요. 실제 궁합 판단은 아래의 전체 계산과 관계 장면을 함께 봅니다.</p></div>
+      <div className="day-pillar-character-grid">
+        {personACharacter && <DayPillarCharacterCard label="나의 캐릭터" displayName={personA.displayName} character={personACharacter} />}
+        {personBCharacter && <DayPillarCharacterCard label="상대의 캐릭터" displayName={personB.displayName} character={personBCharacter} />}
+      </div>
+    </section>}
 
     <CompatibilityShareCard
       selfName={personA.displayName}
