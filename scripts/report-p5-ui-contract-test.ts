@@ -17,9 +17,10 @@ for (const token of [
   "#A8D8B9", "#FF9E9E", "#F5D6A0", "#D9D5E8", "#A5C9E8", "#1F1B2E", "#2A2540", "#EDE9F7",
 ]) assert.ok(theme.includes(token), `P5 token missing: ${token}`);
 assert.match(theme, /prefers-color-scheme:\s*dark/);
+assert.match(theme, /Pretendard/);
+assert.match(theme, /Nanum Myeongjo/);
 assert.match(page, /report-theme\.css/);
 assert.doesNotMatch(base + detail, /#fbf8f2|#213f33|#fffdf8/i);
-assert.match(base, /Pretendard/);
 assert.match(base, /line-height:\s*1\.75/);
 assert.match(components, /v2-saju-char/);
 assert.match(components, /pillar\.stem/);
