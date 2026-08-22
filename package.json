@@ -40,7 +40,8 @@
     "test:intro:day-pillar": "tsx scripts/paid-intro-day-pillar-test.ts",
     "test:report:dedup": "tsx scripts/report-dedup-personalization-test.ts",
     "test:report:tone": "tsx scripts/report-tone-contract-test.ts",
-    "test:report:persona": "tsx scripts/report-persona-hero-contract-test.ts"
+    "test:report:persona": "tsx scripts/report-persona-hero-contract-test.ts",
+    "test:report:share-card": "tsx scripts/report-share-card-contract-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
