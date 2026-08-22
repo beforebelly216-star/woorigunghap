@@ -7,7 +7,7 @@ import {
 import type { CompatibilityDimension, CompatibilityProfile } from "./types";
 import type { OneToManyNarrativeContent } from "@/lib/narrative/one-to-many-report-engine";
 
-export const ONE_TO_MANY_VIEW_VERSION = "one-to-many-view-v1.0.0" as const;
+export const ONE_TO_MANY_VIEW_VERSION = "one-to-many-view-v1.1.0" as const;
 
 export const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
   dayMaster: "기본 기운의 호흡",
@@ -135,6 +135,7 @@ export type OneToManyResultView = {
     displayName: string;
     rank: number;
     score: number;
+    insightTitle: string;
     oneLine: string;
     strengths: Array<{ label: string; copy: string }>;
     cautions: Array<{ label: string; copy: string }>;
@@ -283,6 +284,22 @@ function gapLabel(gap: number, rank: number) {
   return "선두와 의미 있는 차이";
 }
 
+function candidateInsightTitle(candidate: OneToManyCalculationSnapshot["candidates"][number]) {
+  const labels = candidate.calculationSnapshot.strengths.slice(0, 2).map((dimension) => DIMENSION_LABELS[dimension]);
+  if (labels.length >= 2) return `${labels[0]} · ${labels[1]}이 돋보이는 관계`;
+  if (labels.length === 1) return `${labels[0]}이 돋보이는 관계`;
+  return "관계의 강점과 조율점을 함께 보는 관계";
+}
+
+function semanticDimensionLabel(
+  dimensions: CompatibilityDimension[],
+  index: number,
+  fallback: string,
+) {
+  const dimension = dimensions[index] ?? dimensions[0];
+  return dimension ? DIMENSION_LABELS[dimension] : fallback;
+}
+
 function recommendationReason(basis: SituationalRecommendation["basis"]) {
   if (basis === "SINGLE") return "이 상황의 관련 지표에서 가장 높은 점수를 보였어요.";
   if (basis === "WITHIN_TWO_POINTS") return "관련 지표 차이가 2점 이내라 한 명으로 단정하지 않았어요.";
@@ -348,16 +365,17 @@ export function buildOneToManyResultView(
         displayName: displayNameFor(candidate.candidateId, names),
         rank: candidate.rank,
         score: candidate.score,
+        insightTitle: candidateInsightTitle(candidate),
         oneLine: generated?.oneLine ?? `${displayNameFor(candidate.candidateId, names)}님과의 관계에서 강점과 조율 지점을 함께 확인해 보세요.`,
         strengths: generated ? generated.strengths.map((copy, index) => ({
-          label: `강점 ${index + 1}`,
+          label: semanticDimensionLabel(strengths, index, "관계 강점"),
           copy,
         })) : strengths.map((dimension) => ({
           label: DIMENSION_LABELS[dimension],
           copy: DIMENSION_GUIDES[dimension].strength,
         })),
         cautions: generated ? generated.cautions.map((copy, index) => ({
-          label: `조율 ${index + 1}`,
+          label: semanticDimensionLabel(cautions, index, "관계 조율"),
           copy,
         })) : cautions.map((dimension) => ({
           label: DIMENSION_LABELS[dimension],

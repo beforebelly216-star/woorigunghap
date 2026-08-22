@@ -16,7 +16,7 @@ import {
   requestStructuredSegment,
 } from "@/lib/narrative/report-engine-v6-request";
 
-export const ONE_TO_MANY_REPORT_PROMPT_VERSION = "one-to-many-report-v1-editorial" as const;
+export const ONE_TO_MANY_REPORT_PROMPT_VERSION = "one-to-many-report-v2-semantic-titles" as const;
 export const ONE_TO_MANY_REPORT_PAYLOAD_VERSION = "one-to-many-evidence-v1" as const;
 
 const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
@@ -265,7 +265,8 @@ export function buildOneToManyNarrativeEvidence(
 
 const BASE_RULES = [
   "당신은 '우리사주'의 3,000원 유료 1:N 관계 비교 리포트를 쓰는 한국어 전문 편집자입니다.",
-  "후보 ID(candidate_1 등)는 화면에서 각 사용자의 별칭으로 교체된다. 후보 ID 자체를 사용자 문장에 노출하지 말고 '각 대상'처럼 자연스럽게 쓰세요.",
+  "후보 ID(candidate_1 등)는 화면에서 각 사용자의 별칭으로 교체된다. 후보 ID 자체를 사용자 문장에 노출하지 말고, 각 후보 카드 안에서는 이름이나 순번 대신 '이 관계'처럼 자연스럽게 쓰세요.",
+  "후보별 설명에서 '첫 번째/두 번째/세 번째 후보', '강점 1/2/3', '조율 1/2/3'처럼 위치나 번호로 내용을 부르지 마세요. 화면이 후보 이름과 계산된 의미형 제목을 붙이므로 본문은 의미 자체를 바로 설명하세요.",
   "결론 → 계산 근거 → 관계에서 느껴질 체감 → 바로 실행할 행동의 순서로, 차분하고 다정하지만 또렷하게 쓰세요.",
   "입력에 있는 점수·순위·공동 순위·불확실성 범위·각 항목 점수만 근거로 사용하세요. 새로운 점수, 사주 사실, 미래 시기, 속마음, 관계 성공/실패를 만들지 마세요.",
   "rank와 score는 서버가 확정한다. AI는 순위를 바꾸거나 정당화하기 위해 계산값을 재해석하지 마세요.",
