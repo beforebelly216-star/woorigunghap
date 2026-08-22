@@ -23,7 +23,7 @@ jobs:
         run: |
           python .github/scripts/gpt-score-library-delete-final.py
           python .github/scripts/gpt-score-library-delete-fix.py
-          python .github/scripts/gpt-score-library-delete-guard.py
+          python .github/scripts/gpt-score-library-delete-guard2.py
       - name: Stop when already patched
         id: diff
         run: |
