@@ -194,13 +194,17 @@ export async function saveServerOrderDraft(order: OrderDraft) {
     )
     ON CONFLICT (payment_id) DO UPDATE SET
       order_json = CASE
+        WHEN woorigunghap_order_records.generation_status = 'deleted' THEN woorigunghap_order_records.order_json
         WHEN woorigunghap_order_records.payment_status = 'paid' THEN woorigunghap_order_records.order_json
         ELSE EXCLUDED.order_json
       END,
-      access_token_hash = COALESCE(
-        woorigunghap_order_records.access_token_hash,
-        EXCLUDED.access_token_hash
-      ),
+      access_token_hash = CASE
+        WHEN woorigunghap_order_records.generation_status = 'deleted' THEN NULL
+        ELSE COALESCE(
+          woorigunghap_order_records.access_token_hash,
+          EXCLUDED.access_token_hash
+        )
+      END,
       payment_status = CASE
         WHEN woorigunghap_order_records.payment_status = 'paid' THEN 'paid'
         ELSE EXCLUDED.payment_status
@@ -220,6 +224,7 @@ export async function ensureServerOrderAccessToken(paymentId: string, accessToke
         updated_at = NOW()
     WHERE payment_id = ${paymentId}
       AND access_token_hash IS NULL
+      AND generation_status <> 'deleted'
     RETURNING payment_id
   `;
   return result.length > 0;
@@ -384,6 +389,7 @@ export async function claimOneToManyGeneration(paymentId: string) {
     WHERE payment_id = ${paymentId}
       AND payment_status = 'paid'
       AND report_json IS NULL
+      AND generation_status <> 'deleted'
       AND (
         generation_status <> 'generating'
         OR generation_started_at IS NULL
@@ -418,6 +424,7 @@ export async function saveOneToManyStoredReport(
         updated_at = NOW()
     WHERE payment_id = ${paymentId}
       AND payment_status = 'paid'
+      AND generation_status <> 'deleted'
     RETURNING payment_id
   `;
   return rows.length > 0;
@@ -432,6 +439,7 @@ export async function releaseOneToManyGeneration(paymentId: string) {
     SET generation_status = 'idle', generation_started_at = NULL, updated_at = NOW()
     WHERE payment_id = ${paymentId}
       AND report_json IS NULL
+      AND generation_status = 'generating'
   `;
   return true;
 }
@@ -557,6 +565,7 @@ async function updateProgress(
     UPDATE woorigunghap_order_records
     SET report_json = ${JSON.stringify(next)}, updated_at = NOW()
     WHERE payment_id = ${paymentId}
+      AND generation_status <> 'deleted'
     RETURNING payment_id
   `;
   return result.length > 0;

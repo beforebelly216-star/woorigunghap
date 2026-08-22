@@ -82,3 +82,12 @@ export function saveReportProgress(progress: ReportProgress) {
     // Report generation must continue even if browser storage is unavailable.
   }
 }
+
+export function removeReportProgress(paymentId: string, orderCreatedAt: string) {
+  if (!isBrowser()) return;
+  try {
+    window.localStorage.removeItem(key(paymentId, orderCreatedAt));
+  } catch {
+    // Server deletion remains authoritative even if local cleanup is blocked.
+  }
+}

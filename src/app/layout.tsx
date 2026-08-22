@@ -9,6 +9,7 @@ import "./deep-report.css";
 import "./one-to-one-context.css";
 import "./day20-mobile.css";
 import "./day22-policy.css";
+import "./score-library.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

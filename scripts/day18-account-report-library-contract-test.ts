@@ -10,6 +10,8 @@ const accountLink = readFileSync("src/components/report-account-link.tsx", "utf8
 const libraryPage = readFileSync("src/app/account/reports/page.tsx", "utf8");
 const oneToOne = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
 const oneToMany = readFileSync("src/app/one-to-many/result/one-to-many-paid-result.tsx", "utf8");
+const orderStorage = readFileSync("src/lib/order-storage.ts", "utf8");
+const progressStorage = readFileSync("src/lib/report-progress-storage.ts", "utf8");
 
 assert.match(accountStore, /payment_id TEXT PRIMARY KEY/);
 assert.match(accountStore, /REFERENCES woorigunghap_order_records/);
@@ -18,14 +20,20 @@ assert.match(accountStore, /WHERE woorigunghap_account_reports\.user_id = EXCLUD
 assert.match(accountStore, /WHERE user_id = \$\{userId\}[\s\S]*payment_id = \$\{paymentId\}/);
 
 // Claim/list/detail must never expose recovery tokens. Day 22 deletion is allowed to null the hash internally.
-const claimSection = accountStore.slice(accountStore.indexOf("export async function claimAccountReport"), accountStore.indexOf("export async function deleteAccountAndScrubReports"));
+const claimSection = accountStore.slice(accountStore.indexOf("export async function claimAccountReport"), accountStore.indexOf("export async function deleteOwnedAccountReport"));
 assert.doesNotMatch(claimSection, /access_token_hash|resultAccessToken/);
 assert.match(accountStore, /access_token_hash = NULL/);
+assert.match(accountStore, /export async function deleteOwnedAccountReport/);
+assert.match(accountStore, /generation_status = 'deleted'/);
+assert.match(accountStore, /retainedFor[\s\S]*electronic-commerce-record/);
 
 assert.match(serverStore, /loadCompletedServerReportForAccess/);
 assert.match(serverStore, /isCompleteOneToOneProgress/);
 assert.match(serverStore, /parseOneToManyStoredReport/);
 assert.match(serverStore, /payment_status = 'paid'/);
+assert.match(serverStore, /generation_status <> 'deleted'/);
+assert.match(serverStore, /generation_status = 'deleted'[\s\S]*access_token_hash[\s\S]*NULL/);
+assert.match(accountStore, /payment_status = 'paid'[\s\S]*generation_status <> 'deleted'/);
 
 assert.match(claimRoute, /isSameOriginPost\(request\)/);
 assert.match(claimRoute, /loadAuthenticatedRequestUser/);
@@ -39,6 +47,10 @@ assert.match(detailRoute, /params: Promise<\{ paymentId: string \}>/);
 assert.match(detailRoute, /loadOwnedAccountReport\(user\.userId, paymentId\)/);
 assert.match(detailRoute, /status: 404/);
 assert.doesNotMatch(detailRoute, /accessToken|generateOneToManyNarrative|generatePaidReport/);
+assert.match(detailRoute, /export async function DELETE/);
+assert.match(detailRoute, /isSameOriginPost\(request\)/);
+assert.match(detailRoute, /loadOwnedAccountReport\(user\.userId, paymentId\)/);
+assert.match(detailRoute, /deleteOwnedAccountReport\(user\.userId, paymentId\)/);
 
 assert.match(accountLink, /\/api\/account\/reports\/claim/);
 assert.match(accountLink, /JSON\.stringify\(\{ paymentId, accessToken \}\)/);
@@ -46,6 +58,12 @@ assert.doesNotMatch(accountLink, /accessToken=.*href|searchParams.*accessToken/)
 assert.match(libraryPage, /source: "account"/);
 assert.match(libraryPage, /결제 완료 즉시 보관함에 저장되고/);
 assert.match(libraryPage, />생성중</);
+assert.match(libraryPage, /결과 삭제/);
+assert.match(libraryPage, /method: "DELETE"/);
+assert.match(libraryPage, /removeOrderDraft\(report\.paymentId\)/);
+assert.match(libraryPage, /removeReportProgress\(report\.paymentId, report\.createdAt\)/);
+assert.match(orderStorage, /export function removeOrderDraft/);
+assert.match(progressStorage, /export function removeReportProgress/);
 assert.match(oneToOne, /\/api\/account\/reports\/\$\{encodeURIComponent\(paymentId\)\}/);
 assert.match(oneToOne, /alreadyClaimed=\{accountOwned\}/);
 assert.match(oneToMany, /\/api\/account\/reports\/\$\{encodeURIComponent\(paymentId\)\}/);

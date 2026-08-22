@@ -5,6 +5,8 @@ import {
   type OneToManyCandidateId,
 } from "./one-to-many";
 import type { CompatibilityDimension, CompatibilityProfile } from "./types";
+import { calibrateCompatibilityScore } from "./score-scale";
+import { COMPATIBILITY_SCORING_VERSION } from "./weights";
 import type { OneToManyNarrativeContent } from "@/lib/narrative/one-to-many-report-engine";
 
 export const ONE_TO_MANY_VIEW_VERSION = "one-to-many-view-v1.2.0" as const;
@@ -160,6 +162,19 @@ function roundScore(value: number) {
   return Math.round(value);
 }
 
+function publicCandidateScore(candidate: OneToManyCalculationSnapshot["candidates"][number]) {
+  return calibrateCompatibilityScore(candidate.calculationSnapshot.rawTotal);
+}
+
+function publicCandidateRange(candidate: OneToManyCalculationSnapshot["candidates"][number]) {
+  if (candidate.calculationSnapshot.scoringVersion === COMPATIBILITY_SCORING_VERSION) {
+    return candidate.uncertaintyRange;
+  }
+  const min = calibrateCompatibilityScore(candidate.uncertaintyRange.min);
+  const max = calibrateCompatibilityScore(candidate.uncertaintyRange.max);
+  return { min, max, width: max - min };
+}
+
 function average(values: number[]) {
   return roundScore(values.reduce((sum, value) => sum + value, 0) / values.length);
 }
@@ -197,7 +212,7 @@ export function buildSummaryMetrics(snapshot: OneToManyCalculationSnapshot): Sum
 
     return {
       candidateId: candidate.candidateId,
-      overall: candidate.score,
+      overall: publicCandidateScore(candidate),
       communication: average([dimensions.dayMaster, dimensions.heavenlyStemInteraction]),
       emotionalStability: average([dimensions.dayBranch, dimensions.usefulGodFit]),
       conflictManagement: average([dimensions.heavenlyStemInteraction, dimensions.earthlyBranchInteraction]),
@@ -317,8 +332,13 @@ export function buildOneToManyResultView(
   const topGroup = snapshot.ranking.groups[0];
   const topNames = topGroup.candidateIds.map((id) => displayNameFor(id, names));
   const secondGroup = snapshot.ranking.groups[1];
-  const closenessNotice = secondGroup?.gapFromPreviousGroup?.band === "SLIGHT_EDGE"
-    ? `다음 순위와 ${secondGroup.gapFromPreviousGroup.points}점 차이예요. 근소한 차이는 실제 관계의 절대적인 우열을 뜻하지 않아요.`
+  const leaderDisplayScore = publicCandidateScore(snapshot.candidates[0]);
+  const secondDisplayScore = secondGroup?.candidateIds[0]
+    ? publicCandidateScore(candidateById(snapshot, secondGroup.candidateIds[0]))
+    : null;
+  const displayGapToSecond = secondDisplayScore === null ? null : leaderDisplayScore - secondDisplayScore;
+  const closenessNotice = displayGapToSecond !== null && displayGapToSecond <= 5
+    ? `다음 순위와 ${displayGapToSecond}점 차이예요. 근소한 차이는 실제 관계의 절대적인 우열을 뜻하지 않아요.`
     : snapshot.candidates.some((candidate) => candidate.uncertaintyRange.width > 0)
       ? "출생시간을 모르는 대상은 가능한 시간대를 함께 계산했어요. 범위가 겹치면 한 사람의 우위를 단정하지 않아요."
       : "점수는 관계의 경향을 비교하는 기준이며, 사람 자체의 우열을 뜻하지 않아요.";
@@ -332,18 +352,23 @@ export function buildOneToManyResultView(
     summary: narrative?.rankingSummary.summary ?? `같은 ${RELATIONSHIP_LABELS[snapshot.relationshipType]} 기준으로 ${snapshot.candidateCount}명을 비교했어요. 종합 순위뿐 아니라 연락·대화, 편안함·신뢰, 갈등 회복, 생활·장기관계까지 같이 확인해 보세요.`,
     closenessNotice: narrative?.rankingSummary.closenessNotice ?? closenessNotice,
     finalSummary: narrative?.finalSummary ?? "이 비교는 사람의 우열을 정하는 답이 아니라, 각 관계에서 잘 맞는 지점과 확인할 대화를 찾는 기준이에요. 점수와 상황별 강점을 함께 보고 실제 관계의 경험과 대화로 확인해 보세요.",
-    rankings: snapshot.candidates.map((candidate) => ({
-      candidateId: candidate.candidateId,
-      displayName: displayNameFor(candidate.candidateId, names),
-      rank: candidate.rank,
-      score: candidate.score,
-      scoreGap: candidate.comparisonToLeader.scoreGap,
-      gapLabel: gapLabel(candidate.comparisonToLeader.scoreGap, candidate.rank),
-      uncertaintyRange: candidate.uncertaintyRange,
-      confidenceLabel: candidate.uncertaintyRange.width === 0
-        ? "입력 시간 기준"
-        : `가능 범위 ${candidate.uncertaintyRange.min}~${candidate.uncertaintyRange.max}점`,
-    })),
+    rankings: snapshot.candidates.map((candidate) => {
+      const score = publicCandidateScore(candidate);
+      const scoreGap = leaderDisplayScore - score;
+      const uncertaintyRange = publicCandidateRange(candidate);
+      return {
+        candidateId: candidate.candidateId,
+        displayName: displayNameFor(candidate.candidateId, names),
+        rank: candidate.rank,
+        score,
+        scoreGap,
+        gapLabel: gapLabel(scoreGap, candidate.rank),
+        uncertaintyRange,
+        confidenceLabel: uncertaintyRange.width === 0
+          ? "입력 시간 기준"
+          : `가능 범위 ${uncertaintyRange.min}~${uncertaintyRange.max}점`,
+      };
+    }),
     summaryMetrics: summaryMetrics.map((metric) => ({
       ...metric,
       values: metric.values.map((value) => ({
@@ -364,7 +389,7 @@ export function buildOneToManyResultView(
         candidateId: candidate.candidateId,
         displayName: displayNameFor(candidate.candidateId, names),
         rank: candidate.rank,
-        score: candidate.score,
+        score: publicCandidateScore(candidate),
         insightTitle: candidateInsightTitle(candidate),
         oneLine: generated?.oneLine ?? `${displayNameFor(candidate.candidateId, names)}님과의 관계에서 강점과 조율 지점을 함께 확인해 보세요.`,
         strengths: generated ? generated.strengths.map((copy, index) => ({

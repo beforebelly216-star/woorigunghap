@@ -124,6 +124,7 @@ export async function claimAccountReport(
     FROM woorigunghap_order_records
     WHERE payment_id = ${paymentId}
       AND payment_status = 'paid'
+      AND generation_status <> 'deleted'
     ON CONFLICT (payment_id) DO UPDATE SET
       updated_at = NOW()
     WHERE woorigunghap_account_reports.user_id = EXCLUDED.user_id
@@ -187,6 +188,47 @@ export async function loadOwnedAccountReport(
   `;
   if (ownership.length === 0) return null;
   return loadCompletedServerReport(paymentId);
+}
+
+export async function deleteOwnedAccountReport(userId: string, paymentId: string) {
+  if (!await ensureAccountReportSchema()) throw new Error("account_report_store_unavailable");
+  const sql = getQuery();
+  if (!sql) throw new Error("account_report_store_unavailable");
+
+  const rows = await sql`
+    WITH owned AS (
+      SELECT payment_id
+      FROM woorigunghap_account_reports
+      WHERE user_id = ${userId}
+        AND payment_id = ${paymentId}
+    ), scrubbed AS (
+      UPDATE woorigunghap_order_records records
+      SET order_json = jsonb_build_object(
+            'version', 'legal-retention-v1',
+            'paymentId', records.payment_id,
+            'orderId', COALESCE(records.order_json::jsonb ->> 'orderId', ''),
+            'product', COALESCE(records.order_json::jsonb ->> 'product', ''),
+            'amount', COALESCE((records.order_json::jsonb ->> 'amount')::int, 0),
+            'status', records.payment_status,
+            'createdAt', records.created_at,
+            'retainedFor', 'electronic-commerce-record'
+          )::text,
+          report_json = NULL,
+          access_token_hash = NULL,
+          generation_status = 'deleted',
+          generation_started_at = NULL,
+          updated_at = NOW()
+      WHERE records.payment_id IN (SELECT payment_id FROM owned)
+      RETURNING records.payment_id
+    ), deleted AS (
+      DELETE FROM woorigunghap_account_reports account
+      WHERE account.user_id = ${userId}
+        AND account.payment_id IN (SELECT payment_id FROM scrubbed)
+      RETURNING account.payment_id
+    )
+    SELECT payment_id FROM deleted
+  `;
+  return rows.length > 0;
 }
 
 export async function deleteAccountAndScrubReports(userId: string) {
