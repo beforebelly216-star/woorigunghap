@@ -60,6 +60,7 @@
   - [x] P4-1: CH2 상단 '그 사람의 속마음' 히어로 추가. 실제 내면 단정이 아닌 계산 기반 1인칭 가상 독백으로 제한하고 기존 저장 리포트 호환 유지.
   - [x] P4-2: 기존 계산 snapshot으로 6개 궁합 유형을 결정론적으로 분류하고 9:16 공유 카드 + Web Share/복사 fallback 구현. 유료 결과 URL/accessToken은 공유하지 않음.
   - [x] P4-3: 60갑자 전체 캐릭터 체계 + 결과 UI + AI 보조 편집 payload 연결. 캐릭터는 계산값을 덮어쓰지 않는 보조 렌즈로 제한.
+  - [x] P5: 1:1 리포트 파스텔 마스코트 UI/UX 개편. 디자인 토큰·타이포·8글자 사주 타일·9축 레이더·사주소년 챕터 말풍선·모바일 전환 CTA·9:16 이미지 공유를 적용.
   - [x] 후속: 1:N 순번형 설명을 후보 이름/의미형 제목으로 변경. 후보 상세은 이름 + 계산 강점 기반 제목, 강점/조율 라벨은 실제 차원명 사용.
   - [x] 후속: 1:N 추상 표현을 연락·갈등·신뢰·생활·장기관계 중심의 직관적 언어로 변경. 계산 키/점수는 유지하고 사용자 라벨·기본 카피·AI 프롬프트만 개선.
 
@@ -101,10 +102,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 1:N 추상 표현 → 연락·갈등·신뢰·생활·장기관계 중심 직관적 언어 개선
+- Task: P5 — 1:1 리포트 파스텔 마스코트 UI/UX 개편
 - Status: complete
-- Validation: day15 1:N narrative/result UI + day16 paid E2E + Core validation + lint + production build
+- Validation: test:report:p5-ui + 기존 1:1 P1~P4 계약 + Core validation + lint + production build
 - Commit: clean PR 검증 후 main squash merge SHA 기준
-- Remaining: 외부 SOLAPI/Kakao 설정은 운영 작업으로 유지; 코드 측 다음 실행 가능 항목은 360/390/430px 모바일 핵심 플로우 QA
-- Risk: 사용자 라벨/카피/AI 편집 규칙만 변경; 1:N 계산 키·점수·순위·저장 schema·결제 구조는 변경 없음
+- Remaining: 360/390/430px 모바일 핵심 플로우 QA; 외부 SOLAPI/Kakao 실제 발송 설정
+- Risk: UI/표현 계층만 변경; 계산·점수·결제 검증·저장 schema 불변. 실제 통계 없는 일주 희귀도는 표시하지 않음
 ```

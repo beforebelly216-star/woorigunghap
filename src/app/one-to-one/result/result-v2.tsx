@@ -439,6 +439,14 @@ export default function ResultV2() {
       {(!personA.birthTimeKnown || !personB.birthTimeKnown) && <p className="v2-uncertainty">출생시간 미상 시나리오 {snapshot.scenarioPolicy.pairScenarios.toLocaleString("ko-KR")}개를 함께 비교했어요. 현재 입력 기준 점수 범위는 {snapshot.uncertaintyRange.min}~{snapshot.uncertaintyRange.max}점입니다.</p>}
     </header>
 
+    <CompatibilityShareCard
+      selfName={personA.displayName}
+      partnerName={personB.displayName}
+      relationshipLabel={relationshipLabel}
+      score={snapshot.score}
+      archetype={shareArchetype}
+    />
+
     <section className="v2-basic-facts">
       <div className="v2-section-title"><small>FOUR PILLARS & FIVE ELEMENTS</small><h2>두 사람의 사주팔자와 오행</h2><p>어떤 명식을 바탕으로 계산했는지 먼저 보여드려요. 오행의 겉개수와 실제 세력 비중은 서로 다른 정보입니다.</p></div>
       <div className="v2-facts-grid">
@@ -460,13 +468,6 @@ export default function ResultV2() {
       </div>
     </section>}
 
-    <CompatibilityShareCard
-      selfName={personA.displayName}
-      partnerName={personB.displayName}
-      relationshipLabel={relationshipLabel}
-      score={snapshot.score}
-      archetype={shareArchetype}
-    />
 
     <ReportChaptersA content={content} personAName={personA.displayName} personBName={personB.displayName} />
     <ReportChaptersB
