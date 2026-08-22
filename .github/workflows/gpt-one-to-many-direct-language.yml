@@ -1,0 +1,41 @@
+name: Temporary 1:N direct language
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    if: github.head_ref == 'gpt/one-to-many-direct-language-20260822'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/one-to-many-direct-language-20260822
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Apply direct-language patch once
+        run: |
+          node .github/scripts/gpt-one-to-many-direct-language.mjs
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src scripts docs
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: translate 1:N results into direct relationship language"
+            git push origin HEAD:gpt/one-to-many-direct-language-20260822
+          fi
+      - name: Validate 1:N direct language
+        run: |
+          npm run test:day15:one-to-many-narrative
+          npm run test:day15:one-to-many-result-ui
+          npm run test:day16:one-to-many-paid-e2e
+      - run: npm run lint
+      - run: npm run build
