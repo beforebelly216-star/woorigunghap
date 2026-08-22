@@ -143,6 +143,23 @@ export default function ResultV2() {
   const [completedSegments, setCompletedSegments] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [accountOwned, setAccountOwned] = useState(false);
+  const [readingProgress, setReadingProgress] = useState(0);
+
+  useEffect(() => {
+    if (status !== "ready") return;
+    function updateReadingProgress() {
+      const root = document.documentElement;
+      const max = Math.max(1, root.scrollHeight - window.innerHeight);
+      setReadingProgress(Math.min(100, Math.max(0, Math.round((window.scrollY / max) * 100))));
+    }
+    updateReadingProgress();
+    window.addEventListener("scroll", updateReadingProgress, { passive: true });
+    window.addEventListener("resize", updateReadingProgress);
+    return () => {
+      window.removeEventListener("scroll", updateReadingProgress);
+      window.removeEventListener("resize", updateReadingProgress);
+    };
+  }, [status]);
 
   useEffect(() => {
     if (status !== "loading") return;
@@ -400,7 +417,12 @@ export default function ResultV2() {
   const shareArchetype = buildCompatibilityShareArchetype(snapshot);
   const personACharacter = getDayPillarCharacter(facts.A.pillars.day.korean);
   const personBCharacter = getDayPillarCharacter(facts.B.pillars.day.korean);
-  return <main className="v2-page"><div className="v2-shell">
+  return <main className="v2-page">
+    <div className="v2-reading-progress" role="progressbar" aria-label="리포트 읽기 진행률" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readingProgress}>
+      <span style={{ width: `${readingProgress}%` }} />
+      <b style={{ left: `${readingProgress}%` }} aria-hidden="true">용</b>
+    </div>
+    <div className="v2-shell">
     <header className="v2-hero">
       <p className="v2-kicker">{relationshipLabel}{coworkerHierarchyLabel ? ` · ${coworkerHierarchyLabel}` : ""} 궁합 리포트</p>
       <h1>{personA.displayName} <span>×</span> {personB.displayName}</h1>

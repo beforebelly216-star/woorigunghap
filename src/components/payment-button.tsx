@@ -11,11 +11,13 @@ export function PaymentButton({
   paymentId,
   inputSnapshot,
   agreementAccepted = true,
+  buttonLabel,
 }: {
   product: ProductKey;
   paymentId?: string;
   inputSnapshot?: OneToOneReportInput | OneToManyReportInput;
   agreementAccepted?: boolean;
+  buttonLabel?: string;
 }) {
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,7 +78,7 @@ export function PaymentButton({
   return (
     <div className="payment-area" aria-busy={isLoading}>
       <button type="button" className="payment-button" disabled={isLoading || !agreementAccepted} onClick={startPayment}>
-        {isLoading ? "결제창을 여는 중..." : `${item.amount.toLocaleString("ko-KR")}원 결제하기`}
+        {isLoading ? "결제창을 여는 중..." : buttonLabel ?? `${item.amount.toLocaleString("ko-KR")}원 결제하기`}
       </button>
       <p className="sr-only" role="status" aria-live="polite">
         {isLoading ? "결제창을 여는 중입니다." : !agreementAccepted ? "구매 조건 확인 후 결제할 수 있습니다." : ""}
