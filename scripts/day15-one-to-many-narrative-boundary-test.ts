@@ -75,8 +75,10 @@ assert.match(engineSource, /rankingMutableByAi/);
 assert.match(engineSource, /uncertaintyRangesOverlapLeader/);
 assert.match(engineSource, /동점 그룹/);
 assert.match(engineSource, /candidateIds는 서버가 확정/);
+assert.match(engineSource, /첫 번째\/두 번째\/세 번째 후보/);
+assert.match(engineSource, /강점 1\/2\/3/);
 assert.match(engineSource, /ONE_TO_MANY_REPORT_FAILED_MODE_NOT_ANTHROPIC/);
 assert.match(engineSource, /ONE_TO_MANY_REPORT_PROMPT_VERSION/);
-assert.equal(ONE_TO_MANY_REPORT_PROMPT_VERSION, "one-to-many-report-v1-editorial");
+assert.equal(ONE_TO_MANY_REPORT_PROMPT_VERSION, "one-to-many-report-v2-semantic-titles");
 
 console.log("Day 15 one-to-many AI narrative boundary checks: PASS");

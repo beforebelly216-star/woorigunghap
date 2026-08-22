@@ -107,7 +107,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
             {view.candidateInsights.map((candidate, index) => (
               <details className="candidate-insight" key={candidate.candidateId} open={index === 0}>
                 <summary>
-                  <span><b>{candidate.rank}위</b> {candidate.displayName}</span>
+                  <span><b>{candidate.displayName}</b> · {candidate.insightTitle}</span>
                   <strong>{candidate.score}점</strong>
                 </summary>
                 <div className="candidate-insight-body">
@@ -115,7 +115,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
                   <div className="candidate-insight-column strength-tone">
                     <h3>잘 맞는 지점</h3>
                     {candidate.strengths.map((strength) => (
-                      <div key={strength.label}>
+                      <div key={`${strength.label}-${strength.copy}`}>
                         <strong>{strength.label}</strong>
                         <p>{strength.copy}</p>
                       </div>
@@ -124,7 +124,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
                   <div className="candidate-insight-column caution-tone">
                     <h3>조율할 지점</h3>
                     {candidate.cautions.map((caution) => (
-                      <div key={caution.label}>
+                      <div key={`${caution.label}-${caution.copy}`}>
                         <strong>{caution.label}</strong>
                         <p>{caution.copy}</p>
                       </div>
