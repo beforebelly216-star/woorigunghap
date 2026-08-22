@@ -1,0 +1,42 @@
+name: Temporary P5 pastel report UI
+
+on:
+  push:
+    branches:
+      - gpt/p5-pastel-ui-20260822
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/p5-pastel-ui-20260822
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply P5 in six staged commits
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          python3 .github/scripts/gpt-p5-pastel-ui.py
+      - name: Validate P5 UI contracts
+        run: |
+          npm run test:report:p5-ui
+          npm run test:report:persona
+          npm run test:report:share-card
+          npm run test:report:day-pillar-characters
+          npm run test:report:dedup
+          npm run test:report:tone
+      - name: Lint
+        run: npm run lint
+      - name: Production build
+        run: npm run build
