@@ -29,3 +29,18 @@
 .shareError { color: #A84A5D; }
 .privacyNote { color: var(--saju-ink-soft); }
 @media (min-width: 520px) { .actions { grid-template-columns: 1fr 1fr; } }
+
+@media (max-width: 379px) {
+  .heading h2 { font-size: 1.75rem; }
+  .card { border-radius: 24px; padding: 22px 18px; }
+  .topline { gap: 8px; font-size: .68rem; }
+  .names { margin-top: 18px; font-size: .9rem; overflow-wrap: anywhere; }
+  .mystery { margin-top: 24px; font-size: .66rem; }
+  .label { margin-top: 7px; font-size: 1.8rem; overflow-wrap: anywhere; }
+  .subtitle { margin-top: 8px; font-size: .9rem; line-height: 1.45; }
+  .clue { margin-top: 14px; border-radius: 15px 15px 15px 5px; padding: 11px 12px; font-size: .8rem; line-height: 1.5; }
+  .score { width: 136px; }
+  .score strong { font-size: 2.45rem; }
+  .footer { margin-top: 12px; font-size: .66rem; }
+  .shareButton, .saveButton { min-height: 46px; padding-inline: 12px; }
+}
