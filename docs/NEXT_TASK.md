@@ -15,7 +15,27 @@
 
 ## Blocker
 
-- [ ] 현재 확인된 blocker 없음
+- [ ] 현재 확인된 미해결 코드 blocker 없음
+
+## Hotfix
+
+- [x] **2026-08-24 사용자 제보 hotfix — 테마 / 1:1 장시간 생성 / 불필요 홈 문구 / 공유 발견성**
+  - 홈·입력·결제·생성중·결과·보관함 핵심 surface를 라벤더 기반 공통 파스텔 토큰으로 통일
+  - 개정 전 크림/베이지/연노랑 및 순백 혼합 테마를 핵심 surface 기본값에서 제거
+  - 홈의 `계산은 서버가`, `무료는 계산만`, `AI는 서술만`, `결제 후 생성` 등 구현 설명/범용 면책 문구 제거
+  - 1:1 `intro / dynamics / action` 누락 segment를 per-segment single-flight claim 아래 함께 계획하고 가능한 segment를 병렬 생성해 순차 대기 누적 제거
+  - stale segment lock은 5분 유지해 살아 있는 장문 생성의 중복 재획득/AI 비용 중복 방지
+  - 보관함 same-browser 생성 복구 재기동 120초 → 60초
+  - 기존 1:1·1:N Web Share / 1080×1920 이미지 저장 / public Shared View / clipboard fallback 구현을 회귀 계약으로 고정
+  - 보관함 완료 결과 CTA `결과 열기 · 공유하기`
+  - Vercel Git 자동 배포 비활성화, Preview/Production 배포는 사용자 명시 승인 후 별도 실행
+  - **PR #41 Core Validation #630 PASS — 전체 기존 contracts + hotfix contract + lint + production build**
+- [ ] **PR #41 병합 후 Production 반영 및 실제 hotfix QA**
+  - 사용자 명시 배포 승인 전에는 Vercel Preview/Production 실행 금지
+  - 승인 후 정확한 최신 `main` SHA를 1회 Production 배포하고 배포 SHA 일치 확인
+  - 실제 새 1:1 결제에서 생성시간·저장·재열람 확인
+  - 실제 1:1·1:N 결과에서 공유 UI, 이미지 저장, Web Share, Shared View 링크 확인
+  - 360 / 390 / 430px에서 라벤더 테마 일관성 육안 확인
 
 ## 베타 전 제품 완성도 개선
 
@@ -47,37 +67,16 @@
 
 - [x] **A0 — 무료 유입 / Aha → 유료 전환**
   - 홈 첫 CTA를 무료 자기 관계 성향 분석으로 전환하고 유료 상품/가격은 무료 설명 뒤에 배치
-  - `/free`에서 기존 만세력 + 60일주 캐릭터만 사용해 관계 강점 / 사람을 읽는 장면 / 꼬임 포인트 / 관계 리듬 4개 insight 제공
-  - 무료 경로에서 주문·결제·유료 AI 생성을 만들지 않으며 무료 DTO는 raw birth input·전체 명식·유료 본문·결제/접근 식별자를 반환하지 않음
+  - `/free`에서 기존 만세력 + 60일주 캐릭터만 사용해 4개 insight 제공
+  - 무료 경로에서 주문·결제·유료 AI 생성을 만들지 않음
   - 무료 결과 뒤 1:1 1,000원 / 1:N 3,000원 CTA 제공, 1:1은 same-session 본인 입력 prefill
   - PR #40 Core Validation #618 PASS
 - [x] **P1 — 공개 Share DTO / privacy·권한 계약**
-  - 1:1·1:N 공통 whitelist 공개 DTO와 이름 opt-in 원칙 확정
-  - 생년월일시·원본 입력·유료 본문·내부 계산 상세·유료 결과 접근정보 공개 금지
 - [x] **P2 — 관계×패턴×tone 카피 라이브러리**
-  - raw 240개 검토 후 160개 Production 후보 확정
-  - deterministic selector와 curiosity mask 적용
-- [x] **P3 — P0 9:16 공유 카드**
-  - Relationship Label / Two Sides / Send This
-  - 1:1·1:N Web Share / 이미지 저장 / clipboard fallback
+- [x] **P3 — Relationship Label / Two Sides / Send This 9:16 공유 카드**
 - [x] **P4 — public Shared View**
-  - 유료 결과와 분리된 opaque public token 기반 `/share/[token]`
-  - 비로그인 제한 결과 열람 + 신규 궁합 CTA
-  - public share 삭제 수명을 결과/계정 삭제 정책과 연동
-- [x] **P5 — 공유 수신자 반응 UX + analytics 퍼널**
-  - Shared View에 `꽤 맞음 / 반반 / 아닌데` 반응을 추가하고 첫 반응 뒤 신규 1:1/1:N CTA 노출
-  - 최소 이벤트 9개 연결: `share_card_open`, `share_style_selected`, `share_image_download`, `share_native_open`, `share_link_copy`, `shared_view_open`, `shared_view_reaction`, `shared_view_cta_click`, `shared_view_new_report_start`
-  - analytics는 제한된 enum 필드만 저장하며 이름·생년월일시·구매 식별자·유료 본문을 저장하지 않음
-  - public share 연계 이벤트는 raw token이 아닌 hash로만 연결하고 public share 삭제 시 함께 정리
-  - client/server analytics 실패는 공유·Shared View·반응·CTA를 차단하지 않는 best-effort 처리
-  - PR #38 Core Validation #609 PASS
-- [x] **P6 — Receipt / Recap 카드 + A/B 테스트 기반 확장**
-  - 1:1·1:N에 Receipt / Recap 9:16 카드 추가, 기존 P0 카드 유지
-  - 기존 P2 카피 재사용: Receipt는 `two_sides`, Recap은 `relationship_label` 기반 clean tone
-  - 결과 기반 deterministic seed로 `p6_receipt_first / p6_recap_first`를 안정 배정하고 기본 카드·탭 순서 실험
-  - 기존 9-event 이름을 유지하면서 owner-side 이벤트에 enum 제한 `sharePurpose`와 `experimentArm`을 기록
-  - public Shared View DTO와 개인정보 공개 범위는 확장하지 않음
-  - PR #39 Core Validation #613: 기존 전체 contracts + P6 contract + lint + production build PASS
+- [x] **P5 — 공유 수신자 반응 UX + 9-event analytics 퍼널**
+- [x] **P6 — Receipt / Recap 카드 + deterministic A/B**
 
 ### A0 / P6 성공지표
 
@@ -86,7 +85,6 @@
 - P6 Primary: arm/card별 `share_native_open + share_link_copy` ÷ `share_card_open`
 - P6 Secondary: arm/card별 `share_image_download`, `share_style_selected`
 - P6 Downstream: token hash로 share 이벤트와 `shared_view_open`, `shared_view_new_report_start`를 연결해 공유→유입→신규 궁합 시작 전환 비교
-- A0 acquisition analytics는 Production UX 안정화 뒤 별도 계약으로 추가하고 기존 9개 share event에 임의 metadata를 섞지 않는다.
 - 결과 해석은 Production 표본이 쌓인 뒤 수행하며 코드 단계에서 승자를 미리 정하지 않는다.
 
 핵심 목표: `무료 자기 분석 → Aha → 유료 궁합 시작 → 결과 확인 → 공유 → 상대 반응 → Shared View → 신규 궁합 시작`
@@ -96,6 +94,7 @@
 - [ ] **Production 최신 배포 여부 확인**
   - GitHub 최신 `main`과 Vercel Production 배포 상태 일치 확인
   - Hobby build rate limit 등 외부 제한은 코드 실패와 분리 기록
+  - 사용자 승인 전 Vercel 배포 금지
 - [ ] **무료 유입 / Aha 실제 QA**
   - 홈 first CTA가 무료 자기 분석인지 확인
   - `/free` 입력 → 4-insight 결과 → 유료 CTA 실제 동작
@@ -143,11 +142,11 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: A0 free-first acquisition — 홈 → 무료 자기 분석 → 유료 궁합 전환
+- Task: 사용자 제보 hotfix — 테마 통일 / 1:1 장시간 생성 / 홈 문구 제거 / 공유 발견성 / 수동 배포 정책
 - Status: complete
-- Validation: PR #40 Core Validation #618 PASS — 새 free acquisition contract + 기존 전체 contracts + lint + production build
-- Commit: PR #40 validated code head edf166a60b791f092d3d5b82de1b1be1e8178db7; 상태 문서는 같은 PR에서 후속 갱신
-- Remaining: Production 최신 배포 확인 후 `/`→`/free`→`/one-to-one?from=free` 360/390/430 실사용 QA + 기존 Shared View/Growth QA
-- Risk: 무료 결과 실제 모바일 시각 품질·session prefill·Production 동작은 아직 실사용 검증 전; acquisition analytics는 후속
-- Resume: `다음`이면 최신 main/HANDOFF 재확인 후 Production 무료 유입 runtime QA부터 진행
+- Validation: PR #41 Core Validation #630 PASS — 전체 contracts + hotfix contract + lint + production build
+- Commit: PR #41 validated code head bd57658c81eefbd7198cfe33eb2ff3adcb7f1d72; 상태 문서는 같은 PR에서 후속 갱신
+- Remaining: 사용자 승인 후 최신 main SHA를 Vercel Production에 1회 배포 → 1:1 생성시간·테마·1:1/1:N 공유 실사용 QA
+- Risk: Production은 아직 hotfix 미반영; 실제 유료 1:1 생성시간과 모바일 Web Share/이미지 품질은 배포 후 검증 필요
+- Resume: 배포 승인이 오면 최신 main 재확인 후 승인된 SHA만 Production 배포하고 runtime QA 진행
 ```

@@ -4,6 +4,8 @@ import { buildPaidReportFacts } from "@/lib/narrative/report-engine-v5";
 import {
   PAID_REPORT_SEGMENTS,
   generatePaidReportSegmentV7,
+  type PaidReportSegmentContent,
+  type PaidReportSegmentMeta,
   type PaidReportSegmentName,
 } from "@/lib/narrative/report-engine-v7";
 import { personalizeNarrativeNames } from "@/lib/narrative/name-personalization";
@@ -37,9 +39,24 @@ import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const runtime = "nodejs";
 export const maxDuration = 240;
-const REPORT_RUNTIME_VERSION = "paid-report-v7-editorial-server-store-20260818-name-personalization";
+const REPORT_RUNTIME_VERSION = "paid-report-v7-editorial-server-store-20260824-parallel-recovery";
 const PHASES = ["prepare", ...PAID_REPORT_SEGMENTS] as const;
 type ReportPhase = (typeof PHASES)[number];
+
+type NarrativeNames = { self: string; partner: string };
+type SegmentPlan =
+  | {
+      kind: "ready";
+      segment: PaidReportSegmentName;
+      content: PaidReportSegmentContent;
+      meta: PaidReportSegmentMeta;
+    }
+  | { kind: "claimed"; segment: PaidReportSegmentName }
+  | { kind: "busy"; segment: PaidReportSegmentName };
+
+type SegmentResult =
+  | Extract<SegmentPlan, { kind: "ready" }>
+  | { kind: "failed"; segment: PaidReportSegmentName };
 
 function parsePhase(value: unknown): ReportPhase | null {
   return typeof value === "string" && PHASES.includes(value as ReportPhase)
@@ -107,6 +124,71 @@ async function readOrCreateServerProgress(
   }
 }
 
+async function planSegmentGeneration(
+  paymentId: string,
+  segment: PaidReportSegmentName,
+  storedProgress: ServerReportProgress | null,
+  narrativeNames: NarrativeNames,
+): Promise<SegmentPlan> {
+  const storedSegment = storedProgress?.segments[segment];
+  const storedMeta = storedProgress?.metas[segment];
+  if (storedSegment && storedMeta) {
+    return {
+      kind: "ready",
+      segment,
+      content: personalizeNarrativeNames(storedSegment, narrativeNames),
+      meta: storedMeta,
+    };
+  }
+
+  const claimed = await claimReportSegmentGeneration(paymentId, segment);
+  return claimed ? { kind: "claimed", segment } : { kind: "busy", segment };
+}
+
+async function runClaimedSegment(
+  paymentId: string,
+  plan: Extract<SegmentPlan, { kind: "claimed" }>,
+  snapshot: ReturnType<typeof calculateOneToOneCompatibility>,
+  input: OneToOneReportInput,
+  narrativeNames: NarrativeNames,
+  required: boolean,
+): Promise<SegmentResult> {
+  const segment = plan.segment;
+  try {
+    const generated = await generatePaidReportSegmentV7(snapshot, input, segment);
+    const personalizedContent = personalizeNarrativeNames(generated.content, narrativeNames);
+    const persisted = await saveServerReportSegment(
+      paymentId,
+      segment,
+      personalizedContent,
+      generated.meta,
+    );
+    if (!persisted) throw new Error("SERVER_REPORT_SEGMENT_SAVE_FAILED");
+    await completeReportSegmentGeneration(paymentId, segment);
+    return {
+      kind: "ready",
+      segment,
+      content: personalizedContent,
+      meta: generated.meta,
+    };
+  } catch (error) {
+    await releaseReportSegmentGeneration(paymentId, segment).catch(() => false);
+    if (required) throw error;
+    console.warn("[woorigunghap:parallel-segment-recovery]", JSON.stringify({
+      paymentId,
+      segment,
+      reason: error instanceof Error ? error.message.slice(0, 160) : "UNKNOWN",
+    }));
+    return { kind: "failed", segment };
+  }
+}
+
+async function releaseUnusedPlans(paymentId: string, plans: SegmentPlan[]) {
+  await Promise.all(plans.map((plan) => plan.kind === "claimed"
+    ? releaseReportSegmentGeneration(paymentId, plan.segment).catch(() => false)
+    : Promise.resolve(false)));
+}
+
 export async function POST(request: NextRequest) {
   let body: unknown;
   try {
@@ -150,7 +232,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let claimedSegment: PaidReportSegmentName | null = null;
   try {
     const orderExists = isServerReportStoreConfigured() ? await hasServerOrder(paymentId) : false;
     const storedOrder = orderExists
@@ -214,26 +295,25 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const segment = phase as PaidReportSegmentName;
-    const storedSegment = storedProgress?.segments[segment];
-    const storedMeta = storedProgress?.metas[segment];
-    if (storedSegment && storedMeta) {
-      return NextResponse.json({
-        phase,
-        segmentContent: personalizeNarrativeNames(storedSegment, narrativeNames),
-        segmentMeta: storedMeta,
-        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
-        payment: {
-          verified: true,
-          paymentId: payment.paymentId,
-          product: payment.product,
-          amount: payment.amount,
-          inputBound: payment.inputBound,
-        },
-      });
+    const requestedSegment = phase as PaidReportSegmentName;
+    const plans: SegmentPlan[] = [];
+    try {
+      for (const segment of PAID_REPORT_SEGMENTS) {
+        plans.push(await planSegmentGeneration(paymentId, segment, storedProgress, narrativeNames));
+      }
+    } catch (error) {
+      await releaseUnusedPlans(paymentId, plans);
+      throw error;
     }
 
-    if (!await claimReportSegmentGeneration(paymentId, segment)) {
+    const requestedPlan = plans.find((plan) => plan.segment === requestedSegment);
+    if (!requestedPlan) {
+      await releaseUnusedPlans(paymentId, plans);
+      throw new Error("REQUESTED_SEGMENT_PLAN_MISSING");
+    }
+
+    if (requestedPlan.kind === "busy") {
+      await releaseUnusedPlans(paymentId, plans);
       return NextResponse.json({
         error: "같은 해설 묶음을 이미 생성하고 있습니다. 잠시 후 저장된 결과를 다시 확인합니다.",
         code: "REPORT_GENERATION_IN_PROGRESS",
@@ -241,24 +321,34 @@ export async function POST(request: NextRequest) {
         reportRuntimeVersion: REPORT_RUNTIME_VERSION,
       }, { status: 409 });
     }
-    claimedSegment = segment;
 
-    const generated = await generatePaidReportSegmentV7(snapshot, input, segment);
-    const personalizedContent = personalizeNarrativeNames(generated.content, narrativeNames);
-    const persisted = await saveServerReportSegment(
-      paymentId,
-      segment,
-      personalizedContent,
-      generated.meta,
-    );
-    if (!persisted) throw new Error("SERVER_REPORT_SEGMENT_SAVE_FAILED");
-    await completeReportSegmentGeneration(paymentId, segment);
-    claimedSegment = null;
+    const results = await Promise.all(plans.map((plan) => {
+      if (plan.kind === "ready") return Promise.resolve<SegmentResult>(plan);
+      if (plan.kind === "busy") return Promise.resolve<SegmentResult>({ kind: "failed", segment: plan.segment });
+      return runClaimedSegment(
+        paymentId,
+        plan,
+        snapshot,
+        input,
+        narrativeNames,
+        plan.segment === requestedSegment,
+      );
+    }));
+
+    const requestedResult = results.find((result) => result.segment === requestedSegment);
+    if (!requestedResult || requestedResult.kind !== "ready") {
+      return NextResponse.json({
+        error: "같은 해설 묶음을 이미 생성하고 있습니다. 잠시 후 저장된 결과를 다시 확인합니다.",
+        code: "REPORT_GENERATION_IN_PROGRESS",
+        retryable: true,
+        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+      }, { status: 409 });
+    }
 
     return NextResponse.json({
       phase,
-      segmentContent: personalizedContent,
-      segmentMeta: generated.meta,
+      segmentContent: requestedResult.content,
+      segmentMeta: requestedResult.meta,
       reportRuntimeVersion: REPORT_RUNTIME_VERSION,
       payment: {
         verified: true,
@@ -269,10 +359,6 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    if (claimedSegment) {
-      await releaseReportSegmentGeneration(paymentId, claimedSegment).catch(() => false);
-    }
-
     if (error instanceof PaymentVerificationError) {
       const retryable = error.code === "PORTONE_LOOKUP_FAILED" || error.code === "PAYMENT_NOT_PAID";
       return NextResponse.json(

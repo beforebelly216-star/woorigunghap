@@ -23,7 +23,7 @@ type LibraryState =
   | { status: "failed" }
   | { status: "ready"; reports: ReportSummary[] };
 
-const GENERATION_RESUME_INTERVAL_MS = 120_000;
+const GENERATION_RESUME_INTERVAL_MS = 60_000;
 
 function formatDate(value: string) {
   const date = new Date(value);
@@ -165,7 +165,7 @@ export default function AccountReportsPage() {
                 <span>{report.productLabel} · {report.relationshipLabel}</span>
                 <strong>{report.title}</strong>
                 <small>{formatDate(report.createdAt)} 구매</small>
-                <b>저장된 결과 열기</b>
+                <b>결과 열기 · 공유하기</b>
               </Link>
               <button
                 type="button"
@@ -178,7 +178,7 @@ export default function AccountReportsPage() {
               <strong>{report.title}</strong>
               <small>{formatDate(report.createdAt)} 구매</small>
               <b>생성중</b>
-              <p>결과를 만들고 있어요. 같은 브라우저의 복구키가 있으면 멈춘 생성도 자동으로 다시 이어갑니다.</p>
+              <p>자동 복구를 확인하고 있어요. 생성이 끊기면 같은 브라우저의 복구키로 1분 간격으로 다시 이어갑니다. 추가 결제나 중복 AI 생성은 하지 않습니다.</p>
             </article>}
           </li>)}
         </ul> : null}

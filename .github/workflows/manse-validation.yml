@@ -12,8 +12,10 @@ on:
       - "scripts/one-to-one-*.ts"
       - "scripts/report-*.ts"
       - "scripts/growth-*.ts"
+      - "scripts/hotfix-*.ts"
       - "package.json"
       - "package-lock.json"
+      - "vercel.json"
       - ".github/workflows/manse-validation.yml"
   pull_request:
     paths:
@@ -24,8 +26,10 @@ on:
       - "scripts/one-to-one-*.ts"
       - "scripts/report-*.ts"
       - "scripts/growth-*.ts"
+      - "scripts/hotfix-*.ts"
       - "package.json"
       - "package-lock.json"
+      - "vercel.json"
       - ".github/workflows/manse-validation.yml"
 
 jobs:
@@ -92,6 +96,7 @@ jobs:
           npm run test:growth:analytics
           npm run test:growth:p6-share-cards
           npm run test:growth:free-acquisition
+          npm run test:hotfix:runtime-ux
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi

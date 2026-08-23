@@ -8,7 +8,7 @@
 - 기준 브랜치: `main`
 - 기준 상태: Day 24 MVP 완료, 베타 전 제품 완성도 개선 및 운영 QA 단계
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
-- 배포: Vercel Production, `main` 자동 배포
+- 배포: Vercel Production. **Git 자동 배포는 비활성화하며 Preview/Production 배포는 사용자 명시 승인 후 별도 실행**
 - 레거시 내부 식별자: GitHub 저장소 `beforebelly216-star/woorigunghap`, 기존 Vercel 도메인, DB의 `woorigunghap_*` 식별자는 호환성을 위해 유지한다.
 
 ## 현재 구현 상태
@@ -30,9 +30,20 @@
 - 궁합 공개 점수 v1.4: 내부 가중합·9개 차원은 유지하고 사용자 종합점수만 45~100점 단조 스케일로 표시
 - 이용약관/개인정보/환불 정책, 회원탈퇴/데이터 삭제
 
+## UI / UX hotfix 상태
+
+- 홈·무료 입력·유료 입력·결제·생성중·결과·보관함·Shared View 핵심 surface를 **라벤더 기반 공통 파스텔 토큰**으로 통일
+- 개정 전 크림/베이지/연노랑 surface와 순백 혼용을 핵심 화면 기본 테마에서 제거
+- 홈의 `계산은 서버가`, `무료는 계산만`, `AI는 서술만`, `결제 후 생성` 등 구현 설명 카드와 하단 범용 면책 문구 제거
+- 보관함 완성 결과 CTA를 `결과 열기 · 공유하기`로 명시해 공유 기능 발견성을 보강
+- 기존 P5 UI 계약의 크림색 고정값을 새 공통 테마 계약으로 갱신
+
 ## 1:1 생성 및 콘텐츠
 
 - `prepare` 후 `intro` / `dynamics` / `action` 병렬 fan-out
+- 사용자 요청 phase에서 저장되지 않은 세 segment를 각 segment single-flight claim 아래 함께 계획하고 가능한 claim을 **동시에 생성**해 순차 대기 시간 누적을 방지
+- stale segment claim 재획득 기준은 **5분 유지**. 장문 생성 중 살아 있는 요청을 조기 재획득해 중복 AI 비용을 만드는 것을 방지
+- 같은 브라우저 보관함 생성 복구 handoff는 **60초 간격**으로 재시도
 - 병렬 segment 저장은 PostgreSQL `jsonb_set` 원자 업데이트 사용
 - 목표 분량 약 5,000~8,000자, 필요 시 약 10,000자
 - 계산된 일주·오행·관계 근거와 AI 서술 정합성 검증
@@ -64,58 +75,47 @@
 
 - 상세 실행 지침: `docs/PROMOTION_VIRAL_UX.md`
 - **A0 완료:** 홈 free-first CTA, `/free` 한 사람 자기 분석, deterministic 4-insight Aha 결과, 결과 뒤 1:1/1:N 유료 CTA
-- A0는 기존 만세력/60일주 캐릭터만 재사용하며 무료 경로에서 주문·결제·유료 AI 호출이 없음
-- A0 무료 DTO는 raw birth input을 반환하지 않고, 1:1 prefill은 same-session browser storage만 사용
-- 공유는 Web Share API, 이미지 저장, 일반 public URL 등 플랫폼 중립 방식만 사용
 - **P1 완료:** whitelist 공개 Share DTO, 이름 opt-in, 개인정보·유료 본문·내부 계산 상세 공개 금지
 - **P2 완료:** raw 240개 검토 → 160개 Production 관계 카피, deterministic selector, curiosity mask
 - **P3 완료:** 1:1·1:N Relationship Label / Two Sides / Send This 9:16 공유 카드, Web Share/이미지 저장/clipboard fallback
-- **P4 완료:** 유료 결과와 분리된 opaque public token 기반 `/share/[token]`, 비로그인 제한 결과, 신규 궁합 CTA
+- **P4 완료:** opaque public token 기반 `/share/[token]`, 비로그인 제한 결과, 신규 궁합 CTA
 - public share DB는 raw public token 대신 hash와 whitelist 공개 DTO만 저장
 - 보관함 결과 영구 삭제 및 회원탈퇴 데이터 삭제 시 해당 결과의 public share도 제거
-- **P5 완료:** Shared View 수신자 `꽤 맞음 / 반반 / 아닌데` 반응 UX와 반응 후 CTA
-- **P5 완료:** `share_card_open`, `share_style_selected`, `share_image_download`, `share_native_open`, `share_link_copy`, `shared_view_open`, `shared_view_reaction`, `shared_view_cta_click`, `shared_view_new_report_start` 9-event 퍼널
+- **P5 완료:** Shared View 수신자 `꽤 맞음 / 반반 / 아닌데` 반응 UX와 9-event analytics 퍼널
 - analytics 저장은 제한된 enum 필드만 허용하고 이름·생년월일시·구매 식별자·유료 본문을 저장하지 않음
 - public share 연계 analytics는 raw token이 아닌 hash로 연결하고 public share 삭제 시 함께 정리
-- analytics client/server 실패는 공유·Shared View·반응·CTA를 막지 않는 best-effort 경계
-- **P6 완료:** 1:1·1:N `Receipt / Recap` 9:16 공유 카드 추가
-- P6는 기존 P2 카피를 재사용하며 `Receipt → two_sides`, `Recap → relationship_label`로 매핑하고 P1 카드는 읽기 쉬운 clean tone을 사용
-- P6 A/B는 결과 기반 deterministic seed로 `p6_receipt_first / p6_recap_first`를 안정 배정해 기본 카드와 탭 순서를 바꿈
-- 기존 9개 event 이름은 유지하고 owner-side 공유 이벤트에 enum 제한 `sharePurpose`와 `experimentArm`만 추가
-- analytics DB는 enum 제한 experiment arm 컬럼을 migration-safe하게 추가하며 public Shared View DTO와 개인정보 공개 범위는 확장하지 않음
+- **P6 완료:** 1:1·1:N `Receipt / Recap` 9:16 공유 카드와 deterministic `p6_receipt_first / p6_recap_first` A/B
+- 1:1·1:N 실제 공유 구현은 Web Share API, 1080×1920 이미지 저장, opaque Shared View URL, clipboard fallback을 유지
 
 ## 최근 주요 검증
 
-- Growth P4 main merge: `fda8f53d763cd157642d64201396a316733abcda`
-- Growth P4 PR #37 Core Validation #605: 기존 전체 contracts + P4 contract + lint + production build PASS
 - Growth P5 PR #38 Core Validation #609: 기존 전체 contracts + P5 analytics/reaction contract + lint + production build PASS
-- Growth P6 검증 기준 code head: `2ba38f33d4709944f73345bd37041e8259719c4a`
 - Growth P6 PR #39 Core Validation #613: 기존 전체 contracts + P6 experiment contract + lint + production build PASS
-- Free acquisition A0 검증 기준 code head: `edf166a60b791f092d3d5b82de1b1be1e8178db7`
-- Free acquisition PR #40 Core Validation #618: 새 free acquisition contract + 기존 전체 contracts + lint + production build PASS
+- Free acquisition PR #40 Core Validation #618: free acquisition contract + 기존 전체 contracts + lint + production build PASS
+- **Runtime/UI hotfix 검증 기준 code head:** `bd57658c81eefbd7198cfe33eb2ff3adcb7f1d72`
+- **PR #41 Core Validation #630 PASS:** 만세력/궁합/결제/저장/1:N/계정/편집/Growth/system QA + hotfix contract + lint + production build
 
 ## 현재 제품 우선순위
 
 1. blocker/hotfix 발생 시 즉시 처리
-2. 최신 사용자 요청으로 지정된 제품 개선
-3. UI/UX 추가 개선
-4. AI 답변 스타일/사주소년 화자 품질 개선
-5. 리포트 항목/정보구조 개선
-6. Production 최신 배포 및 무료 유입/Growth 실사용 QA
-7. 실결제 및 post-beta 운영 QA
+2. **PR #41 hotfix의 Production 배포 승인 후 실제 1:1 생성시간·테마·공유 동작 확인**
+3. 최신 사용자 요청으로 지정된 제품 개선
+4. UI/UX 추가 개선
+5. AI 답변 스타일/사주소년 화자 품질 개선
+6. 리포트 항목/정보구조 개선
+7. 무료 유입/Growth 및 실결제 post-beta 운영 QA
 8. 실제 데이터 기반 Growth 후속 실험
 
 ## 아직 미완료인 운영 QA
 
-- 최신 Production이 최신 `main`을 반영했는지 확인
-- **홈 → `/free` 입력/결과 → `/one-to-one?from=free` 본인정보 prefill 실제 동작 확인**
-- 무료 자기 분석 360 / 390 / 430px 결과 카드·입력 UI 육안 확인
+- 사용자 승인 후 최신 `main` hotfix를 Vercel Production에 배포하고 배포 SHA 일치 확인
+- **새 1:1 실제 결제에서 생성시간이 순차 누적 없이 완료되는지, 답변 품질·저장·재열람까지 확인**
+- Production에서 라벤더 테마가 홈/입력/결제/결과/보관함에 일관되게 적용됐는지 360 / 390 / 430px 육안 확인
+- Production 1:1·1:N 결과에서 이미지 저장 / Web Share / public Shared View 링크가 실제 동작하는지 확인
+- 홈 → `/free` 입력/결과 → `/one-to-one?from=free` 본인정보 prefill 실제 동작 확인
 - public link 생성 → 비로그인 Shared View → 반응 → CTA 실제 동작 확인
 - P5/P6 analytics row 생성, 9-event 퍼널 및 A/B arm 기록 확인
-- Receipt / Recap 실제 이미지 저장·공유와 모바일 시각 QA
 - 결과/계정 삭제 뒤 기존 Shared View 및 token 연계 analytics 정리 확인
-- 새 1:1 실제 결제에서 생성시간·답변 품질·저장·재열람 확인
-- 360 / 390 / 430px 실제 뷰포트 육안 확인
 - 1:1 실제 결제 반복 사용
 - 1:N 실제 결제 반복 사용
 - 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
@@ -143,4 +143,5 @@
 - 사용자 요청이 `NEXT_TASK`보다 구체적이면 사용자 요청을 우선한다.
 - 기존 완료 기능을 이유 없이 재작성하지 않는다.
 - Vercel Hobby build rate limit은 코드 실패가 아니다.
+- **Vercel Git 자동 배포는 비활성화하고 Preview/Production 배포는 대상 SHA와 테스트 결과를 제시한 뒤 사용자 명시 승인 후 실행한다.**
 - 의미 있는 작업 후 `PROJECT_STATE`, `NEXT_TASK/HANDOFF`를 갱신한다.

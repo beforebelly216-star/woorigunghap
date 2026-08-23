@@ -17,9 +17,10 @@ const home = readFileSync("src/app/page.tsx", "utf8");
 const homeCss = readFileSync("src/app/home-p5.module.css", "utf8");
 
 for (const token of [
-  "#FFFBF5", "#FFFFFF", "#3A3550", "#7B7396", "#B8A9E8", "#8B7BC7", "#FFB088", "#8FD9C4", "#FFC4D6",
-  "#A8D8B9", "#FF9E9E", "#F5D6A0", "#D9D5E8", "#A5C9E8", "#1F1B2E", "#2A2540", "#EDE9F7",
+  "#F4F1FA", "#FCFBFF", "#373247", "#746C8A", "#B7A9E6", "#806FC0", "#F6A77E", "#89D2BF", "#F2BDD0",
+  "#A8D8B9", "#FF9E9E", "#E8C995", "#D9D5E8", "#A5C9E8", "#1F1B2E", "#2A2540", "#EDE9F7",
 ]) assert.ok(theme.includes(token), `P5 token missing: ${token}`);
+assert.doesNotMatch(theme, /#FFFBF5|#FFFFFF|#F5D6A0/i, "legacy cream/pure-white P5 tokens must not return");
 assert.match(theme, /prefers-color-scheme:\s*dark/);
 assert.match(theme, /Pretendard/);
 assert.match(theme, /Nanum Myeongjo/);
@@ -69,4 +70,4 @@ assert.match(mobile, /@media \(max-width:\s*390px\)/);
 assert.match(mobile, /padding-bottom:\s*calc\(112px \+ env\(safe-area-inset-bottom\)\)/);
 assert.ok(result.indexOf("<CompatibilityShareCard") < result.indexOf("<section className=\"v2-basic-facts\""), "share card should appear immediately after hero before detailed facts");
 
-console.log("P5 pastel mascot report UI + 360/390/430 mobile QA contract: PASS");
+console.log("P5 unified pastel mascot report UI + 360/390/430 mobile QA contract: PASS");
