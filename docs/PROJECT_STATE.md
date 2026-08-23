@@ -13,6 +13,10 @@
 
 ## 현재 구현 상태
 
+- **free-first 신규 유입:** 홈 첫 CTA `무료로 내 관계 성향 보기` → `/free` deterministic 자기 분석 → 결과 뒤 1:1/1:N 유료 전환
+- 무료 자기 분석은 기존 만세력 + 60일주 캐릭터 편집 레이어만 사용하고 4개 Aha insight를 반환하며 주문·결제·유료 AI 생성을 만들지 않음
+- 무료 API DTO는 원본 생년월일시·전체 명식 snapshot·유료 점수/본문·결제/접근 식별자를 반환하지 않음
+- 무료 결과 → 1:1 이동 시 같은 브라우저 sessionStorage의 본인 입력을 첫 번째 사람으로 prefill하며 raw birth input을 URL query에 넣지 않음
 - 1:1 상품 1,000원
 - 1:N 상품 3,000원, 기준자 1명 + 후보 2~5명
 - 관계 유형: 짝사랑 / 썸 / 연인 / 친구 / 직장동료
@@ -59,6 +63,9 @@
 ## Growth 구현 상태
 
 - 상세 실행 지침: `docs/PROMOTION_VIRAL_UX.md`
+- **A0 완료:** 홈 free-first CTA, `/free` 한 사람 자기 분석, deterministic 4-insight Aha 결과, 결과 뒤 1:1/1:N 유료 CTA
+- A0는 기존 만세력/60일주 캐릭터만 재사용하며 무료 경로에서 주문·결제·유료 AI 호출이 없음
+- A0 무료 DTO는 raw birth input을 반환하지 않고, 1:1 prefill은 same-session browser storage만 사용
 - 공유는 Web Share API, 이미지 저장, 일반 public URL 등 플랫폼 중립 방식만 사용
 - **P1 완료:** whitelist 공개 Share DTO, 이름 opt-in, 개인정보·유료 본문·내부 계산 상세 공개 금지
 - **P2 완료:** raw 240개 검토 → 160개 Production 관계 카피, deterministic selector, curiosity mask
@@ -84,6 +91,8 @@
 - Growth P5 PR #38 Core Validation #609: 기존 전체 contracts + P5 analytics/reaction contract + lint + production build PASS
 - Growth P6 검증 기준 code head: `2ba38f33d4709944f73345bd37041e8259719c4a`
 - Growth P6 PR #39 Core Validation #613: 기존 전체 contracts + P6 experiment contract + lint + production build PASS
+- Free acquisition A0 검증 기준 code head: `edf166a60b791f092d3d5b82de1b1be1e8178db7`
+- Free acquisition PR #40 Core Validation #618: 새 free acquisition contract + 기존 전체 contracts + lint + production build PASS
 
 ## 현재 제품 우선순위
 
@@ -92,13 +101,15 @@
 3. UI/UX 추가 개선
 4. AI 답변 스타일/사주소년 화자 품질 개선
 5. 리포트 항목/정보구조 개선
-6. Production 최신 배포 및 Growth 실사용 QA
+6. Production 최신 배포 및 무료 유입/Growth 실사용 QA
 7. 실결제 및 post-beta 운영 QA
 8. 실제 데이터 기반 Growth 후속 실험
 
 ## 아직 미완료인 운영 QA
 
 - 최신 Production이 최신 `main`을 반영했는지 확인
+- **홈 → `/free` 입력/결과 → `/one-to-one?from=free` 본인정보 prefill 실제 동작 확인**
+- 무료 자기 분석 360 / 390 / 430px 결과 카드·입력 UI 육안 확인
 - public link 생성 → 비로그인 Shared View → 반응 → CTA 실제 동작 확인
 - P5/P6 analytics row 생성, 9-event 퍼널 및 A/B arm 기록 확인
 - Receipt / Recap 실제 이미지 저장·공유와 모바일 시각 QA

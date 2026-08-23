@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { focusFirstInvalidField } from "@/lib/form-accessibility";
 import {
@@ -12,6 +12,7 @@ import {
   RELATIONSHIP_TYPES,
   type CoworkerHierarchy,
   type OneToOneReportInput,
+  type PersonBirthInput,
   type RelationshipType,
   validateOneToOneReportInput,
 } from "@/lib/report-input";
@@ -21,6 +22,10 @@ import {
   PersonBirthFields,
   type PersonBirthFormState,
 } from "@/components/person-birth-fields";
+import {
+  FREE_SELF_PERSON_STORAGE_KEY,
+  parseFreeSelfPerson,
+} from "@/lib/free-self-analysis-contract";
 import {
   createOneToOneOrderDraft,
   createRecoveredOneToOneOrderDraft,
@@ -50,6 +55,26 @@ const initialState: FormState = {
   personA: createEmptyPersonBirthForm(),
   personB: createEmptyPersonBirthForm(),
 };
+
+function toPersonBirthForm(person: PersonBirthInput): PersonBirthFormState {
+  const [hourText = "", minute = ""] = person.birthTime?.split(":") ?? [];
+  const hour = Number(hourText);
+  const meridiem = hour >= 12 ? "pm" : "am";
+  const twelveHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+
+  return {
+    displayName: person.displayName,
+    gender: person.gender,
+    calendarType: person.calendarType,
+    birthDate: person.birthDate.replaceAll("-", ""),
+    birthTimeKnown: person.birthTimeKnown,
+    birthTime: person.birthTimeKnown && person.birthTime
+      ? `${String(twelveHour).padStart(2, "0")}${minute}`
+      : "",
+    meridiem,
+    isLeapMonth: person.isLeapMonth,
+  };
+}
 
 function toReportInput(form: FormState) {
   const personA = normalizePersonBirthForm(form.personA, "personA");
@@ -83,11 +108,36 @@ export function OneToOneForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const recoveryPaymentId = searchParams.get("recoverPaymentId");
+  const fromFree = searchParams.get("from") === "free";
   const [form, setForm] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isContinuing, setIsContinuing] = useState(false);
+  const [freePrefilled, setFreePrefilled] = useState(false);
   const partnerInformationLevel = partnerInformationLevelFromPerson(form.personB);
   const partnerInformationCopy = PARTNER_INFORMATION_LEVEL_COPY[partnerInformationLevel];
+
+  useEffect(() => {
+    let active = true;
+    if (!fromFree || recoveryPaymentId) return;
+
+    try {
+      const stored = window.sessionStorage.getItem(FREE_SELF_PERSON_STORAGE_KEY);
+      if (!stored) return;
+      const parsed = parseFreeSelfPerson(JSON.parse(stored));
+      if (!parsed) return;
+      queueMicrotask(() => {
+        if (!active) return;
+        setForm((current) => ({ ...current, personA: toPersonBirthForm(parsed) }));
+        setFreePrefilled(true);
+      });
+    } catch {
+      window.sessionStorage.removeItem(FREE_SELF_PERSON_STORAGE_KEY);
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [fromFree, recoveryPaymentId]);
 
   function showErrors(formElement: HTMLFormElement, nextErrors: Record<string, string>) {
     setErrors(nextErrors);
@@ -158,6 +208,13 @@ export function OneToOneForm() {
         <div className="checkout-state recovery-state" role="status">
           <strong>기존 결제 복구 중</strong>
           <p>결제는 다시 하지 않아요. 결제 당시 입력했던 내용을 다시 입력하면 기존 결제를 확인해 결과를 복구합니다.</p>
+        </div>
+      ) : null}
+
+      {freePrefilled ? (
+        <div className="form-success" role="status">
+          <strong>무료 분석에서 입력한 내 정보를 이어왔어요.</strong>
+          <p>첫 번째 사람은 미리 채워뒀습니다. 이제 관계 유형과 궁금한 상대 정보만 이어서 입력해 주세요.</p>
         </div>
       ) : null}
 
