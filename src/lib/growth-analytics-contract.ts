@@ -13,7 +13,8 @@ export const GROWTH_EVENT_NAMES = [
 export type GrowthEventName = typeof GROWTH_EVENT_NAMES[number];
 export type GrowthEventProduct = "oneToOne" | "oneToMany";
 export type GrowthEventSurface = "one_to_one_share_card" | "one_to_many_share_card" | "shared_view";
-export type GrowthSharePurpose = "relationship_label" | "two_sides" | "send_this";
+export type GrowthSharePurpose = "relationship_label" | "two_sides" | "send_this" | "receipt" | "recap";
+export type GrowthExperimentArm = "p6_receipt_first" | "p6_recap_first";
 export type SharedViewReaction = "pretty_match" | "half" | "not_really";
 export type GrowthCtaTarget = "oneToOne" | "oneToMany";
 export type GrowthRelationshipType = "crush" | "flirting" | "lover" | "friend" | "coworker";
@@ -24,6 +25,7 @@ export type GrowthAnalyticsEvent = {
   relationshipType: GrowthRelationshipType;
   surface: GrowthEventSurface;
   sharePurpose?: GrowthSharePurpose;
+  experimentArm?: GrowthExperimentArm;
   reaction?: SharedViewReaction;
   ctaTarget?: GrowthCtaTarget;
   shareToken?: string;
@@ -33,7 +35,8 @@ const EVENT_NAMES = new Set<string>(GROWTH_EVENT_NAMES);
 const PRODUCTS = new Set<string>(["oneToOne", "oneToMany"]);
 const RELATIONSHIP_TYPES = new Set<string>(["crush", "flirting", "lover", "friend", "coworker"]);
 const SURFACES = new Set<string>(["one_to_one_share_card", "one_to_many_share_card", "shared_view"]);
-const SHARE_PURPOSES = new Set<string>(["relationship_label", "two_sides", "send_this"]);
+const SHARE_PURPOSES = new Set<string>(["relationship_label", "two_sides", "send_this", "receipt", "recap"]);
+const EXPERIMENT_ARMS = new Set<string>(["p6_receipt_first", "p6_recap_first"]);
 const REACTIONS = new Set<string>(["pretty_match", "half", "not_really"]);
 const CTA_TARGETS = new Set<string>(["oneToOne", "oneToMany"]);
 
@@ -66,16 +69,18 @@ export function parseGrowthAnalyticsEvent(value: unknown): GrowthAnalyticsEvent 
   const relationshipType = enumValue<GrowthRelationshipType>(input.relationshipType, RELATIONSHIP_TYPES);
   const surface = enumValue<GrowthEventSurface>(input.surface, SURFACES);
   const sharePurpose = optionalEnumValue<GrowthSharePurpose>(input.sharePurpose, SHARE_PURPOSES);
+  const experimentArm = optionalEnumValue<GrowthExperimentArm>(input.experimentArm, EXPERIMENT_ARMS);
   const reaction = optionalEnumValue<SharedViewReaction>(input.reaction, REACTIONS);
   const ctaTarget = optionalEnumValue<GrowthCtaTarget>(input.ctaTarget, CTA_TARGETS);
   const shareToken = optionalShareToken(input.shareToken);
 
   if (!eventName || !product || !relationshipType || !surface) return null;
-  if (sharePurpose === null || reaction === null || ctaTarget === null || shareToken === null) return null;
+  if (sharePurpose === null || experimentArm === null || reaction === null || ctaTarget === null || shareToken === null) return null;
 
   const shareCardSurface = surface === "one_to_one_share_card" || surface === "one_to_many_share_card";
   if (product === "oneToOne" && surface === "one_to_many_share_card") return null;
   if (product === "oneToMany" && surface === "one_to_one_share_card") return null;
+  if (!shareCardSurface && (sharePurpose || experimentArm)) return null;
 
   switch (eventName) {
     case "share_card_open":
@@ -107,6 +112,7 @@ export function parseGrowthAnalyticsEvent(value: unknown): GrowthAnalyticsEvent 
     relationshipType,
     surface,
     ...(sharePurpose ? { sharePurpose } : {}),
+    ...(experimentArm ? { experimentArm } : {}),
     ...(reaction ? { reaction } : {}),
     ...(ctaTarget ? { ctaTarget } : {}),
     ...(shareToken ? { shareToken } : {}),
