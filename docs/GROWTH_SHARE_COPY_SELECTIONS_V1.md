@@ -1,6 +1,6 @@
 # Growth P2 Share Copy Selections v1
 
-> 상태: **P2-3 선별 완료 / Production 미적용**
+> 상태: **P2 완료 / 승인 160개 코드화 완료**
 > 원본 후보: `docs/GROWTH_SHARE_COPY_REVIEW_V1.md`
 > 최종 후보: raw 240개 중 160개 채택, 80개 제외.
 
@@ -11,7 +11,7 @@
 - 실제 Production에서는 계산/편집 결과에서 결정된 숨김 구절 길이에 맞춰 마스킹한다.
 - 사용자가 직접 선별한 짝사랑 39개는 그대로 유지한다.
 - 나머지 관계는 중복 Clean 문구를 줄이고, 각 셀에서 Tease 최소 1개와 Curiosity 2개를 우선 보존해 일괄 선별했다.
-- P2-4 코드화 전까지 이 문서는 승인된 편집 후보 목록이며 공유 UI/DTO에는 연결하지 않는다.
+- P2-4 코드화 시 `썸 × 노력형`의 P0 용도 완전 커버리지를 위해 의미가 겹치는 `FL-EF-03`을 제외하고 `FL-EF-04`를 채택했다. 총 160개와 tone 분포는 변하지 않는다.
 
 ## 짝사랑 — 사용자 직접 선별 39개
 
@@ -58,8 +58,8 @@
 - 제외: `FL-DI-03`, `FL-DI-04`, `FL-DI-05`
 
 ### 노력형
-- 채택: `FL-EF-01`, `FL-EF-03`, `FL-EF-06`, `FL-EF-07`, `FL-EF-08`
-- 제외: `FL-EF-02`, `FL-EF-04`, `FL-EF-05`
+- 채택: `FL-EF-01`, `FL-EF-04`, `FL-EF-06`, `FL-EF-07`, `FL-EF-08`
+- 제외: `FL-EF-02`, `FL-EF-03`, `FL-EF-05`
 
 ### 극과극형
 - 채택: `FL-OP-01`, `FL-OP-02`, `FL-OP-06`, `FL-OP-07`, `FL-OP-08`
@@ -151,4 +151,7 @@
 - 관계 유형: 짝사랑 39 / 썸 31 / 연인 30 / 친구 30 / 직장동료 30
 - tone: clean 68 / tease 32 / curiosity 60
 - 30개 `relationshipType × pattern` 셀 모두 최소 5개 이상 유지
-- 다음 단계: P2-4 확정 160개를 Production 카피 라이브러리로 코드화하고 deterministic pattern/tone 선택 및 중복·금지표현 contract를 추가한다.
+- 30개 셀 모두 `relationship_label / two_sides / send_this` P0 용도를 최소 1개 이상 커버
+- Production 코드: `src/lib/share/relationship-share-copy.ts`
+- 검증: `scripts/growth-share-copy-library-test.ts` + Core Validation #590 PASS
+- 다음 단계: P3 Relationship Label / Two Sides / Send This 9:16 공유 카드 UI 연결.
