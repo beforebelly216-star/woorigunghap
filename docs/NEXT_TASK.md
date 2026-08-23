@@ -62,10 +62,21 @@
   - analytics는 제한된 enum 필드만 저장하며 이름·생년월일시·구매 식별자·유료 본문을 저장하지 않음
   - public share 연계 이벤트는 raw token이 아닌 hash로만 연결하고 public share 삭제 시 함께 정리
   - client/server analytics 실패는 공유·Shared View·반응·CTA를 차단하지 않는 best-effort 처리
-  - PR #38 Core Validation #609: 기존 전체 contracts + P5 contract + lint + production build PASS
-- [ ] **P6 — Receipt / Recap 카드 + A/B 테스트 기반 확장**
-  - 기존 P0 카드·P2 카피·P5 analytics를 재사용하는 최소 실험 구조부터 확정
-  - Receipt / Recap 공개 범위와 카드별 성공지표 정의
+  - PR #38 Core Validation #609 PASS
+- [x] **P6 — Receipt / Recap 카드 + A/B 테스트 기반 확장**
+  - 1:1·1:N에 Receipt / Recap 9:16 카드 추가, 기존 P0 카드 유지
+  - 기존 P2 카피 재사용: Receipt는 `two_sides`, Recap은 `relationship_label` 기반 clean tone
+  - 결과 기반 deterministic seed로 `p6_receipt_first / p6_recap_first`를 안정 배정하고 기본 카드·탭 순서 실험
+  - 기존 9-event 이름을 유지하면서 owner-side 이벤트에 enum 제한 `sharePurpose`와 `experimentArm`을 기록
+  - public Shared View DTO와 개인정보 공개 범위는 확장하지 않음
+  - PR #39 Core Validation #613: 기존 전체 contracts + P6 contract + lint + production build PASS
+
+### P6 성공지표
+
+- Primary: arm/card별 `share_native_open + share_link_copy` ÷ `share_card_open`
+- Secondary: arm/card별 `share_image_download`, `share_style_selected`
+- Downstream: token hash로 share 이벤트와 `shared_view_open`, `shared_view_new_report_start`를 연결해 공유→유입→신규 궁합 시작 전환 비교
+- 결과 해석은 Production 표본이 쌓인 뒤 수행하며 코드 단계에서 승자를 미리 정하지 않는다.
 
 핵심 목표: `결과 확인 → 공유 → 상대 반응 → Shared View → 신규 궁합 시작`
 
@@ -75,8 +86,8 @@
   - GitHub 최신 `main`과 Vercel Production 배포 상태 일치 확인
   - Hobby build rate limit 등 외부 제한은 코드 실패와 분리 기록
 - [ ] **Shared View / Growth 실제 QA**
-  - public link 생성 → 비로그인 Shared View → 반응 → CTA 동작 확인
-  - analytics row 생성과 9-event 퍼널 기록 확인
+  - Receipt / Recap 이미지 저장·공유 → public link → 비로그인 Shared View → 반응 → CTA 동작 확인
+  - P5/P6 analytics row, 9-event 퍼널, experiment arm 기록 확인
   - 결과/계정 삭제 뒤 기존 Shared View와 token 연계 analytics 정리 확인
 - [ ] **새 1:1 실제 결제/생성 QA**
   - 실제 결제 → 생성 → 결과 저장 → 보관함 재열람
@@ -114,11 +125,11 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: Growth P5 — Shared View 반응 UX + 최소 9-event analytics funnel
+- Task: Growth P6 — Receipt / Recap 1:1·1:N 카드 + deterministic A/B
 - Status: complete
-- Validation: PR #38 Core Validation #609 PASS — 기존 전체 contracts + Growth P5 contract + lint + production build
-- Commit: PR #38 validated code head 0ec930ecf356770854ff39b28ca7f9d8339e7e90; 상태 문서는 같은 PR에서 후속 갱신
-- Remaining: P6 — Receipt / Recap P1 공유 카드 확장 + A/B 테스트 기반; 기존 P0 카드/P5 analytics를 재사용하는 최소 실험 구조부터 설계
-- Risk: Production analytics 기록, reaction→CTA 실제 클릭, public share 삭제 시 연계 이벤트 정리는 배포 후 실사용 QA 필요
-- Resume: 새 채팅에서 사용자가 `다음`이라고 입력하면 최신 main/HANDOFF 재확인 후 P6를 시작한다
+- Validation: PR #39 Core Validation #613 PASS — 기존 전체 contracts + P6 contract + lint + production build
+- Commit: PR #39 validated code head 2ba38f33d4709944f73345bd37041e8259719c4a; 상태 문서는 같은 PR에서 후속 갱신
+- Remaining: Production 최신 배포 + Shared View/Growth 실사용 QA; P6 arm/card별 공유→Shared View→신규 궁합 시작 기록 확인
+- Risk: Production analytics row, Receipt/Recap 실제 이미지 품질·모바일 표시, A/B 결과는 아직 실사용 검증 전
+- Resume: `다음`이면 최신 main/HANDOFF 재확인 후 Production Growth QA부터 진행
 ```
