@@ -117,8 +117,8 @@ HANDOFF
 - Worker: GPT
 - Task: Growth P1 — 1:1·1:N public share DTO / Shared View 공개 범위 / privacy 계약
 - Status: complete
-- Validation: PR #31 Core validation #585 실행 중; growth share contract + 기존 전체 contracts + lint + production build 검증 경로에 연결
+- Validation: PR #31 Core validation #585 PASS — growth share contract, 기존 전체 contracts, lint, production build 통과
 - Commit: P1 code 6c54fe4bdae429d1683330f060aac516d1c0d356; PR #31
-- Remaining: CI 통과 후 merge. 다음 단계는 P2 관계유형 × 패턴 × clean/tease/curiosity 카피 라이브러리 구축
+- Remaining: 다음 단계는 P2 관계유형 × 패턴 × clean/tease/curiosity 카피 라이브러리 구축
 - Risk: P1은 데이터 계약만 추가했으며 Shared View token/DB/API/Analytics는 아직 구현하지 않음
 ```
