@@ -73,12 +73,18 @@
   - 1:N 결과에도 동일 3종 P0 카드 추가. 기존 deterministic ranking/summary metrics 범위에서 패턴과 역할형 하이라이트를 결정하고 새 AI 계산은 만들지 않음.
   - 1:1·1:N 이름 기본 비노출, 사용자 opt-in 시에만 이미지 표시. 결과 access token/결제 결과 URL은 공유하지 않음.
   - 1080×1920 canvas, 9:16 preview, Web Share/이미지 저장/clipboard fallback 및 360px 모바일 계약 검증.
-  - P4 Shared View/token URL은 본 단계와 분리 유지.
-- [ ] Phase P4 — token 기반 Shared View + 일반 공유 URL + 신규 궁합 CTA
-  - 기존 유료 결과 access token/결과 URL을 재사용하거나 노출하지 않고 public share 전용 token/데이터 경계를 사용한다.
-  - 비로그인에서도 제한된 public share DTO만 조회되는 Shared View를 제공한다.
-  - P3의 홈 URL 공유를 Shared View URL로 교체하고 신규 궁합 시작 CTA를 연결한다.
+- [x] Phase P4 — token 기반 Shared View + 일반 공유 URL + 신규 궁합 CTA
+  - public share 생성은 기존 유료 결과 access token 또는 로그인 보관함 소유권으로 서버에서 권한을 먼저 검증한다.
+  - 공개 URL은 별도 256-bit opaque token을 사용하고 DB에는 raw token 대신 SHA-256 hash만 저장한다.
+  - 공개 저장 데이터는 P1 whitelist DTO만 허용하며 paymentId/accessToken/생년월일시/원본 input/전체 유료 narrative/internal dimensions는 Shared View 응답에 포함하지 않는다.
+  - `/share/[token]`은 비로그인에서도 1:1·1:N 제한 결과를 열고 각각 신규 궁합/비교 CTA를 제공한다.
+  - P3 Web Share/clipboard의 홈 URL을 Shared View URL로 교체했다.
+  - 보관함 결과 영구 삭제 또는 계정 삭제 시 해당 결제에서 생성한 public share도 같은 DB 작업에서 삭제해 공유 링크 수명을 삭제 정책과 묶었다.
+  - Growth P4 contract를 Core Validation에 연결하고 기존 P3/P5 UI의 홈 URL 회귀 계약을 P4 규칙으로 갱신했다.
 - [ ] Phase P5 — 공유 수신자 반응 UX + analytics 이벤트 및 퍼널 측정
+  - `꽤 맞음 / 반반 / 아닌데` 반응 UI와 반응 후 CTA를 구현한다.
+  - `share_card_open`, `share_style_selected`, `share_image_download`, `share_native_open`, `share_link_copy`, `shared_view_open`, `shared_view_reaction`, `shared_view_cta_click`, `shared_view_new_report_start` 최소 이벤트를 연결한다.
+  - analytics 저장/전송 실패가 결과 열람·공유·CTA를 차단하지 않도록 best-effort 경계로 구현한다.
 - [ ] Phase P6 — Receipt / Recap 카드와 A/B 테스트 기반 확장
 
 핵심 목표: `결과 확인 → 공유 → 상대 반응 → Shared View → 신규 궁합 시작`
@@ -127,11 +133,11 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: Growth P3 완료 후 새 채팅 인수인계 준비
+- Task: Growth P4 — public share token 기반 Shared View + 일반 공유 URL + 신규 궁합 CTA
 - Status: complete
-- Validation: PR #35 Core Validation #596 PASS — P3 share-card contract, 기존 전체 contracts, lint, production build 통과
-- Commit: main 20bddff19f9df6b4eeba165500c08d69617dbfe3 (P3 완료 기준)
-- Remaining: P4 — public share 전용 token 기반 Shared View + 일반 공유 URL + 신규 궁합 CTA; 기존 paid result access token/URL 사용 금지
-- Risk: P3 공유 action은 아직 홈 URL을 사용하며 Shared View token/DB/API/analytics는 미구현
-- Resume: 새 채팅에서 사용자가 `다음`이라고만 입력하면 최신 main 재확인 후 P4를 즉시 시작한다
+- Validation: PR #37 Core Validation #605 PASS — 기존 전체 contracts, Growth P4 Shared View contract, P3/P5 share UI 회귀 계약, npm run lint, production build 모두 통과
+- Commit: gpt/growth-p4-shared-view cf021174609d442057230909af93a5ab5d0ed625 (P4 검증 기준 head)
+- Remaining: P5 — 공유 수신자 `꽤 맞음 / 반반 / 아닌데` 반응 UX + 최소 analytics 이벤트/퍼널 측정. analytics 실패는 결과 열람/공유를 막지 않게 구현
+- Risk: P4는 코드/빌드 계약까지 완료. Production에서 실제 token 생성·비로그인 Shared View·결과 삭제 후 기존 share 404 동작은 배포 후 실사용 QA 필요. P5 analytics/반응은 아직 미구현
+- Resume: 새 채팅에서 사용자가 `다음`이라고 입력하면 최신 main/HANDOFF 재확인 후 P5를 시작한다
 ```

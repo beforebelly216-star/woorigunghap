@@ -88,6 +88,7 @@ jobs:
           npm run test:report:p5-ui
           npm run test:growth:share-contract
           npm run test:growth:share-copy-library
+          npm run test:growth:shared-view
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi

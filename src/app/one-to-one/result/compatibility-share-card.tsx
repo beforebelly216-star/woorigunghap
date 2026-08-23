@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { CompatibilityShareArchetype } from "@/lib/narrative/compatibility-share-card";
 import { RELATIONSHIP_LABELS, type RelationshipType } from "@/lib/report-input";
+import { createPublicShareUrl } from "@/lib/share/public-share-client";
+import { buildOneToOnePublicShare } from "@/lib/share/public-share-contract";
 import {
   maskCuriosityAnswer,
   selectRelationshipShareCopyForArchetype,
@@ -217,7 +219,6 @@ export function CompatibilityShareCard({
 
   async function share() {
     const shareText = `우리사주 ${relationshipLabel} 궁합 · ${shareCopy} · ${score}점`;
-    const safeUrl = `${window.location.origin}/`;
 
     try {
       const blob = await createShareImageBlob({
@@ -233,17 +234,30 @@ export function CompatibilityShareCard({
         sides,
       });
       const file = new File([blob], `woorisaju-${purpose}.png`, { type: "image/png" });
+      const sharedViewUrl = await createPublicShareUrl(buildOneToOnePublicShare({
+        relationshipType,
+        relationshipLabel,
+        headline: shareCopy,
+        summary: archetype.subtitle,
+        score,
+        selfName,
+        partnerName,
+        includeDisplayNames: includeNames,
+        archetype,
+        strength: { label: "잘 맞는 지점", copy: sides.strength },
+        tuning: { label: "맞추면 더 좋은 지점", copy: sides.tuning },
+      }));
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ title: `우리사주 ${relationshipLabel} 궁합`, text: shareText, url: safeUrl, files: [file] });
+        await navigator.share({ title: `우리사주 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl, files: [file] });
         setShareState("shared");
         return;
       }
       if (navigator.share) {
-        await navigator.share({ title: `우리사주 ${relationshipLabel} 궁합`, text: shareText, url: safeUrl });
+        await navigator.share({ title: `우리사주 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl });
         setShareState("shared");
         return;
       }
-      await navigator.clipboard.writeText(`${shareText}\n${safeUrl}`);
+      await navigator.clipboard.writeText(`${shareText}\n${sharedViewUrl}`);
       setShareState("copied");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
@@ -310,12 +324,12 @@ export function CompatibilityShareCard({
       <div className={styles.footer}>결과의 일부만 보여주는 9:16 공유 카드</div>
     </div>
 
-    <label className={styles.nameToggle}><input type="checkbox" checked={includeNames} onChange={(event) => setIncludeNames(event.target.checked)} />공유 이미지에 이름 넣기</label>
+    <label className={styles.nameToggle}><input type="checkbox" checked={includeNames} onChange={(event) => setIncludeNames(event.target.checked)} />공유 이미지와 Shared View에 이름 넣기</label>
     <div className={styles.actions}>
-      <button type="button" className={styles.shareButton} onClick={share}>{shareState === "shared" ? "공유했어요" : shareState === "copied" ? "공유 문구를 복사했어요" : "이 카드 공유하기"}</button>
+      <button type="button" className={styles.shareButton} onClick={share}>{shareState === "shared" ? "공유했어요" : shareState === "copied" ? "공유 링크를 복사했어요" : "이 카드 공유하기"}</button>
       <button type="button" className={styles.saveButton} onClick={saveImage}>{shareState === "saved" ? "이미지를 저장했어요" : "9:16 이미지 저장"}</button>
     </div>
-    {shareState === "failed" && <p className={styles.shareError}>공유 이미지를 만들지 못했어요. 브라우저 권한을 확인해 주세요.</p>}
-    <p className={styles.privacyNote}>공유 버튼은 결제 결과 주소나 접근 토큰을 보내지 않고 우리사주 홈 주소만 공유합니다. 이름은 사용자가 직접 켠 경우에만 이미지에 들어갑니다.</p>
+    {shareState === "failed" && <p className={styles.shareError}>공유 링크나 이미지를 만들지 못했어요. 잠시 후 다시 시도해 주세요.</p>}
+    <p className={styles.privacyNote}>공유 버튼은 결제 결과 주소나 접근 토큰 대신 별도의 Shared View 주소를 만듭니다. 이름은 사용자가 직접 켠 경우에만 공개 DTO에 포함됩니다.</p>
   </section>;
 }
