@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { OneToManyResultView } from "@/lib/compatibility/one-to-many-view";
 import { getCompatibilityScoreBand } from "@/lib/compatibility/score-scale";
+import { OneToManyShareCard } from "@/components/one-to-many-share-card";
 
 function formatScore(score: number) {
   return Number.isInteger(score) ? String(score) : score.toFixed(1);
@@ -22,6 +23,8 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
             <span>{view.closenessNotice}</span>
           </div>
         </header>
+
+        {!demo ? <OneToManyShareCard view={view} /> : null}
 
         <section className="comparison-section" aria-labelledby="ranking-title">
           <div className="comparison-section-heading">
