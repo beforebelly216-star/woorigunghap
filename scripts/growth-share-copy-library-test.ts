@@ -142,8 +142,7 @@ const masked = maskCuriosityAnswer(
   "연락의 규칙성",
 );
 assert.ok(!masked.includes("연락의 규칙성"));
-assert.ok(!masked.includes(CURIOSITY_MASK_TOKEN));
-assert.match(masked, /██████/);
+assert.match(masked, /^이 관계의 핵심은 █{6,18}에 있어요\.$/);
 
 assert.deepEqual([...SHARE_COPY_TONES], ["clean", "tease", "curiosity"]);
 
