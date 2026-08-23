@@ -117,17 +117,26 @@ export function OneToOneForm() {
   const partnerInformationCopy = PARTNER_INFORMATION_LEVEL_COPY[partnerInformationLevel];
 
   useEffect(() => {
+    let active = true;
     if (!fromFree || recoveryPaymentId) return;
+
     try {
       const stored = window.sessionStorage.getItem(FREE_SELF_PERSON_STORAGE_KEY);
       if (!stored) return;
       const parsed = parseFreeSelfPerson(JSON.parse(stored));
       if (!parsed) return;
-      setForm((current) => ({ ...current, personA: toPersonBirthForm(parsed) }));
-      setFreePrefilled(true);
+      queueMicrotask(() => {
+        if (!active) return;
+        setForm((current) => ({ ...current, personA: toPersonBirthForm(parsed) }));
+        setFreePrefilled(true);
+      });
     } catch {
       window.sessionStorage.removeItem(FREE_SELF_PERSON_STORAGE_KEY);
     }
+
+    return () => {
+      active = false;
+    };
   }, [fromFree, recoveryPaymentId]);
 
   function showErrors(formElement: HTMLFormElement, nextErrors: Record<string, string>) {
