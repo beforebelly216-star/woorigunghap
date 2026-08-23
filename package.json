@@ -48,7 +48,8 @@
     "test:growth:shared-view": "tsx scripts/growth-shared-view-contract-test.ts",
     "test:growth:analytics": "tsx scripts/growth-analytics-contract-test.ts",
     "test:growth:p6-share-cards": "tsx scripts/growth-p6-share-card-experiment-test.ts",
-    "test:growth:free-acquisition": "tsx scripts/growth-free-acquisition-test.ts"
+    "test:growth:free-acquisition": "tsx scripts/growth-free-acquisition-test.ts",
+    "test:hotfix:runtime-ux": "tsx scripts/hotfix-runtime-ux-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

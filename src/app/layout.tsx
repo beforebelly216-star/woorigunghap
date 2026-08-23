@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
+import "./report-theme.css";
 import "./report-extra.css";
 import "./timing-extra.css";
 import "./deep-report.css";
@@ -10,6 +11,7 @@ import "./one-to-one-context.css";
 import "./day20-mobile.css";
 import "./day22-policy.css";
 import "./score-library.css";
+import "./theme-unification.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
