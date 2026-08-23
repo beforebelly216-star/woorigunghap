@@ -30,12 +30,12 @@
   - 보관함 완료 결과 CTA `결과 열기 · 공유하기`
   - Vercel Git 자동 배포 비활성화, Preview/Production 배포는 사용자 명시 승인 후 별도 실행
   - **PR #41 Core Validation #630 PASS — 전체 기존 contracts + hotfix contract + lint + production build**
-- [ ] **PR #41 병합 후 Production 반영 및 실제 hotfix QA**
-  - 사용자 명시 배포 승인 전에는 Vercel Preview/Production 실행 금지
-  - 승인 후 정확한 최신 `main` SHA를 1회 Production 배포하고 배포 SHA 일치 확인
-  - 실제 새 1:1 결제에서 생성시간·저장·재열람 확인
-  - 실제 1:1·1:N 결과에서 공유 UI, 이미지 저장, Web Share, Shared View 링크 확인
-  - 360 / 390 / 430px에서 라벤더 테마 일관성 육안 확인
+- [ ] **배포된 PR #41 hotfix 실제 QA**
+  - [x] 사용자 승인 후 Production 1회 배포 완료: `1289a39972976bc05447fc14c86219c3cdaac983` → Vercel `success`
+  - [x] 배포 직후 자동 Git 배포 재비활성화: `f4cc4f1c5b9f75ddd3414813760ae7b9f443224b`; 해당 commit에 Vercel deployment status 없음 확인
+  - [ ] 실제 새 1:1 결제에서 생성시간·저장·재열람 확인
+  - [ ] 실제 1:1·1:N 결과에서 공유 UI, 이미지 저장, Web Share, Shared View 링크 확인
+  - [ ] 360 / 390 / 430px에서 라벤더 테마 일관성 육안 확인
 
 ## 베타 전 제품 완성도 개선
 
@@ -91,10 +91,10 @@
 
 ## 배포 / 실사용 QA
 
-- [ ] **Production 최신 배포 여부 확인**
-  - GitHub 최신 `main`과 Vercel Production 배포 상태 일치 확인
-  - Hobby build rate limit 등 외부 제한은 코드 실패와 분리 기록
-  - 사용자 승인 전 Vercel 배포 금지
+- [x] **PR #41 hotfix Production 배포**
+  - Production deploy commit `1289a39972976bc05447fc14c86219c3cdaac983` Vercel status `success`
+  - 기능 코드 기준 hotfix main merge `c97d61bb2a43182c037aab832b1f657744935fd1`
+  - 자동배포는 즉시 다시 비활성화됨
 - [ ] **무료 유입 / Aha 실제 QA**
   - 홈 first CTA가 무료 자기 분석인지 확인
   - `/free` 입력 → 4-insight 결과 → 유료 CTA 실제 동작
@@ -142,11 +142,11 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 사용자 제보 hotfix — 테마 통일 / 1:1 장시간 생성 / 홈 문구 제거 / 공유 발견성 / 수동 배포 정책
+- Task: PR #41 hotfix Production 승인 배포 + 자동배포 재비활성화
 - Status: complete
-- Validation: PR #41 Core Validation #630 PASS — 전체 contracts + hotfix contract + lint + production build
-- Commit: PR #41 validated code head bd57658c81eefbd7198cfe33eb2ff3adcb7f1d72; 상태 문서는 같은 PR에서 후속 갱신
-- Remaining: 사용자 승인 후 최신 main SHA를 Vercel Production에 1회 배포 → 1:1 생성시간·테마·1:1/1:N 공유 실사용 QA
-- Risk: Production은 아직 hotfix 미반영; 실제 유료 1:1 생성시간과 모바일 Web Share/이미지 품질은 배포 후 검증 필요
-- Resume: 배포 승인이 오면 최신 main 재확인 후 승인된 SHA만 Production 배포하고 runtime QA 진행
+- Validation: PR #41 Core Validation #630 PASS; deploy commit 1289a39972976bc05447fc14c86219c3cdaac983 Vercel success; f4cc4f1c5b9f75ddd3414813760ae7b9f443224b 이후 Git auto-deploy OFF
+- Commit: 기능 merge c97d61bb2a43182c037aab832b1f657744935fd1; Production deploy 1289a39972976bc05447fc14c86219c3cdaac983
+- Remaining: Production에서 새 1:1 실결제 생성시간/저장/재열람 + 1:1·1:N 공유 + 360/390/430 테마 육안 QA
+- Risk: CI/build는 PASS지만 실제 유료 1:1 생성시간과 모바일 Web Share/이미지 품질은 아직 runtime 검증 전
+- Resume: `다음`이면 최신 main/HANDOFF 확인 후 배포된 hotfix runtime QA부터 진행
 ```

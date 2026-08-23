@@ -9,6 +9,7 @@
 - 기준 상태: Day 24 MVP 완료, 베타 전 제품 완성도 개선 및 운영 QA 단계
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
 - 배포: Vercel Production. **Git 자동 배포는 비활성화하며 Preview/Production 배포는 사용자 명시 승인 후 별도 실행**
+- 최신 승인 Production 배포: `1289a39972976bc05447fc14c86219c3cdaac983` Vercel `success`. 기능 코드 기준은 hotfix merge `c97d61bb2a43182c037aab832b1f657744935fd1`이며, 현재 `main`은 배포 직후 자동배포를 다시 끈 `f4cc4f1c5b9f75ddd3414813760ae7b9f443224b`부터 이어진다.
 - 레거시 내부 식별자: GitHub 저장소 `beforebelly216-star/woorigunghap`, 기존 Vercel 도메인, DB의 `woorigunghap_*` 식별자는 호환성을 위해 유지한다.
 
 ## 현재 구현 상태
@@ -37,6 +38,7 @@
 - 홈의 `계산은 서버가`, `무료는 계산만`, `AI는 서술만`, `결제 후 생성` 등 구현 설명 카드와 하단 범용 면책 문구 제거
 - 보관함 완성 결과 CTA를 `결과 열기 · 공유하기`로 명시해 공유 기능 발견성을 보강
 - 기존 P5 UI 계약의 크림색 고정값을 새 공통 테마 계약으로 갱신
+- 위 hotfix는 2026-08-24 사용자 승인 후 Production 배포까지 완료. 실제 모바일 육안 QA는 계속 필요
 
 ## 1:1 생성 및 콘텐츠
 
@@ -94,11 +96,14 @@
 - Free acquisition PR #40 Core Validation #618: free acquisition contract + 기존 전체 contracts + lint + production build PASS
 - **Runtime/UI hotfix 검증 기준 code head:** `bd57658c81eefbd7198cfe33eb2ff3adcb7f1d72`
 - **PR #41 Core Validation #630 PASS:** 만세력/궁합/결제/저장/1:N/계정/편집/Growth/system QA + hotfix contract + lint + production build
+- **PR #41 hotfix main merge:** `c97d61bb2a43182c037aab832b1f657744935fd1`
+- **승인 Production 배포:** one-shot enable commit `1289a39972976bc05447fc14c86219c3cdaac983` → GitHub Vercel status `success`
+- **자동배포 재비활성화:** `f4cc4f1c5b9f75ddd3414813760ae7b9f443224b`; 해당 commit에는 Vercel deployment status가 생성되지 않음을 확인
 
 ## 현재 제품 우선순위
 
 1. blocker/hotfix 발생 시 즉시 처리
-2. **PR #41 hotfix의 Production 배포 승인 후 실제 1:1 생성시간·테마·공유 동작 확인**
+2. **배포된 PR #41 hotfix의 실제 1:1 생성시간·테마·공유 동작 QA**
 3. 최신 사용자 요청으로 지정된 제품 개선
 4. UI/UX 추가 개선
 5. AI 답변 스타일/사주소년 화자 품질 개선
@@ -108,7 +113,6 @@
 
 ## 아직 미완료인 운영 QA
 
-- 사용자 승인 후 최신 `main` hotfix를 Vercel Production에 배포하고 배포 SHA 일치 확인
 - **새 1:1 실제 결제에서 생성시간이 순차 누적 없이 완료되는지, 답변 품질·저장·재열람까지 확인**
 - Production에서 라벤더 테마가 홈/입력/결제/결과/보관함에 일관되게 적용됐는지 360 / 390 / 430px 육안 확인
 - Production 1:1·1:N 결과에서 이미지 저장 / Web Share / public Shared View 링크가 실제 동작하는지 확인
