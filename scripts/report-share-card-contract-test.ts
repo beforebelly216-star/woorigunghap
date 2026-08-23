@@ -33,7 +33,9 @@ const comparisonCss = readFileSync("src/components/one-to-many-share-card.module
 const comparisonResult = readFileSync("src/components/one-to-many-result.tsx", "utf8");
 
 assert.match(component, /생년월일시와 유료 본문은 카드에 담지 않습니다/);
-assert.match(component, /const safeUrl = `\$\{window\.location\.origin\}\/`/);
+assert.match(component, /createPublicShareUrl/);
+assert.match(component, /buildOneToOnePublicShare/);
+assert.doesNotMatch(component, /const safeUrl = `\$\{window\.location\.origin\}\/`/);
 assert.doesNotMatch(component, /window\.location\.href/);
 assert.doesNotMatch(component, /accessToken/);
 assert.match(component, /navigator\.share/);
@@ -52,13 +54,15 @@ assert.match(result, /<CompatibilityShareCard/);
 assert.match(comparisonComponent, /selectRelationshipShareCopy/);
 assert.match(comparisonComponent, /deriveOneToManySharePattern/);
 assert.match(comparisonComponent, /maskCuriosityAnswer/);
+assert.match(comparisonComponent, /createPublicShareUrl/);
+assert.match(comparisonComponent, /buildOneToManyPublicShare/);
 assert.match(comparisonComponent, /relationship_label/);
 assert.match(comparisonComponent, /two_sides/);
 assert.match(comparisonComponent, /send_this/);
 assert.match(comparisonComponent, /가장 편한 사람/);
 assert.match(comparisonComponent, /말이 잘 통하는 사람/);
 assert.match(comparisonComponent, /장기관계 리듬이 좋은 사람/);
-assert.match(comparisonComponent, /const safeUrl = `\$\{window\.location\.origin\}\/`/);
+assert.doesNotMatch(comparisonComponent, /const safeUrl = `\$\{window\.location\.origin\}\/`/);
 assert.doesNotMatch(comparisonComponent, /window\.location\.href/);
 assert.doesNotMatch(comparisonComponent, /accessToken/);
 assert.doesNotMatch(comparisonComponent, /최악|꼴찌|손절/);
@@ -68,4 +72,4 @@ assert.match(comparisonCss, /aspect-ratio: 9 \/ 16/);
 assert.match(comparisonCss, /@media \(max-width: 379px\)/);
 assert.match(comparisonResult, /<OneToManyShareCard view=\{view\}/);
 
-console.log("paid 1:1 + Growth P3 1:N share card contract: PASS");
+console.log("paid 1:1 + Growth P3/P4 share card contract: PASS");
