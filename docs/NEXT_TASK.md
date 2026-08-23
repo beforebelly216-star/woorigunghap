@@ -136,7 +136,7 @@ HANDOFF
 - Task: Growth P4 — public share token 기반 Shared View + 일반 공유 URL + 신규 궁합 CTA
 - Status: complete
 - Validation: PR #37 Core Validation #605 PASS — 기존 전체 contracts, Growth P4 Shared View contract, P3/P5 share UI 회귀 계약, npm run lint, production build 모두 통과
-- Commit: gpt/growth-p4-shared-view cf021174609d442057230909af93a5ab5d0ed625 (P4 검증 기준 head)
+- Commit: main fda8f53d763cd157642d64201396a316733abcda (PR #37 squash merge)
 - Remaining: P5 — 공유 수신자 `꽤 맞음 / 반반 / 아닌데` 반응 UX + 최소 analytics 이벤트/퍼널 측정. analytics 실패는 결과 열람/공유를 막지 않게 구현
 - Risk: P4는 코드/빌드 계약까지 완료. Production에서 실제 token 생성·비로그인 Shared View·결과 삭제 후 기존 share 404 동작은 배포 후 실사용 QA 필요. P5 analytics/반응은 아직 미구현
 - Resume: 새 채팅에서 사용자가 `다음`이라고 입력하면 최신 main/HANDOFF 재확인 후 P5를 시작한다
