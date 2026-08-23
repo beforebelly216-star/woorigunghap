@@ -11,6 +11,7 @@ on:
       - "scripts/day*.ts"
       - "scripts/one-to-one-*.ts"
       - "scripts/report-*.ts"
+      - "scripts/growth-*.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/manse-validation.yml"
@@ -22,6 +23,7 @@ on:
       - "scripts/day*.ts"
       - "scripts/one-to-one-*.ts"
       - "scripts/report-*.ts"
+      - "scripts/growth-*.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/manse-validation.yml"
@@ -65,7 +67,7 @@ jobs:
           npm run test:day15:one-to-many-narrative
           npm run test:day15:one-to-many-result-ui
           npm run test:day16:one-to-many-paid-e2e
-      - name: Run account, editorial, policy and system QA contracts
+      - name: Run account, editorial, policy, growth and system QA contracts
         run: |
           npm run test:day17:kakao-auth
           npm run test:day18:account-report-library
@@ -84,6 +86,7 @@ jobs:
           npm run test:report:share-card
           npm run test:report:day-pillar-characters
           npm run test:report:p5-ui
+          npm run test:growth:share-contract
       - name: Cross-check KASI when manually requested
         if: ${{ github.event_name == 'workflow_dispatch' && env.KASI_SERVICE_KEY != '' }}
         run: npm run test:manse:kasi
