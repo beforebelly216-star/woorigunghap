@@ -111,9 +111,9 @@ npm run build
 HANDOFF
 - Worker: GPT
 - Task: 카카오 나에게 보내기 + 카카오톡 채널/SOLAPI 완료 알림 기능 전면 제거
-- Status: complete pending CI/merge
-- Validation: Day17 Kakao auth contract updated; Day18 library contract retained; PR Core validation에서 lint/build 포함 확인 예정
-- Commit: remove-kakao-notifications branch; main은 PR squash merge SHA 기준
-- Remaining: CI 통과 후 main merge; 다음 작업은 UI/UX 추가 개선 → AI 답변 스타일 → 리포트 항목 개선
-- Risk: 기존 Neon DB의 과거 알림 실험용 컬럼/테이블은 코드에서 미사용 상태로 남을 수 있음. 물리 삭제는 별도 migration 필요.
+- Status: complete
+- Validation: Core validation #582 PASS — Day17 Kakao auth, Day18 library, Day22 policy, Day24 beta, 1:1/1:N contracts, lint, production build 모두 통과
+- Commit: PR #30 head 075d17e40133b838b90a9276c98efde1b840199c; main은 squash merge SHA 기준
+- Remaining: 다음 최우선 작업은 UI/UX 추가 개선 → AI 답변 스타일 → 리포트 항목 개선 → 플랫폼 중립 그로스 작업
+- Risk: 기존 Neon DB의 과거 알림 실험용 컬럼/테이블은 코드에서 미사용 상태로 남을 수 있음. 물리 삭제는 별도 안전 migration 필요.
 ```
