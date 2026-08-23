@@ -71,14 +71,19 @@
 - analytics 저장은 제한된 enum 필드만 허용하고 이름·생년월일시·구매 식별자·유료 본문을 저장하지 않음
 - public share 연계 analytics는 raw token이 아닌 hash로 연결하고 public share 삭제 시 함께 정리
 - analytics client/server 실패는 공유·Shared View·반응·CTA를 막지 않는 best-effort 경계
-- **P6 미구현:** Receipt / Recap P1 카드 및 A/B 테스트 기반 확장
+- **P6 완료:** 1:1·1:N `Receipt / Recap` 9:16 공유 카드 추가
+- P6는 기존 P2 카피를 재사용하며 `Receipt → two_sides`, `Recap → relationship_label`로 매핑하고 P1 카드는 읽기 쉬운 clean tone을 사용
+- P6 A/B는 결과 기반 deterministic seed로 `p6_receipt_first / p6_recap_first`를 안정 배정해 기본 카드와 탭 순서를 바꿈
+- 기존 9개 event 이름은 유지하고 owner-side 공유 이벤트에 enum 제한 `sharePurpose`와 `experimentArm`만 추가
+- analytics DB는 enum 제한 experiment arm 컬럼을 migration-safe하게 추가하며 public Shared View DTO와 개인정보 공개 범위는 확장하지 않음
 
 ## 최근 주요 검증
 
 - Growth P4 main merge: `fda8f53d763cd157642d64201396a316733abcda`
 - Growth P4 PR #37 Core Validation #605: 기존 전체 contracts + P4 contract + lint + production build PASS
-- Growth P5 검증 기준 code head: `0ec930ecf356770854ff39b28ca7f9d8339e7e90`
 - Growth P5 PR #38 Core Validation #609: 기존 전체 contracts + P5 analytics/reaction contract + lint + production build PASS
+- Growth P6 검증 기준 code head: `2ba38f33d4709944f73345bd37041e8259719c4a`
+- Growth P6 PR #39 Core Validation #613: 기존 전체 contracts + P6 experiment contract + lint + production build PASS
 
 ## 현재 제품 우선순위
 
@@ -87,15 +92,16 @@
 3. UI/UX 추가 개선
 4. AI 답변 스타일/사주소년 화자 품질 개선
 5. 리포트 항목/정보구조 개선
-6. Growth P6 및 후속 실험
-7. Production 최신 배포 확인
-8. 실결제 및 post-beta 운영 QA
+6. Production 최신 배포 및 Growth 실사용 QA
+7. 실결제 및 post-beta 운영 QA
+8. 실제 데이터 기반 Growth 후속 실험
 
 ## 아직 미완료인 운영 QA
 
 - 최신 Production이 최신 `main`을 반영했는지 확인
 - public link 생성 → 비로그인 Shared View → 반응 → CTA 실제 동작 확인
-- P5 analytics row 생성과 9-event 퍼널 기록 확인
+- P5/P6 analytics row 생성, 9-event 퍼널 및 A/B arm 기록 확인
+- Receipt / Recap 실제 이미지 저장·공유와 모바일 시각 QA
 - 결과/계정 삭제 뒤 기존 Shared View 및 token 연계 analytics 정리 확인
 - 새 1:1 실제 결제에서 생성시간·답변 품질·저장·재열람 확인
 - 360 / 390 / 430px 실제 뷰포트 육안 확인

@@ -2,14 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { publicShareTokenFromUrl, trackGrowthEvent } from "@/lib/growth-analytics-client";
+import type { GrowthSharePurpose } from "@/lib/growth-analytics-contract";
 import type { CompatibilityShareArchetype } from "@/lib/narrative/compatibility-share-card";
 import { RELATIONSHIP_LABELS, type RelationshipType } from "@/lib/report-input";
 import { createPublicShareUrl } from "@/lib/share/public-share-client";
 import { buildOneToOnePublicShare } from "@/lib/share/public-share-contract";
 import {
+  copyPurposeForShareCard,
+  assignP6ShareCardExperiment,
+  initialP6SharePurpose,
+  isP6SharePurpose,
+  orderedShareCardPurposes,
+} from "@/lib/share/share-card-experiment";
+import {
   maskCuriosityAnswer,
   selectRelationshipShareCopyForArchetype,
-  type ShareCopyPurpose,
 } from "@/lib/share/relationship-share-copy";
 import styles from "./compatibility-share-card.module.css";
 
@@ -22,12 +29,15 @@ type CompatibilityShareCardProps = {
 };
 
 type ShareSide = { strength: string; tuning: string };
+type CardOption = { purpose: GrowthSharePurpose; label: string; eyebrow: string };
 
-const CARD_OPTIONS: Array<{ purpose: ShareCopyPurpose; label: string; eyebrow: string }> = [
-  { purpose: "relationship_label", label: "관계 한 줄", eyebrow: "RELATIONSHIP LABEL" },
-  { purpose: "two_sides", label: "잘 맞는 점 · 조율", eyebrow: "TWO SIDES" },
-  { purpose: "send_this", label: "이거 보내기", eyebrow: "SEND THIS" },
-];
+const CARD_OPTIONS: Record<GrowthSharePurpose, CardOption> = {
+  receipt: { purpose: "receipt", label: "관계 영수증", eyebrow: "RELATIONSHIP RECEIPT" },
+  recap: { purpose: "recap", label: "한 장 요약", eyebrow: "RELATIONSHIP RECAP" },
+  relationship_label: { purpose: "relationship_label", label: "관계 한 줄", eyebrow: "RELATIONSHIP LABEL" },
+  two_sides: { purpose: "two_sides", label: "잘 맞는 점 · 조율", eyebrow: "TWO SIDES" },
+  send_this: { purpose: "send_this", label: "이거 보내기", eyebrow: "SEND THIS" },
+};
 
 const ARCHETYPE_SIDES: Record<CompatibilityShareArchetype["id"], ShareSide> = {
   spark: { strength: "대화·반응 템포", tuning: "말의 속도와 결정 기준" },
@@ -93,7 +103,7 @@ async function createShareImageBlob({
   sides,
 }: CompatibilityShareCardProps & {
   includeNames: boolean;
-  purpose: ShareCopyPurpose;
+  purpose: GrowthSharePurpose;
   eyebrow: string;
   shareCopy: string;
   sides: ShareSide;
@@ -146,7 +156,53 @@ async function createShareImageBlob({
   ctx.font = "700 31px Pretendard, sans-serif";
   ctx.fillText(`궁합 유형 · ${archetype.label}`, 160, archetypeY);
 
-  if (purpose === "two_sides") {
+  if (purpose === "receipt") {
+    const receiptTop = archetypeY + 62;
+    const rows = [
+      ["궁합 점수", `${score} / 100`],
+      ["궁합 유형", archetype.label],
+      ["잘 맞는 지점", sides.strength],
+      ["조율 지점", sides.tuning],
+    ] as const;
+    rows.forEach(([label, value], index) => {
+      const y = receiptTop + index * 126;
+      ctx.fillStyle = index % 2 === 0 ? "#F7F2FB" : "#FFF7F2";
+      roundedRect(ctx, 150, y, 780, 104, 30);
+      ctx.fillStyle = "#7B7396";
+      ctx.font = "800 25px Pretendard, sans-serif";
+      ctx.fillText(label, 195, y + 40);
+      ctx.fillStyle = "#3A3550";
+      ctx.font = "900 33px Pretendard, sans-serif";
+      ctx.textAlign = "right";
+      ctx.fillText(value, 885, y + 68);
+      ctx.textAlign = "left";
+    });
+  } else if (purpose === "recap") {
+    const recapTop = archetypeY + 62;
+    ctx.fillStyle = "#F7F2FB";
+    roundedRect(ctx, 150, recapTop, 780, 210, 34);
+    ctx.fillStyle = "#3A3550";
+    ctx.font = "700 32px Pretendard, sans-serif";
+    drawTextLines(ctx, archetype.subtitle, 195, recapTop + 72, 690, 48, 3);
+
+    ctx.fillStyle = "#F8F7FB";
+    roundedRect(ctx, 150, recapTop + 238, 780, 160, 30);
+    ctx.fillStyle = "#8B7BC7";
+    ctx.font = "800 25px Pretendard, sans-serif";
+    ctx.fillText("잘 맞는 지점", 195, recapTop + 294);
+    ctx.fillStyle = "#3A3550";
+    ctx.font = "900 34px Pretendard, sans-serif";
+    ctx.fillText(sides.strength, 195, recapTop + 350);
+
+    ctx.fillStyle = "#FFF3ED";
+    roundedRect(ctx, 150, recapTop + 426, 780, 160, 30);
+    ctx.fillStyle = "#C47B5E";
+    ctx.font = "800 25px Pretendard, sans-serif";
+    ctx.fillText("맞추면 더 좋은 지점", 195, recapTop + 482);
+    ctx.fillStyle = "#3A3550";
+    ctx.font = "900 34px Pretendard, sans-serif";
+    ctx.fillText(sides.tuning, 195, recapTop + 538);
+  } else if (purpose === "two_sides") {
     const boxTop = archetypeY + 70;
     ctx.fillStyle = "#F7F2FB";
     roundedRect(ctx, 150, boxTop, 780, 190, 34);
@@ -202,16 +258,21 @@ export function CompatibilityShareCard({
   score,
   archetype,
 }: CompatibilityShareCardProps) {
+  const relationshipType = relationshipTypeForLabel(relationshipLabel);
+  const experimentArm = assignP6ShareCardExperiment(`oneToOne:${relationshipType}:${score}:${archetype.id}`);
+  const initialPurpose = initialP6SharePurpose(experimentArm);
   const [shareState, setShareState] = useState<"idle" | "shared" | "copied" | "saved" | "failed">("idle");
   const [includeNames, setIncludeNames] = useState(false);
-  const [purpose, setPurpose] = useState<ShareCopyPurpose>("relationship_label");
-  const relationshipType = relationshipTypeForLabel(relationshipLabel);
-  const selectedOption = CARD_OPTIONS.find((option) => option.purpose === purpose) ?? CARD_OPTIONS[0];
+  const [purpose, setPurpose] = useState<GrowthSharePurpose>(() => initialPurpose);
+  const cardOptions = orderedShareCardPurposes(experimentArm).map((cardPurpose) => CARD_OPTIONS[cardPurpose]);
+  const selectedOption = CARD_OPTIONS[purpose];
+  const copyPurpose = copyPurposeForShareCard(purpose);
   const selectedCopy = selectRelationshipShareCopyForArchetype({
     relationshipType,
     archetypeId: archetype.id,
-    purpose,
+    purpose: copyPurpose,
     variantSeed: score * 97 + archetype.id.length * 13,
+    tone: isP6SharePurpose(purpose) ? "clean" : undefined,
   });
   const shareCopy = selectedCopy.tone === "curiosity"
     ? maskCuriosityAnswer(selectedCopy.copy, `${archetype.label} ${archetype.subtitle}`)
@@ -224,8 +285,10 @@ export function CompatibilityShareCard({
       product: "oneToOne",
       relationshipType,
       surface: "one_to_one_share_card",
+      sharePurpose: initialPurpose,
+      experimentArm,
     });
-  }, [relationshipType]);
+  }, [experimentArm, initialPurpose, relationshipType]);
 
   async function share() {
     const shareText = `우리사주 ${relationshipLabel} 궁합 · ${shareCopy} · ${score}점`;
@@ -265,6 +328,7 @@ export function CompatibilityShareCard({
           relationshipType,
           surface: "one_to_one_share_card",
           sharePurpose: purpose,
+          experimentArm,
           shareToken,
         });
         await navigator.share({ title: `우리사주 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl, files: [file] });
@@ -278,6 +342,7 @@ export function CompatibilityShareCard({
           relationshipType,
           surface: "one_to_one_share_card",
           sharePurpose: purpose,
+          experimentArm,
           shareToken,
         });
         await navigator.share({ title: `우리사주 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl });
@@ -291,6 +356,7 @@ export function CompatibilityShareCard({
         relationshipType,
         surface: "one_to_one_share_card",
         sharePurpose: purpose,
+        experimentArm,
         shareToken,
       });
       setShareState("copied");
@@ -325,6 +391,7 @@ export function CompatibilityShareCard({
         relationshipType,
         surface: "one_to_one_share_card",
         sharePurpose: purpose,
+        experimentArm,
       });
       window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
       setShareState("saved");
@@ -337,11 +404,11 @@ export function CompatibilityShareCard({
     <div className={styles.heading}>
       <small>SHARE YOUR RESULT</small>
       <h2 id="compatibility-share-card-title">이 관계, 한 장으로 보내기</h2>
-      <p>관계 한 줄·두 얼굴·바로 보내기 중 골라 9:16 이미지로 공유할 수 있어요. 생년월일시와 유료 본문은 카드에 담지 않습니다.</p>
+      <p>관계 영수증·한 장 요약과 기존 공유 카드를 골라 9:16 이미지로 보낼 수 있어요. 생년월일시와 유료 본문은 카드에 담지 않습니다.</p>
     </div>
 
     <div className={styles.typeTabs} role="group" aria-label="공유 카드 종류">
-      {CARD_OPTIONS.map((option) => <button
+      {cardOptions.map((option) => <button
         type="button"
         key={option.purpose}
         data-purpose={option.purpose}
@@ -354,6 +421,7 @@ export function CompatibilityShareCard({
             relationshipType,
             surface: "one_to_one_share_card",
             sharePurpose: option.purpose,
+            experimentArm,
           });
           setPurpose(option.purpose);
           setShareState("idle");
@@ -361,14 +429,26 @@ export function CompatibilityShareCard({
       >{option.label}</button>)}
     </div>
 
-    <div className={styles.card} data-archetype={archetype.id} data-purpose={purpose}>
+    <div className={styles.card} data-archetype={archetype.id} data-purpose={purpose} data-experiment-arm={experimentArm}>
       <div className={styles.topline}><span>우리사주</span><span>{relationshipLabel} 궁합</span></div>
       {includeNames ? <div className={styles.names}>{selfName} <span>×</span> {partnerName}</div> : <div className={styles.names}>우리 둘의 관계 카드</div>}
       <div className={styles.mystery}>{selectedOption.eyebrow}</div>
       <span className={styles.tone}>{selectedCopy.tone}</span>
       <strong className={styles.shareCopy}>{shareCopy}</strong>
       <p className={styles.pairType}>궁합 유형 · <b>{archetype.label}</b></p>
-      {purpose === "two_sides" ? <div className={styles.sideGrid}>
+      {purpose === "receipt" ? <>
+        <div className={styles.sideGrid}>
+          <div className={styles.sideBox}><small>궁합 점수</small><strong>{score} / 100</strong></div>
+          <div className={`${styles.sideBox} ${styles.sideBoxWarm}`}><small>궁합 유형</small><strong>{archetype.label}</strong></div>
+        </div>
+        <p className={styles.clue}>잘 맞는 지점 · {sides.strength}<br />조율 지점 · {sides.tuning}</p>
+      </> : purpose === "recap" ? <>
+        <p className={styles.clue}>{archetype.subtitle}</p>
+        <div className={styles.sideGrid}>
+          <div className={styles.sideBox}><small>잘 맞는 지점</small><strong>{sides.strength}</strong></div>
+          <div className={`${styles.sideBox} ${styles.sideBoxWarm}`}><small>맞추면 더 좋은 지점</small><strong>{sides.tuning}</strong></div>
+        </div>
+      </> : purpose === "two_sides" ? <div className={styles.sideGrid}>
         <div className={styles.sideBox}><small>잘 맞는 지점</small><strong>{sides.strength}</strong></div>
         <div className={`${styles.sideBox} ${styles.sideBoxWarm}`}><small>맞추면 더 좋은 지점</small><strong>{sides.tuning}</strong></div>
       </div> : <p className={styles.clue}>{archetype.subtitle}</p>}

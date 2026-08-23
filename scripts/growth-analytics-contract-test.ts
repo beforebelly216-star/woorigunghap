@@ -10,16 +10,16 @@ function source(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
-assert.equal(GROWTH_EVENT_NAMES.length, 9, "Growth P5 must expose exactly the nine minimum funnel events");
+assert.equal(GROWTH_EVENT_NAMES.length, 9, "Growth funnel must retain the nine minimum event names");
 assert.equal(new Set(GROWTH_EVENT_NAMES).size, 9, "Growth event names must be unique");
 
 const shareToken = "public-share-token-1234567890";
 const validEvents: GrowthAnalyticsEvent[] = [
-  { eventName: "share_card_open", product: "oneToOne", relationshipType: "lover", surface: "one_to_one_share_card" },
-  { eventName: "share_style_selected", product: "oneToOne", relationshipType: "lover", surface: "one_to_one_share_card", sharePurpose: "two_sides" },
-  { eventName: "share_image_download", product: "oneToMany", relationshipType: "friend", surface: "one_to_many_share_card", sharePurpose: "send_this" },
-  { eventName: "share_native_open", product: "oneToOne", relationshipType: "flirting", surface: "one_to_one_share_card", sharePurpose: "relationship_label", shareToken },
-  { eventName: "share_link_copy", product: "oneToMany", relationshipType: "coworker", surface: "one_to_many_share_card", sharePurpose: "two_sides", shareToken },
+  { eventName: "share_card_open", product: "oneToOne", relationshipType: "lover", surface: "one_to_one_share_card", sharePurpose: "receipt", experimentArm: "p6_receipt_first" },
+  { eventName: "share_style_selected", product: "oneToOne", relationshipType: "lover", surface: "one_to_one_share_card", sharePurpose: "recap", experimentArm: "p6_receipt_first" },
+  { eventName: "share_image_download", product: "oneToMany", relationshipType: "friend", surface: "one_to_many_share_card", sharePurpose: "send_this", experimentArm: "p6_recap_first" },
+  { eventName: "share_native_open", product: "oneToOne", relationshipType: "flirting", surface: "one_to_one_share_card", sharePurpose: "relationship_label", experimentArm: "p6_recap_first", shareToken },
+  { eventName: "share_link_copy", product: "oneToMany", relationshipType: "coworker", surface: "one_to_many_share_card", sharePurpose: "two_sides", experimentArm: "p6_receipt_first", shareToken },
   { eventName: "shared_view_open", product: "oneToOne", relationshipType: "crush", surface: "shared_view", shareToken },
   { eventName: "shared_view_reaction", product: "oneToOne", relationshipType: "lover", surface: "shared_view", reaction: "pretty_match", shareToken },
   { eventName: "shared_view_cta_click", product: "oneToMany", relationshipType: "friend", surface: "shared_view", ctaTarget: "oneToMany", shareToken },
@@ -29,9 +29,16 @@ for (const event of validEvents) assert.deepEqual(parseGrowthAnalyticsEvent(even
 assert.equal(parseGrowthAnalyticsEvent({ ...validEvents[6], reaction: "secret_thought" }), null);
 assert.equal(parseGrowthAnalyticsEvent({ ...validEvents[3], shareToken: undefined }), null);
 assert.equal(parseGrowthAnalyticsEvent({ ...validEvents[0], product: "oneToMany" }), null, "1:1 surface/product mismatch must be rejected");
+assert.equal(parseGrowthAnalyticsEvent({ ...validEvents[0], sharePurpose: "unknown_card" }), null, "unknown share purpose must be rejected");
+assert.equal(parseGrowthAnalyticsEvent({ ...validEvents[0], experimentArm: "random_every_render" }), null, "unknown experiment arm must be rejected");
+assert.equal(parseGrowthAnalyticsEvent({ ...validEvents[5], experimentArm: "p6_receipt_first" }), null, "Shared View events must not accept owner-side experiment metadata");
 
 const contract = source("src/lib/growth-analytics-contract.ts");
 for (const eventName of GROWTH_EVENT_NAMES) assert.ok(contract.includes(`\"${eventName}\"`), `missing event contract: ${eventName}`);
+assert.match(contract, /\"receipt\"/);
+assert.match(contract, /\"recap\"/);
+assert.match(contract, /p6_receipt_first/);
+assert.match(contract, /p6_recap_first/);
 assert.ok(!contract.includes("displayName"));
 assert.ok(!contract.includes("paymentId"));
 assert.ok(!contract.includes("birthDate"));
@@ -45,6 +52,8 @@ assert.match(client, /best-effort/);
 
 const store = source("src/lib/growth-analytics-store.ts");
 assert.match(store, /CREATE TABLE IF NOT EXISTS woorigunghap_growth_events/);
+assert.match(store, /experiment_arm TEXT/);
+assert.match(store, /event\.experimentArm \?\? null/);
 assert.match(store, /public_share_token_hash TEXT REFERENCES woorigunghap_public_shares\(token_hash\) ON DELETE CASCADE/);
 assert.match(store, /hashOpaqueToken\(event\.shareToken\)/);
 assert.match(store, /SELECT token_hash[\s\S]*FROM woorigunghap_public_shares/);
@@ -68,6 +77,7 @@ for (const shareCard of [oneToOne, oneToMany]) {
   assert.match(shareCard, /share_image_download/);
   assert.match(shareCard, /share_native_open/);
   assert.match(shareCard, /share_link_copy/);
+  assert.match(shareCard, /experimentArm/);
   assert.match(shareCard, /publicShareTokenFromUrl/);
 }
 
@@ -87,4 +97,4 @@ assert.ok(!sharedView.includes("paymentId"));
 assert.ok(!sharedView.includes("accessToken"));
 assert.ok(!sharedView.includes("birthDate"));
 
-console.log("Growth P5 reaction + analytics contract: PASS — nine-event funnel, privacy-bounded storage, and best-effort non-blocking delivery.");
+console.log("Growth analytics contract: PASS — nine-event funnel retained with enum-bounded P6 Receipt/Recap experiment metadata.");

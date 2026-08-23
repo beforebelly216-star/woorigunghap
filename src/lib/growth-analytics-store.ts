@@ -31,11 +31,25 @@ async function ensureSchema() {
           relationship_type TEXT NOT NULL CHECK (relationship_type IN ('crush', 'flirting', 'lover', 'friend', 'coworker')),
           surface TEXT NOT NULL CHECK (surface IN ('one_to_one_share_card', 'one_to_many_share_card', 'shared_view')),
           share_purpose TEXT,
+          experiment_arm TEXT CHECK (experiment_arm IS NULL OR experiment_arm IN ('p6_receipt_first', 'p6_recap_first')),
           reaction TEXT,
           cta_target TEXT,
           public_share_token_hash TEXT REFERENCES woorigunghap_public_shares(token_hash) ON DELETE CASCADE,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
+      `;
+      await sql`
+        ALTER TABLE woorigunghap_growth_events
+        ADD COLUMN IF NOT EXISTS experiment_arm TEXT
+      `;
+      await sql`
+        ALTER TABLE woorigunghap_growth_events
+        DROP CONSTRAINT IF EXISTS woorigunghap_growth_events_experiment_arm_check
+      `;
+      await sql`
+        ALTER TABLE woorigunghap_growth_events
+        ADD CONSTRAINT woorigunghap_growth_events_experiment_arm_check
+        CHECK (experiment_arm IS NULL OR experiment_arm IN ('p6_receipt_first', 'p6_recap_first'))
       `;
       await sql`
         CREATE INDEX IF NOT EXISTS woorigunghap_growth_events_name_created_idx
@@ -44,6 +58,10 @@ async function ensureSchema() {
       await sql`
         CREATE INDEX IF NOT EXISTS woorigunghap_growth_events_share_created_idx
         ON woorigunghap_growth_events (public_share_token_hash, created_at DESC)
+      `;
+      await sql`
+        CREATE INDEX IF NOT EXISTS woorigunghap_growth_events_experiment_created_idx
+        ON woorigunghap_growth_events (experiment_arm, event_name, created_at DESC)
       `;
     }).catch((error) => {
       schemaPromise = null;
@@ -81,6 +99,7 @@ export async function recordGrowthEvent(event: GrowthAnalyticsEvent) {
       relationship_type,
       surface,
       share_purpose,
+      experiment_arm,
       reaction,
       cta_target,
       public_share_token_hash
@@ -92,6 +111,7 @@ export async function recordGrowthEvent(event: GrowthAnalyticsEvent) {
       ${event.relationshipType},
       ${event.surface},
       ${event.sharePurpose ?? null},
+      ${event.experimentArm ?? null},
       ${event.reaction ?? null},
       ${event.ctaTarget ?? null},
       ${tokenHash}
