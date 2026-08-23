@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
 import { buildPaidReportFacts } from "@/lib/narrative/report-engine-v5";
 import {
@@ -39,7 +39,7 @@ import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const runtime = "nodejs";
 export const maxDuration = 240;
-const REPORT_RUNTIME_VERSION = "paid-report-v7-editorial-server-store-20260824-parallel-recovery";
+const REPORT_RUNTIME_VERSION = "paid-report-v7-editorial-server-store-20260824-background-fanout";
 const PHASES = ["prepare", ...PAID_REPORT_SEGMENTS] as const;
 type ReportPhase = (typeof PHASES)[number];
 
@@ -322,21 +322,43 @@ export async function POST(request: NextRequest) {
       }, { status: 409 });
     }
 
-    const results = await Promise.all(plans.map((plan) => {
-      if (plan.kind === "ready") return Promise.resolve<SegmentResult>(plan);
-      if (plan.kind === "busy") return Promise.resolve<SegmentResult>({ kind: "failed", segment: plan.segment });
-      return runClaimedSegment(
+    const executions = new Map<PaidReportSegmentName, Promise<SegmentResult>>();
+    for (const plan of plans) {
+      if (plan.kind === "ready") {
+        executions.set(plan.segment, Promise.resolve(plan));
+        continue;
+      }
+      if (plan.kind === "busy") {
+        executions.set(plan.segment, Promise.resolve({ kind: "failed", segment: plan.segment }));
+        continue;
+      }
+      executions.set(plan.segment, runClaimedSegment(
         paymentId,
         plan,
         snapshot,
         input,
         narrativeNames,
         plan.segment === requestedSegment,
-      );
-    }));
+      ));
+    }
 
-    const requestedResult = results.find((result) => result.segment === requestedSegment);
-    if (!requestedResult || requestedResult.kind !== "ready") {
+    const requestedExecution = executions.get(requestedSegment);
+    if (!requestedExecution) {
+      await releaseUnusedPlans(paymentId, plans);
+      throw new Error("REQUESTED_SEGMENT_EXECUTION_MISSING");
+    }
+
+    const backgroundExecutions = [...executions.entries()]
+      .filter(([segment]) => segment !== requestedSegment)
+      .map(([, execution]) => execution);
+    if (backgroundExecutions.length > 0) {
+      after(async () => {
+        await Promise.allSettled(backgroundExecutions);
+      });
+    }
+
+    const requestedResult = await requestedExecution;
+    if (requestedResult.kind !== "ready") {
       return NextResponse.json({
         error: "같은 해설 묶음을 이미 생성하고 있습니다. 잠시 후 저장된 결과를 다시 확인합니다.",
         code: "REPORT_GENERATION_IN_PROGRESS",
