@@ -20,6 +20,7 @@
 - 동일 결제/세그먼트의 AI 중복 생성을 막는 single-flight/idempotency 구조를 유지합니다.
 - 완성된 구매 결과는 Neon에 저장하며 재열람 시 재생성하지 않습니다.
 - 카카오 로그인은 선택 사항이며 비회원 결제 흐름을 유지합니다.
+- 카카오톡 메시지/완료 알림 기능은 사용하지 않습니다.
 
 ## 현재 구현 상태
 
@@ -31,22 +32,7 @@
 - Neon 주문/결제/결과 저장 및 복구
 - 카카오 로그인, 계정 귀속, 보관함, 회원탈퇴/데이터 삭제
 - 이용약관/개인정보처리방침/환불 안내
-- 결과 완료 알림용 카카오톡 채널 알림톡(SOLAPI) 코드
-
-## 카카오톡 채널 완료 알림
-
-결과 완료 알림은 Kakao OAuth `나에게 보내기`가 아니라 **우리사주 카카오톡 채널 알림톡**으로 발송하도록 구성합니다.
-
-필요한 Production 환경값:
-
-```text
-SOLAPI_API_KEY=
-SOLAPI_API_SECRET=
-SOLAPI_KAKAO_PF_ID=
-SOLAPI_KAKAO_TEMPLATE_ID=
-```
-
-운영 설정 절차는 [`docs/KAKAO_CHANNEL_ALIMTALK_SETUP.md`](./docs/KAKAO_CHANNEL_ALIMTALK_SETUP.md)를 참고합니다.
+- Web Share API/이미지 저장 기반 플랫폼 중립 결과 공유
 
 ## 로컬 실행
 
@@ -66,10 +52,9 @@ DATABASE_URL=
 KAKAO_REST_API_KEY=
 KAKAO_CLIENT_SECRET=
 KAKAO_ADMIN_KEY=
-KAKAO_TOKEN_ENCRYPTION_KEY=
-SOLAPI_API_KEY=
-SOLAPI_API_SECRET=
 ```
+
+Kakao OAuth는 **로그인/계정 연결 용도만** 사용하며 `talk_message` scope, 나에게 보내기, 카카오톡 채널 알림톡, SOLAPI 발송은 사용하지 않습니다.
 
 ## Production 공개 운영정보
 
@@ -130,7 +115,6 @@ NEXT_PUBLIC_APP_URL=
 - 1:N 명세: [`docs/one-to-many-spec.md`](./docs/one-to-many-spec.md)
 - 유료 리포트 계약: [`docs/paid-report-content-contract.md`](./docs/paid-report-content-contract.md)
 - 관계별 편집 계약: [`docs/relationship-editorial-v1.md`](./docs/relationship-editorial-v1.md)
-- 알림톡 운영: [`docs/KAKAO_CHANNEL_ALIMTALK_SETUP.md`](./docs/KAKAO_CHANNEL_ALIMTALK_SETUP.md)
 - 바이럴 UX backlog: [`docs/PROMOTION_VIRAL_UX.md`](./docs/PROMOTION_VIRAL_UX.md)
 
 ## 테스트
@@ -147,7 +131,8 @@ npm run build
 예:
 
 ```bash
-npm run test:pending-library-notify
+npm run test:day17:kakao-auth
+npm run test:day18:account-report-library
 npm run test:day22:operating-policy
 npm run test:day24:beta-freeze
 npm run test:one-to-one:quality-gate
@@ -157,7 +142,7 @@ npm run test:one-to-one:quality-gate
 
 - GitHub 최신 `main`이 Source of Truth입니다.
 - GPT와 Claude는 이전 채팅 진도를 신뢰하지 않고 최신 `main`과 HANDOFF를 다시 확인합니다.
-- blocker → hotfix → post-beta 운영 QA → improvement 순으로 처리합니다.
+- blocker → hotfix → 최신 사용자 요청 → post-beta 운영 QA → improvement 순으로 처리합니다.
 - 관련 코드·테스트·상태 문서를 한 작업 묶음으로 정리한 뒤 원격 `main`에는 한 번만 push합니다.
 - Vercel Hobby build rate limit은 코드 실패로 취급하지 않습니다.
 - 기존 구매 결과와 DB 호환성을 깨뜨리는 내부 식별자 rename은 별도 마이그레이션 없이 수행하지 않습니다.
