@@ -22,7 +22,7 @@
 - 1:1 CH0~CH9 장문 리포트, 1:N 순위/비교 리포트
 - Neon 서버 저장, 복구 링크, 선택형 Kakao 로그인, 계정 보관함
 - 생성중 결과 보관함 표시 및 같은 브라우저 복구 재기동
-- 완성된 보관함 결과 개별 영구 삭제. 상세 결과·입력정보·접근 토큰을 제거하고 법정 보존 최소 결제기록만 유지
+- 완성된 보관함 결과 개별 영구 삭제. 상세 결과·입력정보·접근 토큰과 해당 결과의 public Shared View를 제거하고 법정 보존 최소 결제기록만 유지
 - 궁합 공개 점수 v1.4: raw 가중합·9개 차원은 유지하고 사용자 종합점수만 45~100점 단조 스케일로 표시
 - 45~54부터 95~100까지 공개 점수 구간 라벨/설명 제공
 - 이용약관/개인정보/환불 정책, 회원탈퇴/데이터 삭제
@@ -98,11 +98,22 @@
 - Growth P3 P0 공유 카드 UI 완료: 기존 1:1 9:16/Web Share/이미지 저장 구조에 Relationship Label / Two Sides / Send This 선택 UI를 연결하고 P2 카피 selector를 실제 결과 화면에서 사용한다.
 - 1:N 결과에도 동일 3종 9:16 공유 카드를 추가했다. 패턴은 기존 ranking/summary metrics만으로 결정하며, `가장 편한 사람 / 말이 잘 통하는 사람 / 장기관계 리듬이 좋은 사람` 같은 역할형 하이라이트를 사용하고 단순 최하위 비난 표현을 쓰지 않는다.
 - 1:1·1:N 공유 이미지의 이름은 기본 비노출이며 사용자가 직접 opt-in한 경우에만 표시한다. 생년월일시·유료 본문·결제 결과 접근 토큰은 공유하지 않는다.
-- P3의 Web Share/클립보드 공유 URL은 여전히 안전한 홈 URL만 사용한다. **token 기반 public Shared View / 일반 공유 URL / 신규 궁합 CTA는 P4 미구현 상태다.**
+- Growth P4 Shared View 완료: 공유 생성 시 유료 result access token 또는 로그인 보관함 소유권을 서버에서 확인하고, 별도 256-bit opaque public token을 발급한다.
+- public share DB에는 raw public token을 저장하지 않고 SHA-256 hash와 whitelist public DTO만 저장한다. 공개 URL/응답에는 paymentId, paid access token, 생년월일시, 원본 input, 전체 유료 narrative, internal dimensions를 넣지 않는다.
+- `/share/[token]`은 비로그인에서도 제한된 1:1·1:N 결과만 열며 신규 1:1 궁합/1:N 비교 CTA를 제공한다. P3의 홈 URL 공유는 이 Shared View URL로 교체됐다.
+- 보관함 결과 영구 삭제 및 회원탈퇴 데이터 삭제 시 해당 결제에서 만든 public share 레코드도 같은 DB 작업에서 제거한다.
+- P5 공유 수신자 반응 UX와 analytics 이벤트는 아직 미구현이다.
+
+## 최근 주요 commit
+
+- Growth P4 검증 기준 head: `cf021174609d442057230909af93a5ab5d0ed625`
+- PR #37 Core Validation #605: 기존 전체 contracts + Growth P4 contract + lint + production build PASS
 
 ## 아직 미완료인 운영 QA
 
 - 최신 Production이 최신 `main`을 반영했는지 확인
+- P4 실제 token 생성 → 비로그인 Shared View → CTA 동작 확인
+- P4 결과 삭제/회원탈퇴 후 기존 Shared View가 더 이상 열리지 않는지 확인
 - 새 1:1 실제 결제에서 생성시간·답변 품질·저장·재열람 확인
 - 360 / 390 / 430px 실제 뷰포트 육안 확인
 - 1:1 실제 결제 반복 사용
