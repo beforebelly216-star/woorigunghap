@@ -15,25 +15,35 @@
 
 ## Blocker
 
-- [ ] 현재 확인된 미해결 코드 blocker 없음
+- [x] **1:1 결제 후 생성이 600초 이상 `생성중`에 머무는 응답 차단 원인 수정**
+  - PR #41 Production 코드에서 첫 `intro` 요청이 `intro / dynamics / action` 세 장문을 모두 시작한 뒤 `Promise.all`로 세 개 전부 완료될 때까지 응답을 막는 구조를 확인
+  - long segment는 최대 약 220초 budget이고 route `maxDuration=240`이므로, 요청 segment가 완료돼도 다른 segment 때문에 invocation 전체가 timeout 될 수 있었음
+  - 클라이언트는 transient/network 실패를 무기한 재시도하므로 timeout 뒤 `생성중` 화면이 장시간 지속됨
+  - PR #43에서 요청한 segment만 HTTP 응답 완료 조건으로 기다리고, 다른 누락 segment는 Next.js `after()` / Vercel `waitUntil`로 응답 후 지속
+  - 기존 per-segment single-flight, 결제 검증, 서버 저장, 5분 stale lock은 유지해 중복 AI 비용 방지
+  - 잘못된 `Promise.all` 요구 테스트를 수정해 요청 segment가 다른 두 segment를 기다리는 회귀를 명시적으로 금지
+  - **PR #43 Core Validation #636 PASS — 전체 기존 contracts + non-blocking fan-out contract + lint + production build**
+- [ ] **PR #43 Production 반영 및 실제 생성 복구 QA**
+  - 현재 Production은 아직 PR #41의 응답 차단 코드이므로 1:1 신규/미완료 생성은 blocker 상태
+  - 사용자 명시 승인 후 PR #43가 포함된 최신 `main`만 Production에 1회 배포
+  - 기존 `생성중` 주문이 stale lock 회복 뒤 재개되는지 확인
+  - 새 1:1 결제 → intro 응답 → 전체 생성 → 저장 → 보관함 재열람 시간 측정
+  - Vercel runtime log connector는 현재 해당 프로젝트 조회가 404이므로 로그 확인 가능 여부를 별도로 재점검
 
 ## Hotfix
 
-- [x] **2026-08-24 사용자 제보 hotfix — 테마 / 1:1 장시간 생성 / 불필요 홈 문구 / 공유 발견성**
+- [x] **2026-08-24 사용자 제보 hotfix — 테마 / 불필요 홈 문구 / 공유 발견성**
   - 홈·입력·결제·생성중·결과·보관함 핵심 surface를 라벤더 기반 공통 파스텔 토큰으로 통일
   - 개정 전 크림/베이지/연노랑 및 순백 혼합 테마를 핵심 surface 기본값에서 제거
   - 홈의 `계산은 서버가`, `무료는 계산만`, `AI는 서술만`, `결제 후 생성` 등 구현 설명/범용 면책 문구 제거
-  - 1:1 `intro / dynamics / action` 누락 segment를 per-segment single-flight claim 아래 함께 계획하고 가능한 segment를 병렬 생성해 순차 대기 누적 제거
-  - stale segment lock은 5분 유지해 살아 있는 장문 생성의 중복 재획득/AI 비용 중복 방지
   - 보관함 same-browser 생성 복구 재기동 120초 → 60초
   - 기존 1:1·1:N Web Share / 1080×1920 이미지 저장 / public Shared View / clipboard fallback 구현을 회귀 계약으로 고정
   - 보관함 완료 결과 CTA `결과 열기 · 공유하기`
   - Vercel Git 자동 배포 비활성화, Preview/Production 배포는 사용자 명시 승인 후 별도 실행
-  - **PR #41 Core Validation #630 PASS — 전체 기존 contracts + hotfix contract + lint + production build**
-- [ ] **배포된 PR #41 hotfix 실제 QA**
+  - PR #41 Core Validation #630 PASS
+- [ ] **배포된 UI/공유 hotfix 실제 QA**
   - [x] 사용자 승인 후 Production 1회 배포 완료: `1289a39972976bc05447fc14c86219c3cdaac983` → Vercel `success`
-  - [x] 배포 직후 자동 Git 배포 재비활성화: `f4cc4f1c5b9f75ddd3414813760ae7b9f443224b`; 해당 commit에 Vercel deployment status 없음 확인
-  - [ ] 실제 새 1:1 결제에서 생성시간·저장·재열람 확인
+  - [x] 배포 직후 자동 Git 배포 재비활성화: `f4cc4f1c5b9f75ddd3414813760ae7b9f443224b`
   - [ ] 실제 1:1·1:N 결과에서 공유 UI, 이미지 저장, Web Share, Shared View 링크 확인
   - [ ] 360 / 390 / 430px에서 라벤더 테마 일관성 육안 확인
 
@@ -91,10 +101,12 @@
 
 ## 배포 / 실사용 QA
 
-- [x] **PR #41 hotfix Production 배포**
+- [x] **PR #41 UI/Growth hotfix Production 배포**
   - Production deploy commit `1289a39972976bc05447fc14c86219c3cdaac983` Vercel status `success`
-  - 기능 코드 기준 hotfix main merge `c97d61bb2a43182c037aab832b1f657744935fd1`
   - 자동배포는 즉시 다시 비활성화됨
+- [ ] **PR #43 1:1 생성 blocker Production 배포**
+  - 별도 사용자 승인 필요
+  - 배포 후 기존 stuck 주문 및 신규 1:1 생성 runtime QA를 최우선 수행
 - [ ] **무료 유입 / Aha 실제 QA**
   - 홈 first CTA가 무료 자기 분석인지 확인
   - `/free` 입력 → 4-insight 결과 → 유료 CTA 실제 동작
@@ -104,9 +116,6 @@
   - Receipt / Recap 이미지 저장·공유 → public link → 비로그인 Shared View → 반응 → CTA 동작 확인
   - P5/P6 analytics row, 9-event 퍼널, experiment arm 기록 확인
   - 결과/계정 삭제 뒤 기존 Shared View와 token 연계 analytics 정리 확인
-- [ ] **새 1:1 실제 결제/생성 QA**
-  - 실제 결제 → 생성 → 결과 저장 → 보관함 재열람
-  - 실제 생성시간·답변 품질·공개 점수 분포·삭제 기능 관찰
 
 ## Post-beta 운영 QA
 
@@ -142,11 +151,11 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: PR #41 hotfix Production 승인 배포 + 자동배포 재비활성화
-- Status: complete
-- Validation: PR #41 Core Validation #630 PASS; deploy commit 1289a39972976bc05447fc14c86219c3cdaac983 Vercel success; f4cc4f1c5b9f75ddd3414813760ae7b9f443224b 이후 Git auto-deploy OFF
-- Commit: 기능 merge c97d61bb2a43182c037aab832b1f657744935fd1; Production deploy 1289a39972976bc05447fc14c86219c3cdaac983
-- Remaining: Production에서 새 1:1 실결제 생성시간/저장/재열람 + 1:1·1:N 공유 + 360/390/430 테마 육안 QA
-- Risk: CI/build는 PASS지만 실제 유료 1:1 생성시간과 모바일 Web Share/이미지 품질은 아직 runtime 검증 전
-- Resume: `다음`이면 최신 main/HANDOFF 확인 후 배포된 hotfix runtime QA부터 진행
+- Task: blocker — 1:1 600초+ 생성 무한대기 root cause 및 응답 차단 수정
+- Status: complete (code/CI); Production deploy pending explicit approval
+- Validation: PR #43 Core Validation #636 PASS — 전체 contracts + corrected non-blocking fan-out contract + lint + production build
+- Commit: PR #43 validated code head 579317252b8c76a28eec3995ad4a809fe7fdda46; 상태 문서는 같은 PR에서 후속 갱신
+- Remaining: PR #43 main 병합 후 사용자 승인된 Production 1회 배포 → 기존 stuck 주문 recovery + 새 1:1 생성/저장/재열람 runtime QA
+- Risk: 현재 Production은 여전히 all-segment await 구조라 timeout 가능; Vercel runtime-log connector는 project 조회 404
+- Resume: PR #43 merge 후 배포 승인이 오면 최신 main 재확인 후 승인된 SHA만 Production 배포
 ```
