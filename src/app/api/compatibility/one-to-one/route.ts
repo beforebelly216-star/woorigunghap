@@ -153,32 +153,33 @@ async function runClaimedSegment(
   narrativeNames: NarrativeNames,
   required: boolean,
 ): Promise<SegmentResult> {
+  const segment = plan.segment;
   try {
-    const generated = await generatePaidReportSegmentV7(snapshot, input, plan.segment);
+    const generated = await generatePaidReportSegmentV7(snapshot, input, segment);
     const personalizedContent = personalizeNarrativeNames(generated.content, narrativeNames);
     const persisted = await saveServerReportSegment(
       paymentId,
-      plan.segment,
+      segment,
       personalizedContent,
       generated.meta,
     );
     if (!persisted) throw new Error("SERVER_REPORT_SEGMENT_SAVE_FAILED");
-    await completeReportSegmentGeneration(paymentId, plan.segment);
+    await completeReportSegmentGeneration(paymentId, segment);
     return {
       kind: "ready",
-      segment: plan.segment,
+      segment,
       content: personalizedContent,
       meta: generated.meta,
     };
   } catch (error) {
-    await releaseReportSegmentGeneration(paymentId, plan.segment).catch(() => false);
+    await releaseReportSegmentGeneration(paymentId, segment).catch(() => false);
     if (required) throw error;
     console.warn("[woorigunghap:parallel-segment-recovery]", JSON.stringify({
       paymentId,
-      segment: plan.segment,
+      segment,
       reason: error instanceof Error ? error.message.slice(0, 160) : "UNKNOWN",
     }));
-    return { kind: "failed", segment: plan.segment };
+    return { kind: "failed", segment };
   }
 }
 
