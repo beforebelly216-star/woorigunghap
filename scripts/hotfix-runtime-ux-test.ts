@@ -52,7 +52,7 @@ assert.ok(oneToOneRoute.includes("for (const segment of PAID_REPORT_SEGMENTS)"),
 assert.ok(oneToOneRoute.includes("Promise.all(plans.map"), "1:1 missing segments must be generated concurrently");
 assert.ok(oneToOneRoute.includes("claimReportSegmentGeneration"), "parallel generation must retain segment single-flight claims");
 assert.ok(oneToOneRoute.includes("releaseUnusedPlans"), "busy requested segments must release opportunistic claims");
-assert.ok(segmentLock.includes("INTERVAL '3 minutes'"), "stale 1:1 segment claims must be recoverable within three minutes");
+assert.ok(segmentLock.includes("INTERVAL '5 minutes'"), "stale 1:1 segment claims must retain the five-minute duplicate-cost safety window");
 assert.ok(accountLibrary.includes("GENERATION_RESUME_INTERVAL_MS = 60_000"), "library recovery handoff must retry every minute");
 assert.ok(accountLibrary.includes("결과 열기 · 공유하기"), "ready library cards must make sharing discoverable");
 
