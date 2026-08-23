@@ -57,7 +57,12 @@
 
 상세 지침은 `docs/PROMOTION_VIRAL_UX.md`를 사용한다. **카카오 전용 메시지/공유 API는 사용하지 않고**, Web Share API·이미지 저장·일반 공유 URL 등 플랫폼 중립 방식만 사용한다.
 
-- [ ] Phase P1 — Share 전용 DTO / Shared View 공개 범위 / 권한·privacy 계약 확정
+- [x] Phase P1 — Share 전용 DTO / Shared View 공개 범위 / 권한·privacy 계약 확정
+  - 1:1·1:N 공통 public share DTO를 화이트리스트 방식으로 정의.
+  - 표시명은 기본 제외하고 사용자 opt-in일 때만 포함.
+  - paymentId/accessToken/생년월일시/원본 input/유료 narrative/rawTotal/internal dimensions 공개 금지 계약 추가.
+  - 1:N 공개 payload는 최대 3개 후보 하이라이트로 제한.
+  - 전용 contract test 및 Core validation workflow 연결.
 - [ ] Phase P2 — 관계 유형 × 패턴 × tone 카피 라이브러리 구축 및 120~160개 후보 선별
 - [ ] Phase P3 — Relationship Label / Two Sides / Send This 9:16 공유 카드 UI
 - [ ] Phase P4 — token 기반 Shared View + 일반 공유 URL + 신규 궁합 CTA
@@ -110,10 +115,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 카카오 나에게 보내기 + 카카오톡 채널/SOLAPI 완료 알림 기능 전면 제거
+- Task: Growth P1 — 1:1·1:N public share DTO / Shared View 공개 범위 / privacy 계약
 - Status: complete
-- Validation: Core validation #582 PASS — Day17 Kakao auth, Day18 library, Day22 policy, Day24 beta, 1:1/1:N contracts, lint, production build 모두 통과
-- Commit: PR #30 head 075d17e40133b838b90a9276c98efde1b840199c; main은 squash merge SHA 기준
-- Remaining: 다음 최우선 작업은 UI/UX 추가 개선 → AI 답변 스타일 → 리포트 항목 개선 → 플랫폼 중립 그로스 작업
-- Risk: 기존 Neon DB의 과거 알림 실험용 컬럼/테이블은 코드에서 미사용 상태로 남을 수 있음. 물리 삭제는 별도 안전 migration 필요.
+- Validation: PR #31 Core validation #585 실행 중; growth share contract + 기존 전체 contracts + lint + production build 검증 경로에 연결
+- Commit: P1 code 6c54fe4bdae429d1683330f060aac516d1c0d356; PR #31
+- Remaining: CI 통과 후 merge. 다음 단계는 P2 관계유형 × 패턴 × clean/tease/curiosity 카피 라이브러리 구축
+- Risk: P1은 데이터 계약만 추가했으며 Shared View token/DB/API/Analytics는 아직 구현하지 않음
 ```

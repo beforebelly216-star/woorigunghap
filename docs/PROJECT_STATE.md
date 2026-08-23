@@ -85,6 +85,9 @@
 - 공유는 Web Share API, 이미지 저장, 일반 token URL 등 플랫폼 중립 방식을 사용한다.
 - 카카오 전용 메시지/공유 API는 사용하지 않는다.
 - Shared View는 전체 유료 리포트를 무료 공개하지 않는다.
+- Growth P1 public share 계약 완료: 1:1·1:N 공통 공개 DTO를 화이트리스트 방식으로 정의하고 표시명은 opt-in일 때만 포함한다.
+- public share DTO에는 결제/결과 접근 토큰, paymentId, 생년월일시·원본 입력, 유료 narrative, rawTotal·내부 dimensions를 포함하지 않는다.
+- 1:N 공개 비교 payload는 Shared View에서 사용할 핵심 후보 하이라이트를 최대 3개까지만 허용한다.
 
 ## 아직 미완료인 운영 QA
 
