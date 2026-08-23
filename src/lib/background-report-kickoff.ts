@@ -1,7 +1,6 @@
 import "server-only";
 
 import type { OrderDraft } from "@/lib/orders";
-import { notifyReportCompleted } from "@/lib/report-completion-notification";
 
 const ONE_TO_ONE_SEGMENTS = ["intro", "dynamics", "action"] as const;
 
@@ -70,7 +69,5 @@ export async function kickOffPaidReportGeneration({
     { paymentId, accessToken, input, phase },
     1,
   )));
-  const reportCompleted = completed.every(Boolean);
-  if (reportCompleted) await notifyReportCompleted(paymentId);
-  return reportCompleted;
+  return completed.every(Boolean);
 }
