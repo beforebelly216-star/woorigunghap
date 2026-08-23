@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccountDeletionPanel } from "@/components/account-deletion-panel";
 import { loadOrderDraft, removeOrderDraft } from "@/lib/order-storage";
 import { removeReportProgress } from "@/lib/report-progress-storage";
@@ -21,13 +21,7 @@ type LibraryState =
   | { status: "loading" }
   | { status: "guest" }
   | { status: "failed" }
-  | {
-      status: "ready";
-      reports: ReportSummary[];
-      kakaoChannelNotifyEnabled: boolean;
-      kakaoChannelNotifyPhoneMasked: string | null;
-      kakaoChannelNotifyConfigured: boolean;
-    };
+  | { status: "ready"; reports: ReportSummary[] };
 
 const GENERATION_RESUME_INTERVAL_MS = 120_000;
 
@@ -45,10 +39,6 @@ function reportHref(report: ReportSummary) {
 export default function AccountReportsPage() {
   const [state, setState] = useState<LibraryState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [notifyConsent, setNotifyConsent] = useState(false);
-  const [notificationBusy, setNotificationBusy] = useState(false);
-  const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
   const [deleteBusyPaymentId, setDeleteBusyPaymentId] = useState<string | null>(null);
   const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
   const resumeAttemptedAt = useRef(new Map<string, number>());
@@ -94,15 +84,7 @@ export default function AccountReportsPage() {
         }
         if (response.ok && Array.isArray(payload?.reports)) {
           const reports = payload.reports as ReportSummary[];
-          setState({
-            status: "ready",
-            reports,
-            kakaoChannelNotifyEnabled: payload?.kakaoChannelNotifyEnabled === true,
-            kakaoChannelNotifyPhoneMasked: typeof payload?.kakaoChannelNotifyPhoneMasked === "string"
-              ? payload.kakaoChannelNotifyPhoneMasked
-              : null,
-            kakaoChannelNotifyConfigured: payload?.kakaoChannelNotifyConfigured === true,
-          });
+          setState({ status: "ready", reports });
           if (reports.some((report) => report.status === "generating")) {
             for (const report of reports) void resumeGeneratingReport(report);
             timer = window.setTimeout(load, 4_000);
@@ -125,36 +107,6 @@ export default function AccountReportsPage() {
   function reload() {
     setState({ status: "loading" });
     setReloadKey((value) => value + 1);
-  }
-
-  async function enableChannelNotification(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!notifyConsent) {
-      setNotificationMessage("완료 알림을 받으려면 휴대전화 번호 저장 및 알림 발송에 동의해 주세요.");
-      return;
-    }
-    setNotificationBusy(true);
-    setNotificationMessage(null);
-    try {
-      const response = await fetch("/api/account/notifications/kakao-channel", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ phoneNumber, consent: true }),
-      });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) {
-        setNotificationMessage(typeof payload?.error === "string" ? payload.error : "완료 알림 설정에 실패했습니다.");
-        return;
-      }
-      setPhoneNumber("");
-      setNotifyConsent(false);
-      setNotificationMessage("카카오톡 채널 완료 알림을 설정했습니다.");
-      setReloadKey((value) => value + 1);
-    } catch {
-      setNotificationMessage("네트워크 상태를 확인한 뒤 다시 시도해 주세요.");
-    } finally {
-      setNotificationBusy(false);
-    }
   }
 
   async function deleteReport(report: ReportSummary) {
@@ -182,25 +134,6 @@ export default function AccountReportsPage() {
     }
   }
 
-  async function disableChannelNotification() {
-    setNotificationBusy(true);
-    setNotificationMessage(null);
-    try {
-      const response = await fetch("/api/account/notifications/kakao-channel", { method: "DELETE" });
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        setNotificationMessage(typeof payload?.error === "string" ? payload.error : "완료 알림 해제에 실패했습니다.");
-        return;
-      }
-      setNotificationMessage("카카오톡 채널 완료 알림을 해제했습니다.");
-      setReloadKey((value) => value + 1);
-    } catch {
-      setNotificationMessage("네트워크 상태를 확인한 뒤 다시 시도해 주세요.");
-    } finally {
-      setNotificationBusy(false);
-    }
-  }
-
   return <main className="library-page">
     <section className="library-shell">
       <p className="eyebrow">ACCOUNT LIBRARY</p>
@@ -218,47 +151,6 @@ export default function AccountReportsPage() {
           <h2>보관함을 불러오지 못했어요</h2>
           <p>기존 결과는 사라지지 않았습니다. 네트워크 상태를 확인한 뒤 다시 불러와 주세요.</p>
           <button type="button" className="secondary-action" onClick={reload}>다시 불러오기</button>
-        </div> : null}
-        {state.status === "ready" ? <div className="library-notification-panel">
-          <div className="library-notification-copy">
-            <strong>카카오톡 채널 완료 알림</strong>
-            {state.kakaoChannelNotifyEnabled ? <>
-              <p>결과 생성이 끝나면 우리사주 카카오톡 채널의 알림톡으로 알려드려요.</p>
-              {state.kakaoChannelNotifyPhoneMasked ? <p className="library-notification-feedback">수신번호 {state.kakaoChannelNotifyPhoneMasked}</p> : null}
-            </> : state.kakaoChannelNotifyConfigured ? <>
-              <p>휴대전화 번호를 등록하면 결과가 완성되는 즉시 우리사주 채널 알림톡을 1회 발송합니다.</p>
-              <form className="library-notification-form" onSubmit={enableChannelNotification}>
-                <label htmlFor="kakao-channel-phone">휴대전화 번호</label>
-                <input
-                  id="kakao-channel-phone"
-                  type="tel"
-                  inputMode="numeric"
-                  autoComplete="tel"
-                  placeholder="01012345678"
-                  value={phoneNumber}
-                  onChange={(event) => setPhoneNumber(event.target.value)}
-                  maxLength={13}
-                  disabled={notificationBusy}
-                  required
-                />
-                <label className="library-notification-consent">
-                  <input
-                    type="checkbox"
-                    checked={notifyConsent}
-                    onChange={(event) => setNotifyConsent(event.target.checked)}
-                    disabled={notificationBusy}
-                  />
-                  <span>결과 완료 알림 발송을 위해 휴대전화 번호를 암호화 저장하는 데 동의합니다. <Link href="/privacy">개인정보처리방침</Link></span>
-                </label>
-                <button type="submit" className="secondary-action" disabled={notificationBusy}>{notificationBusy ? "저장 중…" : "채널 알림 받기"}</button>
-              </form>
-            </> : <p className="library-notification-feedback library-notification-feedback-error">카카오톡 채널 알림톡 발송 설정이 아직 완료되지 않았습니다.</p>}
-            {notificationMessage ? <p className="library-notification-feedback" role="status">{notificationMessage}</p> : null}
-          </div>
-          {state.kakaoChannelNotifyEnabled ? <div className="library-notification-actions">
-            <span className="library-notification-enabled">알림 사용 중</span>
-            <button type="button" className="secondary-action" onClick={disableChannelNotification} disabled={notificationBusy}>알림 해제</button>
-          </div> : null}
         </div> : null}
         {state.status === "ready" && state.reports.length === 0 ? <div className="library-state">
           <h2>아직 저장한 리포트가 없어요</h2>
