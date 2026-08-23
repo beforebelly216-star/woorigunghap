@@ -20,6 +20,7 @@
 .resultCard,
 .twoSides,
 .candidateList,
+.reactionCard,
 .cta {
   border: 1px solid rgba(139, 123, 199, .16);
   border-radius: 28px;
@@ -104,7 +105,8 @@
 
 .resultCard small,
 .twoSides small,
-.candidate small {
+.candidate small,
+.reactionCard > small {
   color: #8b7bc7;
   font-weight: 900;
 }
@@ -185,10 +187,63 @@
   font-weight: 900;
 }
 
+.reactionCard {
+  padding: 24px;
+}
+
+.reactionCard h2 {
+  margin: 8px 0 18px;
+  font-size: clamp(22px, 6vw, 28px);
+  line-height: 1.35;
+}
+
+.reactionButtons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reactionButton,
+.reactionButtonActive {
+  min-height: 48px;
+  border-radius: 16px;
+  border: 1px solid #d8d0ee;
+  padding: 10px 8px;
+  background: #fff;
+  color: #554b79;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.reactionButton:hover:not(:disabled),
+.reactionButton:focus-visible,
+.reactionButtonActive {
+  border-color: #8b7bc7;
+  background: #f3efff;
+  color: #3f365f;
+}
+
+.reactionButton:disabled,
+.reactionButtonActive:disabled {
+  cursor: default;
+}
+
+.reactionButton:disabled:not(.reactionButtonActive) {
+  opacity: .5;
+}
+
+.reactionNote {
+  margin: 14px 0 0;
+  color: #716a83;
+  line-height: 1.6;
+}
+
 .cta {
   padding: 24px;
   display: grid;
   gap: 10px;
+  animation: ctaReveal .24s ease-out;
 }
 
 .cta p {
@@ -220,6 +275,15 @@
   background: white;
 }
 
+@keyframes ctaReveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta { animation: none; }
+}
+
 @media (max-width: 520px) {
   .page {
     padding-inline: 12px;
@@ -227,6 +291,7 @@
 
   .hero,
   .resultCard,
+  .reactionCard,
   .cta {
     padding-inline: 20px;
   }
@@ -238,5 +303,9 @@
   .scoreCard {
     min-height: 150px;
     padding: 22px;
+  }
+
+  .reactionButtons {
+    grid-template-columns: 1fr;
   }
 }

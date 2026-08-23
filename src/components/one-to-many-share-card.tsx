@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { OneToManyResultView, SummaryMetricId } from "@/lib/compatibility/one-to-many-view";
+import { publicShareTokenFromUrl, trackGrowthEvent } from "@/lib/growth-analytics-client";
 import { RELATIONSHIP_LABELS, type RelationshipType } from "@/lib/report-input";
 import { createPublicShareUrl } from "@/lib/share/public-share-client";
 import { buildOneToManyPublicShare } from "@/lib/share/public-share-contract";
@@ -264,6 +265,15 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
         score: candidate.score,
       }));
 
+  useEffect(() => {
+    trackGrowthEvent({
+      eventName: "share_card_open",
+      product: "oneToMany",
+      relationshipType,
+      surface: "one_to_many_share_card",
+    });
+  }, [relationshipType]);
+
   async function share() {
     const shareText = `우리사주 1:다 ${view.relationshipLabel} 비교 · ${shareCopy}`;
     try {
@@ -286,17 +296,42 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
         includeDisplayNames: includeNames,
         candidates: publicCandidates,
       }));
+      const shareToken = publicShareTokenFromUrl(sharedViewUrl);
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        if (shareToken) trackGrowthEvent({
+          eventName: "share_native_open",
+          product: "oneToMany",
+          relationshipType,
+          surface: "one_to_many_share_card",
+          sharePurpose: purpose,
+          shareToken,
+        });
         await navigator.share({ title: `우리사주 1:다 ${view.relationshipLabel} 비교`, text: shareText, url: sharedViewUrl, files: [file] });
         setShareState("shared");
         return;
       }
       if (navigator.share) {
+        if (shareToken) trackGrowthEvent({
+          eventName: "share_native_open",
+          product: "oneToMany",
+          relationshipType,
+          surface: "one_to_many_share_card",
+          sharePurpose: purpose,
+          shareToken,
+        });
         await navigator.share({ title: `우리사주 1:다 ${view.relationshipLabel} 비교`, text: shareText, url: sharedViewUrl });
         setShareState("shared");
         return;
       }
       await navigator.clipboard.writeText(`${shareText}\n${sharedViewUrl}`);
+      if (shareToken) trackGrowthEvent({
+        eventName: "share_link_copy",
+        product: "oneToMany",
+        relationshipType,
+        surface: "one_to_many_share_card",
+        sharePurpose: purpose,
+        shareToken,
+      });
       setShareState("copied");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
@@ -321,6 +356,13 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
       link.href = url;
       link.download = `woorisaju-comparison-${purpose}.png`;
       link.click();
+      trackGrowthEvent({
+        eventName: "share_image_download",
+        product: "oneToMany",
+        relationshipType,
+        surface: "one_to_many_share_card",
+        sharePurpose: purpose,
+      });
       window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
       setShareState("saved");
     } catch {
@@ -342,7 +384,17 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
         data-purpose={option.purpose}
         aria-pressed={purpose === option.purpose}
         className={purpose === option.purpose ? styles.typeButtonActive : styles.typeButton}
-        onClick={() => { setPurpose(option.purpose); setShareState("idle"); }}
+        onClick={() => {
+          if (purpose !== option.purpose) trackGrowthEvent({
+            eventName: "share_style_selected",
+            product: "oneToMany",
+            relationshipType,
+            surface: "one_to_many_share_card",
+            sharePurpose: option.purpose,
+          });
+          setPurpose(option.purpose);
+          setShareState("idle");
+        }}
       >{option.label}</button>)}
     </div>
 
