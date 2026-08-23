@@ -122,7 +122,7 @@ HANDOFF
 - Task: Growth P2-1/P2-2 — 카피 구조·평가기준 확정 + 사용자 검토용 raw 240개 생성
 - Status: partial
 - Validation: review pool 구조 확인 — 30셀 × 8 = 240개, 중복 0, 셀별 clean 4/tease 2/curiosity 2, 금지표현 0; docs-only이므로 runtime/lint/build 변경 없음
-- Commit: gpt/growth-p2-copy-pool 브랜치; main merge 후 최신 SHA로 갱신 필요
+- Commit: PR #32 head는 최신 gpt/growth-p2-copy-pool 기준; main은 squash merge SHA 기준
 - Remaining: 사용자가 `docs/GROWTH_SHARE_COPY_REVIEW_V1.md`의 ID를 기준으로 120~160개를 채택/보류/제외 → 확정본만 Production 라이브러리로 코드화
 - Risk: raw 후보는 REVIEW ONLY이며 현재 공유 UI/DTO에 연결되지 않음
 ```
