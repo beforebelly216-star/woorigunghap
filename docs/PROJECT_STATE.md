@@ -90,7 +90,10 @@
 - 1:N 공개 비교 payload는 Shared View에서 사용할 핵심 후보 하이라이트를 최대 3개까지만 허용한다.
 - Growth P2 raw copy review pool 작성 완료: 5개 관계유형 × 6개 패턴 × 8개 후보 = 240개를 `docs/GROWTH_SHARE_COPY_REVIEW_V1.md`에 REVIEW ONLY 상태로 저장했다.
 - P2 raw 후보는 셀별 `clean 4 / tease 2 / curiosity 2`로 구성하며 Relationship Label / Two Sides / Send This 추천 용도를 함께 기록했다.
-- **P2 카피는 아직 Production UI나 공유 DTO에 연결하지 않는다.** 사용자가 직접 120~160개를 `채택 / 보류 / 제외`로 선별한 뒤 확정 라이브러리로 코드화한다.
+- Growth P2-3 선별 완료: `docs/GROWTH_SHARE_COPY_SELECTIONS_V1.md` 기준 raw 240개 중 **160개 채택 / 80개 제외**했다. 짝사랑 39개는 사용자가 직접 골랐고, 썸·연인·친구·직장동료는 사용자 지시에 따라 품질·중복·톤 균형 기준으로 일괄 선별했다.
+- 최종 후보 분포는 짝사랑 39 / 썸 31 / 연인 30 / 친구 30 / 직장동료 30, tone은 clean 68 / tease 32 / curiosity 60이며 30개 관계×패턴 셀을 모두 유지한다.
+- `curiosity`의 `████`는 고정 글자 수가 아니라 실제 숨길 핵심 답 구절 전체의 마스킹 자리표시자이며, 문맥 60~80% 공개 + 핵심 20~40% 마스킹을 기본으로 한다.
+- **확정 160개는 아직 Production UI나 공유 DTO에 연결하지 않았다.** 다음 P2-4에서 코드 라이브러리와 deterministic pattern/tone 선택 계약으로 구현한다.
 
 ## 아직 미완료인 운영 QA
 
