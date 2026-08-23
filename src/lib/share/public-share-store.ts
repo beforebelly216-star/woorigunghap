@@ -43,6 +43,10 @@ async function ensureSchema() {
   return true;
 }
 
+export async function ensurePublicShareStoreSchema() {
+  return ensureSchema();
+}
+
 export async function createPublicShare(sourcePaymentId: string, payload: PublicSharePayload) {
   if (!sourcePaymentId || sourcePaymentId.length > 160 || !await ensureSchema()) return null;
   const sql = getQuery();
@@ -80,16 +84,9 @@ export async function loadPublicShare(token: string) {
     WHERE token_hash = ${hashOpaqueToken(token)}
     LIMIT 1
   `;
-  return parsePublicSharePayload(rows[0]?.payload_json ? JSON.parse(String(rows[0].payload_json)) : null);
-}
-
-export async function deletePublicSharesForPayment(sourcePaymentId: string) {
-  if (!sourcePaymentId || !await ensureSchema()) return false;
-  const sql = getQuery();
-  if (!sql) return false;
-  await sql`
-    DELETE FROM woorigunghap_public_shares
-    WHERE source_payment_id = ${sourcePaymentId}
-  `;
-  return true;
+  try {
+    return parsePublicSharePayload(rows[0]?.payload_json ? JSON.parse(String(rows[0].payload_json)) : null);
+  } catch {
+    return null;
+  }
 }
