@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { OneToManyResultView, SummaryMetricId } from "@/lib/compatibility/one-to-many-view";
 import { RELATIONSHIP_LABELS, type RelationshipType } from "@/lib/report-input";
+import { createPublicShareUrl } from "@/lib/share/public-share-client";
+import { buildOneToManyPublicShare } from "@/lib/share/public-share-contract";
 import {
   maskCuriosityAnswer,
   selectRelationshipShareCopy,
@@ -18,6 +20,7 @@ type OneToManyShareCardProps = {
 type RoleHighlight = {
   label: string;
   displayName: string;
+  score: number;
 };
 
 type SideHighlight = {
@@ -63,7 +66,7 @@ function roleHighlights(view: OneToManyResultView): RoleHighlight[] {
       b.score - a.score
       || (rankOrder.get(a.candidateId) ?? 999) - (rankOrder.get(b.candidateId) ?? 999)
     ))[0];
-    return leader ? [{ label, displayName: leader.displayName }] : [];
+    return leader ? [{ label, displayName: leader.displayName, score: leader.score }] : [];
   });
 }
 
@@ -253,10 +256,16 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
   const shareCopy = selectedCopy.tone === "curiosity"
     ? maskCuriosityAnswer(selectedCopy.copy, `${view.relationshipLabel} 비교의 핵심 포인트`)
     : selectedCopy.copy;
+  const publicCandidates = roles.length > 0
+    ? roles.map((role) => ({ displayName: role.displayName, roleLabel: role.label, score: role.score }))
+    : view.rankings.slice(0, 3).map((candidate, index) => ({
+        displayName: candidate.displayName,
+        roleLabel: `비교 후보 ${index + 1}`,
+        score: candidate.score,
+      }));
 
   async function share() {
     const shareText = `우리사주 1:다 ${view.relationshipLabel} 비교 · ${shareCopy}`;
-    const safeUrl = `${window.location.origin}/`;
     try {
       const blob = await createShareImageBlob({
         relationshipLabel: view.relationshipLabel,
@@ -269,17 +278,25 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
         sides,
       });
       const file = new File([blob], `woorisaju-comparison-${purpose}.png`, { type: "image/png" });
+      const sharedViewUrl = await createPublicShareUrl(buildOneToManyPublicShare({
+        relationshipType,
+        relationshipLabel: view.relationshipLabel,
+        headline: shareCopy,
+        summary: view.summary,
+        includeDisplayNames: includeNames,
+        candidates: publicCandidates,
+      }));
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ title: `우리사주 1:다 ${view.relationshipLabel} 비교`, text: shareText, url: safeUrl, files: [file] });
+        await navigator.share({ title: `우리사주 1:다 ${view.relationshipLabel} 비교`, text: shareText, url: sharedViewUrl, files: [file] });
         setShareState("shared");
         return;
       }
       if (navigator.share) {
-        await navigator.share({ title: `우리사주 1:다 ${view.relationshipLabel} 비교`, text: shareText, url: safeUrl });
+        await navigator.share({ title: `우리사주 1:다 ${view.relationshipLabel} 비교`, text: shareText, url: sharedViewUrl });
         setShareState("shared");
         return;
       }
-      await navigator.clipboard.writeText(`${shareText}\n${safeUrl}`);
+      await navigator.clipboard.writeText(`${shareText}\n${sharedViewUrl}`);
       setShareState("copied");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
@@ -315,7 +332,7 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
     <div className={styles.heading}>
       <small>SHARE THE COMPARISON</small>
       <h2 id="one-to-many-share-title">순위보다, 관계 역할로 공유하기</h2>
-      <p>누구와 어떤 장면이 편한지 역할형 결과로 보여줘요. 후보 이름은 직접 켜기 전에는 공유 이미지에 넣지 않습니다.</p>
+      <p>누구와 어떤 장면이 편한지 역할형 결과로 보여줘요. 후보 이름은 직접 켜기 전에는 공유 이미지나 Shared View에 넣지 않습니다.</p>
     </div>
 
     <div className={styles.typeTabs} role="group" aria-label="1:다 공유 카드 종류">
@@ -344,12 +361,12 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
       <div className={styles.footer}>순번보다 관계 역할을 보여주는 9:16 공유 카드</div>
     </div>
 
-    <label className={styles.nameToggle}><input type="checkbox" checked={includeNames} onChange={(event) => setIncludeNames(event.target.checked)} />공유 이미지에 후보 이름 넣기</label>
+    <label className={styles.nameToggle}><input type="checkbox" checked={includeNames} onChange={(event) => setIncludeNames(event.target.checked)} />공유 이미지와 Shared View에 후보 이름 넣기</label>
     <div className={styles.actions}>
-      <button type="button" className={styles.shareButton} onClick={share}>{shareState === "shared" ? "공유했어요" : shareState === "copied" ? "공유 문구를 복사했어요" : "이 카드 공유하기"}</button>
+      <button type="button" className={styles.shareButton} onClick={share}>{shareState === "shared" ? "공유했어요" : shareState === "copied" ? "공유 링크를 복사했어요" : "이 카드 공유하기"}</button>
       <button type="button" className={styles.saveButton} onClick={saveImage}>{shareState === "saved" ? "이미지를 저장했어요" : "9:16 이미지 저장"}</button>
     </div>
-    {shareState === "failed" && <p className={styles.shareError}>공유 이미지를 만들지 못했어요. 브라우저 권한을 확인해 주세요.</p>}
-    <p className={styles.privacyNote}>현재 공유 주소는 결제 결과나 접근 토큰이 아닌 우리사주 홈만 사용합니다. P4에서 안전한 Shared View URL로 교체합니다.</p>
+    {shareState === "failed" && <p className={styles.shareError}>공유 링크나 이미지를 만들지 못했어요. 잠시 후 다시 시도해 주세요.</p>}
+    <p className={styles.privacyNote}>공유 버튼은 결제 결과 주소나 접근 토큰 대신 별도의 Shared View 주소를 만듭니다. 후보 이름은 사용자가 직접 켠 경우에만 공개 DTO에 포함됩니다.</p>
   </section>;
 }

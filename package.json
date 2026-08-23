@@ -44,7 +44,8 @@
     "test:report:day-pillar-characters": "tsx scripts/report-day-pillar-character-contract-test.ts",
     "test:report:p5-ui": "tsx scripts/report-p5-ui-contract-test.ts",
     "test:growth:share-contract": "tsx scripts/growth-share-contract-test.ts",
-    "test:growth:share-copy-library": "tsx scripts/growth-share-copy-library-test.ts"
+    "test:growth:share-copy-library": "tsx scripts/growth-share-copy-library-test.ts",
+    "test:growth:shared-view": "tsx scripts/growth-shared-view-contract-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
