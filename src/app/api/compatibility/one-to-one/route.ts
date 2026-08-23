@@ -130,13 +130,13 @@ async function planSegmentGeneration(
   storedProgress: ServerReportProgress | null,
   narrativeNames: NarrativeNames,
 ): Promise<SegmentPlan> {
-  const storedContent = storedProgress?.segments[segment];
+  const storedSegment = storedProgress?.segments[segment];
   const storedMeta = storedProgress?.metas[segment];
-  if (storedContent && storedMeta) {
+  if (storedSegment && storedMeta) {
     return {
       kind: "ready",
       segment,
-      content: personalizeNarrativeNames(storedContent, narrativeNames),
+      content: personalizeNarrativeNames(storedSegment, narrativeNames),
       meta: storedMeta,
     };
   }
