@@ -68,12 +68,16 @@
   - [x] P2-2 REVIEW ONLY raw 240개 생성: `docs/GROWTH_SHARE_COPY_REVIEW_V1.md`.
   - [x] P2-3 최종 선별: `docs/GROWTH_SHARE_COPY_SELECTIONS_V1.md` 기준 160개 채택 / 80개 제외. 짝사랑 39개는 사용자 직접 선별, 나머지는 사용자 지시에 따라 품질·중복·톤 균형 기준 일괄 선별.
   - [x] P2-4 확정 160개 Production 코드 라이브러리, deterministic pattern/tone/copy selector, 기존 6 archetype 편집 매핑, curiosity mask helper, 중복/금지표현/분포/30셀/P0 용도 contract 추가.
-- [ ] Phase P3 — Relationship Label / Two Sides / Send This 9:16 공유 카드 UI
-  - 기존 1:1 9:16 카드/Web Share/이미지 저장 구현은 재작성하지 않고 재사용한다.
-  - P2 라이브러리의 `relationship_label / two_sides / send_this`를 카드 타입별로 연결한다.
-  - 1:N은 기존 deterministic ranking/role/metrics 범위에서 패턴을 결정하며 새 AI 계산을 만들지 않는다.
-  - P4 Shared View/token URL은 본 단계와 분리한다.
+- [x] Phase P3 — Relationship Label / Two Sides / Send This 9:16 공유 카드 UI
+  - 기존 1:1 9:16 카드/Web Share/이미지 저장 구현을 재사용해 P2 카피의 `relationship_label / two_sides / send_this` 선택 UI를 연결.
+  - 1:N 결과에도 동일 3종 P0 카드 추가. 기존 deterministic ranking/summary metrics 범위에서 패턴과 역할형 하이라이트를 결정하고 새 AI 계산은 만들지 않음.
+  - 1:1·1:N 이름 기본 비노출, 사용자 opt-in 시에만 이미지 표시. 결과 access token/결제 결과 URL은 공유하지 않음.
+  - 1080×1920 canvas, 9:16 preview, Web Share/이미지 저장/clipboard fallback 및 360px 모바일 계약 검증.
+  - P4 Shared View/token URL은 본 단계와 분리 유지.
 - [ ] Phase P4 — token 기반 Shared View + 일반 공유 URL + 신규 궁합 CTA
+  - 기존 유료 결과 access token/결과 URL을 재사용하거나 노출하지 않고 public share 전용 token/데이터 경계를 사용한다.
+  - 비로그인에서도 제한된 public share DTO만 조회되는 Shared View를 제공한다.
+  - P3의 홈 URL 공유를 Shared View URL로 교체하고 신규 궁합 시작 CTA를 연결한다.
 - [ ] Phase P5 — 공유 수신자 반응 UX + analytics 이벤트 및 퍼널 측정
 - [ ] Phase P6 — Receipt / Recap 카드와 A/B 테스트 기반 확장
 
@@ -123,10 +127,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: Growth P2-4 — 승인 160개 Production 카피 라이브러리 + deterministic selection contract
+- Task: Growth P3 — 1:1·1:N Relationship Label / Two Sides / Send This 9:16 공유 카드 UI
 - Status: complete
-- Validation: PR #34 Core Validation #590 PASS — 새 Growth copy contract, 기존 전체 contracts, lint, production build 통과
-- Commit: PR #34 head는 gpt/growth-p2-production-library 기준; main은 squash merge SHA 기준
-- Remaining: P3 — 기존 1:1 9:16 공유 구현을 재사용해 Relationship Label / Two Sides / Send This UI 연결, 1:N P0 카드 추가
-- Risk: P2 카피는 코드 준비 완료지만 아직 결과/공유 UI에 렌더링되지 않음; 1:N 패턴은 기존 deterministic 계산/역할만 사용해야 함
+- Validation: PR #35 Core Validation #596 PASS — P3 share-card contract, 기존 전체 contracts, lint, production build 통과
+- Commit: PR #35 head는 gpt/growth-p3-share-card-ui 기준; main은 squash merge SHA 기준
+- Remaining: P4 — public share 전용 token 기반 Shared View + 일반 공유 URL + 신규 궁합 CTA; 기존 paid result access token/URL 사용 금지
+- Risk: P3 공유 action은 아직 홈 URL을 사용하며 Shared View token/DB/API/analytics는 미구현
 ```
