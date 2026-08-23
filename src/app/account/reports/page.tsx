@@ -177,8 +177,8 @@ export default function AccountReportsPage() {
               <span>{report.productLabel} · {report.relationshipLabel}</span>
               <strong>{report.title}</strong>
               <small>{formatDate(report.createdAt)} 구매</small>
-              <b>생성중 · 자동 복구 확인 중</b>
-              <p>생성이 끊기면 같은 브라우저의 복구키로 1분 간격으로 다시 이어갑니다. 추가 결제나 중복 AI 생성은 하지 않습니다.</p>
+              <b>생성중</b>
+              <p>자동 복구를 확인하고 있어요. 생성이 끊기면 같은 브라우저의 복구키로 1분 간격으로 다시 이어갑니다. 추가 결제나 중복 AI 생성은 하지 않습니다.</p>
             </article>}
           </li>)}
         </ul> : null}
