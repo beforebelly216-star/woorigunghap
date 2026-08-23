@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isOpaqueToken } from "@/lib/auth-policy";
 import { loadPublicShare } from "@/lib/share/public-share-store";
+import { SharedViewActions } from "./shared-view-actions";
 import styles from "./shared-view.module.css";
 
 export const runtime = "nodejs";
@@ -51,11 +52,12 @@ export default async function SharedViewPage({ params }: { params: Promise<{ tok
           {share.tuning && <div><small>{share.tuning.label}</small><strong>{share.tuning.copy}</strong></div>}
         </section>}
 
-        <section className={styles.cta}>
-          <p>이 결과는 전체 유료 리포트가 아니라 공유용 핵심 내용만 보여줘요.</p>
-          <Link href="/one-to-one" className={styles.primary}>나도 1:1 궁합 보기</Link>
-          <Link href="/one-to-many" className={styles.secondary}>여러 사람 비교해보기</Link>
-        </section>
+        <SharedViewActions
+          token={token}
+          product={share.product}
+          relationshipType={share.relationshipType}
+          disclosureCopy="이 결과는 전체 유료 리포트가 아니라 공유용 핵심 내용만 보여줘요."
+        />
       </article>
     </main>;
   }
@@ -78,11 +80,12 @@ export default async function SharedViewPage({ params }: { params: Promise<{ tok
         </div>)}
       </section>
 
-      <section className={styles.cta}>
-        <p>순위 전체나 유료 해설은 공개하지 않고, 공유자가 선택한 핵심 결과만 보여줘요.</p>
-        <Link href="/one-to-many" className={styles.primary}>나도 1:다 비교해보기</Link>
-        <Link href="/one-to-one" className={styles.secondary}>1:1 궁합 보기</Link>
-      </section>
+      <SharedViewActions
+        token={token}
+        product={share.product}
+        relationshipType={share.relationshipType}
+        disclosureCopy="순위 전체나 유료 해설은 공개하지 않고, 공유자가 선택한 핵심 결과만 보여줘요."
+      />
     </article>
   </main>;
 }
