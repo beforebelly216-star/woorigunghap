@@ -314,8 +314,8 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
   return <section className={styles.section} aria-labelledby="one-to-many-share-title">
     <div className={styles.heading}>
       <small>SHARE THE COMPARISON</small>
-      <h2 id="one-to-many-share-title">순위 말고, 관계 역할로 공유하기</h2>
-      <p>누가 꼴찌인지 대신 누구와 어떤 장면이 편한지 보여줘요. 후보 이름은 직접 켜기 전에는 공유 이미지에 넣지 않습니다.</p>
+      <h2 id="one-to-many-share-title">순위보다, 관계 역할로 공유하기</h2>
+      <p>누구와 어떤 장면이 편한지 역할형 결과로 보여줘요. 후보 이름은 직접 켜기 전에는 공유 이미지에 넣지 않습니다.</p>
     </div>
 
     <div className={styles.typeTabs} role="group" aria-label="1:다 공유 카드 종류">
@@ -341,7 +341,7 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
         {roles.map((role) => <div className={styles.roleBox} key={role.label}><small>{role.label}</small><strong>{includeNames ? role.displayName : "이름은 공유하지 않음"}</strong></div>)}
       </div>}
       <div className={styles.candidateCount}>후보 {view.rankings.length}명 비교</div>
-      <div className={styles.footer}>단순 1등·꼴찌 대신 관계 역할을 보여주는 카드</div>
+      <div className={styles.footer}>순번보다 관계 역할을 보여주는 9:16 공유 카드</div>
     </div>
 
     <label className={styles.nameToggle}><input type="checkbox" checked={includeNames} onChange={(event) => setIncludeNames(event.target.checked)} />공유 이미지에 후보 이름 넣기</label>
