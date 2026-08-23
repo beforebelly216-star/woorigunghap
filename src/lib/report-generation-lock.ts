@@ -56,7 +56,7 @@ export async function claimReportSegmentGeneration(
     WHERE woorigunghap_report_segment_claims.status = 'failed'
        OR (
          woorigunghap_report_segment_claims.status = 'generating'
-         AND woorigunghap_report_segment_claims.updated_at < NOW() - INTERVAL '3 minutes'
+         AND woorigunghap_report_segment_claims.updated_at < NOW() - INTERVAL '5 minutes'
        )
     RETURNING payment_id
   `;
