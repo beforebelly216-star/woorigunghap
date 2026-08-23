@@ -63,6 +63,7 @@ const store = source("src/lib/share/public-share-store.ts");
 assert.match(store, /token_hash TEXT PRIMARY KEY/);
 assert.match(store, /hashOpaqueToken\(token\)/);
 assert.match(store, /source_payment_id TEXT NOT NULL/);
+assert.match(store, /ensurePublicShareStoreSchema/);
 assert.ok(!store.includes("access_token"), "public share store must not persist paid access tokens");
 
 const createRoute = source("src/app/api/share/route.ts");
@@ -91,6 +92,11 @@ assert.match(client, /fetch\("\/api\/share"/);
 assert.match(client, /window\.location\.search/);
 assert.ok(!client.includes("/share?paymentId="), "paid identifiers must not be embedded into public URLs");
 
+const accountStore = source("src/lib/account-report-store.ts");
+assert.match(accountStore, /ensurePublicShareStoreSchema/);
+assert.match(accountStore, /DELETE FROM woorigunghap_public_shares shares/);
+assert.match(accountStore, /shares\.source_payment_id IN \(SELECT payment_id FROM owned\)/);
+
 for (const path of [
   "src/app/one-to-one/result/compatibility-share-card.tsx",
   "src/components/one-to-many-share-card.tsx",
@@ -101,4 +107,4 @@ for (const path of [
   assert.match(card, /Shared View/);
 }
 
-console.log("Growth P4 Shared View contract OK: ownership-gated create, opaque public token, limited public DTO, CTA, and P3 URL replacement.");
+console.log("Growth P4 Shared View contract OK: ownership-gated create, opaque public token, limited public DTO, deletion lifetime binding, CTA, and P3 URL replacement.");
