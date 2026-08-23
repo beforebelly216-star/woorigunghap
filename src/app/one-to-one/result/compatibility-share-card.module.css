@@ -54,7 +54,7 @@
   .sideGrid { margin-top: 12px; gap: 6px; }
   .sideBox { padding: 9px 10px; }
   .sideBox strong { font-size: .78rem; }
-  .score { width: 124px; }
+  .score { width: 136px; }
   .score strong { font-size: 2.2rem; }
   .footer { margin-top: 10px; font-size: .64rem; }
   .shareButton, .saveButton { min-height: 46px; padding-inline: 12px; }
