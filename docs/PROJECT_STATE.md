@@ -88,6 +88,9 @@
 - Growth P1 public share 계약 완료: 1:1·1:N 공통 공개 DTO를 화이트리스트 방식으로 정의하고 표시명은 opt-in일 때만 포함한다.
 - public share DTO에는 결제/결과 접근 토큰, paymentId, 생년월일시·원본 입력, 유료 narrative, rawTotal·내부 dimensions를 포함하지 않는다.
 - 1:N 공개 비교 payload는 Shared View에서 사용할 핵심 후보 하이라이트를 최대 3개까지만 허용한다.
+- Growth P2 raw copy review pool 작성 완료: 5개 관계유형 × 6개 패턴 × 8개 후보 = 240개를 `docs/GROWTH_SHARE_COPY_REVIEW_V1.md`에 REVIEW ONLY 상태로 저장했다.
+- P2 raw 후보는 셀별 `clean 4 / tease 2 / curiosity 2`로 구성하며 Relationship Label / Two Sides / Send This 추천 용도를 함께 기록했다.
+- **P2 카피는 아직 Production UI나 공유 DTO에 연결하지 않는다.** 사용자가 직접 120~160개를 `채택 / 보류 / 제외`로 선별한 뒤 확정 라이브러리로 코드화한다.
 
 ## 아직 미완료인 운영 QA
 
