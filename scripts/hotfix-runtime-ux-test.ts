@@ -45,11 +45,15 @@ for (const removedCopy of [
 }
 
 assert.ok(
-  oneToOneRoute.includes("paid-report-v7-editorial-server-store-20260824-parallel-recovery"),
-  "1:1 route must expose the parallel recovery runtime version",
+  oneToOneRoute.includes("paid-report-v7-editorial-server-store-20260824-background-fanout"),
+  "1:1 route must expose the non-blocking background fanout runtime version",
 );
-assert.ok(oneToOneRoute.includes("for (const segment of PAID_REPORT_SEGMENTS)"), "1:1 route must plan every paid segment");
-assert.ok(oneToOneRoute.includes("Promise.all(plans.map"), "1:1 missing segments must be generated concurrently");
+assert.ok(oneToOneRoute.includes('import { after, NextRequest, NextResponse } from "next/server"'), "1:1 route must use Next after() for post-response segment work");
+assert.ok(oneToOneRoute.includes("for (const segment of PAID_REPORT_SEGMENTS)"), "1:1 route must still plan every paid segment for opportunistic fanout");
+assert.ok(oneToOneRoute.includes("const requestedResult = await requestedExecution"), "the HTTP response must wait only for the requested paid segment");
+assert.ok(oneToOneRoute.includes("after(async () =>"), "non-requested paid segments must continue after the response");
+assert.ok(oneToOneRoute.includes("Promise.allSettled(backgroundExecutions)"), "background segment fanout must be retained by waitUntil/after");
+assert.ok(!oneToOneRoute.includes("const results = await Promise.all(plans.map"), "a requested segment must never wait for all three long segments before responding");
 assert.ok(oneToOneRoute.includes("claimReportSegmentGeneration"), "parallel generation must retain segment single-flight claims");
 assert.ok(oneToOneRoute.includes("releaseUnusedPlans"), "busy requested segments must release opportunistic claims");
 assert.ok(segmentLock.includes("INTERVAL '5 minutes'"), "stale 1:1 segment claims must retain the five-minute duplicate-cost safety window");
@@ -66,4 +70,4 @@ for (const [label, shareSource] of [["1:1", oneToOneShare], ["1:N", oneToManySha
 assert.ok(oneToManyResult.includes("<OneToManyShareCard view={view} />"), "paid 1:N result must mount its share UI");
 assert.equal(vercel.git?.deploymentEnabled, false, "automatic Vercel Git deployments must stay disabled until user approval");
 
-console.log("Hotfix runtime/UI contract passed: unified theme, parallel 1:1 recovery, visible share path, and manual Vercel deploy policy.");
+console.log("Hotfix runtime/UI contract passed: unified theme, non-blocking 1:1 fanout, visible share path, and manual Vercel deploy policy.");
