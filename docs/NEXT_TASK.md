@@ -127,10 +127,11 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: Growth P3 — 1:1·1:N Relationship Label / Two Sides / Send This 9:16 공유 카드 UI
+- Task: Growth P3 완료 후 새 채팅 인수인계 준비
 - Status: complete
 - Validation: PR #35 Core Validation #596 PASS — P3 share-card contract, 기존 전체 contracts, lint, production build 통과
-- Commit: PR #35 head는 gpt/growth-p3-share-card-ui 기준; main은 squash merge SHA 기준
+- Commit: main 20bddff19f9df6b4eeba165500c08d69617dbfe3 (P3 완료 기준)
 - Remaining: P4 — public share 전용 token 기반 Shared View + 일반 공유 URL + 신규 궁합 CTA; 기존 paid result access token/URL 사용 금지
 - Risk: P3 공유 action은 아직 홈 URL을 사용하며 Shared View token/DB/API/analytics는 미구현
+- Resume: 새 채팅에서 사용자가 `다음`이라고만 입력하면 최신 main 재확인 후 P4를 즉시 시작한다
 ```
