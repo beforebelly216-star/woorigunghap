@@ -66,8 +66,8 @@
 - [ ] Phase P2 — 관계 유형 × 패턴 × tone 카피 라이브러리 구축 및 120~160개 후보 선별
   - [x] P2-1 구조/평가기준 확정: 5 관계유형 × 6 패턴, `clean / tease / curiosity`, Relationship Label / Two Sides / Send This 추천 용도.
   - [x] P2-2 REVIEW ONLY raw 240개 생성: `docs/GROWTH_SHARE_COPY_REVIEW_V1.md`.
-  - [ ] P2-3 사용자 직접 선별: ID 기준 `채택 / 보류 / 제외`, 최종 120~160개 목표.
-  - [ ] P2-4 확정본만 Production 카피 라이브러리로 코드화하고 deterministic pattern 매핑/중복 contract 추가.
+  - [x] P2-3 최종 선별: `docs/GROWTH_SHARE_COPY_SELECTIONS_V1.md` 기준 160개 채택 / 80개 제외. 짝사랑 39개는 사용자 직접 선별, 나머지는 사용자 지시에 따라 품질·중복·톤 균형 기준 일괄 선별.
+  - [ ] P2-4 확정 160개만 Production 카피 라이브러리로 코드화하고 deterministic pattern/tone 매핑·중복/금지표현 contract 추가.
 - [ ] Phase P3 — Relationship Label / Two Sides / Send This 9:16 공유 카드 UI
 - [ ] Phase P4 — token 기반 Shared View + 일반 공유 URL + 신규 궁합 CTA
 - [ ] Phase P5 — 공유 수신자 반응 UX + analytics 이벤트 및 퍼널 측정
@@ -119,10 +119,10 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: Growth P2-1/P2-2 — 카피 구조·평가기준 확정 + 사용자 검토용 raw 240개 생성
+- Task: Growth P2-3 — raw 240개 중 Production 후보 160개 최종 선별
 - Status: partial
-- Validation: review pool 구조 확인 — 30셀 × 8 = 240개, 중복 0, 셀별 clean 4/tease 2/curiosity 2, 금지표현 0; docs-only이므로 runtime/lint/build 변경 없음
-- Commit: PR #32 head는 최신 gpt/growth-p2-copy-pool 기준; main은 squash merge SHA 기준
-- Remaining: 사용자가 `docs/GROWTH_SHARE_COPY_REVIEW_V1.md`의 ID를 기준으로 120~160개를 채택/보류/제외 → 확정본만 Production 라이브러리로 코드화
-- Risk: raw 후보는 REVIEW ONLY이며 현재 공유 UI/DTO에 연결되지 않음
+- Validation: 160 selected / 80 excluded; 30셀 모두 5개 이상, clean 68 / tease 32 / curiosity 60; docs-only라 lint/build 미실행
+- Commit: gpt/growth-p2-final-selection 브랜치; main 병합 후 최신 SHA 기준
+- Remaining: P2-4 — 확정 160개 코드화 + deterministic pattern/tone 매핑 + 중복/금지표현 contract
+- Risk: 확정 카피는 아직 Production 공유 UI/DTO에 연결되지 않음
 ```
