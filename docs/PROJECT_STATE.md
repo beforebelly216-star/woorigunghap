@@ -95,7 +95,10 @@
 - 30개 관계유형×패턴 셀 모두 Relationship Label / Two Sides / Send This P0 용도를 최소 1개 이상 커버한다. 이를 위해 `썸 × 노력형`은 `FL-EF-03` 대신 `FL-EF-04`를 최종 채택했으며 총량과 tone 분포는 유지했다.
 - `curiosity`의 `███`는 실제 숨길 핵심 답 구절 전체의 마스킹 자리표시자이며, helper는 원문 답을 반환하지 않고 6~18칸 opaque mask로 치환한다.
 - Growth 카피 라이브러리 계약은 160개 수량, ID/문장 중복, 관계/tone 분포, 30셀/P0 용도, 금지표현, deterministic selection, curiosity mask를 검증한다.
-- **P2 카피 라이브러리는 코드 준비까지 완료했지만 아직 결과/공유 UI에 렌더링하지 않는다.** 다음 P3에서 Relationship Label / Two Sides / Send This 9:16 UI에 연결한다.
+- Growth P3 P0 공유 카드 UI 완료: 기존 1:1 9:16/Web Share/이미지 저장 구조에 Relationship Label / Two Sides / Send This 선택 UI를 연결하고 P2 카피 selector를 실제 결과 화면에서 사용한다.
+- 1:N 결과에도 동일 3종 9:16 공유 카드를 추가했다. 패턴은 기존 ranking/summary metrics만으로 결정하며, `가장 편한 사람 / 말이 잘 통하는 사람 / 장기관계 리듬이 좋은 사람` 같은 역할형 하이라이트를 사용하고 단순 최하위 비난 표현을 쓰지 않는다.
+- 1:1·1:N 공유 이미지의 이름은 기본 비노출이며 사용자가 직접 opt-in한 경우에만 표시한다. 생년월일시·유료 본문·결제 결과 접근 토큰은 공유하지 않는다.
+- P3의 Web Share/클립보드 공유 URL은 여전히 안전한 홈 URL만 사용한다. **token 기반 public Shared View / 일반 공유 URL / 신규 궁합 CTA는 P4 미구현 상태다.**
 
 ## 아직 미완료인 운영 QA
 
