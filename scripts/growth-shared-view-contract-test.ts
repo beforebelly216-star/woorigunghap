@@ -80,9 +80,11 @@ assert.ok(!readRoute.includes("loadAuthenticatedRequestUser"), "Shared View read
 assert.ok(!readRoute.includes("hasServerOrderAccess"), "public read must not expose paid-result auth flow");
 
 const sharedView = source("src/app/share/[token]/page.tsx");
+const sharedActions = source("src/app/share/[token]/shared-view-actions.tsx");
 assert.match(sharedView, /loadPublicShare/);
-assert.match(sharedView, /나도 1:1 궁합 보기/);
-assert.match(sharedView, /나도 1:다 비교해보기/);
+assert.match(sharedView, /SharedViewActions/);
+assert.match(sharedActions, /나도 1:1 궁합 보기/);
+assert.match(sharedActions, /나도 1:다 비교해보기/);
 assert.ok(!sharedView.includes("paymentId"));
 assert.ok(!sharedView.includes("accessToken"));
 assert.ok(!sharedView.includes("birthDate"));
