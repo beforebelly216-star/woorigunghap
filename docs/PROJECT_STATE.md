@@ -9,7 +9,7 @@
 - 기준 상태: Day 24 MVP 완료, 베타 전 제품 완성도 개선 및 운영 QA 단계
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
 - 배포: Vercel Production. **Git 자동 배포는 비활성화하며 Preview/Production 배포는 사용자 명시 승인 후 별도 실행**
-- 최신 승인 Production 배포: `1289a39972976bc05447fc14c86219c3cdaac983` Vercel `success`. 기능 코드 기준은 hotfix merge `c97d61bb2a43182c037aab832b1f657744935fd1`이며, 현재 `main`은 배포 직후 자동배포를 다시 끈 `f4cc4f1c5b9f75ddd3414813760ae7b9f443224b`부터 이어진다.
+- 최신 승인 Production 배포: `1289a39972976bc05447fc14c86219c3cdaac983` Vercel `success`. 이 Production에는 PR #41 기능 코드가 들어가 있으나, 아래의 PR #43 1:1 응답 차단 수정은 아직 배포 전이다.
 - 레거시 내부 식별자: GitHub 저장소 `beforebelly216-star/woorigunghap`, 기존 Vercel 도메인, DB의 `woorigunghap_*` 식별자는 호환성을 위해 유지한다.
 
 ## 현재 구현 상태
@@ -38,14 +38,15 @@
 - 홈의 `계산은 서버가`, `무료는 계산만`, `AI는 서술만`, `결제 후 생성` 등 구현 설명 카드와 하단 범용 면책 문구 제거
 - 보관함 완성 결과 CTA를 `결과 열기 · 공유하기`로 명시해 공유 기능 발견성을 보강
 - 기존 P5 UI 계약의 크림색 고정값을 새 공통 테마 계약으로 갱신
-- 위 hotfix는 2026-08-24 사용자 승인 후 Production 배포까지 완료. 실제 모바일 육안 QA는 계속 필요
+- 위 UI hotfix는 2026-08-24 사용자 승인 후 Production 배포까지 완료. 실제 모바일 육안 QA는 계속 필요
 
 ## 1:1 생성 및 콘텐츠
 
-- `prepare` 후 `intro` / `dynamics` / `action` 병렬 fan-out
-- 사용자 요청 phase에서 저장되지 않은 세 segment를 각 segment single-flight claim 아래 함께 계획하고 가능한 claim을 **동시에 생성**해 순차 대기 시간 누적을 방지
-- stale segment claim 재획득 기준은 **5분 유지**. 장문 생성 중 살아 있는 요청을 조기 재획득해 중복 AI 비용을 만드는 것을 방지
-- 같은 브라우저 보관함 생성 복구 handoff는 **60초 간격**으로 재시도
+- `prepare` 후 `intro` / `dynamics` / `action` segment를 생성한다.
+- 각 segment는 독립된 single-flight claim을 사용하고 stale claim 재획득 기준은 **5분 유지**해 살아 있는 장문 요청의 중복 AI 비용을 방지한다.
+- **PR #41 배포본의 결함:** 첫 segment 요청이 세 segment를 동시에 시작한 뒤 `Promise.all`로 전부 끝날 때까지 응답을 막아, intro가 이미 끝나도 dynamics/action 중 하나가 220초 가까이 걸리면 Vercel `maxDuration=240`에 걸려 브라우저가 무한 재시도할 수 있었다.
+- **PR #43 수정:** 요청한 segment만 HTTP 응답 완료 조건으로 기다리고, 다른 누락 segment는 같은 invocation에서 시작하되 Next.js `after()` / Vercel `waitUntil`로 응답 후에도 지속한다. 요청한 segment가 다른 두 장문 생성을 기다리는 구조를 금지한다.
+- 같은 브라우저 보관함 생성 복구 handoff는 **60초 간격**으로 재시도한다.
 - 병렬 segment 저장은 PostgreSQL `jsonb_set` 원자 업데이트 사용
 - 목표 분량 약 5,000~8,000자, 필요 시 약 10,000자
 - 계산된 일주·오행·관계 근거와 AI 서술 정합성 검증
@@ -94,26 +95,28 @@
 - Growth P5 PR #38 Core Validation #609: 기존 전체 contracts + P5 analytics/reaction contract + lint + production build PASS
 - Growth P6 PR #39 Core Validation #613: 기존 전체 contracts + P6 experiment contract + lint + production build PASS
 - Free acquisition PR #40 Core Validation #618: free acquisition contract + 기존 전체 contracts + lint + production build PASS
-- **Runtime/UI hotfix 검증 기준 code head:** `bd57658c81eefbd7198cfe33eb2ff3adcb7f1d72`
-- **PR #41 Core Validation #630 PASS:** 만세력/궁합/결제/저장/1:N/계정/편집/Growth/system QA + hotfix contract + lint + production build
-- **PR #41 hotfix main merge:** `c97d61bb2a43182c037aab832b1f657744935fd1`
-- **승인 Production 배포:** one-shot enable commit `1289a39972976bc05447fc14c86219c3cdaac983` → GitHub Vercel status `success`
-- **자동배포 재비활성화:** `f4cc4f1c5b9f75ddd3414813760ae7b9f443224b`; 해당 commit에는 Vercel deployment status가 생성되지 않음을 확인
+- PR #41 Core Validation #630 PASS: runtime/UI hotfix + 전체 회귀 + lint + production build
+- PR #41 hotfix main merge: `c97d61bb2a43182c037aab832b1f657744935fd1`
+- 승인 Production 배포: `1289a39972976bc05447fc14c86219c3cdaac983` → Vercel `success`
+- 자동배포 재비활성화: `f4cc4f1c5b9f75ddd3414813760ae7b9f443224b`
+- **1:1 생성 응답 blocker PR #43 검증 code head:** `579317252b8c76a28eec3995ad4a809fe7fdda46`
+- **PR #43 Core Validation #636 PASS:** 기존 전체 contracts + 수정된 non-blocking fan-out contract + lint + production build
 
 ## 현재 제품 우선순위
 
-1. blocker/hotfix 발생 시 즉시 처리
-2. **배포된 PR #41 hotfix의 실제 1:1 생성시간·테마·공유 동작 QA**
-3. 최신 사용자 요청으로 지정된 제품 개선
-4. UI/UX 추가 개선
+1. **blocker: PR #43 1:1 생성 응답 차단 수정의 main 병합 및 사용자 승인 후 Production 배포**
+2. 배포 후 실제 새 1:1 생성시간·저장·재열람 확인
+3. Production 테마·공유 실사용 QA
+4. 최신 사용자 요청으로 지정된 제품 개선
 5. AI 답변 스타일/사주소년 화자 품질 개선
 6. 리포트 항목/정보구조 개선
-7. 무료 유입/Growth 및 실결제 post-beta 운영 QA
-8. 실제 데이터 기반 Growth 후속 실험
+7. 무료 유입/Growth 및 post-beta 운영 QA
 
 ## 아직 미완료인 운영 QA
 
-- **새 1:1 실제 결제에서 생성시간이 순차 누적 없이 완료되는지, 답변 품질·저장·재열람까지 확인**
+- **Production은 아직 PR #43 수정 전이므로 1:1 신규 생성은 blocker 상태로 취급한다.**
+- 사용자 승인 후 PR #43가 포함된 정확한 최신 `main`을 Production에 1회 배포하고 배포 status를 확인
+- 새 1:1 실제 결제에서 intro 응답이 다른 두 segment 때문에 Vercel timeout 되지 않는지, 전체 생성시간·저장·재열람까지 확인
 - Production에서 라벤더 테마가 홈/입력/결제/결과/보관함에 일관되게 적용됐는지 360 / 390 / 430px 육안 확인
 - Production 1:1·1:N 결과에서 이미지 저장 / Web Share / public Shared View 링크가 실제 동작하는지 확인
 - 홈 → `/free` 입력/결과 → `/one-to-one?from=free` 본인정보 prefill 실제 동작 확인
@@ -137,6 +140,7 @@
 6. 탈퇴 후 삭제 대상 데이터 잔존
 7. 친구/직장동료 결과에 구조적으로 잘못된 연애·성적 프레임 혼입
 8. JSON/API/저장 실패로 유료 결과 생성 불가
+9. 결제 완료 후 1:1 생성 요청이 플랫폼 timeout/무한 재시도로 결과에 도달하지 못함
 
 문체 취향, 재미, 일부 반복/분량 편차는 blocker로 취급하지 않는다.
 
