@@ -9,6 +9,7 @@ import {
   type CompletedAccountReport,
   type StoredOrderDraft,
 } from "@/lib/server-report-store";
+import { ensurePublicShareStoreSchema } from "@/lib/share/public-share-store";
 
 export type AccountReportSummary = {
   paymentId: string;
@@ -38,8 +39,9 @@ async function ensureAccountReportSchema() {
     schemaPromise = Promise.all([
       ensureAuthStoreSchema(),
       ensureServerReportStoreSchema(),
-    ]).then(async ([authReady, reportReady]) => {
-      if (!authReady || !reportReady) throw new Error("account_report_store_unavailable");
+      ensurePublicShareStoreSchema(),
+    ]).then(async ([authReady, reportReady, publicShareReady]) => {
+      if (!authReady || !reportReady || !publicShareReady) throw new Error("account_report_store_unavailable");
       await sql`
         CREATE TABLE IF NOT EXISTS woorigunghap_account_reports (
           payment_id TEXT PRIMARY KEY REFERENCES woorigunghap_order_records(payment_id) ON DELETE CASCADE,
@@ -201,6 +203,10 @@ export async function deleteOwnedAccountReport(userId: string, paymentId: string
       FROM woorigunghap_account_reports
       WHERE user_id = ${userId}
         AND payment_id = ${paymentId}
+    ), shared_deleted AS (
+      DELETE FROM woorigunghap_public_shares shares
+      WHERE shares.source_payment_id IN (SELECT payment_id FROM owned)
+      RETURNING shares.source_payment_id
     ), scrubbed AS (
       UPDATE woorigunghap_order_records records
       SET order_json = jsonb_build_object(
@@ -245,6 +251,10 @@ export async function deleteAccountAndScrubReports(userId: string) {
       SELECT payment_id
       FROM woorigunghap_account_reports
       WHERE user_id = ${userId}
+    ), shared_deleted AS (
+      DELETE FROM woorigunghap_public_shares shares
+      WHERE shares.source_payment_id IN (SELECT payment_id FROM owned)
+      RETURNING shares.source_payment_id
     ), scrubbed AS (
       UPDATE woorigunghap_order_records records
       SET order_json = jsonb_build_object(
