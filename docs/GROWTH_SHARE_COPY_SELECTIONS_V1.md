@@ -1,6 +1,6 @@
 # Growth P2 Share Copy Selections v1
 
-> 상태: **P2-3 선별 완료 / P2-4 코드화 진행 중**
+> 상태: **P2 완료 / 승인 160개 코드화 완료**
 > 원본 후보: `docs/GROWTH_SHARE_COPY_REVIEW_V1.md`
 > 최종 후보: raw 240개 중 160개 채택, 80개 제외.
 
@@ -152,4 +152,6 @@
 - tone: clean 68 / tease 32 / curiosity 60
 - 30개 `relationshipType × pattern` 셀 모두 최소 5개 이상 유지
 - 30개 셀 모두 `relationship_label / two_sides / send_this` P0 용도를 최소 1개 이상 커버
-- 다음 단계: P2-4 확정 160개를 Production 카피 라이브러리로 코드화하고 deterministic pattern/tone 선택 및 중복·금지표현 contract를 추가한다.
+- Production 코드: `src/lib/share/relationship-share-copy.ts`
+- 검증: `scripts/growth-share-copy-library-test.ts` + Core Validation #590 PASS
+- 다음 단계: P3 Relationship Label / Two Sides / Send This 9:16 공유 카드 UI 연결.
