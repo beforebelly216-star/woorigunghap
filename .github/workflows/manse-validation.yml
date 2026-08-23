@@ -10,7 +10,6 @@ on:
       - "scripts/compatibility-*.ts"
       - "scripts/day*.ts"
       - "scripts/one-to-one-*.ts"
-      - "scripts/pending-*.ts"
       - "scripts/report-*.ts"
       - "package.json"
       - "package-lock.json"
@@ -22,7 +21,6 @@ on:
       - "scripts/compatibility-*.ts"
       - "scripts/day*.ts"
       - "scripts/one-to-one-*.ts"
-      - "scripts/pending-*.ts"
       - "scripts/report-*.ts"
       - "package.json"
       - "package-lock.json"
@@ -75,7 +73,6 @@ jobs:
           npm run test:day22:operating-policy
           npm run test:day23:system-qa
           npm run test:day24:beta-freeze
-          npm run test:pending-library-notify
           npm run test:one-to-one:partner-info
           npm run test:one-to-one:luck-cycle
           npm run test:one-to-one:three-year-timing

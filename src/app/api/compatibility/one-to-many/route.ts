@@ -1,8 +1,7 @@
-import { after, NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { calculateOneToManyCompatibility } from "@/lib/compatibility/one-to-many";
 import { generateOneToManyNarrative } from "@/lib/narrative/one-to-many-report-engine";
 import { PaymentVerificationError, verifyPaidPayment } from "@/lib/payments/verification";
-import { notifyReportCompleted } from "@/lib/report-completion-notification";
 import { validateOneToManyReportInput } from "@/lib/report-input";
 import { isResultAccessToken } from "@/lib/result-access-token";
 import {
@@ -16,7 +15,7 @@ import {
 
 export const runtime = "nodejs";
 export const maxDuration = 240;
-const REPORT_RUNTIME_VERSION = "one-to-many-paid-report-v1-20260817-background-notify";
+const REPORT_RUNTIME_VERSION = "one-to-many-paid-report-v1-20260823-no-notifications";
 
 const privateHeaders = {
   "cache-control": "private, no-store, max-age=0",
@@ -86,7 +85,6 @@ export async function POST(request: NextRequest) {
       const generated = await generateOneToManyNarrative(snapshot);
       const saved = await saveOneToManyStoredReport(paymentId, snapshot, generated.narrative, generated.meta);
       if (!saved) throw new Error("ONE_TO_MANY_REPORT_PERSIST_FAILED");
-      after(() => notifyReportCompleted(paymentId));
 
       return NextResponse.json({
         version: "one-to-many-stored-report-v1",

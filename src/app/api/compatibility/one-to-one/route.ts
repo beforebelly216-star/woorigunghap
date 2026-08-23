@@ -1,4 +1,4 @@
-import { after, NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
 import { buildPaidReportFacts } from "@/lib/narrative/report-engine-v5";
 import {
@@ -12,7 +12,6 @@ import {
   verifyPaidPayment,
 } from "@/lib/payments/verification";
 import { createRecoveredOneToOneOrderDraft } from "@/lib/orders";
-import { notifyReportCompleted } from "@/lib/report-completion-notification";
 import {
   parseOneToOneReportInput,
   validateOneToOneReportInput,
@@ -255,7 +254,6 @@ export async function POST(request: NextRequest) {
     if (!persisted) throw new Error("SERVER_REPORT_SEGMENT_SAVE_FAILED");
     await completeReportSegmentGeneration(paymentId, segment);
     claimedSegment = null;
-    if (segment === "action") after(() => notifyReportCompleted(paymentId));
 
     return NextResponse.json({
       phase,

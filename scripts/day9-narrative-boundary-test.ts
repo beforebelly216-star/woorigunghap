@@ -190,7 +190,8 @@ async function main() {
   assert.doesNotMatch(requestEngine, /QUALITY_RETRY/);
 
   const privacyPage = readFileSync("src/app/privacy/page.tsx", "utf8");
-  assert.match(privacyPage, /이름·별칭, 원본 생년월일, 원본 출생시간, 완료 알림용 휴대전화 번호는 AI 서술 생성 요청에 전달하지 않습니다/);
+  assert.match(privacyPage, /이름·별칭, 원본 생년월일, 원본 출생시간은 AI 서술 생성 요청에 전달하지 않습니다/);
+  assert.doesNotMatch(privacyPage, /완료 알림|SOLAPI|휴대전화 번호/);
   assert.match(privacyPage, /Anthropic API/);
   assert.match(privacyPage, /30일 이내 삭제/);
   assert.match(privacyPage, /실제 운영 전에는 Anthropic의 최신 처리지역·하위처리자 정보/);
