@@ -63,6 +63,29 @@ export async function claimReportSegmentGeneration(
   return rows.length > 0;
 }
 
+export async function reclaimCompletedReportSegmentGeneration(
+  paymentId: string,
+  segment: PaidReportSegmentName,
+) {
+  if (!await ensureSchema()) return false;
+  const sql = getQuery();
+  if (!sql) return false;
+
+  // This is only called after the route has re-read authoritative report_json
+  // and confirmed that the supposedly complete segment is actually absent.
+  // It heals legacy/racy states where the lock says complete but no output can
+  // be recovered, without taking over a live generating claim.
+  const rows = await sql`
+    UPDATE woorigunghap_report_segment_claims
+    SET status = 'generating', started_at = NOW(), updated_at = NOW()
+    WHERE payment_id = ${paymentId}
+      AND segment = ${segment}
+      AND status = 'complete'
+    RETURNING payment_id
+  `;
+  return rows.length > 0;
+}
+
 export async function completeReportSegmentGeneration(
   paymentId: string,
   segment: PaidReportSegmentName,
