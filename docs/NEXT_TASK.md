@@ -23,12 +23,13 @@
   - 기존 per-segment single-flight, 결제 검증, 서버 저장, 5분 stale lock은 유지해 중복 AI 비용 방지
   - 잘못된 `Promise.all` 요구 테스트를 수정해 요청 segment가 다른 두 segment를 기다리는 회귀를 명시적으로 금지
   - **PR #43 Core Validation #636 PASS — 전체 기존 contracts + non-blocking fan-out contract + lint + production build**
-- [ ] **PR #43 Production 반영 및 실제 생성 복구 QA**
-  - 현재 Production은 아직 PR #41의 응답 차단 코드이므로 1:1 신규/미완료 생성은 blocker 상태
-  - 사용자 명시 승인 후 PR #43가 포함된 최신 `main`만 Production에 1회 배포
-  - 기존 `생성중` 주문이 stale lock 회복 뒤 재개되는지 확인
-  - 새 1:1 결제 → intro 응답 → 전체 생성 → 저장 → 보관함 재열람 시간 측정
-  - Vercel runtime log connector는 현재 해당 프로젝트 조회가 404이므로 로그 확인 가능 여부를 별도로 재점검
+- [ ] **배포된 PR #43 실제 생성 복구 QA**
+  - [x] PR #43 main merge: `d20de6ad4f4a7e2cc5615ad9b1b132fc178f599e`
+  - [x] 사용자 승인 Production 1회 배포: `222341c8e8b84112e01036afb1b474744097072f` → Vercel `success`
+  - [x] 배포 직후 Git 자동배포 재비활성화: `3c3c151edd33003b612ebc5bbdfc7271f6b42f35`; Vercel deployment status 없음
+  - [ ] 기존 `생성중` 주문이 stale lock 회복 뒤 재개되는지 확인
+  - [ ] 새 1:1 결제 → intro 응답 → 전체 생성 → 저장 → 보관함 재열람 시간 측정
+  - Vercel runtime-log connector는 현재 프로젝트 조회가 불가하므로 실제 사용자 흐름과 가능한 다른 관측 경로로 우선 확인
 
 ## Hotfix
 
@@ -104,9 +105,11 @@
 - [x] **PR #41 UI/Growth hotfix Production 배포**
   - Production deploy commit `1289a39972976bc05447fc14c86219c3cdaac983` Vercel status `success`
   - 자동배포는 즉시 다시 비활성화됨
-- [ ] **PR #43 1:1 생성 blocker Production 배포**
-  - 별도 사용자 승인 필요
-  - 배포 후 기존 stuck 주문 및 신규 1:1 생성 runtime QA를 최우선 수행
+- [x] **PR #43 1:1 생성 blocker Production 배포**
+  - 기능 기준 main `d20de6ad4f4a7e2cc5615ad9b1b132fc178f599e`
+  - Production deploy commit `222341c8e8b84112e01036afb1b474744097072f` Vercel `success`
+  - 자동배포 재비활성화 commit `3c3c151edd33003b612ebc5bbdfc7271f6b42f35`
+  - 실제 기존 stuck 주문 및 신규 1:1 생성 runtime QA는 계속 최우선
 - [ ] **무료 유입 / Aha 실제 QA**
   - 홈 first CTA가 무료 자기 분석인지 확인
   - `/free` 입력 → 4-insight 결과 → 유료 CTA 실제 동작
@@ -151,11 +154,11 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: blocker — 1:1 600초+ 생성 무한대기 root cause 및 응답 차단 수정
-- Status: complete (code/CI); Production deploy pending explicit approval
-- Validation: PR #43 Core Validation #636 PASS — 전체 contracts + corrected non-blocking fan-out contract + lint + production build
-- Commit: PR #43 validated code head 579317252b8c76a28eec3995ad4a809fe7fdda46; 상태 문서는 같은 PR에서 후속 갱신
-- Remaining: PR #43 main 병합 후 사용자 승인된 Production 1회 배포 → 기존 stuck 주문 recovery + 새 1:1 생성/저장/재열람 runtime QA
-- Risk: 현재 Production은 여전히 all-segment await 구조라 timeout 가능; Vercel runtime-log connector는 project 조회 404
-- Resume: PR #43 merge 후 배포 승인이 오면 최신 main 재확인 후 승인된 SHA만 Production 배포
+- Task: PR #43 1:1 생성 응답 blocker 승인 Production 배포
+- Status: complete (deploy); runtime QA pending
+- Validation: PR #43 Core Validation #636 PASS; deploy commit 222341c8e8b84112e01036afb1b474744097072f Vercel success; 3c3c151edd33003b612ebc5bbdfc7271f6b42f35 이후 Git auto-deploy OFF
+- Commit: 기능 main d20de6ad4f4a7e2cc5615ad9b1b132fc178f599e; Production deploy 222341c8e8b84112e01036afb1b474744097072f
+- Remaining: 기존 stuck 1:1 주문 회복 확인 + 새 1:1 결제/생성/저장/보관함 재열람 실제 시간 측정
+- Risk: 배포 status는 success지만 실제 유료 주문 runtime은 아직 확인 전; Vercel runtime-log connector는 프로젝트 조회 불가
+- Resume: 최신 main/HANDOFF 재확인 후 1:1 runtime QA를 최우선 진행
 ```
