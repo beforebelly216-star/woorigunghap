@@ -9,8 +9,7 @@
 - 기준 상태: Day 24 MVP 완료, 베타 전 제품 완성도 개선 및 운영 QA 단계
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
 - 배포: Vercel Production. **Git 자동 배포는 비활성화하며 Preview/Production 배포는 사용자 명시 승인 후 별도 실행**
-- 최신 승인 Production 배포: `222341c8e8b84112e01036afb1b474744097072f` Vercel `success`. 기능 코드는 PR #43 main merge `d20de6ad4f4a7e2cc5615ad9b1b132fc178f599e`를 포함한다. 배포 직후 자동배포는 `3c3c151edd33003b612ebc5bbdfc7271f6b42f35`에서 다시 비활성화됐다.
-- **PR #45 1:1 generation hardening은 Core Validation #644 PASS 후 main 병합 단계이며, 아직 Production에는 반영하지 않는다.**
+- 최신 승인 Production 배포: `89a4bb604248d7bc8c21f605aba19e027c2b4fdc` Vercel `success`. 기능 코드는 PR #45 main merge `2da9762459d189783c633a17a7331f8b468a18a5`를 포함한다. 배포 직후 자동배포는 `c94f60e8b58e50ca0738ad33124aac8502b2b9df`에서 다시 비활성화됐고 해당 commit에는 Vercel deployment status가 없다.
 - 레거시 내부 식별자: GitHub 저장소 `beforebelly216-star/woorigunghap`, 기존 Vercel 도메인, DB의 `woorigunghap_*` 식별자는 호환성을 위해 유지한다.
 
 ## 현재 구현 상태
@@ -54,6 +53,7 @@
 - `complete` claim인데 authoritative `report_json`에 해당 segment가 없는 비정상 상태는 재획득해 복구할 수 있다. 살아 있는 `generating` claim의 5분 중복비용 안전창은 유지한다.
 - Claude auth/billing/permission/model/request/rate-limit/overload/timeout/truncation/format/critical-quality failure와 PortOne lookup dependency failure를 분류한다. 반복 소진 뒤에는 일반 5xx 무한재시도로 숨기지 않고 사용자에게 종료 가능한 오류로 전달한다.
 - 병렬 segment 저장의 PostgreSQL `jsonb_set(... )::text` 경로를 재확인했으며 DB JSONB→text cast 누락 가설은 배제했다.
+- **PR #45 수정은 2026-08-24 사용자 승인 후 Production 배포 완료. 실제 기존 stuck 주문 회복 및 신규 1:1 생성 완료 runtime 검증이 남아 있다.**
 - 같은 브라우저 보관함 생성 복구 handoff는 **60초 간격**으로 재시도한다.
 - 목표 분량 약 5,000~8,000자, 필요 시 약 10,000자
 - 계산된 일주·오행·관계 근거와 AI 서술 정합성 검증
@@ -112,10 +112,13 @@
 - **자동배포 재비활성화:** `3c3c151edd33003b612ebc5bbdfc7271f6b42f35`; 해당 commit에는 Vercel deployment status 없음 확인
 - **PR #45 1:1 generation hardening validated code head:** `7acc0009e19dcae5569591996b7ea0aa1960eea5`
 - **PR #45 Core Validation #644 PASS:** 기존 전체 contracts + payment/narrative/storage + 1:N + account/editorial/policy/Growth/system + hotfix contract + lint + production build
+- **PR #45 main merge:** `2da9762459d189783c633a17a7331f8b468a18a5`
+- **PR #45 승인 Production 배포:** one-shot enable commit `89a4bb604248d7bc8c21f605aba19e027c2b4fdc` → Vercel `success`
+- **자동배포 재비활성화:** `c94f60e8b58e50ca0738ad33124aac8502b2b9df`; 해당 commit에는 Vercel deployment status 없음 확인
 
 ## 현재 제품 우선순위
 
-1. **blocker: PR #45 main 병합 후 승인된 Production 배포 + 기존 stuck/new 1:1 실제 runtime 재검증**
+1. **blocker runtime QA: 배포된 PR #45에서 기존 stuck 주문 회복 및 신규 1:1 생성 완료 확인**
 2. Production 테마·공유 실사용 QA
 3. 최신 사용자 요청으로 지정된 제품 개선
 4. AI 답변 스타일/사주소년 화자 품질 개선
@@ -124,8 +127,8 @@
 
 ## 아직 미완료인 운영 QA
 
-- **현재 Production은 PR #43 배포본이며 0/3 장기대기가 실제 재현됐다. PR #45는 코드/CI 완료 후 Production 반영이 남아 있다.**
-- PR #45 배포 후 기존 `생성중` 주문이 saved segment / 5분 stale lock / complete-lock reconciliation을 통해 재개되는지 확인
+- **현재 Production은 PR #45 hardening 배포본이다. 실제 유료 주문에서 생성 완료까지의 runtime 검증은 아직 필요하다.**
+- 기존 `생성중` 주문이 saved segment / 5분 stale lock / complete-lock reconciliation을 통해 재개되는지 확인
 - 새 1:1 실제 결제에서 intro 단독 완료 → dynamics/action → 전체 생성시간·저장·재열람까지 확인
 - 실패 상황에서 장시간 무한대기 대신 분류된 종료 메시지가 노출되는지 확인
 - Production에서 라벤더 테마가 홈/입력/결제/결과/보관함에 일관되게 적용됐는지 360 / 390 / 430px 육안 확인
