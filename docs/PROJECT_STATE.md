@@ -10,6 +10,7 @@
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
 - 배포: Vercel Production. **Git 자동 배포는 비활성화하며 Preview/Production 배포는 사용자 명시 승인 후 별도 실행**
 - 최신 승인 Production 배포: `222341c8e8b84112e01036afb1b474744097072f` Vercel `success`. 기능 코드는 PR #43 main merge `d20de6ad4f4a7e2cc5615ad9b1b132fc178f599e`를 포함한다. 배포 직후 자동배포는 `3c3c151edd33003b612ebc5bbdfc7271f6b42f35`에서 다시 비활성화됐다.
+- **PR #45 1:1 generation hardening은 Core Validation #644 PASS 후 main 병합 단계이며, 아직 Production에는 반영하지 않는다.**
 - 레거시 내부 식별자: GitHub 저장소 `beforebelly216-star/woorigunghap`, 기존 Vercel 도메인, DB의 `woorigunghap_*` 식별자는 호환성을 위해 유지한다.
 
 ## 현재 구현 상태
@@ -45,10 +46,15 @@
 - `prepare` 후 `intro` / `dynamics` / `action` segment를 생성한다.
 - 각 segment는 독립된 single-flight claim을 사용하고 stale claim 재획득 기준은 **5분 유지**해 살아 있는 장문 요청의 중복 AI 비용을 방지한다.
 - **PR #41 배포본의 결함:** 첫 segment 요청이 세 segment를 동시에 시작한 뒤 `Promise.all`로 전부 끝날 때까지 응답을 막아, intro가 이미 끝나도 dynamics/action 중 하나가 220초 가까이 걸리면 Vercel `maxDuration=240`에 걸려 브라우저가 무한 재시도할 수 있었다.
-- **PR #43 수정:** 요청한 segment만 HTTP 응답 완료 조건으로 기다리고, 다른 누락 segment는 같은 invocation에서 시작하되 Next.js `after()` / Vercel `waitUntil`로 응답 후에도 지속한다. 요청한 segment가 다른 두 장문 생성을 기다리는 구조를 금지한다.
-- PR #43 수정은 2026-08-24 승인 후 Production에 배포 완료했다. 실제 기존 stuck 주문 회복 및 신규 1:1 전체 생성시간은 runtime 확인이 남아 있다.
+- **PR #43 수정:** 요청한 segment만 HTTP 응답 완료 조건으로 기다리고, 다른 누락 segment는 같은 invocation에서 시작하되 Next.js `after()` / Vercel `waitUntil`로 응답 후에도 지속하도록 변경했다.
+- **PR #43 Production runtime 재검증 결과:** 실제 사용자 화면에서 `0/3개 해설 묶음 완료 · 359초 경과`가 재현돼 추가 blocker가 확인됐다.
+- **PR #45 전수조사 결과:** 결제검증 background kickoff, 결과 화면, segment route 내부 fan-out이 동시에 같은 1:1 segment lock을 선점할 수 있었고, exhausted AI/transport 실패는 5xx로 반환돼 클라이언트 무한 재시도에 가려질 수 있었다. Vercel `after()` 작업도 함수 전체 실행시간 제한의 적용을 받는다.
+- **PR #45 구조 변경:** 결제검증/background helper에서는 1:1 AI를 시작하지 않는다. `intro`를 단독 생성하고 성공 후 `dynamics + action`만 병렬 가능하도록 staged fan-out을 사용한다. 1:N background generation은 유지한다.
+- 1:1 route는 `maxDuration=300`, repository Vercel config는 `fluid: true`를 명시한다. Git 자동배포는 계속 비활성화한다.
+- `complete` claim인데 authoritative `report_json`에 해당 segment가 없는 비정상 상태는 재획득해 복구할 수 있다. 살아 있는 `generating` claim의 5분 중복비용 안전창은 유지한다.
+- Claude auth/billing/permission/model/request/rate-limit/overload/timeout/truncation/format/critical-quality failure와 PortOne lookup dependency failure를 분류한다. 반복 소진 뒤에는 일반 5xx 무한재시도로 숨기지 않고 사용자에게 종료 가능한 오류로 전달한다.
+- 병렬 segment 저장의 PostgreSQL `jsonb_set(... )::text` 경로를 재확인했으며 DB JSONB→text cast 누락 가설은 배제했다.
 - 같은 브라우저 보관함 생성 복구 handoff는 **60초 간격**으로 재시도한다.
-- 병렬 segment 저장은 PostgreSQL `jsonb_set` 원자 업데이트 사용
 - 목표 분량 약 5,000~8,000자, 필요 시 약 10,000자
 - 계산된 일주·오행·관계 근거와 AI 서술 정합성 검증
 - CH0~CH9 전용 `keyTakeaways`
@@ -104,10 +110,12 @@
 - **PR #43 main merge:** `d20de6ad4f4a7e2cc5615ad9b1b132fc178f599e`
 - **PR #43 승인 Production 배포:** one-shot enable commit `222341c8e8b84112e01036afb1b474744097072f` → Vercel `success`
 - **자동배포 재비활성화:** `3c3c151edd33003b612ebc5bbdfc7271f6b42f35`; 해당 commit에는 Vercel deployment status 없음 확인
+- **PR #45 1:1 generation hardening validated code head:** `7acc0009e19dcae5569591996b7ea0aa1960eea5`
+- **PR #45 Core Validation #644 PASS:** 기존 전체 contracts + payment/narrative/storage + 1:N + account/editorial/policy/Growth/system + hotfix contract + lint + production build
 
 ## 현재 제품 우선순위
 
-1. **blocker runtime QA: 배포된 PR #43에서 기존 stuck 주문 회복 및 신규 1:1 생성 완료 확인**
+1. **blocker: PR #45 main 병합 후 승인된 Production 배포 + 기존 stuck/new 1:1 실제 runtime 재검증**
 2. Production 테마·공유 실사용 QA
 3. 최신 사용자 요청으로 지정된 제품 개선
 4. AI 답변 스타일/사주소년 화자 품질 개선
@@ -116,9 +124,10 @@
 
 ## 아직 미완료인 운영 QA
 
-- **PR #43 수정은 Production에 반영됐지만 실제 유료 주문에서 생성 완료까지의 runtime 확인은 아직 필요하다.**
-- 기존 `생성중` 주문이 5분 stale lock 회복 뒤 재개되는지 확인
-- 새 1:1 실제 결제에서 intro 응답이 다른 두 segment 때문에 Vercel timeout 되지 않는지, 전체 생성시간·저장·재열람까지 확인
+- **현재 Production은 PR #43 배포본이며 0/3 장기대기가 실제 재현됐다. PR #45는 코드/CI 완료 후 Production 반영이 남아 있다.**
+- PR #45 배포 후 기존 `생성중` 주문이 saved segment / 5분 stale lock / complete-lock reconciliation을 통해 재개되는지 확인
+- 새 1:1 실제 결제에서 intro 단독 완료 → dynamics/action → 전체 생성시간·저장·재열람까지 확인
+- 실패 상황에서 장시간 무한대기 대신 분류된 종료 메시지가 노출되는지 확인
 - Production에서 라벤더 테마가 홈/입력/결제/결과/보관함에 일관되게 적용됐는지 360 / 390 / 430px 육안 확인
 - Production 1:1·1:N 결과에서 이미지 저장 / Web Share / public Shared View 링크가 실제 동작하는지 확인
 - 홈 → `/free` 입력/결과 → `/one-to-one?from=free` 본인정보 prefill 실제 동작 확인
