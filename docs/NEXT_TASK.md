@@ -38,11 +38,13 @@
   - PortOne lookup transport 실패도 무한 생성 대기로 위장되지 않도록 dependency failure로 분리
   - DB `jsonb_set` 저장은 최종 `::text` cast가 존재함을 확인해 해당 가설은 배제
   - **PR #45 Core Validation #644 PASS — 전체 contracts + payment/narrative/storage + 1:N + system/Growth + hotfix contract + lint + production build**
-- [ ] **PR #45 Production 배포 및 실제 1:1 runtime 재검증**
-  - 코드 `main` 병합 후에도 Production은 자동 갱신하지 않음. 대상 main SHA와 검증 결과를 제시하고 사용자 명시 승인 후 1회 배포
-  - 기존 stuck 주문이 저장된 segment/5분 stale lock 상태에서 회복하는지 확인
-  - 새 1:1 결제 → intro 응답 → dynamics/action → 전체 생성 → 서버 저장 → 보관함 재열람 실제 시간 측정
-  - 실패 시 더 이상 무한 `생성중`이 아니라 분류된 종료 메시지가 표시되는지 확인
+- [ ] **PR #45 Production 배포 후 실제 1:1 runtime 재검증**
+  - [x] PR #45 main merge: `2da9762459d189783c633a17a7331f8b468a18a5`
+  - [x] 사용자 승인 Production 1회 배포: `89a4bb604248d7bc8c21f605aba19e027c2b4fdc` → Vercel `success`
+  - [x] 배포 직후 Git 자동배포 재비활성화: `c94f60e8b58e50ca0738ad33124aac8502b2b9df`; 해당 commit에는 Vercel deployment status 없음
+  - [ ] 기존 stuck 주문이 저장된 segment/5분 stale lock 상태에서 회복하는지 확인
+  - [ ] 새 1:1 결제 → intro 응답 → dynamics/action → 전체 생성 → 서버 저장 → 보관함 재열람 실제 시간 측정
+  - [ ] 실패 시 더 이상 무한 `생성중`이 아니라 분류된 종료 메시지가 표시되는지 확인
   - Vercel runtime-log connector는 현재 프로젝트 권한 조회가 불가하므로 실제 사용자 흐름과 가능한 다른 관측 경로를 병행
 
 ## Hotfix
@@ -124,10 +126,11 @@
   - Production deploy commit `222341c8e8b84112e01036afb1b474744097072f` Vercel `success`
   - 자동배포 재비활성화 commit `3c3c151edd33003b612ebc5bbdfc7271f6b42f35`
   - 실제 runtime에서 0/3 · 359초가 재현되어 PR #45 hardening으로 이어짐
-- [ ] **PR #45 1:1 generation hardening Production 배포**
-  - PR #45 Core Validation #644 PASS
-  - main 병합 후 정확한 대상 SHA를 기준으로 사용자 명시 승인 후 별도 배포
-  - 배포 직후 신규/기존 1:1 runtime QA가 최우선
+- [x] **PR #45 1:1 generation hardening Production 배포**
+  - 기능 기준 main `2da9762459d189783c633a17a7331f8b468a18a5`
+  - Production deploy commit `89a4bb604248d7bc8c21f605aba19e027c2b4fdc` Vercel `success`
+  - 자동배포 재비활성화 commit `c94f60e8b58e50ca0738ad33124aac8502b2b9df`
+  - 신규/기존 1:1 runtime QA가 최우선
 - [ ] **무료 유입 / Aha 실제 QA**
   - 홈 first CTA가 무료 자기 분석인지 확인
   - `/free` 입력 → 4-insight 결과 → 유료 CTA 실제 동작
@@ -172,11 +175,11 @@ npm run build
 ```text
 HANDOFF
 - Worker: GPT
-- Task: PR #45 — 1:1 0/3 장기대기 전수조사 및 생성 파이프라인 hardening
-- Status: complete (code/CI); Production deploy pending explicit approval
-- Validation: PR #45 Core Validation #644 PASS — 전체 contracts + payment/narrative/storage + 1:N + system/Growth + hotfix + lint + production build
-- Commit: PR #45 validated code head 7acc0009e19dcae5569591996b7ea0aa1960eea5; 상태 문서는 같은 PR 후속 commit
-- Remaining: PR #45 main 병합 후 정확한 main SHA 제시 → 사용자 승인 시 Production 1회 배포 → stuck/new 1:1 실제 runtime 재검증
-- Risk: 현재 Production은 PR #43이라 0/3 장기대기 재현 가능; Vercel runtime-log connector는 프로젝트 권한 조회 불가
-- Resume: 최신 main/HANDOFF 재확인 후 PR #45 배포 승인 상태부터 확인
+- Task: PR #45 1:1 generation hardening 승인 Production 배포
+- Status: complete (deploy); runtime QA pending
+- Validation: PR #45 Core Validation #644 PASS; deploy commit 89a4bb604248d7bc8c21f605aba19e027c2b4fdc Vercel success; c94f60e8b58e50ca0738ad33124aac8502b2b9df 이후 Git auto-deploy OFF
+- Commit: 기능 main 2da9762459d189783c633a17a7331f8b468a18a5; Production deploy 89a4bb604248d7bc8c21f605aba19e027c2b4fdc
+- Remaining: 기존 stuck 1:1 주문 회복 확인 + 새 1:1 결제/생성/저장/보관함 재열람 실제 시간 측정 + 실패 종료 메시지 확인
+- Risk: 배포 status는 success지만 실제 유료 주문 runtime은 아직 확인 전; Vercel runtime-log connector는 프로젝트 권한 조회 불가
+- Resume: 최신 main/HANDOFF 재확인 후 1:1 runtime QA를 최우선 진행
 ```
