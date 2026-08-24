@@ -2,8 +2,6 @@ import "server-only";
 
 import type { OrderDraft } from "@/lib/orders";
 
-const ONE_TO_ONE_SEGMENTS = ["intro", "dynamics", "action"] as const;
-
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -38,7 +36,6 @@ export async function kickOffPaidReportGeneration({
   paymentId,
   product,
   accessToken,
-  input,
 }: {
   origin: string;
   paymentId: string;
@@ -50,24 +47,10 @@ export async function kickOffPaidReportGeneration({
     return postWithRetry(`${origin}/api/compatibility/one-to-many`, { paymentId, accessToken });
   }
 
-  if (!input) return false;
-
-  const prepared = await postWithRetry(`${origin}/api/compatibility/one-to-one`, {
-    paymentId,
-    accessToken,
-    input,
-    phase: "prepare",
-  }, 3);
-  if (!prepared) return false;
-
-  // Each paid segment can consume most of one Vercel function lifetime. Running
-  // them sequentially here can outlive the payment-verification function and
-  // strand the order when the buyer leaves the result page. Segment locks and
-  // atomic server-store writes make this fan-out safe and idempotent.
-  const completed = await Promise.all(ONE_TO_ONE_SEGMENTS.map((phase) => postWithRetry(
-    `${origin}/api/compatibility/one-to-one`,
-    { paymentId, accessToken, input, phase },
-    1,
-  )));
-  return completed.every(Boolean);
+  // 1:1 generation is intentionally driven by the active result page. Nesting
+  // three long /api/compatibility/one-to-one requests inside payment verification
+  // creates competing segment-lock owners and can strand the visible request in
+  // REPORT_GENERATION_IN_PROGRESS. Stored segment progress still lets a buyer
+  // leave and resume without another payment.
+  return false;
 }
