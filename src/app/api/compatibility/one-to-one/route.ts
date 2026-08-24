@@ -84,6 +84,10 @@ function classifyReportFailure(message: string) {
   return "AI_GENERATION";
 }
 
+function retryableReportReason(reason: string) {
+  return reason === "REPORT_GENERATION_IN_PROGRESS";
+}
+
 function failureMessage(reason: string) {
   switch (reason) {
     case "API_AUTH": return "Claude API 인증 설정을 확인해야 합니다. 추가 결제는 필요하지 않습니다.";
@@ -351,7 +355,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         error: "같은 해설 묶음을 이미 생성하고 있습니다. 저장된 결과를 다시 확인합니다.",
         code: "REPORT_GENERATION_IN_PROGRESS",
-        retryable: true,
+        retryable: retryableReportReason("REPORT_GENERATION_IN_PROGRESS"),
         reportRuntimeVersion: REPORT_RUNTIME_VERSION,
       }, { status: 409 });
     }
