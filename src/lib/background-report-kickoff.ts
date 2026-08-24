@@ -48,8 +48,8 @@ export async function kickOffPaidReportGeneration({
   }
 
   // 1:1 generation is intentionally driven by the active result page. Nesting
-  // three long /api/compatibility/one-to-one requests inside payment verification
-  // creates competing segment-lock owners and can strand the visible request in
+  // three long 1:1 report requests inside payment verification creates competing
+  // segment-lock owners and can strand the visible request in
   // REPORT_GENERATION_IN_PROGRESS. Stored segment progress still lets a buyer
   // leave and resume without another payment.
   return false;
