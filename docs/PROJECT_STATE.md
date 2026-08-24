@@ -9,7 +9,7 @@
 - 기준 상태: Day 24 MVP 완료, 베타 전 제품 완성도 개선 및 운영 QA 단계
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
 - 배포: Vercel Production. **Git 자동 배포는 비활성화하며 Preview/Production 배포는 사용자 명시 승인 후 별도 실행**
-- 최신 승인 Production 배포: `1289a39972976bc05447fc14c86219c3cdaac983` Vercel `success`. 이 Production에는 PR #41 기능 코드가 들어가 있으나, 아래의 PR #43 1:1 응답 차단 수정은 아직 배포 전이다.
+- 최신 승인 Production 배포: `222341c8e8b84112e01036afb1b474744097072f` Vercel `success`. 기능 코드는 PR #43 main merge `d20de6ad4f4a7e2cc5615ad9b1b132fc178f599e`를 포함한다. 배포 직후 자동배포는 `3c3c151edd33003b612ebc5bbdfc7271f6b42f35`에서 다시 비활성화됐다.
 - 레거시 내부 식별자: GitHub 저장소 `beforebelly216-star/woorigunghap`, 기존 Vercel 도메인, DB의 `woorigunghap_*` 식별자는 호환성을 위해 유지한다.
 
 ## 현재 구현 상태
@@ -46,6 +46,7 @@
 - 각 segment는 독립된 single-flight claim을 사용하고 stale claim 재획득 기준은 **5분 유지**해 살아 있는 장문 요청의 중복 AI 비용을 방지한다.
 - **PR #41 배포본의 결함:** 첫 segment 요청이 세 segment를 동시에 시작한 뒤 `Promise.all`로 전부 끝날 때까지 응답을 막아, intro가 이미 끝나도 dynamics/action 중 하나가 220초 가까이 걸리면 Vercel `maxDuration=240`에 걸려 브라우저가 무한 재시도할 수 있었다.
 - **PR #43 수정:** 요청한 segment만 HTTP 응답 완료 조건으로 기다리고, 다른 누락 segment는 같은 invocation에서 시작하되 Next.js `after()` / Vercel `waitUntil`로 응답 후에도 지속한다. 요청한 segment가 다른 두 장문 생성을 기다리는 구조를 금지한다.
+- PR #43 수정은 2026-08-24 승인 후 Production에 배포 완료했다. 실제 기존 stuck 주문 회복 및 신규 1:1 전체 생성시간은 runtime 확인이 남아 있다.
 - 같은 브라우저 보관함 생성 복구 handoff는 **60초 간격**으로 재시도한다.
 - 병렬 segment 저장은 PostgreSQL `jsonb_set` 원자 업데이트 사용
 - 목표 분량 약 5,000~8,000자, 필요 시 약 10,000자
@@ -98,24 +99,25 @@
 - PR #41 Core Validation #630 PASS: runtime/UI hotfix + 전체 회귀 + lint + production build
 - PR #41 hotfix main merge: `c97d61bb2a43182c037aab832b1f657744935fd1`
 - 승인 Production 배포: `1289a39972976bc05447fc14c86219c3cdaac983` → Vercel `success`
-- 자동배포 재비활성화: `f4cc4f1c5b9f75ddd3414813760ae7b9f443224b`
 - **1:1 생성 응답 blocker PR #43 검증 code head:** `579317252b8c76a28eec3995ad4a809fe7fdda46`
 - **PR #43 Core Validation #636 PASS:** 기존 전체 contracts + 수정된 non-blocking fan-out contract + lint + production build
+- **PR #43 main merge:** `d20de6ad4f4a7e2cc5615ad9b1b132fc178f599e`
+- **PR #43 승인 Production 배포:** one-shot enable commit `222341c8e8b84112e01036afb1b474744097072f` → Vercel `success`
+- **자동배포 재비활성화:** `3c3c151edd33003b612ebc5bbdfc7271f6b42f35`; 해당 commit에는 Vercel deployment status 없음 확인
 
 ## 현재 제품 우선순위
 
-1. **blocker: PR #43 1:1 생성 응답 차단 수정의 main 병합 및 사용자 승인 후 Production 배포**
-2. 배포 후 실제 새 1:1 생성시간·저장·재열람 확인
-3. Production 테마·공유 실사용 QA
-4. 최신 사용자 요청으로 지정된 제품 개선
-5. AI 답변 스타일/사주소년 화자 품질 개선
-6. 리포트 항목/정보구조 개선
-7. 무료 유입/Growth 및 post-beta 운영 QA
+1. **blocker runtime QA: 배포된 PR #43에서 기존 stuck 주문 회복 및 신규 1:1 생성 완료 확인**
+2. Production 테마·공유 실사용 QA
+3. 최신 사용자 요청으로 지정된 제품 개선
+4. AI 답변 스타일/사주소년 화자 품질 개선
+5. 리포트 항목/정보구조 개선
+6. 무료 유입/Growth 및 post-beta 운영 QA
 
 ## 아직 미완료인 운영 QA
 
-- **Production은 아직 PR #43 수정 전이므로 1:1 신규 생성은 blocker 상태로 취급한다.**
-- 사용자 승인 후 PR #43가 포함된 정확한 최신 `main`을 Production에 1회 배포하고 배포 status를 확인
+- **PR #43 수정은 Production에 반영됐지만 실제 유료 주문에서 생성 완료까지의 runtime 확인은 아직 필요하다.**
+- 기존 `생성중` 주문이 5분 stale lock 회복 뒤 재개되는지 확인
 - 새 1:1 실제 결제에서 intro 응답이 다른 두 segment 때문에 Vercel timeout 되지 않는지, 전체 생성시간·저장·재열람까지 확인
 - Production에서 라벤더 테마가 홈/입력/결제/결과/보관함에 일관되게 적용됐는지 360 / 390 / 430px 육안 확인
 - Production 1:1·1:N 결과에서 이미지 저장 / Web Share / public Shared View 링크가 실제 동작하는지 확인
