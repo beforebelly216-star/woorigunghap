@@ -52,7 +52,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (accessToken) {
+    const generationQueued = Boolean(accessToken && verified.product === "oneToMany");
+    if (generationQueued && accessToken) {
       const origin = request.nextUrl.origin;
       after(async () => {
         const completed = await kickOffPaidReportGeneration({
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ verified: true, ...verified, generationQueued: Boolean(accessToken) });
+    return NextResponse.json({ verified: true, ...verified, generationQueued });
   } catch (error) {
     if (error instanceof PaymentVerificationError) {
       return NextResponse.json(
