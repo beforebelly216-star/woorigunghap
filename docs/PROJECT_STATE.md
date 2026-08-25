@@ -16,9 +16,10 @@
 
 - 홈 free-first 퍼널: `무료로 내 관계 성향 보기` → `/free` deterministic 자기 분석 → 1:1/1:N 유료 전환
 - `/free`는 Foundation v2 compact 480px 전용 shell로 분리되어 레거시 `.input-page` 강제 CSS에 의존하지 않는다.
-- 무료 입력 `PersonBirthFields`는 무료 플로우 범위에서만 Foundation v2 control 스타일을 적용하며 기존 1:1/1:N 입력 로직은 변경하지 않았다.
-- 무료 결과는 gradient/shadow 카드 대신 타이포·divider·neutral surface 중심으로 구성하고 4개 insight와 1:1/1:N 전환 CTA 구조를 유지한다.
 - 무료 입력의 1:1 sessionStorage prefill, deterministic 분석, 결제/유료 AI 비사용 경계는 그대로 유지한다.
+- **1:1 입력/결제는 Foundation v2 compact 480px 전용 flow로 분리했다.** 관계 선택, 단계 progress, 두 사람 입력, 확인, checkout summary, 정책 동의, 결제 CTA를 neutral/typography-first 위계로 통일했다.
+- 1:1 입력과 checkout은 레거시 `.input-page/.input-shell` 및 checkout의 `report-p5-mobile.css` 직접 의존을 제거했다.
+- 무료 → 1:1 prefill, 기존 결제 복구, 주문 draft 생성, 정책 동의, 1,000원 가격, PaymentButton/서버 결제 검증 경계는 변경하지 않았다.
 - 서버 결정론적 만세력 + 9개 궁합 지표 계산
 - PortOne 결제 검증 / webhook 멱등 처리
 - 결제 검증 뒤 AI 서술 생성, segment single-flight/idempotency
@@ -42,24 +43,26 @@
 - 핵심 시각 문법: neutral canvas + 실제 데이터에만 쓰는 오행 기능색 + typography-first + progressive disclosure.
 - 공통 토큰은 `src/app/report-theme.css`에 반영되어 있다.
 - 기본 폭 원칙: 입력·결제 compact 480px / 1:1 report 640px / 1:N compare 960px.
-- 2단계 공통 shell + 홈 적용 완료: 전역 `body max-width:480px` 제거, header/footer 1120px content rail, responsive 홈 적용.
-- **3단계 무료 분석 입력/결과 적용 완료:** `/free` 전용 compact shell, Foundation v2 입력 control, neutral result hierarchy, 480px mobile breakpoint 적용.
-- 무료 화면의 legacy `input-page/input-shell` 의존을 제거해 `day20-mobile.css`의 광역 `99999px` 규칙과 분리했다.
-- 입력/결제/1:1 결과/1:N 등 후속 화면의 레거시 `max-width:99999px` 규칙은 각 rollout 단계에서 기능 회귀 없이 제거한다.
-- 다크모드는 지원하지 않는다. gradient/glow/glassmorphism/과도한 shadow와 카드 남용을 기본 스타일로 사용하지 않는다.
+- 2단계 공통 shell + 홈 적용 완료.
+- 3단계 무료 분석 입력/결과 적용 완료.
+- **4단계 1:1 입력/결제 적용 완료:** `src/app/one-to-one/one-to-one-flow.module.css`가 입력/checkout 화면의 Foundation v2 layout owner다.
+- step progress, 관계유형, `PersonBirthFields`, textarea, 이전/다음 버튼, 상태 notice, checkout summary, unlock preview, policy, sticky payment CTA를 동일 디자인 문법으로 통일했다.
+- 1:1 flow에는 `max-width:99999px`, 장식 gradient, 큰 shadow를 새로 사용하지 않는다.
+- 후속 생성중/1:1 결과/1:N/보관함/공유 화면의 레거시 광역 CSS는 각 rollout 단계에서 기능 회귀 없이 제거한다.
+- 다크모드는 지원하지 않는다.
 
 ## 검증 상태
 
-- **PR #49 / Core calculation validation #686 PASS**
+- **PR #50 / Core calculation validation #690 PASS**
 - 만세력/경계/궁합/결제/AI/1:N/account/editorial/policy/Growth/report 전체 계약 PASS
-- Growth free acquisition 계약에 Foundation v2 compact width, legacy shell 분리, deprecated visual token/gradient/shadow 금지 검증 추가
+- P5 UI 계약에 1:1 input/checkout compact width, Foundation token 사용, legacy shell/report-p5-mobile 분리, policyAccepted 전달 검증 추가
 - `npm run lint` PASS
 - production build PASS
 - 계산·결제·AI 생성·저장·권한 로직 변경 없음
 
 ## 배포 상태
 
-- Foundation v2 3단계에서 Vercel Preview/Production 배포는 실행하지 않는다.
+- Foundation v2 4단계에서 Vercel Preview/Production 배포는 실행하지 않는다.
 - Git 자동배포는 비활성화 상태를 유지한다.
 - Production과 최신 `main`은 일시적으로 다를 수 있다.
 
@@ -72,7 +75,7 @@
 5. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
 6. 회원탈퇴/데이터 삭제/Kakao unlink
 7. 결과/계정 삭제 뒤 public share 및 analytics 정리 확인
-8. 1:1 입력/결제부터 후속 화면의 레거시 `max-width:99999px` CSS 제거
+8. 생성중/1:1 결과/1:N 등 후속 화면의 레거시 `max-width:99999px` CSS 제거
 
 ## 출시 blocker 정의
 
