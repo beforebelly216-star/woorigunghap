@@ -10,6 +10,13 @@
 5. improvement / Growth 고도화
 
 ## Blocker / 운영 검증
+- [ ] **Production `AI_QUALITY` 결제 결과 차단 hotfix 배포 및 동일 결제 복구 확인**
+  - [x] 사용자 화면 문구 → `QUALITY_CRITICAL` 서버 분류 경로 확정
+  - [x] 과도한 INTRO 일주/오행 exact-match 및 장문 중복 terminal gate 원인 확인
+  - [x] `d9f7cae` 모델 1회 재시도 → 서버 사실 기반 보정 → 재검사 → 저장 복구 구현
+  - [x] 재현/관련 계약 8개, lint, production build PASS
+  - [ ] 사용자 승인 후 Production 배포
+  - [ ] 실패한 동일 결제로 생성→저장→재열람 확인
 - [x] **1:1 AI 과다 출력·장시간 대기·완성 형식 확정 실패 구조 개선**
   - 목표 분량을 공백 제외 약 2,500~4,000자로 축소하고 CH0~CH9·관계별 편집 기준 유지
   - 암묵적 token 확대를 제거하고 segment별 1차/재시도 ceiling, timeout, 총 요청 예산을 명시
@@ -70,11 +77,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 유료 1:1·1:N AI를 Claude Sonnet 5로 전환하고 1:1 생성 hotfix와 함께 Production 배포
-- Status: complete — 코드·계약·정책·Production 배포 완료
-- Validation: 모델/1:1·1:N 관련 계약 8개 PASS; lint 오류 0건(기존 warning 3건); production build PASS
-- Commit: be983fb 모델/테스트/배포 트리거, 상태문서·자동배포 off 후속 커밋 별도
-- Remaining: 기존 stuck 주문 및 신규 실제 결제로 1:1 생성→저장→재열람 시간과 Sonnet 5 구조화 로그 확인
-- Risk: Vercel runtime log 직접 조회 불가; 실제 Sonnet 5 paid runtime은 미검증
-- Deploy: Production success · be983fb · Git 자동배포 false 복구
+- Task: Production 실결제 `AI_QUALITY` 종료 원인 분석 및 결정론적 release repair hotfix
+- Status: partial — 코드·계약·build 완료, Production 배포 승인 대기
+- Validation: 실패 재현/복구 포함 관련 계약 8개 PASS; lint 오류 0건(기존 warning 3건); production build PASS
+- Commit: d9f7cae 코드/테스트, 상태문서 후속 커밋 별도
+- Remaining: 사용자 승인 후 최신 main Production 배포 → 실패한 동일 결제로 생성/저장/재열람 확인
+- Risk: Vercel runtime log 프로젝트 조회 404; 세부 quality issue는 배포 후 구조화 로그 확인 필요
+- Deploy: 현재 Production be983fb; d9f7cae 미배포; Git 자동배포 false 유지
 ```
