@@ -12,6 +12,7 @@ import "./day20-mobile.css";
 import "./day22-policy.css";
 import "./score-library.css";
 import "./theme-unification.css";
+import "./account-foundation.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
