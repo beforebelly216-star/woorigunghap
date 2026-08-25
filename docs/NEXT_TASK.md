@@ -15,48 +15,41 @@
 ## Blocker / 운영 검증
 
 - [ ] **PR #45 Production 배포 후 실제 1:1 runtime 재검증**
-  - [ ] 기존 stuck 주문이 saved segment / 5분 stale lock / complete-lock reconciliation을 통해 회복하는지 확인
-  - [ ] 신규 실제 결제 → intro → dynamics/action → 전체 생성 → 서버 저장 → 보관함 재열람 시간 측정
-  - [ ] AI/transport/dependency 실패 시 무한 `생성중`이 아니라 분류된 종료 메시지가 표시되는지 확인
+  - [ ] 기존 stuck 주문 회복 확인
+  - [ ] 신규 실제 결제 → 전체 생성 → 서버 저장 → 보관함 재열람 시간 측정
+  - [ ] AI/transport/dependency 실패 시 종료 메시지 확인
 
 ## Hotfix / 실기기 QA
 
-- [ ] 실제 1:1·1:N 결과에서 Web Share / 1080×1920 이미지 저장 / public Shared View 링크 확인
-- [ ] 홈 → `/free` → 유료 CTA → `/one-to-one?from=free` 본인정보 prefill 실제 동작 확인
+- [ ] 실제 1:1·1:N Web Share / 이미지 저장 / Shared View 링크 확인
+- [ ] 홈 → `/free` → 유료 CTA → 1:1 prefill 실제 동작 확인
 - [ ] 360 / 390 / 430px 핵심 플로우 육안 QA
 - [ ] 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
 - [ ] 회원탈퇴 / 데이터 삭제 / Kakao unlink
-- [ ] 결과/계정 삭제 뒤 public share와 연계 analytics 정리 확인
+- [ ] 결과/계정 삭제 뒤 public share와 analytics 정리 확인
 
 ## UI / UX 전면 개편
 
 ### 1단계 — Design Foundation v2
+- [x] Foundation v2 전면 재정의 + shared token 정렬 + responsive 폭 기준 확정
 
-- [x] **기존 오행 디자인 스펙을 전면 폐기하고 Design Foundation을 처음부터 재정의**
-  - Source of Truth: `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md`
-  - 레퍼런스 원칙: Co–Star / The Pattern / Toss / Spotify Wrapped의 구조적 장점만 차용
-  - neutral canvas + 기능형 오행색 + typography-first + progressive disclosure 확정
-  - 컬러 / type scale / spacing / radius / border / shadow / motion / accessibility / 상태 UI 규칙 정의
-  - 입력 / 1:1 결과 / 1:N 비교 / 공유 UI 정보구조 정의
-  - shared tokens(`src/app/report-theme.css`)을 Foundation v2와 정렬
-  - 입력·결제 480 / 1:1 report 640 / 1:N compare 960 반응형 폭 기준 확정
-  - 전 화면 480px 강제 원칙 폐기
-  - 과거 라벤더/고정 breakpoint 문자열에 과결합된 UI 계약을 기능 계약 중심으로 갱신
-  - CI에서 발견한 `vercel.json` Git 자동배포 `true`를 정책대로 `false`로 복구
-  - **Core calculation validation #677 PASS: 전체 contracts + lint + production build**
-
-### 2단계 — Foundation 실제 화면 적용
-
-- [ ] **공통 shell + 홈부터 새 Foundation으로 실제 구현**
-  - 기존 `max-width:99999px` 및 모든 화면 480px 강제 CSS를 한 번에 제거하지 말고 관련 화면부터 안전하게 복원
-  - header / footer / page canvas / Button / Input / Card / Section / Chip 위계를 Foundation v2에 맞춤
-  - 홈의 free-first 퍼널과 기존 기능/카피 계약은 유지
-  - 360 / 390 / 430 / 768 / 1280px 실제 렌더링 확인
-  - 해당 화면 계약 + `npm run lint` + `npm run build`
+### 2단계 — 공통 shell + 홈
+- [x] **공통 shell + 홈 Foundation v2 실제 구현**
+  - 전역 `body max-width:480px` 제거
+  - header/footer 1120px content rail + 640px mobile shell 적용
+  - 홈 desktop editorial 2-column / tablet single-column / mobile compact 구조 적용
+  - free-first CTA, 상품 가격, 라우팅, 사주소년 화자 유지
+  - `theme-unification.css` lavender override 및 shell 강제 media 제거
+  - P5 UI 계약을 Foundation v2 action/ink + 820/480 responsive 계약으로 갱신
+  - **Core calculation validation #682 PASS: 전체 contracts + lint + production build**
+  - 실제 360/390/430/768/1280 육안 렌더링은 배포/브라우저 QA 시 확인
 
 ### 이후 순서
-
-- [ ] 3단계 무료 분석 입력/결과
+- [ ] **3단계 무료 분석 입력/결과 Foundation 적용**
+  - `/free` 입력과 무료 결과를 compact 480px 기준으로 재구성
+  - 입력 control / section / result insight 위계를 Foundation v2로 통일
+  - 해당 화면의 레거시 `max-width:99999px` 규칙만 안전하게 제거
+  - free → 1:1 prefill 계약 유지
 - [ ] 4단계 1:1 입력/결제
 - [ ] 5단계 생성중 상태 UI
 - [ ] 6단계 1:1 결과 IA/레이아웃 전면 적용
@@ -73,25 +66,18 @@
 
 ## 기본 검증
 
-가능한 환경에서는 변경 후 최소:
-
-```bash
-npm run lint
-npm run build
-```
-
-관련 contract test를 함께 실행한다. Vercel Preview/Production 배포는 사용자 명시 승인 뒤 별도 수행한다.
+변경 후 관련 contract test + `npm run lint` + `npm run build`. Vercel Preview/Production 배포는 사용자 명시 승인 뒤 별도 수행한다.
 
 ## Current HANDOFF
 
 ```text
 HANDOFF
 - Worker: GPT
-- Task: UI/UX 1단계 — Design Foundation v2 전면 재작성 및 shared token/계약 정렬
+- Task: UI/UX 2단계 — Foundation v2 공통 shell + 홈 실제 적용
 - Status: complete
-- Validation: Core calculation validation #677 PASS — 전체 계산/결제/AI/1:N/account/Growth/report contracts + lint + production build
-- Commit: 9f88799 (Foundation 구현/테스트 + Vercel 자동배포 false 복구; 상태문서 커밋은 후속)
-- Remaining: 2단계 공통 shell/홈 적용 + 레거시 전 화면 480px/max-width:99999px 강제 CSS를 화면별로 제거하고 360/390/430/768/1280 실제 렌더링 QA
-- Risk: 레거시 폭 강제 CSS가 아직 실제 화면에 남아 새 responsive 원칙과 충돌; 계산/결제/AI 로직 변경 없음
-- Deploy: 없음. Production은 사용자 승인 전 건드리지 않음
+- Validation: Core calculation validation #682 PASS — 전체 contracts + lint + production build
+- Commit: f4fbce9 (기능/CSS/계약), 상태문서 후속 커밋 포함 PR #48
+- Remaining: 3단계 `/free` 입력/무료 결과 Foundation 적용 + 해당 화면 레거시 99999px 규칙 제거
+- Risk: 후속 입력/결과/1:N CSS에는 전 화면 모바일 강제 규칙이 아직 남아 있음; 실제 multi-viewport 육안 QA는 미실행
+- Deploy: 없음. Git 자동배포 false 유지, Production 미배포
 ```
