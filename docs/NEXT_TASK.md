@@ -37,20 +37,24 @@
 - [x] 1:1 입력/checkout Foundation v2 적용
 
 ### 5단계 — 생성중 상태 UI
-- [x] **결제 후 준비/생성/복구/실패 상태 Foundation v2 적용**
-  - compact 480px 상태 layout owner `result-status.css` 추가
-  - 기존 gradient/shadow 상태 카드 제거
-  - Suspense fallback / loading / missing recovery / account fatal / terminal fatal 동일 visual hierarchy 적용
-  - staged generation / retry / terminal failure / 결제 복구 / ownership / payment verification 로직 유지
-  - P5 UI 계약에 상태 화면 responsive/legacy visual 회귀 검증 추가
-  - **Core calculation validation #694 PASS: 전체 contracts + lint + production build**
+- [x] 결제 후 준비/생성/복구/실패 상태 Foundation v2 적용
+
+### 6단계 — 1:1 완성 결과
+- [x] **1:1 결과 IA/레이아웃 Foundation v2 적용**
+  - report 640px layout owner `report-foundation.css` 추가
+  - hero/점수/근거 → 관계 요약 → CH0~CH9 → 공유/계정/다음 행동의 progressive disclosure 적용
+  - 관계 요약에 기존 저장 콘텐츠를 재사용한 Two Sides / 강점 / 주의 / 관계 흐름 / 첫 행동 추가
+  - legacy card wall/큰 shadow를 후순위 override로 축소
+  - `report-p5-mobile.css`의 `max-width:99999px`를 실제 `700px` breakpoint로 축소
+  - 계산 snapshot / 저장 결과 / CH0~CH9 / 공유 / account link / access control 계약 유지
+  - **Core calculation validation #698 PASS: 전체 contracts + lint + production build**
 
 ### 이후 순서
-- [ ] **6단계 1:1 결과 IA/레이아웃 전면 적용**
-  - report 640px 기준 progressive disclosure로 hero/점수/Relationship Label/Two Sides/강점·주의/관계흐름/행동가이드/CH0~CH9/공유 순서 재정렬
-  - 완성 리포트의 legacy gradient/shadow/card 과잉과 broad `max-width:99999px` CSS 제거
-  - 기존 계산 snapshot, 저장 결과, 공유, account link, CH0~CH9 콘텐츠 계약 유지
-- [ ] 7단계 1:N 입력/결제 및 비교 결과
+- [ ] **7단계 1:N 입력/결제 및 비교 결과 Foundation 적용**
+  - 입력/checkout은 compact 480px, 비교 결과는 compare 960px 기준
+  - ranking → 후보 역할 → 공통 지표 비교 → 후보별 강점/주의 → 상세 후보 리포트 순서 강화
+  - 1:N 계산/결제/저장/공유 계약 유지
+  - 해당 화면의 legacy gradient/shadow/99999 broad CSS 제거
 - [ ] 8단계 보관함/계정
 - [ ] 9단계 Shared View / 공유 카드 시각 통합
 
@@ -67,11 +71,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: UI/UX 5단계 — 1:1 결제 후 생성/복구/실패 상태 Foundation v2 적용
+- Task: UI/UX 6단계 — 1:1 완성 결과 IA/레이아웃 Foundation v2 적용
 - Status: complete
-- Validation: Core calculation validation #694 PASS — 전체 contracts + lint + production build
-- Commit: d720ab7 스타일/계약, 상태문서 후속 포함 PR #51
-- Remaining: 6단계 1:1 완성 결과 IA/레이아웃 전면 적용 + 완성 리포트 legacy broad CSS 정리
-- Risk: 완성 1:1 리포트와 1:N/보관함/공유 화면에는 legacy gradient/shadow/99999 CSS가 아직 남아 있음; multi-viewport 육안 QA 미실행
+- Validation: Core calculation validation #698 PASS — 전체 contracts + lint + production build
+- Commit: 7bbe8f7 기능/스타일, 상태문서 후속 포함 PR #52
+- Remaining: 7단계 1:N 입력/결제 및 비교 결과 Foundation 적용
+- Risk: 1:N/보관함/Shared View/공유 카드에는 legacy visual CSS가 아직 남아 있음; 실제 multi-viewport 육안 QA 미실행
 - Deploy: 없음. Git 자동배포 false 유지, Production 미배포
 ```
