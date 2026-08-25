@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { focusFirstInvalidField } from "@/lib/form-accessibility";
 import {
@@ -104,6 +104,9 @@ function toReportInput(form: FormState) {
   };
 }
 
+const STEP_LABELS = ["관계", "첫 번째 사람", "두 번째 사람", "확인"] as const;
+const LAST_STEP = STEP_LABELS.length - 1;
+
 export function OneToOneForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -113,6 +116,8 @@ export function OneToOneForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isContinuing, setIsContinuing] = useState(false);
   const [freePrefilled, setFreePrefilled] = useState(false);
+  const [step, setStep] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
   const partnerInformationLevel = partnerInformationLevelFromPerson(form.personB);
   const partnerInformationCopy = PARTNER_INFORMATION_LEVEL_COPY[partnerInformationLevel];
 
@@ -142,6 +147,41 @@ export function OneToOneForm() {
   function showErrors(formElement: HTMLFormElement, nextErrors: Record<string, string>) {
     setErrors(nextErrors);
     focusFirstInvalidField(formElement);
+  }
+
+  function validateStep(currentStep: number): boolean {
+    const nextErrors: Record<string, string> = {};
+
+    if (currentStep === 0) {
+      if (!form.relationshipType) nextErrors.relationshipType = "관계 유형을 선택해 주세요.";
+      if (form.relationshipType === "coworker" && !form.coworkerHierarchy) {
+        nextErrors.coworkerHierarchy = "두 번째 사람의 직장 내 위치를 선택해 주세요.";
+      }
+    } else if (currentStep === 1) {
+      if (!form.personA.gender) nextErrors["personA.gender"] = "성별을 선택해 주세요.";
+      Object.assign(nextErrors, normalizePersonBirthForm(form.personA, "personA").errors);
+    } else if (currentStep === 2) {
+      if (!form.personB.gender) nextErrors["personB.gender"] = "성별을 선택해 주세요.";
+      Object.assign(nextErrors, normalizePersonBirthForm(form.personB, "personB").errors);
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      if (formRef.current) showErrors(formRef.current, nextErrors);
+      else setErrors(nextErrors);
+      return false;
+    }
+    setErrors({});
+    return true;
+  }
+
+  function goNext() {
+    if (!validateStep(step)) return;
+    setStep((current) => Math.min(current + 1, LAST_STEP));
+  }
+
+  function goBack() {
+    setErrors({});
+    setStep((current) => Math.max(current - 1, 0));
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -203,7 +243,7 @@ export function OneToOneForm() {
   }
 
   return (
-    <form className="compatibility-form" onSubmit={submit} noValidate>
+    <form className="compatibility-form" onSubmit={submit} noValidate ref={formRef}>
       {recoveryPaymentId ? (
         <div className="checkout-state recovery-state" role="status">
           <strong>기존 결제 복구 중</strong>
@@ -220,7 +260,16 @@ export function OneToOneForm() {
 
       {errors.form ? <p className="field-error form-error-summary" role="alert">{errors.form}</p> : null}
 
-      <section className="form-section relationship-section">
+      <div className="step-progress" role="progressbar" aria-valuenow={step + 1} aria-valuemin={1} aria-valuemax={STEP_LABELS.length}>
+        <div className="step-progress-track">
+          {STEP_LABELS.map((label, index) => (
+            <span key={label} className={`step-progress-bar${index <= step ? " step-progress-bar-done" : ""}`} />
+          ))}
+        </div>
+        <span className="step-progress-label">{step + 1}/{STEP_LABELS.length} · {STEP_LABELS[step]}</span>
+      </div>
+
+      <section className="form-section relationship-section" hidden={step !== 0}>
         <h2 id="one-to-one-relationship-label">어떤 관계를 보고 싶나요?</h2>
         <div
           className="relationship-options"
@@ -250,7 +299,7 @@ export function OneToOneForm() {
         {errors.relationshipType ? <small id="one-to-one-relationship-error" className="field-error">{errors.relationshipType}</small> : null}
       </section>
 
-      {form.relationshipType && form.relationshipType !== "crush" ? (
+      {step === 0 && form.relationshipType && form.relationshipType !== "crush" ? (
         <section className="form-section relationship-context-section">
           <h2>지금 관계를 조금만 알려주세요.</h2>
           <label className="field-stack" htmlFor="relationshipDurationMonths">
@@ -276,7 +325,7 @@ export function OneToOneForm() {
         </section>
       ) : null}
 
-      {form.relationshipType === "coworker" ? (
+      {step === 0 && form.relationshipType === "coworker" ? (
         <section className="form-section relationship-section coworker-hierarchy-section">
           <h2 id="coworker-hierarchy-label">두 번째 사람은 나와 어떤 업무 관계인가요?</h2>
           <p className="field-help">첫 번째 사람 기준으로 선택해 주세요. 같은 사주 조합이어도 보고·피드백·역할 분담 조언이 달라집니다.</p>
@@ -304,7 +353,13 @@ export function OneToOneForm() {
         </section>
       ) : null}
 
-      <div className="people-grid">
+      {step === 0 ? (
+        <div className="step-nav">
+          <button type="button" className="primary-action" onClick={goNext}>다음</button>
+        </div>
+      ) : null}
+
+      <div className="people-grid people-grid-single" hidden={step !== 1}>
         <PersonBirthFields
           title="첫 번째 사람"
           prefix="personA"
@@ -313,6 +368,15 @@ export function OneToOneForm() {
           errors={errors}
           onChange={(personA) => setForm({ ...form, personA })}
         />
+      </div>
+      {step === 1 ? (
+        <div className="step-nav">
+          <button type="button" className="secondary-action" onClick={goBack}>이전</button>
+          <button type="button" className="primary-action" onClick={goNext}>다음</button>
+        </div>
+      ) : null}
+
+      <div className="people-grid people-grid-single" hidden={step !== 2}>
         <PersonBirthFields
           title="두 번째 사람"
           prefix="personB"
@@ -322,8 +386,14 @@ export function OneToOneForm() {
           onChange={(personB) => setForm({ ...form, personB })}
         />
       </div>
+      {step === 2 ? (
+        <div className="step-nav">
+          <button type="button" className="secondary-action" onClick={goBack}>이전</button>
+          <button type="button" className="primary-action" onClick={goNext}>다음</button>
+        </div>
+      ) : null}
 
-      <section className="form-section relationship-context-section">
+      <section className="form-section relationship-context-section" hidden={step !== 3}>
         <h2>가장 궁금한 것 한 가지가 있나요?</h2>
         <p className="section-copy">선택 항목입니다. 계산 근거로 답할 수 있는 범위에서 CH0 또는 관계 전략에 직접 반영합니다.</p>
         <label className="field-stack" htmlFor="mostCurious">
@@ -347,16 +417,23 @@ export function OneToOneForm() {
         </label>
       </section>
 
-      <div className="form-success" role="status" aria-live="polite">
-        <strong>상대 정보 수준 {partnerInformationLevel}</strong>
-        <p>{partnerInformationCopy.short}. {partnerInformationCopy.detail}</p>
-      </div>
+      {step === 3 ? (
+        <div className="form-success" role="status" aria-live="polite">
+          <strong>상대 정보 수준 {partnerInformationLevel}</strong>
+          <p>{partnerInformationCopy.short}. {partnerInformationCopy.detail}</p>
+        </div>
+      ) : null}
 
-      <button type="submit" className="primary-action" disabled={isContinuing} aria-busy={isContinuing}>
-        {isContinuing
-          ? recoveryPaymentId ? "기존 결제로 결과 복구 중..." : "결제 단계로 이동 중..."
-          : recoveryPaymentId ? "결제 없이 결과 복구하기" : "입력 확인하고 계속하기"}
-      </button>
+      {step === 3 ? (
+        <div className="step-nav">
+          <button type="button" className="secondary-action" onClick={goBack}>이전</button>
+          <button type="submit" className="primary-action" disabled={isContinuing} aria-busy={isContinuing}>
+            {isContinuing
+              ? recoveryPaymentId ? "기존 결제로 결과 복구 중..." : "결제 단계로 이동 중..."
+              : recoveryPaymentId ? "결제 없이 결과 복구하기" : "입력 확인하고 계속하기"}
+          </button>
+        </div>
+      ) : null}
     </form>
   );
 }

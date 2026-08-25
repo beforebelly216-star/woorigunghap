@@ -45,6 +45,18 @@ button, input, select { font: inherit; }
 .relationship-options label, .segmented-control label { border: 1px solid #d7d0c6; border-radius: 999px; padding: 11px 18px; background: #fff; color: #58635b; font-weight: 700; }
 .relationship-options label.selected, .segmented-control label.selected { border-color: #273b31; background: #273b31; color: #fffaf1; }
 .people-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.people-grid-single { grid-template-columns: 1fr; max-width: 560px; margin: 0 auto; }
+.step-progress { margin: 0 0 22px; }
+.step-progress-track { display: flex; gap: 6px; }
+.step-progress-bar { flex: 1; height: 4px; border-radius: 999px; background: var(--saju-border, #ded7cc); }
+.step-progress-bar-done { background: var(--saju-primary-deep, #273b31); }
+.step-progress-label { display: block; margin-top: 8px; color: var(--saju-ink-soft, #6d766f); font-size: .82rem; font-weight: 700; }
+.step-nav { display: flex; gap: 10px; margin-top: 8px; }
+.step-nav .secondary-action { flex: 0 0 auto; min-width: 96px; }
+.step-nav .primary-action { flex: 1; }
+@media (max-width: 640px) {
+  .people-grid-single { max-width: none; }
+}
 .person-panel { margin: 0; padding: 28px; min-width: 0; }
 .person-panel legend { padding: 0 8px; font-family: Georgia, serif; font-size: 1.55rem; }
 .field-stack { display: grid; gap: 8px; margin-top: 20px; }
