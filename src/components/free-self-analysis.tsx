@@ -76,26 +76,28 @@ export function FreeSelfAnalysis() {
 
   return (
     <div className={styles.shell}>
-      <form className="compatibility-form" onSubmit={submit} noValidate>
+      <form className={styles.form} onSubmit={submit} noValidate>
         <p className={styles.freeNote}>
-          <strong>무료 자기 분석은 결제 없이 바로 확인합니다.</strong><br />
-          한 사람의 기존 만세력 계산 결과만 사용하며, 유료 궁합용 AI 리포트는 생성하지 않습니다.
+          <strong>결제 없이 바로 확인합니다.</strong>
+          한 사람의 만세력 계산 결과만 사용하며 유료 궁합 리포트는 만들지 않습니다.
         </p>
-        {errors.form ? <p className="field-error form-error-summary" role="alert">{errors.form}</p> : null}
-        <PersonBirthFields
-          title="내 정보"
-          prefix="self"
-          placeholder="예: 나 또는 별칭"
-          value={person}
-          errors={errors}
-          onChange={(next) => {
-            setPerson(next);
-            setAnalysis(null);
-          }}
-        />
+        {errors.form ? <p className={styles.formError} role="alert">{errors.form}</p> : null}
+        <div className={styles.birthFields}>
+          <PersonBirthFields
+            title="내 정보"
+            prefix="self"
+            placeholder="예: 나 또는 별칭"
+            value={person}
+            errors={errors}
+            onChange={(next) => {
+              setPerson(next);
+              setAnalysis(null);
+            }}
+          />
+        </div>
         <button
           type="submit"
-          className={`primary-action ${styles.submit}`}
+          className={styles.submit}
           disabled={isLoading}
           aria-busy={isLoading}
         >
@@ -105,11 +107,11 @@ export function FreeSelfAnalysis() {
 
       {analysis ? (
         <section ref={resultRef} className={styles.result} aria-labelledby="free-self-result-title">
-          <div>
+          <header className={styles.resultHeader}>
             <p className={styles.resultEyebrow}>MY RELATIONSHIP TYPE</p>
             <h2 id="free-self-result-title">{analysis.displayName}님의 관계 캐릭터</h2>
-          </div>
-          <span className={styles.pillar}>{analysis.dayPillar}일주 · {analysis.archetypeTitle}</span>
+            <span className={styles.pillar}>{analysis.dayPillar}일주 · {analysis.archetypeTitle}</span>
+          </header>
           <p className={styles.tagline}>{analysis.tagline}</p>
 
           <div className={styles.insights}>
