@@ -1,121 +1,266 @@
 .shell {
   display: grid;
-  gap: 22px;
+  gap: 36px;
+}
+
+.form {
+  display: grid;
+  gap: 20px;
 }
 
 .freeNote {
   margin: 0;
-  padding: 14px 16px;
-  border: 1px solid var(--saju-border);
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--saju-mint) 12%, var(--saju-bg-card));
+  display: grid;
+  gap: 4px;
+  padding: 14px 0 18px;
+  border-bottom: 1px solid var(--saju-border);
   color: var(--saju-ink-soft);
-  font-size: 0.9rem;
+  font-size: .88rem;
   line-height: 1.6;
 }
 
 .freeNote strong {
   color: var(--saju-ink);
+  font-size: .9rem;
+}
+
+.formError {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--saju-danger) 35%, var(--saju-border));
+  border-radius: var(--saju-radius-control);
+  background: var(--saju-bg-card);
+  color: var(--saju-danger);
+  font-size: .86rem;
+  line-height: 1.5;
+}
+
+.birthFields :global(.person-panel) {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.birthFields :global(.person-panel legend) {
+  padding: 0;
+  font-family: var(--saju-font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+
+.birthFields :global(.field-stack) {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.birthFields :global(.field-stack > span) {
+  color: var(--saju-ink);
+  font-size: .86rem;
+  font-weight: 750;
+}
+
+.birthFields :global(input[type="text"]) {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid var(--saju-border-strong);
+  border-radius: var(--saju-radius-control);
+  background: var(--saju-bg-card);
+  padding: 13px 14px;
+  color: var(--saju-ink);
+  font-size: 16px;
+}
+
+.birthFields :global(input[type="text"]::placeholder) {
+  color: var(--saju-ink-faint);
+}
+
+.birthFields :global(input[type="text"]:disabled) {
+  background: var(--saju-bg-soft);
+  color: var(--saju-ink-faint);
+}
+
+.birthFields :global(.segmented-control) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.birthFields :global(.segmented-control label) {
+  position: relative;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--saju-border-strong);
+  border-radius: var(--saju-radius-control);
+  background: var(--saju-bg-card);
+  color: var(--saju-ink-soft);
+  cursor: pointer;
+  font-size: .9rem;
+  font-weight: 750;
+}
+
+.birthFields :global(.segmented-control label.selected) {
+  border-color: var(--saju-action);
+  background: var(--saju-action);
+  color: var(--saju-ink-inverse);
+}
+
+.birthFields :global(.segmented-control input) {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.birthFields :global(.time-input-row) {
+  display: grid;
+  grid-template-columns: minmax(150px, .8fr) minmax(0, 1.2fr);
+  gap: 8px;
+}
+
+.birthFields :global(.field-hint) {
+  color: var(--saju-ink-faint);
+  font-size: .78rem;
+  line-height: 1.5;
+}
+
+.birthFields :global(.field-error) {
+  color: var(--saju-danger);
+  font-size: .8rem;
+  line-height: 1.45;
+}
+
+.birthFields :global(.check-row) {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--saju-ink-soft);
+  font-size: .86rem;
+}
+
+.birthFields :global(.check-row input) {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--saju-action);
 }
 
 .submit {
   width: 100%;
+  min-height: 52px;
+  border: 0;
+  border-radius: var(--saju-radius-control);
+  background: var(--saju-action);
+  color: var(--saju-ink-inverse);
+  cursor: pointer;
+  font-weight: 800;
 }
+
+.submit:hover { background: var(--saju-action-hover); }
+.submit:disabled { background: var(--saju-action-disabled); cursor: wait; }
 
 .result {
   scroll-margin-top: 88px;
   display: grid;
-  gap: 18px;
-  padding: clamp(22px, 5vw, 34px);
-  border: 1px solid color-mix(in srgb, var(--saju-primary-deep) 38%, var(--saju-border));
-  border-radius: 30px;
-  background:
-    radial-gradient(circle at 88% 8%, color-mix(in srgb, var(--saju-primary) 24%, transparent), transparent 18rem),
-    linear-gradient(145deg, color-mix(in srgb, var(--saju-blush) 10%, var(--saju-bg-card)), var(--saju-bg-card));
-  box-shadow: var(--saju-shadow);
+  gap: 24px;
+  padding-top: 36px;
+  border-top: 1px solid var(--saju-border-strong);
+}
+
+.resultHeader {
+  display: grid;
+  gap: 10px;
 }
 
 .resultEyebrow {
   margin: 0;
-  color: var(--saju-primary-deep);
-  font-size: 0.75rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
+  color: var(--saju-ink-soft);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .12em;
 }
 
 .result h2 {
-  margin: 6px 0 0;
-  font-size: clamp(1.8rem, 6vw, 2.8rem);
-  line-height: 1.12;
-  letter-spacing: -0.045em;
+  margin: 0;
+  font-family: var(--saju-font-heading);
+  font-size: clamp(2rem, 8vw, 2.8rem);
+  line-height: 1.08;
+  letter-spacing: -.045em;
 }
 
 .pillar {
   display: inline-flex;
   width: fit-content;
   align-items: center;
-  min-height: 34px;
-  padding: 6px 11px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--saju-primary) 42%, var(--saju-bg-card));
-  color: #3a3550;
-  font-size: 0.8rem;
-  font-weight: 900;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid var(--saju-border);
+  border-radius: var(--saju-radius-pill);
+  background: var(--saju-bg-soft);
+  color: var(--saju-ink-soft);
+  font-family: var(--saju-font-data);
+  font-size: .76rem;
+  font-weight: 700;
 }
 
 .tagline {
   margin: 0;
-  color: var(--saju-ink-soft);
-  font-size: 1rem;
-  line-height: 1.75;
+  color: var(--saju-ink);
+  font-size: 1.04rem;
+  font-weight: 700;
+  line-height: 1.7;
 }
 
 .insights {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 0;
+  border-top: 1px solid var(--saju-border);
 }
 
 .insight {
   min-width: 0;
-  padding: 18px;
-  border: 1px solid var(--saju-border);
-  border-radius: 20px;
-  background: color-mix(in srgb, var(--saju-bg-card) 94%, transparent);
+  padding: 20px 0;
+  border-bottom: 1px solid var(--saju-border);
 }
 
 .insight span {
   display: block;
-  color: var(--saju-primary-deep);
-  font-size: 0.76rem;
-  font-weight: 900;
+  color: var(--saju-ink-soft);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .02em;
 }
 
 .insight p {
   margin: 8px 0 0;
   color: var(--saju-ink);
-  line-height: 1.62;
+  line-height: 1.68;
 }
 
 .accuracy {
   margin: 0;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--saju-mint) 10%, transparent);
+  padding-left: 12px;
+  border-left: 2px solid var(--saju-border-strong);
   color: var(--saju-ink-soft);
-  font-size: 0.82rem;
+  font-size: .8rem;
   line-height: 1.55;
 }
 
 .conversion {
   display: grid;
   gap: 10px;
-  padding-top: 6px;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--saju-border-strong);
 }
 
 .conversionLead {
-  margin: 0 0 2px;
-  font-weight: 900;
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 800;
   line-height: 1.55;
 }
 
@@ -125,38 +270,43 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
+  border-radius: var(--saju-radius-control);
   padding: 13px 18px;
   text-align: center;
   text-decoration: none;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .paidPrimary {
-  background: var(--saju-accent);
-  color: #3a3550;
-  box-shadow: 0 12px 26px color-mix(in srgb, var(--saju-accent) 22%, transparent);
+  background: var(--saju-action);
+  color: var(--saju-ink-inverse);
 }
 
+.paidPrimary:hover { background: var(--saju-action-hover); }
+
 .paidSecondary {
-  border: 1px solid var(--saju-border);
+  border: 1px solid var(--saju-border-strong);
   background: var(--saju-bg-card);
   color: var(--saju-ink);
 }
 
+.paidSecondary:hover { background: var(--saju-bg-soft); }
+
 .conversion small {
-  color: var(--saju-ink-soft);
+  color: var(--saju-ink-faint);
+  font-size: .76rem;
   line-height: 1.5;
-  text-align: center;
+  text-align: left;
 }
 
-@media (max-width: 640px) {
-  .insights {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 480px) {
+  .shell { gap: 30px; }
+  .birthFields :global(.time-input-row) { grid-template-columns: 1fr; }
+  .result { padding-top: 30px; }
+}
 
-  .result {
-    padding: 20px;
-    border-radius: 24px;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .submit,
+  .paidPrimary,
+  .paidSecondary { transition: none; }
 }
