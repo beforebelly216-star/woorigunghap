@@ -40,7 +40,7 @@
 - 기존 P5 UI 계약의 크림색 고정값을 새 공통 테마 계약으로 갱신
 - 위 UI hotfix는 2026-08-24 사용자 승인 후 Production 배포까지 완료. 실제 모바일 육안 QA는 계속 필요
 - **2026-08-25 Claude 변경 1 (로컬 커밋만 존재, main 미반영):** 1:1 결과 화면 hero 맨 아래에 `전체 리포트 읽기` · `지금 공유하기` 다음행동 nav 추가(각각 리포트 시작/공유카드로 anchor 이동). lint/tsc/Core Validation 40개 스크립트 전부 PASS. `next build`는 세션 sandbox 네트워크가 `fonts.googleapis.com`을 막아 미검증(원본 main에서도 동일 재현되어 회귀 아님 확인). GitHub push 자격증명이 없어 origin에는 아직 반영되지 않음 — patch 파일을 사용자에게 전달함
-- **2026-08-25 사용자 요청 — 전체 UI/UX 재설계 결정 (로컬 커밋만 존재, main 미반영):** 화면별 순차 진행으로 확정. 비주얼 아이덴티티(현재 라벤더 파스텔 마스코트)는 교체 대상 — A(먹·한지·인주)/B(오행 밸런스)/C(심야 포차 네온) 3안 제시, 사용자 최종 선택 대기. 확정 즉시 `docs/DECISIONS.md` 갱신 후 구현 시작. 이후 GitHub push는 Claude Code 세션에서 진행하기로 함. 자세한 내용은 `docs/NEXT_TASK.md` 상단 HANDOFF 참고
+- **2026-08-25 사용자 요청 — 전체 UI/UX 재설계, 방향 확정 (로컬 커밋만 존재, main 미반영):** 화면별 순차 진행. 비주얼 아이덴티티는 **B. 오행 밸런스 시스템으로 확정** — 오행 5색을 상시 기능 정보로 사용, 5색 바 + 점수 링이 반복 시그니처 요소. 상세 스펙 `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md`(컬러 토큰/타이포/레이아웃 원칙/화면 적용 순서). `docs/DECISIONS.md` 리포트 섹션에 확정안 반영됨. 실제 화면별 구현은 아직 시작 전(문서/결정만 완료) — 다음 단계는 홈 화면부터 Claude Code 세션에서 진행. 자세한 내용은 `docs/NEXT_TASK.md` 상단 HANDOFF 참고
 
 ## 1:1 생성 및 콘텐츠
 
