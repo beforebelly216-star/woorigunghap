@@ -72,7 +72,12 @@
   - [x] 홈 paid-first 구조 제거 → `무료로 내 관계 성향 보기` free-first CTA → `/free` Aha → 결과 뒤 1:1/1:N 유료 CTA
   - [x] 무료 결과 → 1:1 이동 시 같은 세션의 본인 입력을 첫 번째 사람으로 prefill하고 raw birth input을 URL에 넣지 않음
   - 홈 → 입력 → 결제 전 → 생성중 → 결과 → 보관함 정보 위계·CTA·모바일 사용성 재검토
-  - 1:1·1:N 결과 첫 1~2스크린의 점수/관계유형/핵심결론/다음 행동 명확화
+  - **1:1 결과 hero 다음 행동(`전체 리포트 읽기` · `지금 공유하기`) 추가 — 코드/테스트 완료, main 미반영**
+    - 변경 파일: `src/app/one-to-one/result/result-v2.tsx`(share-card/report 시작에 anchor id 추가 + hero 하단 액션 nav), `src/app/report-v2-base.css`(`.v2-hero-actions` 등 기존 `--saju-*` 토큰 재사용)
+    - 검증: `npm run lint` 0 errors, `tsc --noEmit` PASS, Core Validation 40개 스크립트 전부 PASS(`test:report:p5-ui`, `test:hotfix:runtime-ux` 포함)
+    - `npm run build` 미검증: 작업 세션 sandbox 네트워크가 `fonts.googleapis.com`을 차단해 `next/font` Google Fonts fetch가 실패함. 수정 전 원본 `main`에서도 동일하게 재현되는 것을 `git stash`로 확인 — 이 변경의 회귀가 아니라 sandbox 네트워크 제약
+    - **push 미완료**: 작업 세션에 GitHub 자격증명이 없어 origin에 push하지 못함. 로컬 커밋 `f4bc40e94bb629acdf5431ddfb25b2ddc7b288da`(parent `e60f0f7bec57418c55d1a26550d3287689b75d37`, 현재 origin/main과 동일)만 존재. patch 파일을 사용자에게 전달함 — main 반영은 사용자가 patch를 적용해 push하거나, 다음 작업자가 GitHub push 권한을 가진 세션에서 동일 변경을 재적용해야 함
+  - [ ] 1:N 결과 화면에도 동일한 다음 행동 명확화 적용 — 아직 미착수 (`comparison-hero`/`ranking-grid` 별도 컴포넌트라 1:1과 별개 작업 필요)
   - 긴 리포트 스캔 가능성, 챕터 전환, 요약 카드, 공유/보관함 동선 개선
   - 360 / 390 / 430px 실제 뷰포트 QA 병행
 
@@ -174,12 +179,12 @@ npm run build
 
 ```text
 HANDOFF
-- Worker: GPT
-- Task: PR #45 1:1 generation hardening 승인 Production 배포
-- Status: complete (deploy); runtime QA pending
-- Validation: PR #45 Core Validation #644 PASS; deploy commit 89a4bb604248d7bc8c21f605aba19e027c2b4fdc Vercel success; c94f60e8b58e50ca0738ad33124aac8502b2b9df 이후 Git auto-deploy OFF
-- Commit: 기능 main 2da9762459d189783c633a17a7331f8b468a18a5; Production deploy 89a4bb604248d7bc8c21f605aba19e027c2b4fdc
-- Remaining: 기존 stuck 1:1 주문 회복 확인 + 새 1:1 결제/생성/저장/보관함 재열람 실제 시간 측정 + 실패 종료 메시지 확인
-- Risk: 배포 status는 success지만 실제 유료 주문 runtime은 아직 확인 전; Vercel runtime-log connector는 프로젝트 권한 조회 불가
-- Resume: 최신 main/HANDOFF 재확인 후 1:1 runtime QA를 최우선 진행
+- Worker: Claude
+- Task: 사용자 요청(UI 개선) — 1:1 결과 hero에 다음 행동(전체 리포트 읽기·지금 공유하기) 추가
+- Status: partial — 코드/테스트 완료, GitHub push는 못함(세션에 자격증명 없음)
+- Validation: lint 0 errors, tsc --noEmit PASS, Core Validation 40개 스크립트 전부 PASS(test:report:p5-ui, test:hotfix:runtime-ux 포함); next build은 sandbox network가 fonts.googleapis.com 차단해 미검증(원본 main도 동일 재현 확인, 회귀 아님)
+- Commit: 로컬 전용 f4bc40e94bb629acdf5431ddfb25b2ddc7b288da (parent e60f0f7bec57418c55d1a26550d3287689b75d37 = 현재 origin/main). origin에는 아직 없음
+- Remaining: (1) 사용자가 전달받은 patch를 적용/push하거나 다음 작업자가 push 권한 있는 세션에서 동일 변경 재적용 (2) 1:N 결과 화면에도 동일 다음 행동 명확화 적용 (3) 여전히 최우선인 PR #45 실제 1:1 결제 runtime 검증 및 360/390/430px 육안 QA는 미수행 상태 그대로임(실사용/실기기 필요, 이 세션에서 수행 불가)
+- Risk: 없음(순수 UI, 결제/생성/계산 로직 미변경). 다만 push 전이라 아직 어떤 환경에도 실제 반영되지 않음
+- Resume: 최신 main/HANDOFF 재확인 후, 이 patch가 이미 main에 반영됐으면 1:N 결과 화면 동행 개선 또는 blocker/hotfix 큐 우선 진행. 아직 반영 안 됐으면 patch부터 적용
 ```

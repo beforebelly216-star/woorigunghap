@@ -39,6 +39,7 @@
 - 보관함 완성 결과 CTA를 `결과 열기 · 공유하기`로 명시해 공유 기능 발견성을 보강
 - 기존 P5 UI 계약의 크림색 고정값을 새 공통 테마 계약으로 갱신
 - 위 UI hotfix는 2026-08-24 사용자 승인 후 Production 배포까지 완료. 실제 모바일 육안 QA는 계속 필요
+- **2026-08-25 Claude 추가 변경 (로컬 커밋만 존재, main/Production 미반영):** 1:1 결과 화면 hero 맨 아래에 `전체 리포트 읽기` · `지금 공유하기` 다음행동 nav 추가(각각 리포트 시작/공유카드로 anchor 이동). lint/tsc/Core Validation 40개 스크립트 전부 PASS. 세션 sandbox 네트워크가 `fonts.googleapis.com`을 막아 `next build`는 미검증(원본 main에서도 동일 재현되어 회귀 아님을 확인). **작업 세션에 GitHub push 자격증명이 없어 origin에는 아직 반영되지 않음** — 로컬 커밋 `f4bc40e94bb629acdf5431ddfb25b2ddc7b288da`(parent `e60f0f7bec57418c55d1a26550d3287689b75d37`), 사용자에게 patch 파일 전달. 자세한 내용은 `docs/NEXT_TASK.md` HANDOFF 참고
 
 ## 1:1 생성 및 콘텐츠
 

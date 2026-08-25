@@ -79,6 +79,22 @@
   font-size: .9rem;
   line-height: 1.6;
 }
+.v2-hero-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 26px 0 0; }
+.v2-hero-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: .92rem;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.v2-hero-actions a:first-child { background: var(--saju-primary-deep); color: #fff; box-shadow: var(--saju-shadow); }
+.v2-hero-actions a:last-child { background: var(--saju-bg-card); color: var(--saju-primary-deep); border: 1px solid var(--saju-border); }
+#v2-report-start, #v2-share-card { scroll-margin-top: 24px; }
 .v2-section-title small, .v2-chapter-heading small { color: var(--saju-primary-deep); font-size: .72rem; font-weight: 900; letter-spacing: .13em; }
 .v2-section-title h2, .v2-chapter h2 { margin: 8px 0 12px; color: var(--saju-ink); font-size: clamp(1.85rem, 8vw, 3rem); font-weight: 800; line-height: 1.18; letter-spacing: -.035em; }
 .v2-section-title p { color: var(--saju-ink-soft); line-height: 1.7; }

@@ -462,15 +462,21 @@ export default function ResultV2() {
         </details>
       </div>
       {(!personA.birthTimeKnown || !personB.birthTimeKnown) && <p className="v2-uncertainty">출생시간 미상 시나리오 {snapshot.scenarioPolicy.pairScenarios.toLocaleString("ko-KR")}개를 함께 비교했어요. 현재 입력 기준 점수 범위는 {publicUncertaintyRange.min}~{publicUncertaintyRange.max}점입니다.</p>}
+      <nav className="v2-hero-actions" aria-label="다음 행동">
+        <a href="#v2-report-start">📖 전체 리포트 읽기</a>
+        <a href="#v2-share-card">📤 지금 공유하기</a>
+      </nav>
     </header>
 
-    <CompatibilityShareCard
-      selfName={personA.displayName}
-      partnerName={personB.displayName}
-      relationshipLabel={relationshipLabel}
-      score={publicScore}
-      archetype={shareArchetype}
-    />
+    <div id="v2-share-card">
+      <CompatibilityShareCard
+        selfName={personA.displayName}
+        partnerName={personB.displayName}
+        relationshipLabel={relationshipLabel}
+        score={publicScore}
+        archetype={shareArchetype}
+      />
+    </div>
 
     <section className="v2-basic-facts">
       <div className="v2-section-title"><small>FOUR PILLARS & FIVE ELEMENTS</small><h2>두 사람의 사주팔자와 오행</h2><p>어떤 명식을 바탕으로 계산했는지 먼저 보여드려요. 오행의 겉개수와 실제 세력 비중은 서로 다른 정보입니다.</p></div>
@@ -494,7 +500,9 @@ export default function ResultV2() {
     </section>}
 
 
-    <ReportChaptersA content={displayContent} personAName={personA.displayName} personBName={personB.displayName} />
+    <div id="v2-report-start">
+      <ReportChaptersA content={displayContent} personAName={personA.displayName} personBName={personB.displayName} />
+    </div>
     <ReportChaptersB
       content={displayContent}
       personAName={personA.displayName}
