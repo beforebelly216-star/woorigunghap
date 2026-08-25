@@ -9,7 +9,7 @@
 - 기준 상태: Day 24 MVP 완료, 베타 전 제품 완성도 개선 및 운영 QA 단계
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
 - 배포: Vercel Production. **Git 자동 배포는 비활성화하며 Preview/Production 배포는 사용자 명시 승인 후 별도 실행**
-- 최신 승인 Production 배포: `89a4bb604248d7bc8c21f605aba19e027c2b4fdc` Vercel `success`. 기능 코드는 PR #45 main merge `2da9762459d189783c633a17a7331f8b468a18a5`를 포함한다. 배포 직후 자동배포는 `c94f60e8b58e50ca0738ad33124aac8502b2b9df`에서 다시 비활성화됐고 해당 commit에는 Vercel deployment status가 없다.
+- 최신 승인 Production 배포: `87c3c95` Vercel `Ready`(Production). 기능/문서 코드는 1:1 result hero next-action strip 및 오행 밸런스 시스템 방향 확정 문서(`58c8db1`, `9ba7b0c`, `cfc2411`)를 포함한다. 배포 직후 자동배포는 `46bfbfa`에서 다시 비활성화됐다.
 - 레거시 내부 식별자: GitHub 저장소 `beforebelly216-star/woorigunghap`, 기존 Vercel 도메인, DB의 `woorigunghap_*` 식별자는 호환성을 위해 유지한다.
 
 ## 현재 구현 상태

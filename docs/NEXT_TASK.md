@@ -188,12 +188,13 @@ npm run build
 
 ```text
 HANDOFF
-- Worker: Claude
-- Task: (1) 1:1 결과 hero 다음 행동 UI 추가 (2) 사용자 요청으로 전체 UI/UX 재설계 범위 확정 + 비주얼 방향 B(오행 밸런스 시스템) 확정
-- Status: partial — (1)(2) 모두 코드/문서 완료, 실제 화면별 구현은 아직 미착수(문서/결정 단계까지만). 전부 GitHub push 안 됨(세션 자격증명 없음)
-- Validation: (1) lint 0 errors, tsc --noEmit PASS, Core Validation 40개 스크립트 전부 PASS; next build은 sandbox network(fonts.googleapis.com 차단)로 미검증, 원본 main도 동일 재현되어 회귀 아님 확인. (2)는 문서 변경만이라 코드 검증 대상 없음
-- Commit: 로컬 전용 3개 커밋, origin에는 없음(현재 origin/main = e60f0f7bec57418c55d1a26550d3287689b75d37). patch 파일 3개를 사용자에게 전달함
-- Remaining: (1) 사용자가 patch 3개를 Claude Code 세션에서 적용 + push (2) `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md` 스펙에 따라 홈 화면부터 순차 구현 시작 (3) 1:N 결과 화면에도 다음 행동 명확화 적용 (4) 최우선 blocker(PR #45 실제 1:1 결제 runtime 검증)와 360/390/430px 육안 QA는 여전히 미수행 — 실사용/실기기 필요
-- Risk: 없음(순수 UI/문서, 결제·생성·계산 로직 미변경). 다만 세 커밋 모두 push 전이라 origin/main에는 아직 아무것도 반영되지 않음
-- Resume: 최신 main 재확인 → patch 3개 반영 여부 확인 → 반영됐으면 `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md` 기준 홈 화면부터 순차 구현 시작. 아직이면 patch 적용부터
+- Worker: Claude Code
+- Task: (1) 이전 세션 patch 3개(1:1 결과 hero 다음 행동 UI + 전체 UI/UX 재설계 결정 + 오행 밸런스 시스템 방향 확정 문서) 적용 및 push (2) 사용자 승인 하에 1회 Production 배포
+- Status: done — patch 3개 모두 순서대로 적용/커밋/push 완료. Git 자동배포를 1회 임시 활성화해 Production 배포 성공 확인 후 재비활성화 완료
+- Validation: 이 세션은 Node.js/npm이 설치되어 있지 않아 lint/build 로컬 재검증 불가. 코드 변경(58c8db1) 자체는 원 patch 작성 시점에 lint 0 errors, tsc --noEmit PASS, Core Validation 40개 스크립트 PASS 확인됨(재검증 아님, 이전 세션 결과 인용). docs 전용 커밋(9ba7b0c, cfc2411)은 코드 검증 대상 없음
+- Commit: `58c8db1`(feat hero), `9ba7b0c`(docs 재설계 결정), `cfc2411`(docs 오행 방향 확정), `87c3c95`(chore 자동배포 활성화), `46bfbfa`(chore 자동배포 비활성화). 전부 origin/main push 완료
+- Deploy: 사용자 승인 Production 배포 `87c3c95` → Vercel `Ready`(Production 배지 확인, 사용자 스크린샷으로 확인). 배포 직후 `46bfbfa`에서 자동배포 재비활성화
+- Remaining: (1) `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md` 스펙에 따라 홈 화면부터 순차 구현 시작 (2) 1:N 결과 화면에도 다음 행동 명확화 적용 (3) 최우선 blocker(PR #45 실제 1:1 결제 runtime 검증)와 360/390/430px 육안 QA는 여전히 미수행 — 실사용/실기기 필요 (4) 이 세션 환경에 Node.js 설치 시 lint/build 재검증 권장
+- Risk: 없음(순수 UI/문서 변경, 결제·생성·계산 로직 미변경). 배포 후 자동배포는 규칙대로 다시 꺼진 상태
+- Resume: `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md` 기준 홈 화면부터 순차 구현 시작
 ```
