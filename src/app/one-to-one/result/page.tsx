@@ -5,6 +5,7 @@ import "../../report-v2-detail.css";
 import "../../report-p5-overrides.css";
 import "../../report-p5-mobile.css";
 import "./result-status.css";
+import "./report-foundation.css";
 import ResultV2 from "./result-v2";
 
 // Day 8 regression markers retained after moving request logic into result-v2.tsx.
