@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { OneToManyForm } from "@/components/one-to-many-form";
+import "./one-to-many-foundation.css";
 
 export default function OneToManyPage() {
   return (
-    <main className="input-page">
-      <div className="input-shell">
+    <main className="one-to-many-page">
+      <div className="one-to-many-shell">
         <Link href="/" className="back-link compact">← 홈으로</Link>
         <header className="input-header">
           <p className="eyebrow">1:다 비교 궁합</p>
