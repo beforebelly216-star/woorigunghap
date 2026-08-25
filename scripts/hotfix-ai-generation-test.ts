@@ -110,6 +110,36 @@ try {
   assert.ok(fallbackBodies[0].output_config, "the first request must prefer schema-constrained JSON");
   assert.equal(fallbackBodies[1].output_config, undefined, "a 400 capability rejection may fall back to plain JSON once");
   assert.equal(fallbackBodies[1].max_tokens, 1_200, "capability fallback must not inflate the output budget");
+
+  let qualityCall = 0;
+  globalThis.fetch = async () => {
+    qualityCall += 1;
+    return anthropicResponse({
+      content: [{ type: "text", text: '{"summary":"서버 계산상 A는 payload의 strongest를 따릅니다."}' }],
+      stop_reason: "end_turn",
+      usage: { input_tokens: 100, output_tokens: 120 },
+    });
+  };
+
+  const repaired = await requestStructuredSegment({
+    apiKey: "test-key",
+    model: "claude-sonnet-5",
+    schema,
+    system: "test",
+    user: "test",
+    maxTokens: 1_200,
+    retryMaxTokens: 1_600,
+    timeoutMs: 60_000,
+    preferStructured: true,
+    validate: valid,
+    qualityIssues: () => [],
+    label: "TEST",
+  });
+
+  assert.equal(qualityCall, 2, "a critical editorial leak must get one model retry before deterministic repair");
+  assert.equal(repaired.attempts, 2);
+  assert.doesNotMatch(repaired.best.value.summary, /서버 계산상|payload|strongest|(^|\s)A(?:는|가|의)/);
+  assert.ok(repaired.best.qualityIssues.includes("DETERMINISTIC_RELEASE_REPAIR_APPLIED"));
 } finally {
   globalThis.fetch = originalFetch;
 }
@@ -129,6 +159,12 @@ assert.match(engineSource, /preferStructured: true/g);
 assert.match(reportModelSource, /DEFAULT_REPORT_MODEL = "claude-sonnet-5"/);
 assert.match(reportModelSource, /model === "claude-haiku-4-5-20251001"/);
 assert.match(requestSource, /thinking: \{ type: "disabled" \}/);
+assert.match(requestSource, /DETERMINISTIC_RELEASE_REPAIR_APPLIED/);
+assert.doesNotMatch(
+  requestSource.match(/const CRITICAL_QUALITY_ISSUES = new Set\(\[([\s\S]*?)\]\);/)?.[1] ?? "",
+  /EXACT_LONG_TEXT_DUPLICATE/,
+  "exact duplicate is an editorial warning, not a paid-report terminal failure",
+);
 assert.match(oneToManySource, /preferStructured: true/);
 assert.match(envExample, /ANTHROPIC_NARRATIVE_MODEL=claude-sonnet-5/);
 

@@ -41,7 +41,6 @@ const CRITICAL_QUALITY_ISSUES = new Set([
   "INTERNAL_TERM_EXPOSED",
   "INTERNAL_METRIC_EXPOSED",
   "RELATIONSHIP_ROMANCE_LEAK",
-  "EXACT_LONG_TEXT_DUPLICATE",
   "INTRO_DAY_PILLAR_MISMATCH",
   "INTRO_DAY_PILLAR_UNKNOWN_EXPOSED",
   "INTRO_ELEMENT_RANK_MISMATCH",
@@ -200,13 +199,102 @@ function collectPaidIntroEvidenceIssues(value: unknown, userPrompt: string) {
   return [...new Set(issues)];
 }
 
+function mapNarrativeStrings(value: unknown, transform: (text: string) => string): unknown {
+  if (typeof value === "string") return transform(value);
+  if (Array.isArray(value)) return value.map((item) => mapNarrativeStrings(item, transform));
+  if (!isPlainObject(value)) return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, item]) => [key, mapNarrativeStrings(item, transform)]),
+  );
+}
+
+function sanitizeCriticalNarrativeText(text: string, relationshipType: string | null) {
+  let sanitized = text
+    .replace(/(^|[^A-Za-z0-9])A(?=(?:은|는|이|가|을|를|와|과|에게|의|도|만|쪽)|[^A-Za-z가-힣0-9]|$)/g, "$1{{SELF}}")
+    .replace(/(^|[^A-Za-z0-9])B(?=(?:은|는|이|가|을|를|와|과|에게|의|도|만|쪽)|[^A-Za-z가-힣0-9]|$)/g, "$1{{PARTNER}}")
+    .replace(/\bSTRONG\b/gi, "강한 흐름")
+    .replace(/\bWEAK\b/gi, "가벼운 흐름")
+    .replace(/\bBALANCED\b/gi, "균형 흐름")
+    .replace(/\b(?:strongest|dominantElements)\b/gi, "두드러지는 기운")
+    .replace(/\b(?:weakest|lighterElements)\b/gi, "가벼운 기운")
+    .replace(/\bconfidence\b/gi, "해석 신뢰도")
+    .replace(/\b(?:payload|evidence)\b/gi, "계산 근거")
+    .replace(/soft signal/gi, "보조 흐름")
+    .replace(/서버(?:에서)?\s*(?:계산상|가\s*제공한|에서\s*제공한)/g, "궁합 흐름상")
+    .replace(/참고\s*(?:신호|값)/g, "관계 흐름")
+    .replace(/역할 공급도|배우자 역할 점수|유용신 적합도|범위값|aRoleSupply|bRoleSupply|weightedPoints|maxPoints/g, "관계 영향");
+
+  if (relationshipType === "friend" || relationshipType === "coworker") {
+    sanitized = sanitized
+      .replace(/데이트/g, "함께하는 시간")
+      .replace(/썸을/g, "관계를")
+      .replace(/연인 관계/g, "가까운 관계")
+      .replace(/성적 긴장/g, "관계 긴장")
+      .replace(/결혼 상대/g, "장기적인 관계 상대")
+      .replace(/연애 감정/g, relationshipType === "coworker" ? "업무상 신뢰" : "친밀감");
+  }
+  if (relationshipType === "crush" || relationshipType === "flirting") {
+    sanitized = sanitized
+      .replace(/이미 교제 중?/g, "아직 관계를 확인하는 중")
+      .replace(/연인으로서/g, "서로를 알아가는 사이로서")
+      .replace(/결혼 생활/g, "장기적인 관계");
+  }
+  return sanitized.replace(/\s{2,}/g, " ").trim();
+}
+
 /**
- * Legacy compatibility export. P2 deliberately preserves the AI-authored intro;
- * server evidence is now used for validation/retry rather than wholesale replacement.
+ * Preserves AI prose while deterministically restoring facts that the server
+ * already owns. This runs only as a final recovery after the model's retry.
  */
 export function groundPaidIntroWithServerEvidence(value: unknown, userPrompt: string): unknown {
-  void userPrompt;
-  return value;
+  if (!isPlainObject(value)) return value;
+  const payload = parseAiPayloadFromUserPrompt(userPrompt);
+  if (!payload) return value;
+  const factsRoot = isPlainObject(payload.facts) ? payload.facts : null;
+  const evidenceRoot = isPlainObject(payload.evidence) ? payload.evidence : null;
+  const persons = evidenceRoot && isPlainObject(evidenceRoot.persons) ? evidenceRoot.persons : null;
+  const grounded: Record<string, unknown> = { ...value };
+
+  for (const [factKey, personKey] of [["A", "personA"], ["B", "personB"]] as const) {
+    const fact = factsRoot && isPlainObject(factsRoot[factKey]) ? factsRoot[factKey] : null;
+    const evidence = persons && isPlainObject(persons[factKey]) ? persons[factKey] : null;
+    const sourcePerson = isPlainObject(value[personKey]) ? value[personKey] : null;
+    if (!fact || !sourcePerson) continue;
+
+    const person = mapNarrativeStrings(sourcePerson, (text) => text
+      .replace(/\d+(?:\.\d+)?\s*%/g, "구체적인 비율")
+      .replace(/\d+(?:\.\d+)?\s*점/g, "구체적인 점수")) as Record<string, unknown>;
+    const dayPillar = formatPaidIntroDayPillar(fact.dayPillar);
+    const personText = collectStrings(person).join("\n");
+    if (dayPillar !== "일주 미확인" && !personText.includes(dayPillar)) {
+      const profile = typeof person.overallProfile === "string" ? person.overallProfile : "";
+      person.overallProfile = `${dayPillar} 일주의 기본 결을 바탕으로 보면, ${profile}`.trim();
+    }
+    if (dayPillar !== "일주 미확인") {
+      person.overallProfile = String(person.overallProfile ?? "").replace(/일주\s*(?:는|가)?\s*미확인|일주\s*미확인/g, dayPillar);
+    }
+
+    const balance = evidence && isPlainObject(evidence.elementBalance) ? evidence.elementBalance : null;
+    const strongest = expectedIntroElementLabels(balance?.dominantElements ?? balance?.strongest);
+    const weakest = expectedIntroElementLabels(balance?.lighterElements ?? balance?.weakest);
+    const analysis = typeof person.elementAnalysis === "string" ? person.elementAnalysis : "";
+    const hasStrongest = strongest.length === 0 || strongest.some((label) => analysis.includes(label));
+    const hasWeakest = weakest.length === 0 || weakest.some((label) => analysis.includes(label));
+    if (!hasStrongest || !hasWeakest) {
+      const strongText = strongest.length ? `${strongest.join("·")} 기운이 상대적으로 두드러지고` : "두드러지는 기운이 한쪽으로 쏠리지 않고";
+      const weakText = weakest.length ? `${weakest.join("·")} 기운은 상대적으로 가볍습니다.` : "가벼운 기운도 뚜렷하지 않습니다.";
+      person.elementAnalysis = `${strongText} ${weakText} ${analysis}`.trim();
+    }
+    grounded[personKey] = person;
+  }
+
+  return grounded;
+}
+
+export function repairPaidNarrativeForRelease(value: unknown, label: string, userPrompt: string): unknown {
+  const relationshipType = relationshipFromPrompt(userPrompt);
+  const sanitized = mapNarrativeStrings(value, (text) => sanitizeCriticalNarrativeText(text, relationshipType));
+  return label === "INTRO" ? groundPaidIntroWithServerEvidence(sanitized, userPrompt) : sanitized;
 }
 
 export function matchesJsonSchema(value: unknown, schema: unknown): boolean {
@@ -528,6 +616,20 @@ export async function requestStructuredSegment<T>(args: {
       ].join("\n")
     : "";
   const baseSystem = segmentSafetyRule ? `${args.system}\n\n${segmentSafetyRule}` : args.system;
+  const repairCandidate = (candidate: SegmentAttempt<T>) => {
+    const repairedValue = repairPaidNarrativeForRelease(candidate.value, args.label, args.user) as T;
+    const repairedIssues = [...new Set([
+      ...args.qualityIssues(repairedValue),
+      ...collectPaidNarrativeQualityIssues(repairedValue, args.label, args.user),
+      "DETERMINISTIC_RELEASE_REPAIR_APPLIED",
+    ])];
+    return {
+      ...candidate,
+      value: repairedValue,
+      characters: collectCharacters(repairedValue),
+      qualityIssues: repairedIssues,
+    };
+  };
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const remainingBudgetMs = Math.max(1_000, totalBudgetMs - (Date.now() - startedAt));
@@ -708,7 +810,19 @@ export async function requestStructuredSegment<T>(args: {
         ? duplicateLongTextSamples(candidateValue)
         : [];
       if (attempt < maxAttempts) continue;
-      throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
+      const repairedCandidate = repairCandidate(candidate);
+      const repairedCritical = criticalIssues(repairedCandidate.qualityIssues);
+      console.warn("[woorigunghap:v6-segment-release-repair]", JSON.stringify({
+        label: args.label,
+        attempt,
+        originalCritical: critical,
+        remainingCritical: repairedCritical,
+        characters: repairedCandidate.characters,
+      }));
+      if (repairedCritical.length === 0) {
+        return { best: repairedCandidate, attempts: attempt, allUsage };
+      }
+      throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${repairedCritical.join("_")}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       if (message === "ANTHROPIC_CREDIT_BALANCE_LOW") throw error;
@@ -726,8 +840,16 @@ export async function requestStructuredSegment<T>(args: {
   }
 
   if (bestQualityCandidate) {
-    const critical = criticalIssues(bestQualityCandidate.qualityIssues);
-    if (critical.length === 0) return { best: bestQualityCandidate, attempts: maxAttempts, allUsage };
+    const repairedCandidate = repairCandidate(bestQualityCandidate);
+    const critical = criticalIssues(repairedCandidate.qualityIssues);
+    console.warn("[woorigunghap:v6-segment-release-repair]", JSON.stringify({
+      label: args.label,
+      attempt: maxAttempts,
+      originalCritical: criticalIssues(bestQualityCandidate.qualityIssues),
+      remainingCritical: critical,
+      characters: repairedCandidate.characters,
+    }));
+    if (critical.length === 0) return { best: repairedCandidate, attempts: maxAttempts, allUsage };
     throw new Error(`ANTHROPIC_SEGMENT_${args.label}_QUALITY_CRITICAL_${critical.join("_")}`);
   }
   throw new Error(`ANTHROPIC_SEGMENT_${args.label}_${lastFailure}`);

@@ -40,7 +40,7 @@ import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
-const REPORT_RUNTIME_VERSION = "paid-report-v7-concise-structured-20260826";
+const REPORT_RUNTIME_VERSION = "paid-report-v7-concise-structured-quality-repair-20260826";
 const PHASES = ["prepare", ...PAID_REPORT_SEGMENTS] as const;
 type ReportPhase = (typeof PHASES)[number];
 

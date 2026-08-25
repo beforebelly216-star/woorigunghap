@@ -50,7 +50,7 @@ for (const removedCopy of [
 }
 
 assert.ok(
-  oneToOneRoute.includes("paid-report-v7-concise-structured-20260826"),
+  oneToOneRoute.includes("paid-report-v7-concise-structured-quality-repair-20260826"),
   "1:1 route must expose the concise structured generation runtime version",
 );
 assert.ok(oneToOneRoute.includes("export const maxDuration = 300"), "1:1 route must use the Hobby Fluid Compute duration ceiling");
