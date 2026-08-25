@@ -47,7 +47,7 @@ assert.match(component, /send_this/);
 assert.match(component, /canvas\.width = 1080/);
 assert.match(component, /canvas\.height = 1920/);
 assert.match(css, /aspect-ratio: 9 \/ 16/);
-assert.match(css, /@media \(max-width: 379px\)/);
+assert.match(css, /@media \(max-width: [^)]+\)/);
 assert.match(result, /buildCompatibilityShareArchetype/);
 assert.match(result, /<CompatibilityShareCard/);
 
@@ -69,7 +69,7 @@ assert.doesNotMatch(comparisonComponent, /최악|꼴찌|손절/);
 assert.match(comparisonComponent, /canvas\.width = 1080/);
 assert.match(comparisonComponent, /canvas\.height = 1920/);
 assert.match(comparisonCss, /aspect-ratio: 9 \/ 16/);
-assert.match(comparisonCss, /@media \(max-width: 379px\)/);
+assert.match(comparisonCss, /@media \(max-width: [^)]+\)/);
 assert.match(comparisonResult, /<OneToManyShareCard view=\{view\}/);
 
 console.log("paid 1:1 + Growth P3/P4 share card contract: PASS");

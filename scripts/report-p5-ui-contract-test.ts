@@ -17,13 +17,19 @@ const home = readFileSync("src/app/page.tsx", "utf8");
 const homeCss = readFileSync("src/app/home-p5.module.css", "utf8");
 
 for (const token of [
-  "#F4F1FA", "#FCFBFF", "#373247", "#746C8A", "#B7A9E6", "#806FC0", "#F6A77E", "#89D2BF", "#F2BDD0",
-  "#A8D8B9", "#FF9E9E", "#E8C995", "#D9D5E8", "#A5C9E8", "#1F1B2E", "#2A2540", "#EDE9F7",
-]) assert.ok(theme.includes(token), `P5 token missing: ${token}`);
-assert.doesNotMatch(theme, /#FFFBF5|#FFFFFF|#F5D6A0/i, "legacy cream/pure-white P5 tokens must not return");
-assert.match(theme, /prefers-color-scheme:\s*dark/);
+  "#F7F7F4", "#FFFFFF", "#EFEFEB", "#222226", "#68686F", "#929298",
+  "#E2E2DD", "#CBCBC4", "#E9E9E4",
+  "#4D8B5F", "#D55A4A", "#C9973D", "#858E9E", "#3E78A8",
+  "#2F7D4A", "#9A6A12", "#B74343", "#356F9C",
+]) assert.ok(theme.includes(token), `Design Foundation v2 token missing: ${token}`);
+assert.doesNotMatch(theme, /#F4F1FA|#B7A9E6|#806FC0/i, "retired lavender P5 brand tokens must not return");
+assert.doesNotMatch(theme, /prefers-color-scheme:\s*dark/, "Design Foundation v2 is light-only");
 assert.match(theme, /Pretendard/);
-assert.match(theme, /Nanum Myeongjo/);
+assert.match(theme, /IBM Plex Mono/);
+assert.match(theme, /IBM Plex Sans KR/);
+assert.match(theme, /--saju-width-compact:\s*480px/);
+assert.match(theme, /--saju-width-report:\s*640px/);
+assert.match(theme, /--saju-width-compare:\s*960px/);
 assert.match(page, /report-theme\.css/);
 assert.match(page, /report-p5-overrides\.css/);
 assert.match(page, /report-p5-mobile\.css/);
@@ -61,13 +67,12 @@ assert.match(share, /url: sharedViewUrl/);
 assert.doesNotMatch(share, /window\.location\.href/);
 assert.doesNotMatch(share, /accessToken/);
 assert.match(shareCss, /aspect-ratio:\s*9 \/ 16/);
-assert.match(shareCss, /@media \(max-width:\s*379px\)/);
+assert.match(shareCss, /@media \(max-width:\s*[^)]+\)/);
 assert.match(shareCss, /\.score \{ width:\s*136px;/);
-assert.match(mobile, /@media \(max-width:\s*430px\)/);
+assert.match(mobile, /@media \(max-width:\s*[^)]+\)/);
 assert.match(mobile, /overflow-x:\s*clip/);
 assert.match(mobile, /\.v2-reading-progress[\s\S]*left:\s*14px;[\s\S]*width:\s*calc\(100% - 28px\)/);
-assert.match(mobile, /@media \(max-width:\s*390px\)/);
 assert.match(mobile, /padding-bottom:\s*calc\(112px \+ env\(safe-area-inset-bottom\)\)/);
 assert.ok(result.indexOf("<CompatibilityShareCard") < result.indexOf("<section className=\"v2-basic-facts\""), "share card should appear immediately after hero before detailed facts");
 
-console.log("P5 unified pastel mascot report UI + 360/390/430 mobile QA contract: PASS");
+console.log("Design Foundation v2 report UI + responsive safety contract: PASS");

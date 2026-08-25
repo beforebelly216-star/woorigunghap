@@ -1,172 +1,95 @@
 # 우리사주 프로젝트 상태
 
-> GPT와 Claude가 공유하는 현재 상태 문서. 작업 시작 시 반드시 읽고, 의미 있는 작업 완료 후 갱신한다.
+> GPT와 Claude가 공유하는 현재 상태 문서. GitHub 최신 `main`과 실제 코드가 최우선이며, 의미 있는 작업 완료 후 갱신한다.
 
 ## 기준선
 
-- 공식 프로젝트명/서비스명: **우리사주**
+- 공식 서비스명: **우리사주**
 - 기준 브랜치: `main`
-- 기준 상태: Day 24 MVP 완료, 베타 전 제품 완성도 개선 및 운영 QA 단계
+- 상태: Day 24 MVP 완료, 베타 전 제품 완성도 개선 + 운영 QA 단계
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
-- 배포: Vercel Production. **Git 자동 배포는 비활성화하며 Preview/Production 배포는 사용자 명시 승인 후 별도 실행**
-- 최신 승인 Production 배포: `87c3c95` Vercel `Ready`(Production). 기능/문서 코드는 1:1 result hero next-action strip 및 오행 밸런스 시스템 방향 확정 문서(`58c8db1`, `9ba7b0c`, `cfc2411`)를 포함한다. 배포 직후 자동배포는 `46bfbfa`에서 다시 비활성화됐다.
-- **main이 Production 배포보다 앞서 있음 (2026-08-25)**: 전역 오행 토큰 적용, 1:1 입력 위자드화, 전체 화면 모바일 폭 강제(PC 포함) 작업이 `main`(`0333b15`)에는 merge됐지만 아직 Production에는 배포되지 않았다. 사용자 승인 후 별도 배포 필요.
-- 레거시 내부 식별자: GitHub 저장소 `beforebelly216-star/woorigunghap`, 기존 Vercel 도메인, DB의 `woorigunghap_*` 식별자는 호환성을 위해 유지한다.
+- 상품: 1:1 1,000원 / 1:N 3,000원
+- 관계 유형: 짝사랑 / 썸 / 연인 / 친구 / 직장동료
+- 배포: Vercel Production. Git 자동배포는 **비활성화**가 기본이며 Preview/Production은 사용자 명시 승인 후 별도 실행한다.
+- 레거시 내부 식별자(`woorigunghap_*`, 기존 repo/domain)는 호환성 때문에 마이그레이션 전까지 유지할 수 있다.
 
 ## 현재 구현 상태
 
-- **free-first 신규 유입:** 홈 첫 CTA `무료로 내 관계 성향 보기` → `/free` deterministic 자기 분석 → 결과 뒤 1:1/1:N 유료 전환
-- 무료 자기 분석은 기존 만세력 + 60일주 캐릭터 편집 레이어만 사용하고 4개 Aha insight를 반환하며 주문·결제·유료 AI 생성을 만들지 않음
-- 무료 API DTO는 원본 생년월일시·전체 명식 snapshot·유료 점수/본문·결제/접근 식별자를 반환하지 않음
-- 무료 결과 → 1:1 이동 시 같은 브라우저 sessionStorage의 본인 입력을 첫 번째 사람으로 prefill하며 raw birth input을 URL query에 넣지 않음
-- 1:1 상품 1,000원
-- 1:N 상품 3,000원, 기준자 1명 + 후보 2~5명
-- 관계 유형: 짝사랑 / 썸 / 연인 / 친구 / 직장동료
-- 서버 만세력 계산 및 9개 궁합 지표
-- PortOne 결제 검증 및 webhook 멱등 처리
-- 결제 검증 후 AI 리포트 생성, segment single-flight/idempotency
-- 1:1 CH0~CH9 장문 리포트, 1:N 순위/비교 리포트
-- Neon 서버 저장, 복구 링크, 선택형 Kakao 로그인, 계정 보관함
-- 생성중 결과 보관함 표시 및 같은 브라우저 복구 재기동
-- 완성된 보관함 결과 개별 영구 삭제. 상세 결과·입력정보·접근정보와 해당 public Shared View를 제거하고 법정 보존 최소 결제기록만 유지
-- 궁합 공개 점수 v1.4: 내부 가중합·9개 차원은 유지하고 사용자 종합점수만 45~100점 단조 스케일로 표시
-- 이용약관/개인정보/환불 정책, 회원탈퇴/데이터 삭제
+- 홈 free-first 퍼널: `무료로 내 관계 성향 보기` → `/free` deterministic 자기 분석 → 1:1/1:N 유료 전환
+- 무료 자기 분석은 주문·결제·유료 AI를 만들지 않고 기존 만세력/60일주 편집 레이어만 사용한다.
+- 무료 입력은 같은 브라우저에서 1:1 첫 사람으로 prefill할 수 있으며 원본 생년월일시는 URL query에 넣지 않는다.
+- 서버 결정론적 만세력 + 9개 궁합 지표 계산
+- PortOne 결제 검증 / webhook 멱등 처리
+- 결제 검증 뒤 AI 서술 생성, segment single-flight/idempotency
+- 1:1 CH0~CH9 장문 리포트 / 1:N 후보 순위·비교 리포트
+- Neon 서버 저장 / 비회원 복구 / 선택형 Kakao 로그인 / 계정 보관함
+- 보관함 생성중 복구 및 완성 결과 영구 삭제
+- public share: 1:1·1:N Relationship Label / Two Sides / Send This / Receipt / Recap / Shared View / 반응 UX / analytics 구현
+- Web Share API + 1080×1920 이미지 저장 + public Shared View URL + clipboard fallback 유지
+- 개인정보·유료 본문·내부 계산 상세는 public share DTO에 포함하지 않는다.
 
-## UI / UX hotfix 상태
+## 1:1 생성 파이프라인
 
-- 홈·무료 입력·유료 입력·결제·생성중·결과·보관함·Shared View 핵심 surface를 **라벤더 기반 공통 파스텔 토큰**으로 통일
-- 개정 전 크림/베이지/연노랑 surface와 순백 혼용을 핵심 화면 기본 테마에서 제거
-- 홈의 `계산은 서버가`, `무료는 계산만`, `AI는 서술만`, `결제 후 생성` 등 구현 설명 카드와 하단 범용 면책 문구 제거
-- 보관함 완성 결과 CTA를 `결과 열기 · 공유하기`로 명시해 공유 기능 발견성을 보강
-- 기존 P5 UI 계약의 크림색 고정값을 새 공통 테마 계약으로 갱신
-- 위 UI hotfix는 2026-08-24 사용자 승인 후 Production 배포까지 완료. 실제 모바일 육안 QA는 계속 필요
-- **2026-08-25 Claude 변경 1 (로컬 커밋만 존재, main 미반영):** 1:1 결과 화면 hero 맨 아래에 `전체 리포트 읽기` · `지금 공유하기` 다음행동 nav 추가(각각 리포트 시작/공유카드로 anchor 이동). lint/tsc/Core Validation 40개 스크립트 전부 PASS. `next build`는 세션 sandbox 네트워크가 `fonts.googleapis.com`을 막아 미검증(원본 main에서도 동일 재현되어 회귀 아님 확인). GitHub push 자격증명이 없어 origin에는 아직 반영되지 않음 — patch 파일을 사용자에게 전달함
-- **2026-08-25 사용자 요청 — 전체 UI/UX 재설계, 방향 확정 (로컬 커밋만 존재, main 미반영):** 화면별 순차 진행. 비주얼 아이덴티티는 **B. 오행 밸런스 시스템으로 확정** — 오행 5색을 상시 기능 정보로 사용, 5색 바 + 점수 링이 반복 시그니처 요소. 상세 스펙 `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md`(컬러 토큰/타이포/레이아웃 원칙/화면 적용 순서). `docs/DECISIONS.md` 리포트 섹션에 확정안 반영됨. 실제 화면별 구현은 아직 시작 전(문서/결정만 완료) — 다음 단계는 홈 화면부터 Claude Code 세션에서 진행. 자세한 내용은 `docs/NEXT_TASK.md` 상단 HANDOFF 참고
+- `intro`는 단독 생성하고 성공 뒤 `dynamics + action`만 겹칠 수 있는 staged fan-out 구조다.
+- route `maxDuration=300`, Vercel Fluid Compute 사용.
+- segment별 single-flight lock과 5분 stale 안전창을 유지한다.
+- complete lock인데 authoritative report segment가 없으면 reconciliation/reclaim 가능하다.
+- 반복 소진된 AI/transport/dependency failure는 무한 재시도로 숨기지 않고 종료 가능한 오류로 분류한다.
+- 결제검증/background helper는 1:1 AI 세그먼트를 선점하지 않는다. 1:N background generation은 유지한다.
+- **운영 미검증:** PR #45 Production 배포 후 기존 stuck 주문 복구, 신규 실제 1:1 전체 생성시간, 실패 종료 메시지의 실사용 QA가 아직 남아 있다.
 
-## 1:1 생성 및 콘텐츠
+## UI / UX — Design Foundation v2
 
-- `prepare` 후 `intro` / `dynamics` / `action` segment를 생성한다.
-- 각 segment는 독립된 single-flight claim을 사용하고 stale claim 재획득 기준은 **5분 유지**해 살아 있는 장문 요청의 중복 AI 비용을 방지한다.
-- **PR #41 배포본의 결함:** 첫 segment 요청이 세 segment를 동시에 시작한 뒤 `Promise.all`로 전부 끝날 때까지 응답을 막아, intro가 이미 끝나도 dynamics/action 중 하나가 220초 가까이 걸리면 Vercel `maxDuration=240`에 걸려 브라우저가 무한 재시도할 수 있었다.
-- **PR #43 수정:** 요청한 segment만 HTTP 응답 완료 조건으로 기다리고, 다른 누락 segment는 같은 invocation에서 시작하되 Next.js `after()` / Vercel `waitUntil`로 응답 후에도 지속하도록 변경했다.
-- **PR #43 Production runtime 재검증 결과:** 실제 사용자 화면에서 `0/3개 해설 묶음 완료 · 359초 경과`가 재현돼 추가 blocker가 확인됐다.
-- **PR #45 전수조사 결과:** 결제검증 background kickoff, 결과 화면, segment route 내부 fan-out이 동시에 같은 1:1 segment lock을 선점할 수 있었고, exhausted AI/transport 실패는 5xx로 반환돼 클라이언트 무한 재시도에 가려질 수 있었다. Vercel `after()` 작업도 함수 전체 실행시간 제한의 적용을 받는다.
-- **PR #45 구조 변경:** 결제검증/background helper에서는 1:1 AI를 시작하지 않는다. `intro`를 단독 생성하고 성공 후 `dynamics + action`만 병렬 가능하도록 staged fan-out을 사용한다. 1:N background generation은 유지한다.
-- 1:1 route는 `maxDuration=300`, repository Vercel config는 `fluid: true`를 명시한다. Git 자동배포는 계속 비활성화한다.
-- `complete` claim인데 authoritative `report_json`에 해당 segment가 없는 비정상 상태는 재획득해 복구할 수 있다. 살아 있는 `generating` claim의 5분 중복비용 안전창은 유지한다.
-- Claude auth/billing/permission/model/request/rate-limit/overload/timeout/truncation/format/critical-quality failure와 PortOne lookup dependency failure를 분류한다. 반복 소진 뒤에는 일반 5xx 무한재시도로 숨기지 않고 사용자에게 종료 가능한 오류로 전달한다.
-- 병렬 segment 저장의 PostgreSQL `jsonb_set(... )::text` 경로를 재확인했으며 DB JSONB→text cast 누락 가설은 배제했다.
-- **PR #45 수정은 2026-08-24 사용자 승인 후 Production 배포 완료. 실제 기존 stuck 주문 회복 및 신규 1:1 생성 완료 runtime 검증이 남아 있다.**
-- 같은 브라우저 보관함 생성 복구 handoff는 **60초 간격**으로 재시도한다.
-- 목표 분량 약 5,000~8,000자, 필요 시 약 10,000자
-- 계산된 일주·오행·관계 근거와 AI 서술 정합성 검증
-- CH0~CH9 전용 `keyTakeaways`
-- 구현 내부 표현의 사용자 노출 차단
-- 일상 언어 결론/관계 장면을 먼저 쓰고 사주 용어·근거를 뒤에서 설명
-- 유료 1:1 기본 화자 `사주소년`, 관계 유형별 미세 톤 분리
-- CH2 `그 사람의 속마음`은 계산된 관계 반응을 1인칭 가상 독백으로 번역하는 편집 장치
-- 기존 계산 snapshot 기반 6개 궁합 유형 및 60갑자 일주 캐릭터 편집 레이어
-- 파스텔 마스코트 UI/UX, 8글자 사주 타일, 9축 레이더, 모바일 UI
+- **2026-08-25 사용자 지시로 기존 오행 스펙을 전면 폐기하고 `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md`를 `우리사주 Design Foundation v2`로 새로 작성했다.**
+- 이 문서가 전체 UI/UX의 단일 디자인 Source of Truth다.
+- 레퍼런스 원칙: Co–Star의 에디토리얼 절제 / The Pattern의 progressive disclosure / Toss의 모바일 정보 위계 / Spotify Wrapped의 데이터 스토리텔링을 원리만 차용하고 화면을 복제하지 않는다.
+- 핵심 시각 문법: neutral canvas + 실제 데이터에만 쓰는 오행 기능색 + 강한 타이포 + 한 화면 한 메시지 + `점수 → 의미 → 관계 장면 → 행동` 구조.
+- 공통 토큰은 `src/app/report-theme.css`에 Foundation v2와 일치하도록 반영했다.
+- 기본 폭 원칙: 입력·결제 compact 480px / 1:1 report 640px / 1:N compare 960px. 모바일 우선이지만 PC 전체를 480px로 강제하지 않는다.
+- 기존 `main`에는 직전 작업의 전 화면 모바일 폭 강제 및 `max-width:99999px` 계열 CSS가 남아 있어 새 원칙과 충돌한다. **이는 2단계 실제 화면 적용 때 화면별로 안전하게 제거/복원해야 한다.**
+- 다크모드는 지원하지 않는다. gradient/glow/glassmorphism/과도한 shadow와 카드 남용을 기본 스타일로 사용하지 않는다.
+- 1:1 결과 기본 IA: Hero → Snapshot → Relationship Label → Two Sides → 강점 → 충돌/주의 → 관계 흐름 → 행동 가이드 → CH0~CH9 → Share/Save/Next.
+- 1:N 기본 IA: ranking → 후보 역할 → 공통 지표 비교 → 후보별 강점/주의 → 선택 기준 해석 → 상세 후보 리포트.
+- 사주소년은 화자/브랜드 장치로 유지할 수 있으나 데이터와 문장이 결과 화면의 주인공이다.
+- 실제 화면 컴포넌트/레이아웃 전면 개편은 아직 시작 전이다. 1단계는 Foundation 정의와 shared token 정렬까지만 수행한다.
 
-## 1:N 구현 상태
+## 검증 상태
 
-- 후보별 순위·비교 리포트와 핵심 지표 제공
-- 후보 이름 + 핵심 강점 기반 의미형 제목 적용
-- 연락·대화 / 편안함·신뢰 / 갈등 회복 / 생활·장기관계 중심 사용자 언어
-- 순번형 본문 표현과 단순 최하위 비난 표현 축소
-- 계산 키/점수 공식과 기존 저장 리포트 호환성 유지
+- **PR #47 / Core calculation validation #677 PASS**
+- 만세력 30 golden cases, 날짜·절입 경계, 궁합 엔진, 결제/AI 경계, 1:N, account/editorial/policy/Growth/report 계약 전부 PASS
+- Foundation v2 P5 UI / persona / 1:1·1:N share-card / hotfix runtime UX 계약 PASS
+- `npm run lint` PASS
+- production build PASS
+- 과거 라벤더 색상과 특정 breakpoint 숫자에 과결합된 assertion은 실제 기능/반응형 계약 중심으로 교체했다.
+- 검증 과정에서 `vercel.json`의 Git 자동배포가 `true`로 남은 운영 규칙 위반을 발견해 `false`로 복구했고 관련 hotfix 계약도 PASS했다.
 
-## 카카오 기능 상태
+## 배포 상태
 
-- Kakao 로그인은 계정 인증·구매 결과 귀속·보관함·회원탈퇴 unlink 용도로 유지
-- Kakao Developers 메시지 보내기 기능은 사용하지 않음
-- 카카오톡 채널/알림톡/SOLAPI 완료 알림 기능은 제거됨
-- 완료 알림용 휴대전화 번호를 수집·저장하지 않음
-- 과거 실험 DB 컬럼/테이블이 남아 있을 수 있으나 새 애플리케이션은 읽거나 쓰지 않음
+- 이번 Design Foundation v2 작업에서 Vercel Preview/Production 배포는 실행하지 않는다.
+- Production과 최신 `main`은 일시적으로 다를 수 있으며 코드 상태와 배포 상태를 분리해 판단한다.
+- 다음 Production 배포는 사용자 명시 승인 뒤 별도 수행한다.
 
-## Growth 구현 상태
+## 남은 핵심 QA / 리스크
 
-- 상세 실행 지침: `docs/PROMOTION_VIRAL_UX.md`
-- **A0 완료:** 홈 free-first CTA, `/free` 한 사람 자기 분석, deterministic 4-insight Aha 결과, 결과 뒤 1:1/1:N 유료 CTA
-- **P1 완료:** whitelist 공개 Share DTO, 이름 opt-in, 개인정보·유료 본문·내부 계산 상세 공개 금지
-- **P2 완료:** raw 240개 검토 → 160개 Production 관계 카피, deterministic selector, curiosity mask
-- **P3 완료:** 1:1·1:N Relationship Label / Two Sides / Send This 9:16 공유 카드, Web Share/이미지 저장/clipboard fallback
-- **P4 완료:** opaque public token 기반 `/share/[token]`, 비로그인 제한 결과, 신규 궁합 CTA
-- public share DB는 raw public token 대신 hash와 whitelist 공개 DTO만 저장
-- 보관함 결과 영구 삭제 및 회원탈퇴 데이터 삭제 시 해당 결과의 public share도 제거
-- **P5 완료:** Shared View 수신자 `꽤 맞음 / 반반 / 아닌데` 반응 UX와 9-event analytics 퍼널
-- analytics 저장은 제한된 enum 필드만 허용하고 이름·생년월일시·구매 식별자·유료 본문을 저장하지 않음
-- public share 연계 analytics는 raw token이 아닌 hash로 연결하고 public share 삭제 시 함께 정리
-- **P6 완료:** 1:1·1:N `Receipt / Recap` 9:16 공유 카드와 deterministic `p6_receipt_first / p6_recap_first` A/B
-- 1:1·1:N 실제 공유 구현은 Web Share API, 1080×1920 이미지 저장, opaque Shared View URL, clipboard fallback을 유지
-
-## 최근 주요 검증
-
-- Growth P5 PR #38 Core Validation #609: 기존 전체 contracts + P5 analytics/reaction contract + lint + production build PASS
-- Growth P6 PR #39 Core Validation #613: 기존 전체 contracts + P6 experiment contract + lint + production build PASS
-- Free acquisition PR #40 Core Validation #618: free acquisition contract + 기존 전체 contracts + lint + production build PASS
-- PR #41 Core Validation #630 PASS: runtime/UI hotfix + 전체 회귀 + lint + production build
-- PR #41 hotfix main merge: `c97d61bb2a43182c037aab832b1f657744935fd1`
-- 승인 Production 배포: `1289a39972976bc05447fc14c86219c3cdaac983` → Vercel `success`
-- **1:1 생성 응답 blocker PR #43 검증 code head:** `579317252b8c76a28eec3995ad4a809fe7fdda46`
-- **PR #43 Core Validation #636 PASS:** 기존 전체 contracts + 수정된 non-blocking fan-out contract + lint + production build
-- **PR #43 main merge:** `d20de6ad4f4a7e2cc5615ad9b1b132fc178f599e`
-- **PR #43 승인 Production 배포:** one-shot enable commit `222341c8e8b84112e01036afb1b474744097072f` → Vercel `success`
-- **자동배포 재비활성화:** `3c3c151edd33003b612ebc5bbdfc7271f6b42f35`; 해당 commit에는 Vercel deployment status 없음 확인
-- **PR #45 1:1 generation hardening validated code head:** `7acc0009e19dcae5569591996b7ea0aa1960eea5`
-- **PR #45 Core Validation #644 PASS:** 기존 전체 contracts + payment/narrative/storage + 1:N + account/editorial/policy/Growth/system + hotfix contract + lint + production build
-- **PR #45 main merge:** `2da9762459d189783c633a17a7331f8b468a18a5`
-- **PR #45 승인 Production 배포:** one-shot enable commit `89a4bb604248d7bc8c21f605aba19e027c2b4fdc` → Vercel `success`
-- **자동배포 재비활성화:** `c94f60e8b58e50ca0738ad33124aac8502b2b9df`; 해당 commit에는 Vercel deployment status 없음 확인
-
-## 현재 제품 우선순위
-
-1. **blocker runtime QA: 배포된 PR #45에서 기존 stuck 주문 회복 및 신규 1:1 생성 완료 확인**
-2. Production 테마·공유 실사용 QA
-3. 최신 사용자 요청으로 지정된 제품 개선
-4. AI 답변 스타일/사주소년 화자 품질 개선
-5. 리포트 항목/정보구조 개선
-6. 무료 유입/Growth 및 post-beta 운영 QA
-
-## 아직 미완료인 운영 QA
-
-- **현재 Production은 PR #45 hardening 배포본이다. 실제 유료 주문에서 생성 완료까지의 runtime 검증은 아직 필요하다.**
-- 기존 `생성중` 주문이 saved segment / 5분 stale lock / complete-lock reconciliation을 통해 재개되는지 확인
-- 새 1:1 실제 결제에서 intro 단독 완료 → dynamics/action → 전체 생성시간·저장·재열람까지 확인
-- 실패 상황에서 장시간 무한대기 대신 분류된 종료 메시지가 노출되는지 확인
-- Production에서 라벤더 테마가 홈/입력/결제/결과/보관함에 일관되게 적용됐는지 360 / 390 / 430px 육안 확인
-- Production 1:1·1:N 결과에서 이미지 저장 / Web Share / public Shared View 링크가 실제 동작하는지 확인
-- 홈 → `/free` 입력/결과 → `/one-to-one?from=free` 본인정보 prefill 실제 동작 확인
-- public link 생성 → 비로그인 Shared View → 반응 → CTA 실제 동작 확인
-- P5/P6 analytics row 생성, 9-event 퍼널 및 A/B arm 기록 확인
-- 결과/계정 삭제 뒤 기존 Shared View 및 token 연계 analytics 정리 확인
-- 1:1 실제 결제 반복 사용
-- 1:N 실제 결제 반복 사용
-- 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
-- 회원탈퇴/데이터 삭제/Kakao unlink
-- Production runtime error와 AI 비용 관찰
-- 공개 운영정보/환경값 최종 확인
+1. PR #45 배포본의 실제 1:1 runtime 재검증
+2. 1:1·1:N 실제 공유 / 이미지 저장 / Shared View 확인
+3. 홈 → 무료 결과 → 1:1 prefill 실제 동작 확인
+4. 360 / 390 / 430px 핵심 플로우 육안 QA
+5. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
+6. 회원탈퇴/데이터 삭제/Kakao unlink
+7. 결과/계정 삭제 뒤 public share 및 analytics 정리 확인
+8. Production runtime error / AI 비용 관찰
 
 ## 출시 blocker 정의
 
-1. 결제 성공 후 결과 유실
-2. 동일 결제의 AI 중복 생성/비용 중복
-3. 타 계정 유료 결과 열람
-4. 정책 동의 없는 결제
-5. 개인정보·비밀값·내부 지표의 부적절한 노출
-6. 탈퇴 후 삭제 대상 데이터 잔존
-7. 친구/직장동료 결과에 구조적으로 잘못된 연애·성적 프레임 혼입
-8. JSON/API/저장 실패로 유료 결과 생성 불가
-9. 결제 완료 후 1:1 생성 요청이 플랫폼 timeout/무한 재시도로 결과에 도달하지 못함
+- 결제 성공 후 결과 유실
+- 동일 결제의 AI 중복 생성/중복 비용
+- 권한 없는 유료 결과 열람
+- 정책 동의 없는 결제
+- 개인정보·비밀값·내부 지표의 부적절한 노출
+- 탈퇴 후 삭제 대상 데이터 잔존
+- 친구/직장동료 결과에 구조적으로 잘못된 연애/성적 프레임 혼입
+- JSON/API/저장 실패로 유료 결과 생성 불가
+- 결제 완료 후 플랫폼 timeout/무한 재시도로 1:1 결과에 도달하지 못함
 
-문체 취향, 재미, 일부 반복/분량 편차는 blocker로 취급하지 않는다.
-
-## 운영 원칙
-
-- GitHub 최신 `main`을 단일 진실 공급원으로 사용한다.
-- 작업 시작 시 `AGENTS.md` → `docs/PROJECT_STATE.md` → `docs/NEXT_TASK.md` → `docs/DECISIONS.md` 순서로 읽는다.
-- 사용자 요청이 `NEXT_TASK`보다 구체적이면 사용자 요청을 우선한다.
-- 기존 완료 기능을 이유 없이 재작성하지 않는다.
-- Vercel Hobby build rate limit은 코드 실패가 아니다.
-- **Vercel Git 자동 배포는 비활성화하고 Preview/Production 배포는 대상 SHA와 테스트 결과를 제시한 뒤 사용자 명시 승인 후 실행한다.**
-- 의미 있는 작업 후 `PROJECT_STATE`, `NEXT_TASK/HANDOFF`를 갱신한다.
+문체 취향, 재미, 일부 반복/분량 편차는 blocker가 아니다.

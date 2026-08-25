@@ -26,8 +26,11 @@ assert.ok(
   layout.indexOf('import "./theme-unification.css";') > layout.indexOf('import "./score-library.css";'),
   "theme unification must be imported after legacy styles",
 );
-assert.ok(theme.includes("--saju-bg-base: #F4F1FA"), "light base must use the cool lavender palette");
-assert.ok(theme.includes("--saju-bg-card: #FCFBFF"), "card surface must not use the previous pure-white/cream surface");
+assert.ok(theme.includes("--saju-bg-base: #F7F7F4"), "light base must use the Design Foundation v2 neutral canvas");
+assert.ok(theme.includes("--saju-bg-card: #FFFFFF"), "card surface must use the Design Foundation v2 card token");
+assert.ok(theme.includes("--saju-action: #222226"), "primary action must use the shared ink action token");
+assert.ok(theme.includes("--saju-element-wood: #4D8B5F"), "functional five-element tokens must remain available");
+assert.ok(!theme.includes("prefers-color-scheme: dark"), "Design Foundation v2 must stay light-only");
 for (const selector of [".library-page", ".input-page", ".result-page", ".comparison-report-page", ".site-header"]) {
   assert.ok(unifiedTheme.includes(selector), `theme override must cover ${selector}`);
 }
@@ -81,4 +84,4 @@ assert.ok(oneToManyResult.includes("<OneToManyShareCard view={view} />"), "paid 
 assert.equal(vercel.fluid, true, "Fluid Compute must be pinned for long paid narrative functions");
 assert.equal(vercel.git?.deploymentEnabled, false, "automatic Vercel Git deployments must stay disabled until user approval");
 
-console.log("Hotfix runtime/UI contract passed: unified theme, staged 1:1 generation, no nested 1:1 kickoff, visible failures, share path, and manual deploy policy.");
+console.log("Hotfix runtime/UI contract passed: Design Foundation v2 theme, staged 1:1 generation, no nested 1:1 kickoff, visible failures, share path, and manual deploy policy.");
