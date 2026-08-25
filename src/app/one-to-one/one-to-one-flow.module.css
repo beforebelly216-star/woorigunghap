@@ -1,0 +1,551 @@
+.page,
+.checkoutPage {
+  width: min(100%, var(--saju-width-compact));
+  margin: 0 auto;
+  padding: 52px 20px 80px;
+  color: var(--saju-ink);
+}
+
+.shell,
+.checkoutShell {
+  display: grid;
+  gap: 28px;
+}
+
+.backLink {
+  width: fit-content;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--saju-ink-soft);
+  font-size: .84rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.header {
+  display: grid;
+  gap: 14px;
+  padding: 8px 0 10px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--saju-ink-soft);
+  font-size: .74rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin: 0;
+  font-family: var(--saju-font-heading);
+  font-size: clamp(2.1rem, 8vw, 3.35rem);
+  line-height: 1.06;
+  letter-spacing: -.045em;
+}
+
+.header p:not(.eyebrow) {
+  margin: 0;
+  color: var(--saju-ink-soft);
+  font-size: .96rem;
+  line-height: 1.72;
+}
+
+.page :global(.compatibility-form) {
+  display: grid;
+  gap: 22px;
+}
+
+.page :global(.step-progress) {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 4px;
+}
+
+.page :global(.step-progress-track) {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+
+.page :global(.step-progress-bar) {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--saju-track);
+}
+
+.page :global(.step-progress-bar-done) {
+  background: var(--saju-action);
+}
+
+.page :global(.step-progress-label) {
+  color: var(--saju-ink-soft);
+  font-family: var(--saju-font-data);
+  font-size: .76rem;
+  font-weight: 700;
+}
+
+.page :global(.form-section),
+.page :global(.person-panel) {
+  min-width: 0;
+  margin: 0;
+  padding: 24px 0 2px;
+  border: 0;
+  border-top: 1px solid var(--saju-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.page :global(.form-section:first-of-type),
+.page :global(.people-grid .person-panel) {
+  border-top-color: var(--saju-border);
+}
+
+.page :global(.form-section h2),
+.page :global(.person-panel legend) {
+  margin: 0 0 20px;
+  padding: 0;
+  color: var(--saju-ink);
+  font-family: var(--saju-font-heading);
+  font-size: 1.28rem;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.page :global(.section-copy),
+.page :global(.field-help) {
+  margin: -8px 0 18px;
+  color: var(--saju-ink-soft);
+  font-size: .88rem;
+  line-height: 1.65;
+}
+
+.page :global(.field-stack) {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.page :global(.field-stack > span) {
+  color: var(--saju-ink);
+  font-size: .86rem;
+  font-weight: 750;
+}
+
+.page :global(input[type="text"]),
+.page :global(textarea) {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid var(--saju-border-strong);
+  border-radius: var(--saju-radius-control);
+  background: var(--saju-bg-card);
+  color: var(--saju-ink);
+  padding: 12px 14px;
+  font-size: 1rem;
+  box-shadow: none;
+}
+
+.page :global(textarea) {
+  min-height: 118px;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.page :global(input[type="text"]:focus),
+.page :global(textarea:focus) {
+  border-color: var(--saju-ink);
+  outline: 2px solid color-mix(in srgb, var(--saju-ink) 12%, transparent);
+  outline-offset: 1px;
+}
+
+.page :global(.field-hint),
+.page :global(.relationship-context-meta),
+.page :global(.relationship-context-meta small) {
+  color: var(--saju-ink-faint);
+  font-size: .78rem;
+  line-height: 1.55;
+}
+
+.page :global(.field-error) {
+  color: var(--saju-danger);
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
+.page :global(.form-error-summary) {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--saju-danger) 30%, var(--saju-border));
+  border-radius: var(--saju-radius-control);
+  background: var(--saju-bg-card);
+}
+
+.page :global(.relationship-options),
+.page :global(.segmented-control) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.page :global(.relationship-options label),
+.page :global(.segmented-control label) {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  border: 1px solid var(--saju-border);
+  border-radius: var(--saju-radius-control);
+  background: var(--saju-bg-card);
+  color: var(--saju-ink-soft);
+  font-size: .88rem;
+  font-weight: 750;
+  text-align: center;
+  cursor: pointer;
+}
+
+.page :global(.relationship-options label.selected),
+.page :global(.segmented-control label.selected) {
+  border-color: var(--saju-action);
+  background: var(--saju-action);
+  color: var(--saju-ink-inverse);
+}
+
+.page :global(.relationship-options input),
+.page :global(.segmented-control input) {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.page :global(.time-input-row) {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.page :global(.time-input-row .segmented-control) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.page :global(.check-row) {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+  color: var(--saju-ink-soft);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.page :global(.check-row input) {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--saju-action);
+}
+
+.page :global(.people-grid),
+.page :global(.people-grid-single) {
+  display: block;
+}
+
+.page :global(.step-nav) {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.page :global(.step-nav .primary-action:only-child) {
+  grid-column: 1 / -1;
+}
+
+.page :global(.primary-action),
+.page :global(.secondary-action) {
+  min-height: 52px;
+  border-radius: var(--saju-radius-control);
+  padding: 13px 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.page :global(.primary-action) {
+  border: 1px solid var(--saju-action);
+  background: var(--saju-action);
+  color: var(--saju-ink-inverse);
+}
+
+.page :global(.secondary-action) {
+  border: 1px solid var(--saju-border-strong);
+  background: transparent;
+  color: var(--saju-ink);
+}
+
+.page :global(.primary-action:disabled) {
+  opacity: .5;
+  cursor: wait;
+}
+
+.page :global(.form-success),
+.page :global(.checkout-state) {
+  margin: 0;
+  padding: 14px 0 14px 16px;
+  border: 0;
+  border-left: 2px solid var(--saju-border-strong);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.page :global(.form-success strong),
+.page :global(.checkout-state strong) {
+  color: var(--saju-ink);
+}
+
+.page :global(.form-success p),
+.page :global(.checkout-state p) {
+  margin: 5px 0 0;
+  color: var(--saju-ink-soft);
+  font-size: .84rem;
+  line-height: 1.55;
+}
+
+.checkoutPage {
+  padding-top: 44px;
+}
+
+.checkoutShell {
+  gap: 26px;
+}
+
+.checkoutPage :global(.checkout-header) {
+  display: grid;
+  gap: 12px;
+}
+
+.checkoutPage :global(.checkout-header .eyebrow) {
+  margin: 0;
+  color: var(--saju-ink-soft);
+  font-size: .74rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+
+.checkoutPage :global(.checkout-header h1),
+.checkoutPage :global(.checkout-state h1) {
+  margin: 0;
+  font-family: var(--saju-font-heading);
+  font-size: clamp(2rem, 8vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -.04em;
+}
+
+.checkoutPage :global(.checkout-header p:not(.eyebrow)),
+.checkoutPage :global(.checkout-state p),
+.checkoutPage :global(.checkout-note) {
+  margin: 0;
+  color: var(--saju-ink-soft);
+  font-size: .9rem;
+  line-height: 1.65;
+}
+
+.checkoutPage :global(.checkout-card) {
+  border: 1px solid var(--saju-border);
+  border-radius: var(--saju-radius-card);
+  background: var(--saju-bg-card);
+  padding: 4px 20px;
+  box-shadow: none;
+}
+
+.checkoutPage :global(.checkout-row),
+.checkoutPage :global(.checkout-person),
+.checkoutPage :global(.checkout-total) {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--saju-border);
+}
+
+.checkoutPage :global(.checkout-person) {
+  flex-direction: column;
+  gap: 5px;
+}
+
+.checkoutPage :global(.checkout-card > :last-child) {
+  border-bottom: 0;
+}
+
+.checkoutPage :global(.checkout-row span),
+.checkoutPage :global(.checkout-person span),
+.checkoutPage :global(.checkout-total span) {
+  color: var(--saju-ink-soft);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.checkoutPage :global(.checkout-row strong),
+.checkoutPage :global(.checkout-person strong),
+.checkoutPage :global(.checkout-total strong) {
+  color: var(--saju-ink);
+}
+
+.checkoutPage :global(.checkout-total strong) {
+  font-family: var(--saju-font-data);
+  font-size: 1.15rem;
+}
+
+.checkoutPage :global(.checkout-unlock-preview) {
+  padding: 24px 0 0;
+  border: 0;
+  border-top: 1px solid var(--saju-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.checkoutPage :global(.checkout-unlock-preview .card-label) {
+  margin: 0;
+  color: var(--saju-ink-soft);
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .1em;
+}
+
+.checkoutPage :global(.checkout-unlock-preview h2) {
+  margin: 9px 0 18px;
+  font-family: var(--saju-font-heading);
+  font-size: 1.35rem;
+  line-height: 1.35;
+}
+
+.checkoutPage :global(.checkout-unlock-preview > div) {
+  display: grid;
+  gap: 0;
+}
+
+.checkoutPage :global(.checkout-unlock-preview article) {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 3px 10px;
+  padding: 16px 0;
+  border-top: 1px solid var(--saju-border);
+  background: transparent;
+}
+
+.checkoutPage :global(.checkout-unlock-preview article span) {
+  grid-row: 1 / span 2;
+  color: var(--saju-ink-faint);
+  font-family: var(--saju-font-data);
+  font-size: .76rem;
+}
+
+.checkoutPage :global(.checkout-unlock-preview article strong) {
+  color: var(--saju-ink);
+  font-size: .92rem;
+}
+
+.checkoutPage :global(.checkout-unlock-preview article p) {
+  margin: 3px 0 0;
+  color: var(--saju-ink-soft);
+  font-size: .82rem;
+  line-height: 1.55;
+}
+
+.checkoutPage :global(.checkout-price-anchor) {
+  margin: 14px 0 0;
+  color: var(--saju-ink-soft);
+  font-size: .82rem;
+  line-height: 1.55;
+}
+
+.checkoutPage :global(.purchase-policy) {
+  margin: 0;
+  border-color: var(--saju-border);
+  border-radius: var(--saju-radius-card);
+  background: var(--saju-bg-card);
+  box-shadow: none;
+}
+
+.checkoutPage :global(.checkout-sticky-cta) {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--saju-bg-base) 94%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.checkoutPage :global(.payment-button) {
+  width: 100%;
+  min-height: 54px;
+  border: 1px solid var(--saju-action);
+  border-radius: var(--saju-radius-control);
+  background: var(--saju-action);
+  color: var(--saju-ink-inverse);
+  font-weight: 850;
+  box-shadow: none;
+}
+
+.checkoutPage :global(.payment-button:disabled) {
+  opacity: .48;
+}
+
+.checkoutPage :global(.checkout-back),
+.checkoutPage :global(.primary-link) {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--saju-ink);
+  font-size: .84rem;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.checkoutPage :global(.checkout-note) {
+  padding-top: 6px;
+  font-size: .78rem;
+  color: var(--saju-ink-faint);
+}
+
+@media (max-width: 480px) {
+  .page,
+  .checkoutPage {
+    padding: 34px 16px max(58px, env(safe-area-inset-bottom));
+  }
+
+  .header h1,
+  .checkoutPage :global(.checkout-header h1),
+  .checkoutPage :global(.checkout-state h1) {
+    font-size: 2.1rem;
+  }
+
+  .page :global(.relationship-options),
+  .page :global(.segmented-control) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .page :global(.time-input-row) {
+    grid-template-columns: 1fr;
+  }
+
+  .page :global(.step-nav) {
+    grid-template-columns: 1fr;
+  }
+
+  .page :global(.step-nav .primary-action:only-child) {
+    grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkoutPage :global(.checkout-sticky-cta) {
+    backdrop-filter: none;
+  }
+}
