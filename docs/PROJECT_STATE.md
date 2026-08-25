@@ -55,11 +55,13 @@
 
 ## 검증 상태
 
-- PR #47 `docs: redefine UI UX Design Foundation v2`에서 전체 회귀 CI를 수행 중이다.
-- 기존 계약 테스트 중 과거 라벤더 색상과 특정 breakpoint 숫자에 과결합된 assertion을 Foundation v2의 기능 계약으로 교체했다.
-- 만세력, 경계값, 궁합 엔진, 결제/AI 경계, 1:N, account/editorial/policy/Growth, 1:1 persona/share/P5 UI 계약은 최신 재검증에서 통과했다.
-- `hotfix:runtime-ux` 재검증 과정에서 `vercel.json`의 Git 자동배포가 `true`로 남은 실제 운영 규칙 위반을 발견해 `false`로 복구했다.
-- 최종 CI에서 lint/build까지 PASS한 뒤 PR #47을 `main`에 병합한다.
+- **PR #47 / Core calculation validation #677 PASS**
+- 만세력 30 golden cases, 날짜·절입 경계, 궁합 엔진, 결제/AI 경계, 1:N, account/editorial/policy/Growth/report 계약 전부 PASS
+- Foundation v2 P5 UI / persona / 1:1·1:N share-card / hotfix runtime UX 계약 PASS
+- `npm run lint` PASS
+- production build PASS
+- 과거 라벤더 색상과 특정 breakpoint 숫자에 과결합된 assertion은 실제 기능/반응형 계약 중심으로 교체했다.
+- 검증 과정에서 `vercel.json`의 Git 자동배포가 `true`로 남은 운영 규칙 위반을 발견해 `false`로 복구했고 관련 hotfix 계약도 PASS했다.
 
 ## 배포 상태
 
