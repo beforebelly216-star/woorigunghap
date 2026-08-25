@@ -72,13 +72,19 @@ for (const rawBirthValue of ["1990-05-15", "1992-10-24", "14:30", "05:30"]) {
 }
 
 const resultSource = readFileSync("src/components/one-to-many-result.tsx", "utf8");
-const paidSource = readFileSync("src/app/one-to-many/result/page.tsx", "utf8");
+const paidPageSource = readFileSync("src/app/one-to-many/result/page.tsx", "utf8");
+const paidClientSource = readFileSync("src/app/one-to-many/result/one-to-many-paid-result.tsx", "utf8");
+const inputPageSource = readFileSync("src/app/one-to-many/page.tsx", "utf8");
+const checkoutSource = readFileSync("src/app/one-to-many/checkout/page.tsx", "utf8");
+const foundationCss = readFileSync("src/app/one-to-many/one-to-many-foundation.css", "utf8");
 const demoSource = readFileSync("src/app/one-to-many/result/demo/page.tsx", "utf8");
 const errorSource = readFileSync("src/app/one-to-many/result/demo/error.tsx", "utf8");
 const formSource = readFileSync("src/components/one-to-many-form.tsx", "utf8");
+
 assert.match(resultSource, /한눈에 보는 순위/);
-assert.match(resultSource, /연락부터 장기관계까지 한눈에/);
-assert.match(resultSource, /실제 관계에서 잘 맞는 장면과 부딪힐 장면/);
+assert.match(resultSource, /후보 역할/);
+assert.match(resultSource, /공통 지표 비교/);
+assert.match(resultSource, /후보별 강점과 주의/);
 assert.match(resultSource, /관계 9개 기준 상세 점수/);
 assert.match(resultSource, /관계 9개 기준 비교표/);
 assert.match(resultSource, /공동 추천/);
@@ -86,9 +92,25 @@ assert.match(resultSource, /<details/);
 assert.match(resultSource, /<table/);
 assert.match(resultSource, /candidate.insightTitle/);
 assert.doesNotMatch(resultSource, /candidate.rank}위<\/b>/);
-assert.match(paidSource, /OneToManyPaidResult/);
+assert.ok(resultSource.indexOf("후보 역할") < resultSource.indexOf("공통 지표 비교"), "candidate role must precede common metrics");
+assert.ok(resultSource.indexOf("공통 지표 비교") < resultSource.indexOf("후보별 강점과 주의"), "common metrics must precede candidate detail");
+assert.ok(resultSource.indexOf("final-summary-title") < resultSource.indexOf("<OneToManyShareCard"), "sharing should come after the comparison decision flow");
+assert.match(paidPageSource, /one-to-many-foundation\.css/);
+assert.match(paidPageSource, /OneToManyPaidResult/);
+assert.match(paidClientSource, /one-to-many-result-wrap/);
+assert.match(inputPageSource, /one-to-many-foundation\.css/);
+assert.match(inputPageSource, /className="one-to-many-page"/);
+assert.doesNotMatch(inputPageSource, /className="input-page"|className="input-shell"/);
+assert.match(checkoutSource, /one-to-many-foundation\.css/);
+assert.match(checkoutSource, /className="one-to-many-checkout-page"/);
+assert.doesNotMatch(checkoutSource, /className="input-page"|className="checkout-shell"/);
+assert.match(foundationCss, /var\(--saju-width-compact\)/);
+assert.match(foundationCss, /var\(--saju-width-compare\)/);
+assert.match(foundationCss, /@media \(max-width:\s*720px\)/);
+assert.match(foundationCss, /@media \(max-width:\s*480px\)/);
+assert.doesNotMatch(foundationCss, /max-width:\s*99999px|linear-gradient|radial-gradient|box-shadow:\s*0\s+\d/i);
 assert.match(demoSource, /demo/);
 assert.match(errorSource, /reset/);
 assert.match(formSource, /3,000원 결제로 계속하기/);
 
-console.log("Day 15 one-to-many result UI checks: PASS");
+console.log("Day 15 one-to-many result UI + Foundation v2 checks: PASS");

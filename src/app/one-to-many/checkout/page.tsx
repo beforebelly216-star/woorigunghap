@@ -8,6 +8,7 @@ import { PurchasePolicyConsent } from "@/components/purchase-policy-consent";
 import { loadOrderDraft } from "@/lib/order-storage";
 import type { OneToManyOrderDraft } from "@/lib/orders";
 import { RELATIONSHIP_LABELS } from "@/lib/report-input";
+import "../one-to-many-foundation.css";
 
 function CheckoutContent() {
   const paymentId = useSearchParams().get("paymentId");
@@ -50,5 +51,5 @@ function CheckoutContent() {
 }
 
 export default function OneToManyCheckoutPage() {
-  return <main className="input-page"><div className="checkout-shell"><Suspense fallback={<p className="checkout-state" role="status">주문 정보를 불러오는 중이에요.</p>}><CheckoutContent /></Suspense></div></main>;
+  return <main className="one-to-many-checkout-page"><div className="one-to-many-checkout-shell"><Suspense fallback={<p className="checkout-state" role="status">주문 정보를 불러오는 중이에요.</p>}><CheckoutContent /></Suspense></div></main>;
 }

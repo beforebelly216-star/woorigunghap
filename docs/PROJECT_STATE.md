@@ -19,10 +19,11 @@
 - 무료 입력의 1:1 sessionStorage prefill, deterministic 분석, 결제/유료 AI 비사용 경계는 그대로 유지한다.
 - 1:1 입력/결제는 Foundation v2 compact 480px 전용 flow로 분리했다.
 - 1:1 결과 loading / recovery / fatal 상태는 `result-status.css`가 Foundation v2 compact 480px layout owner로 관리한다.
-- **1:1 완성 리포트는 Foundation v2 report 640px layout으로 전환했다.** `report-foundation.css`가 legacy report CSS 뒤에서 최종 레이아웃을 소유한다.
-- 완성 리포트 상단에 기존 저장 콘텐츠만 재사용하는 관계 요약 레이어를 추가했다: Two Sides / 강점 / 주의 / 관계 흐름 / 지금 먼저 할 행동 → CH0~CH9 상세 리포트.
-- 공유 영역은 시각 순서상 상세 리포트 뒤의 다음 행동 구간으로 이동한다. 계산 snapshot, 저장 결과 호환, CH0~CH9, 공유 데이터/URL, account link는 유지한다.
-- 기존 `report-p5-mobile.css`의 광역 `max-width:99999px`는 실제 mobile/tablet `700px` breakpoint로 축소했다.
+- 1:1 완성 리포트는 Foundation v2 report 640px layout으로 전환했다.
+- **1:N 입력/checkout은 `src/app/one-to-many/one-to-many-foundation.css`의 compact 480px layout으로 분리했다.** 기존 `.input-page/.input-shell/.checkout-shell` layout ownership에서 벗어나 관계유형, 기준자/후보 입력, 후보 추가/삭제, 정책 동의, 3,000원 결제 CTA를 Foundation v2 위계로 통일했다.
+- **1:N 완성 비교 결과는 Foundation v2 compare 960px layout으로 전환했다.** 결과 IA는 `전체 ranking → 후보 역할 → 공통 지표 비교 → 상황별 비교 → 후보별 강점/주의 → 9개 기준 상세 점수 → 공유/다음 행동` 순서다.
+- 1:N 공유 surface는 순위보다 먼저 노출하지 않고 비교 판단 흐름 뒤에 배치했다. public share DTO, Web Share/이미지 저장, access token 비노출 원칙은 유지한다.
+- 1:N result loading/generating/missing/failed 상태도 같은 Foundation v2 화면 안에서 표시한다.
 - 서버 결정론적 만세력 + 9개 궁합 지표 계산
 - PortOne 결제 검증 / webhook 멱등 처리
 - 결제 검증 뒤 AI 서술 생성, segment single-flight/idempotency
@@ -49,21 +50,22 @@
 - 3단계 무료 분석 입력/결과 완료.
 - 4단계 1:1 입력/결제 완료.
 - 5단계 생성중/복구/실패 상태 완료.
-- **6단계 1:1 완성 결과 IA/레이아웃 완료.** hero/점수 → 핵심 궁합 지표 → 사주 근거 → Relationship summary(Two Sides/강점·주의/흐름/행동) → CH0~CH9 → 공유/계정/다음 행동의 progressive disclosure를 적용했다.
-- 완성 결과에서 카드 wall과 큰 shadow를 후순위 override로 축소하고 divider/타이포/여백 위계로 전환했다.
+- 6단계 1:1 완성 결과 IA/레이아웃 완료.
+- **7단계 1:N 입력/결제/비교 결과 완료.** `one-to-many-foundation.css`가 1:N product 화면의 후순위 layout owner이며 새 화면에서 gradient/glow/큰 shadow/99999px 강제 규칙을 사용하지 않는다.
 - 다크모드는 지원하지 않는다.
 
 ## 검증 상태
 
-- **PR #52 / Core calculation validation #698 PASS**
+- **PR #53 / Core calculation validation #702 PASS**
 - 만세력/경계/궁합/결제/AI/1:N/account/editorial/policy/Growth/report 전체 계약 PASS
+- Day 15 1:N UI 계약을 Foundation v2 IA와 compact/compare 폭, share 순서, legacy visual 금지 기준으로 갱신
 - `npm run lint` PASS
 - production build PASS
-- 계산·결제·AI 생성·저장·권한·공유 데이터 로직 변경 없음
+- 1:N 계산·결제·서버 저장·복구·single-flight 생성·접근권한·공유 데이터 로직 변경 없음
 
 ## 배포 상태
 
-- Foundation v2 6단계에서 Vercel Preview/Production 배포는 실행하지 않는다.
+- Foundation v2 7단계에서 Vercel Preview/Production 배포는 실행하지 않는다.
 - Git 자동배포는 비활성화 상태를 유지한다.
 - Production과 최신 `main`은 일시적으로 다를 수 있다.
 
@@ -76,7 +78,7 @@
 5. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
 6. 회원탈퇴/데이터 삭제/Kakao unlink
 7. 결과/계정 삭제 뒤 public share 및 analytics 정리 확인
-8. 1:N/보관함/공유 화면의 후속 Foundation 적용
+8. 보관함/계정 및 Shared View/공유 카드의 후속 Foundation 적용
 
 ## 출시 blocker 정의
 

@@ -5,6 +5,7 @@ import {
   ONE_TO_MANY_DEMO_NAMES,
 } from "@/lib/compatibility/one-to-many-demo";
 import { buildOneToManyResultView } from "@/lib/compatibility/one-to-many-view";
+import "../../one-to-many-foundation.css";
 
 export default function OneToManyDemoResultPage() {
   const snapshot = calculateOneToManyCompatibility(ONE_TO_MANY_DEMO_INPUT);

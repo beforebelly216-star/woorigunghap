@@ -150,16 +150,16 @@ export default function OneToManyPaidResult() {
     return buildOneToManyResultView(report.snapshot, names, report.narrative);
   }, [order, report]);
 
-  if (state === "ready" && view && order) return <>
+  if (state === "ready" && view && order) return <div className="one-to-many-result-wrap">
+    <OneToManyResult view={view} />
     <ReportAccountLink
       paymentId={order.paymentId}
       accessToken={order.resultAccessToken ?? null}
       alreadyClaimed={accountOwned}
     />
-    <OneToManyResult view={view} />
-  </>;
+  </div>;
 
-  return <main className="comparison-report-page"><div className="comparison-empty-state">
+  return <main className="one-to-many-result-page"><div className="comparison-empty-state">
     <p className="eyebrow">1:다 비교 결과</p>
     <h1>{state === "generating" ? "리포트를 만들고 있어요" : state === "missing" ? "복구 정보가 필요해요" : state === "failed" ? "결과를 다시 확인해 주세요" : "결과를 확인하고 있어요"}</h1>
     <p>{state === "missing" ? "결제 후 받은 결과 링크를 같은 브라우저에서 다시 열어 주세요." : message}</p>
