@@ -40,23 +40,27 @@
 - [x] 결제 후 준비/생성/복구/실패 상태 Foundation v2 적용
 
 ### 6단계 — 1:1 완성 결과
-- [x] **1:1 결과 IA/레이아웃 Foundation v2 적용**
-  - report 640px layout owner `report-foundation.css` 추가
-  - hero/점수/근거 → 관계 요약 → CH0~CH9 → 공유/계정/다음 행동의 progressive disclosure 적용
-  - 관계 요약에 기존 저장 콘텐츠를 재사용한 Two Sides / 강점 / 주의 / 관계 흐름 / 첫 행동 추가
-  - legacy card wall/큰 shadow를 후순위 override로 축소
-  - `report-p5-mobile.css`의 `max-width:99999px`를 실제 `700px` breakpoint로 축소
-  - 계산 snapshot / 저장 결과 / CH0~CH9 / 공유 / account link / access control 계약 유지
-  - **Core calculation validation #698 PASS: 전체 contracts + lint + production build**
+- [x] 1:1 결과 IA/레이아웃 Foundation v2 적용
+
+### 7단계 — 1:N 입력/결제/비교 결과
+- [x] **1:N 전체 product flow Foundation v2 적용**
+  - 입력/checkout compact 480px, 비교 결과 compare 960px 적용
+  - 기존 `.input-page/.input-shell/.checkout-shell` layout ownership 제거
+  - ranking → 후보 역할 → 공통 지표 → 상황별 비교 → 후보별 강점/주의 → 9개 상세 기준 → 공유/다음 행동 순서 적용
+  - share surface를 ranking 이전에서 비교 판단 흐름 뒤로 이동
+  - paid/demo/loading/generating/missing/failed 상태를 동일 Foundation 기준으로 정렬
+  - 1:N 계산/결제/저장/복구/single-flight/access/share data 계약 유지
+  - **Core calculation validation #702 PASS: 전체 contracts + lint + production build**
 
 ### 이후 순서
-- [ ] **7단계 1:N 입력/결제 및 비교 결과 Foundation 적용**
-  - 입력/checkout은 compact 480px, 비교 결과는 compare 960px 기준
-  - ranking → 후보 역할 → 공통 지표 비교 → 후보별 강점/주의 → 상세 후보 리포트 순서 강화
-  - 1:N 계산/결제/저장/공유 계약 유지
-  - 해당 화면의 legacy gradient/shadow/99999 broad CSS 제거
-- [ ] 8단계 보관함/계정
-- [ ] 9단계 Shared View / 공유 카드 시각 통합
+- [ ] **8단계 보관함/계정 Foundation 적용**
+  - 보관함 목록, 생성중/완료/실패 상태, 로그인/귀속/삭제 UI를 Foundation v2로 통일
+  - 결과 열기·공유·삭제 정보 위계를 정리하고 기존 권한/claim/delete 계약 유지
+  - 보관함의 legacy card/shadow/notification 잔여 CSS 정리
+- [ ] **9단계 Shared View / 공유 카드 시각 통합**
+  - 1:1·1:N Shared View와 9:16 이미지 카드의 brand hierarchy 통일
+  - public DTO/privacy/accessToken 비노출/Web Share 계약 유지
+- [ ] 전체 multi-viewport 육안 QA 후 spacing/overflow 최종 보정
 
 ## 콘텐츠 개선 backlog
 - [ ] 사주소년 화자는 유지하되 정보 전달 우선, 관계 유형별 감정 온도 분리
@@ -71,11 +75,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: UI/UX 6단계 — 1:1 완성 결과 IA/레이아웃 Foundation v2 적용
+- Task: UI/UX 7단계 — 1:N 입력/결제/비교 결과 Foundation v2 적용
 - Status: complete
-- Validation: Core calculation validation #698 PASS — 전체 contracts + lint + production build
-- Commit: 7bbe8f7 기능/스타일, 상태문서 후속 포함 PR #52
-- Remaining: 7단계 1:N 입력/결제 및 비교 결과 Foundation 적용
-- Risk: 1:N/보관함/Shared View/공유 카드에는 legacy visual CSS가 아직 남아 있음; 실제 multi-viewport 육안 QA 미실행
+- Validation: Core calculation validation #702 PASS — 전체 contracts + lint + production build
+- Commit: b6f259c 전 단계 기능/스타일/계약, 상태문서 후속 포함 PR #53
+- Remaining: 8단계 보관함/계정 Foundation 적용
+- Risk: 보관함/계정/Shared View/공유 카드에 legacy visual CSS가 남아 있고 실제 multi-viewport 육안 QA는 아직 미실행
 - Deploy: 없음. Git 자동배포 false 유지, Production 미배포
 ```
