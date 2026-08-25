@@ -481,6 +481,3 @@ button, input, select { font: inherit; }
   .checkout-sticky-cta { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; margin: 0; padding: 10px max(14px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); border-top: 1px solid #e6deef; background: rgba(255, 251, 245, .96); backdrop-filter: blur(14px); }
   .checkout-sticky-cta .payment-button { min-height: 52px; background: #8B7BC7; }
 }
-@media (prefers-color-scheme: dark) and (max-width: 640px) {
-  .checkout-sticky-cta { border-color: #4A4264; background: rgba(31, 27, 46, .95); }
-}
