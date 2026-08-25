@@ -19,7 +19,8 @@
 - 무료 입력의 1:1 sessionStorage prefill, deterministic 분석, 결제/유료 AI 비사용 경계는 그대로 유지한다.
 - **1:1 입력/결제는 Foundation v2 compact 480px 전용 flow로 분리했다.** 관계 선택, 단계 progress, 두 사람 입력, 확인, checkout summary, 정책 동의, 결제 CTA를 neutral/typography-first 위계로 통일했다.
 - 1:1 입력과 checkout은 레거시 `.input-page/.input-shell` 및 checkout의 `report-p5-mobile.css` 직접 의존을 제거했다.
-- 무료 → 1:1 prefill, 기존 결제 복구, 주문 draft 생성, 정책 동의, 1,000원 가격, PaymentButton/서버 결제 검증 경계는 변경하지 않았다.
+- **1:1 결과의 loading / missing recovery / account fatal / terminal fatal 상태는 `result-status.css`가 Foundation v2 compact 480px layout owner로 관리한다.** gradient/shadow 카드 대신 neutral canvas, 타이포 위계, 얇은 divider, ink CTA를 사용한다.
+- 생성 상태 개편은 UI 전용이며 staged generation, retry, terminal failure, 결제 복구, ownership, payment verification 로직은 변경하지 않았다.
 - 서버 결정론적 만세력 + 9개 궁합 지표 계산
 - PortOne 결제 검증 / webhook 멱등 처리
 - 결제 검증 뒤 AI 서술 생성, segment single-flight/idempotency
@@ -45,24 +46,24 @@
 - 기본 폭 원칙: 입력·결제 compact 480px / 1:1 report 640px / 1:N compare 960px.
 - 2단계 공통 shell + 홈 적용 완료.
 - 3단계 무료 분석 입력/결과 적용 완료.
-- **4단계 1:1 입력/결제 적용 완료:** `src/app/one-to-one/one-to-one-flow.module.css`가 입력/checkout 화면의 Foundation v2 layout owner다.
-- step progress, 관계유형, `PersonBirthFields`, textarea, 이전/다음 버튼, 상태 notice, checkout summary, unlock preview, policy, sticky payment CTA를 동일 디자인 문법으로 통일했다.
-- 1:1 flow에는 `max-width:99999px`, 장식 gradient, 큰 shadow를 새로 사용하지 않는다.
-- 후속 생성중/1:1 결과/1:N/보관함/공유 화면의 레거시 광역 CSS는 각 rollout 단계에서 기능 회귀 없이 제거한다.
+- 4단계 1:1 입력/결제 적용 완료.
+- **5단계 생성중 상태 UI 적용 완료:** `src/app/one-to-one/result/result-status.css`가 결과 준비/생성/복구/실패 상태의 후순위 layout owner다.
+- 생성 상태는 `max-width:99999px`, 장식 gradient/glow, 큰 shadow를 사용하지 않고 480px mobile breakpoint와 Foundation token을 사용한다.
+- 1:1 완성 리포트 본문/1:N/보관함/공유 화면의 레거시 광역 CSS는 각 rollout 단계에서 기능 회귀 없이 제거한다.
 - 다크모드는 지원하지 않는다.
 
 ## 검증 상태
 
-- **PR #50 / Core calculation validation #690 PASS**
+- **PR #51 / Core calculation validation #694 PASS**
 - 만세력/경계/궁합/결제/AI/1:N/account/editorial/policy/Growth/report 전체 계약 PASS
-- P5 UI 계약에 1:1 input/checkout compact width, Foundation token 사용, legacy shell/report-p5-mobile 분리, policyAccepted 전달 검증 추가
+- P5 UI 계약에 generation-state compact width, Foundation token, legacy gradient/shadow/99999 금지, recovery/failure copy 보존 검증 추가
 - `npm run lint` PASS
 - production build PASS
 - 계산·결제·AI 생성·저장·권한 로직 변경 없음
 
 ## 배포 상태
 
-- Foundation v2 4단계에서 Vercel Preview/Production 배포는 실행하지 않는다.
+- Foundation v2 5단계에서 Vercel Preview/Production 배포는 실행하지 않는다.
 - Git 자동배포는 비활성화 상태를 유지한다.
 - Production과 최신 `main`은 일시적으로 다를 수 있다.
 
@@ -75,7 +76,7 @@
 5. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
 6. 회원탈퇴/데이터 삭제/Kakao unlink
 7. 결과/계정 삭제 뒤 public share 및 analytics 정리 확인
-8. 생성중/1:1 결과/1:N 등 후속 화면의 레거시 `max-width:99999px` CSS 제거
+8. 1:1 완성 결과/1:N 등 후속 화면의 레거시 `max-width:99999px` CSS 제거
 
 ## 출시 blocker 정의
 

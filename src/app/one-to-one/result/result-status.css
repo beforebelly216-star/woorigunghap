@@ -1,0 +1,129 @@
+/* Foundation v2 owner for paid 1:1 loading / recovery / terminal states. */
+.v2-page:has(> .v2-state) {
+  min-height: calc(100vh - 60px);
+  display: grid;
+  place-items: center;
+  overflow-x: clip;
+  padding: 48px max(20px, env(safe-area-inset-right)) max(56px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  background: var(--saju-bg-base);
+}
+
+.v2-page > .v2-state {
+  width: min(100%, var(--saju-width-compact));
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+}
+
+.v2-page > .v2-state::before {
+  content: "";
+  display: block;
+  width: 42px;
+  height: 4px;
+  margin-bottom: 28px;
+  border-radius: var(--saju-radius-pill);
+  background: var(--saju-action);
+}
+
+.v2-page > .v2-state .v2-kicker {
+  margin: 0 0 12px;
+  color: var(--saju-ink-soft);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.v2-page > .v2-state h1 {
+  margin: 0;
+  color: var(--saju-ink);
+  font-family: var(--saju-font-heading);
+  font-size: clamp(2rem, 8vw, 3rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+
+.v2-page > .v2-state p {
+  margin: 16px 0 0;
+  color: var(--saju-ink-soft);
+  font-size: .96rem;
+  line-height: 1.72;
+}
+
+.v2-page > .v2-state p + p {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--saju-border);
+  color: var(--saju-ink-faint);
+  font-size: .84rem;
+}
+
+.v2-page > .v2-state a,
+.v2-page > .v2-state button {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 24px 10px 0 0;
+  padding: 12px 18px;
+  border: 1px solid var(--saju-action);
+  border-radius: var(--saju-radius-control);
+  background: var(--saju-action);
+  color: var(--saju-ink-inverse);
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: none;
+}
+
+.v2-page > .v2-state a:not(.primary-link) {
+  border-color: var(--saju-border-strong);
+  background: transparent;
+  color: var(--saju-ink);
+}
+
+.v2-page > .v2-state a:hover,
+.v2-page > .v2-state button:hover {
+  background: var(--saju-action-hover);
+  color: var(--saju-ink-inverse);
+}
+
+.v2-page > .v2-state a:not(.primary-link):hover {
+  background: var(--saju-bg-soft);
+  color: var(--saju-ink);
+}
+
+/* Loading state: a quiet, deterministic progress cue without fake percentages. */
+.v2-page > .v2-state:has(h1:nth-child(n)) .v2-kicker + h1 + p {
+  max-width: 44ch;
+}
+
+@media (max-width: 480px) {
+  .v2-page:has(> .v2-state) {
+    align-items: start;
+    padding-top: 40px;
+  }
+
+  .v2-page > .v2-state h1 {
+    font-size: clamp(2rem, 10vw, 2.65rem);
+  }
+
+  .v2-page > .v2-state a,
+  .v2-page > .v2-state button {
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2-page > .v2-state a,
+  .v2-page > .v2-state button {
+    transition: none;
+  }
+}
