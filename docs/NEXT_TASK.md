@@ -43,23 +43,25 @@
 - [x] 1:1 결과 IA/레이아웃 Foundation v2 적용
 
 ### 7단계 — 1:N 입력/결제/비교 결과
-- [x] **1:N 전체 product flow Foundation v2 적용**
-  - 입력/checkout compact 480px, 비교 결과 compare 960px 적용
-  - 기존 `.input-page/.input-shell/.checkout-shell` layout ownership 제거
-  - ranking → 후보 역할 → 공통 지표 → 상황별 비교 → 후보별 강점/주의 → 9개 상세 기준 → 공유/다음 행동 순서 적용
-  - share surface를 ranking 이전에서 비교 판단 흐름 뒤로 이동
-  - paid/demo/loading/generating/missing/failed 상태를 동일 Foundation 기준으로 정렬
-  - 1:N 계산/결제/저장/복구/single-flight/access/share data 계약 유지
-  - **Core calculation validation #702 PASS: 전체 contracts + lint + production build**
+- [x] 1:N 전체 product flow Foundation v2 적용
+
+### 8단계 — 보관함/계정
+- [x] **보관함/계정 Foundation v2 적용**
+  - 카카오 로그인 compact 480px, 구매 보관함 760px rail 적용
+  - loading/guest/failed/empty/ready/generating 상태를 동일 타이포·divider 위계로 정리
+  - 결과 열기·공유 안내와 결과 삭제 action의 시각 우선순위 분리
+  - report claim/ownership panel과 회원탈퇴·데이터 삭제 UI 통일
+  - account deletion disclosure에 `aria-expanded`/`aria-controls` 추가
+  - legacy library notification CSS 및 library의 광역 `max-width:99999px` layout ownership 제거
+  - 권한/claim/delete/login/account delete/recovery cleanup 계약 유지
+  - **Core calculation validation #706 PASS: 전체 contracts + lint + production build**
 
 ### 이후 순서
-- [ ] **8단계 보관함/계정 Foundation 적용**
-  - 보관함 목록, 생성중/완료/실패 상태, 로그인/귀속/삭제 UI를 Foundation v2로 통일
-  - 결과 열기·공유·삭제 정보 위계를 정리하고 기존 권한/claim/delete 계약 유지
-  - 보관함의 legacy card/shadow/notification 잔여 CSS 정리
 - [ ] **9단계 Shared View / 공유 카드 시각 통합**
-  - 1:1·1:N Shared View와 9:16 이미지 카드의 brand hierarchy 통일
-  - public DTO/privacy/accessToken 비노출/Web Share 계약 유지
+  - 1:1·1:N Shared View를 Foundation v2 neutral canvas/typography hierarchy로 통일
+  - 9:16 공유 카드의 브랜드 타이포·점수·Relationship Label·Two Sides hierarchy 정리
+  - public DTO/privacy/accessToken 비노출/Web Share/이미지 저장 계약 유지
+  - 기존 share analytics/reaction/new-analysis CTA 유지
 - [ ] 전체 multi-viewport 육안 QA 후 spacing/overflow 최종 보정
 
 ## 콘텐츠 개선 backlog
@@ -75,11 +77,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: UI/UX 7단계 — 1:N 입력/결제/비교 결과 Foundation v2 적용
+- Task: UI/UX 8단계 — 보관함/계정 Foundation v2 적용
 - Status: complete
-- Validation: Core calculation validation #702 PASS — 전체 contracts + lint + production build
-- Commit: b6f259c 전 단계 기능/스타일/계약, 상태문서 후속 포함 PR #53
-- Remaining: 8단계 보관함/계정 Foundation 적용
-- Risk: 보관함/계정/Shared View/공유 카드에 legacy visual CSS가 남아 있고 실제 multi-viewport 육안 QA는 아직 미실행
+- Validation: Core calculation validation #706 PASS — 전체 contracts + lint + production build
+- Commit: 02a9e4c 기능/스타일/계약, 상태문서 후속 포함 PR #54
+- Remaining: 9단계 Shared View / 1:1·1:N 9:16 공유 카드 시각 통합
+- Risk: Shared View/공유 카드와 실제 multi-viewport 육안 QA가 아직 남아 있음
 - Deploy: 없음. Git 자동배포 false 유지, Production 미배포
 ```
