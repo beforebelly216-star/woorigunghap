@@ -24,45 +24,28 @@
 - [ ] 결과/계정 삭제 뒤 public share와 analytics 정리 확인
 
 ## UI / UX 전면 개편
-### 1단계 — Design Foundation v2
-- [x] Foundation v2 전면 재정의 + shared token 정렬 + responsive 폭 기준 확정
+- [x] 1단계 Design Foundation v2
+- [x] 2단계 공통 shell + 홈
+- [x] 3단계 무료 분석 입력/결과
+- [x] 4단계 1:1 입력/결제
+- [x] 5단계 생성중/복구/실패 상태
+- [x] 6단계 1:1 완성 결과 IA/레이아웃
+- [x] 7단계 1:N 입력/결제/비교 결과
+- [x] 8단계 보관함/계정
+- [x] **9단계 Shared View / 공유 카드 시각 통합**
+  - Shared View를 neutral canvas + typography/divider 위계로 전환
+  - 1:1·1:N 9:16 preview와 실제 1080×1920 canvas export를 동일 시각체계로 통일
+  - lavender gradient/장식 원/큰 shadow 제거
+  - Receipt/Recap/Relationship Label/Two Sides/Send This + P6 A/B experiment 유지
+  - public DTO/privacy/opaque token/Web Share/image download/analytics/reaction/new-analysis CTA 유지
+  - **Core calculation validation #710 PASS: 전체 contracts + lint + production build**
 
-### 2단계 — 공통 shell + 홈
-- [x] 공통 shell + 홈 Foundation v2 실제 구현
-
-### 3단계 — 무료 분석 입력/결과
-- [x] `/free` Foundation v2 적용
-
-### 4단계 — 1:1 입력/결제
-- [x] 1:1 입력/checkout Foundation v2 적용
-
-### 5단계 — 생성중 상태 UI
-- [x] 결제 후 준비/생성/복구/실패 상태 Foundation v2 적용
-
-### 6단계 — 1:1 완성 결과
-- [x] 1:1 결과 IA/레이아웃 Foundation v2 적용
-
-### 7단계 — 1:N 입력/결제/비교 결과
-- [x] 1:N 전체 product flow Foundation v2 적용
-
-### 8단계 — 보관함/계정
-- [x] **보관함/계정 Foundation v2 적용**
-  - 카카오 로그인 compact 480px, 구매 보관함 760px rail 적용
-  - loading/guest/failed/empty/ready/generating 상태를 동일 타이포·divider 위계로 정리
-  - 결과 열기·공유 안내와 결과 삭제 action의 시각 우선순위 분리
-  - report claim/ownership panel과 회원탈퇴·데이터 삭제 UI 통일
-  - account deletion disclosure에 `aria-expanded`/`aria-controls` 추가
-  - legacy library notification CSS 및 library의 광역 `max-width:99999px` layout ownership 제거
-  - 권한/claim/delete/login/account delete/recovery cleanup 계약 유지
-  - **Core calculation validation #706 PASS: 전체 contracts + lint + production build**
-
-### 이후 순서
-- [ ] **9단계 Shared View / 공유 카드 시각 통합**
-  - 1:1·1:N Shared View를 Foundation v2 neutral canvas/typography hierarchy로 통일
-  - 9:16 공유 카드의 브랜드 타이포·점수·Relationship Label·Two Sides hierarchy 정리
-  - public DTO/privacy/accessToken 비노출/Web Share/이미지 저장 계약 유지
-  - 기존 share analytics/reaction/new-analysis CTA 유지
-- [ ] 전체 multi-viewport 육안 QA 후 spacing/overflow 최종 보정
+### 다음 UI 작업
+- [ ] **전체 multi-viewport 육안 QA + spacing/overflow 최종 보정**
+  - 360 / 390 / 430 / 768 / 1280px
+  - 홈, 무료 분석, 1:1 입력/결제/생성/결과, 1:N 입력/결제/결과, 보관함/로그인, Shared View
+  - CTA safe-area, 긴 한글 줄바꿈, horizontal overflow, sticky/fixed 충돌, desktop content rail 확인
+  - 기능 로직 변경 없이 CSS/markup 최소 보정
 
 ## 콘텐츠 개선 backlog
 - [ ] 사주소년 화자는 유지하되 정보 전달 우선, 관계 유형별 감정 온도 분리
@@ -77,11 +60,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: UI/UX 8단계 — 보관함/계정 Foundation v2 적용
+- Task: UI/UX 9단계 — Shared View + 1:1·1:N 9:16 공유 카드 Foundation v2 시각 통합
 - Status: complete
-- Validation: Core calculation validation #706 PASS — 전체 contracts + lint + production build
-- Commit: 02a9e4c 기능/스타일/계약, 상태문서 후속 포함 PR #54
-- Remaining: 9단계 Shared View / 1:1·1:N 9:16 공유 카드 시각 통합
-- Risk: Shared View/공유 카드와 실제 multi-viewport 육안 QA가 아직 남아 있음
+- Validation: Core calculation validation #710 PASS — 전체 contracts + lint + production build
+- Commit: 9af42bd 기능/스타일/계약, 상태문서 후속 포함 PR #55
+- Remaining: 전체 360/390/430/768/1280 multi-viewport 육안 QA 및 spacing/overflow 최종 보정
+- Risk: 실제 배포 렌더링/Web Share/이미지 저장 실기기 QA는 미실행
 - Deploy: 없음. Git 자동배포 false 유지, Production 미배포
 ```
