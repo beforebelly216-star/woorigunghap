@@ -7,7 +7,12 @@ const claimRoute = readFileSync("src/app/api/account/reports/claim/route.ts", "u
 const listRoute = readFileSync("src/app/api/account/reports/route.ts", "utf8");
 const detailRoute = readFileSync("src/app/api/account/reports/[paymentId]/route.ts", "utf8");
 const accountLink = readFileSync("src/components/report-account-link.tsx", "utf8");
+const accountDeletion = readFileSync("src/components/account-deletion-panel.tsx", "utf8");
 const libraryPage = readFileSync("src/app/account/reports/page.tsx", "utf8");
+const loginPage = readFileSync("src/app/login/page.tsx", "utf8");
+const layout = readFileSync("src/app/layout.tsx", "utf8");
+const accountCss = readFileSync("src/app/account-foundation.css", "utf8");
+const mobileCss = readFileSync("src/app/day20-mobile.css", "utf8");
 const oneToOne = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
 const oneToMany = readFileSync("src/app/one-to-many/result/one-to-many-paid-result.tsx", "utf8");
 const orderStorage = readFileSync("src/lib/order-storage.ts", "utf8");
@@ -62,6 +67,27 @@ assert.match(libraryPage, /결과 삭제/);
 assert.match(libraryPage, /method: "DELETE"/);
 assert.match(libraryPage, /removeOrderDraft\(report\.paymentId\)/);
 assert.match(libraryPage, /removeReportProgress\(report\.paymentId, report\.createdAt\)/);
+assert.match(loginPage, /normalizeReturnTo/);
+assert.match(loginPage, /카카오로 계속하기/);
+assert.match(loginPage, /이메일·전화번호·생년정보는 요청하지 않습니다/);
+assert.match(accountDeletion, /aria-expanded=\{open\}/);
+assert.match(accountDeletion, /aria-controls="account-delete-details"/);
+assert.match(accountDeletion, /confirmation !== "탈퇴"/);
+assert.match(accountDeletion, /\/api\/account\/delete/);
+
+// Foundation v2 owns account surfaces after legacy CSS.
+assert.match(layout, /account-foundation\.css/);
+assert.match(accountCss, /var\(--saju-width-compact\)/);
+assert.match(accountCss, /width: min\(100%, 760px\)/);
+assert.match(accountCss, /\.account-save-panel/);
+assert.match(accountCss, /\.account-delete-box/);
+assert.match(accountCss, /box-shadow: none/);
+assert.match(accountCss, /@media \(max-width: 640px\)/);
+assert.doesNotMatch(accountCss, /linear-gradient|radial-gradient|99999px/);
+assert.doesNotMatch(mobileCss, /library-notification-panel|library-notification-form|library-notification-enabled/);
+const broadMobile = mobileCss.slice(mobileCss.indexOf("@media (max-width: 99999px)"));
+assert.doesNotMatch(broadMobile, /\.library-page\s*\{/);
+
 assert.match(orderStorage, /export function removeOrderDraft/);
 assert.match(progressStorage, /export function removeReportProgress/);
 assert.match(oneToOne, /\/api\/account\/reports\/\$\{encodeURIComponent\(paymentId\)\}/);
@@ -69,4 +95,4 @@ assert.match(oneToOne, /alreadyClaimed=\{accountOwned\}/);
 assert.match(oneToMany, /\/api\/account\/reports\/\$\{encodeURIComponent\(paymentId\)\}/);
 assert.match(oneToMany, /alreadyClaimed=\{accountOwned\}/);
 
-console.log("Day 18 account report library contract checks: PASS");
+console.log("Day 18 account report library + Foundation v2 UI contract checks: PASS");

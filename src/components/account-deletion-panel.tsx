@@ -34,8 +34,14 @@ export function AccountDeletionPanel() {
   }
 
   return <section className="account-delete-panel">
-    <button type="button" className="account-delete-toggle" onClick={() => setOpen((value) => !value)}>{open ? "탈퇴 메뉴 닫기" : "회원탈퇴·데이터 삭제"}</button>
-    {open ? <div className="account-delete-box">
+    <button
+      type="button"
+      className="account-delete-toggle"
+      aria-expanded={open}
+      aria-controls="account-delete-details"
+      onClick={() => setOpen((value) => !value)}
+    >{open ? "탈퇴 메뉴 닫기" : "회원탈퇴·데이터 삭제"}</button>
+    {open ? <div className="account-delete-box" id="account-delete-details">
       <h2>회원탈퇴</h2>
       <p>탈퇴하면 카카오 계정 연결과 로그인 세션이 삭제되고, 보관함의 리포트 원문·출생정보·재열람 접근정보도 삭제되어 복구할 수 없습니다.</p>
       <p>전자상거래 관련 법령에 따라 보존해야 하는 최소 결제·계약 기록은 별도 목적으로 분리 보관됩니다.</p>
