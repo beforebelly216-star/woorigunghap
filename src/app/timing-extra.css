@@ -2,13 +2,13 @@
   display: grid;
   gap: 8px;
   margin: 28px 0 16px;
-  border: 1px solid #d4c8b5;
+  border: 1px solid var(--saju-border, #d4c8b5);
   border-radius: 22px;
   padding: 22px;
-  background: #f5efe5;
+  background: var(--saju-bg-soft, #f5efe5);
 }
 .reference-timing-summary > small {
-  color: #8c7759;
+  color: var(--saju-primary-deep, #8c7759);
   font-size: .72rem;
   font-weight: 800;
   letter-spacing: .12em;
@@ -17,10 +17,11 @@
   font-family: Georgia, serif;
   font-size: 2rem;
   font-weight: 500;
+  color: var(--saju-ink);
 }
 .reference-timing-summary > p {
   margin: 0;
-  color: #667168;
+  color: var(--saju-ink-soft, #667168);
   line-height: 1.65;
 }
 .reference-year-timing-grid {
@@ -30,10 +31,10 @@
   margin: 16px 0 24px;
 }
 .reference-year-timing-grid > article {
-  border: 1px solid #ded7cc;
+  border: 1px solid var(--saju-border, #ded7cc);
   border-radius: 20px;
   padding: 20px;
-  background: #fffdf9;
+  background: var(--saju-bg-card, #fffdf9);
 }
 .reference-year-timing-grid > article.timing-rising { background: #f2f6f1; }
 .reference-year-timing-grid > article.timing-adjusting { background: #f8f5ee; }
@@ -45,15 +46,15 @@
   align-items: center;
 }
 .reference-year-timing-head > span {
-  color: #6b766e;
+  color: var(--saju-ink-soft, #6b766e);
   font-size: .82rem;
   font-weight: 700;
 }
 .reference-year-timing-head > strong {
   border-radius: 999px;
   padding: 6px 9px;
-  background: #2e4438;
-  color: #fffaf1;
+  background: var(--saju-primary-deep, #2e4438);
+  color: var(--saju-bg-base, #fffaf1);
   font-size: .75rem;
 }
 .timing-caution .reference-year-timing-head > strong { background: #80584b; }
@@ -68,11 +69,12 @@
   font-family: Georgia, serif;
   font-size: 2.5rem;
   font-weight: 500;
+  color: var(--saju-ink);
 }
-.reference-year-score > small { color: #6c766e; }
+.reference-year-score > small { color: var(--saju-ink-soft, #6c766e); }
 .reference-year-score > em {
   margin-left: auto;
-  color: #8a7457;
+  color: var(--saju-ink-soft, #8a7457);
   font-size: .78rem;
   font-style: normal;
 }
@@ -81,15 +83,15 @@
   gap: 8px;
   margin: 0;
   padding-left: 18px;
-  color: #59655d;
+  color: var(--saju-ink-soft, #59655d);
   font-size: .9rem;
   line-height: 1.55;
 }
 .reference-year-confidence {
   margin: 14px 0 0;
-  border-top: 1px solid #e7e0d6;
+  border-top: 1px solid var(--saju-border, #e7e0d6);
   padding-top: 12px;
-  color: #8a8175;
+  color: var(--saju-ink-soft, #8a8175);
   font-size: .76rem;
 }
 @media (max-width: 99999px) {

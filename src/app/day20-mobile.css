@@ -19,7 +19,7 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 [role="radiogroup"]:focus-within {
-  outline: 3px solid #9b7d4f;
+  outline: 3px solid var(--saju-primary-deep, #9b7d4f);
   outline-offset: 3px;
 }
 
@@ -105,9 +105,9 @@ input:focus-visible,
 .library-notification-panel {
   margin-top: 24px;
   padding: 18px 20px;
-  border: 1px solid #ddd4c8;
+  border: 1px solid var(--saju-border, #ddd4c8);
   border-radius: 20px;
-  background: #fffdf9;
+  background: var(--saju-bg-card, #fffdf9);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -120,11 +120,12 @@ input:focus-visible,
 
 .library-notification-panel strong {
   display: block;
+  color: var(--saju-ink);
 }
 
 .library-notification-panel p {
   margin: 6px 0 0;
-  color: #70675f;
+  color: var(--saju-ink-soft, #70675f);
   font-size: .86rem;
   line-height: 1.55;
 }
@@ -149,10 +150,10 @@ input:focus-visible,
 .library-notification-form input[type="tel"] {
   width: 100%;
   min-height: 48px;
-  border: 1px solid #d4cabd;
+  border: 1px solid var(--saju-border, #d4cabd);
   border-radius: 12px;
   padding: 0 14px;
-  background: #fff;
+  background: var(--saju-bg-card, #fff);
   color: inherit;
   font: inherit;
   font-size: 16px;
@@ -164,7 +165,7 @@ input:focus-visible,
   gap: 9px;
   font-size: .78rem;
   line-height: 1.5;
-  color: #70675f;
+  color: var(--saju-ink-soft, #70675f);
 }
 
 .library-notification-consent input {
@@ -206,7 +207,7 @@ input:focus-visible,
 
 .library-card-generating p {
   margin: 10px 0 0;
-  color: #716960;
+  color: var(--saju-ink-soft, #716960);
   font-size: .84rem;
   line-height: 1.5;
 }
