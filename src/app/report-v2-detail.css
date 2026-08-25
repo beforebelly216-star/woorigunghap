@@ -33,11 +33,6 @@
 .v2-footer a { border: 1px solid var(--saju-border); border-radius: 14px; padding: 12px 16px; background: var(--saju-bg-card); color: var(--saju-ink); text-decoration: none; font-weight: 800; }
 .v2-footer a:last-child { border-color: var(--saju-primary-deep); background: var(--saju-primary-deep); color: #fff; }
 
-@media (min-width: 761px) {
-  .v2-chapter { padding: 58px 0; }
-  .v2-two-column, .v2-detail-grid, .v2-direction, .v2-scenarios { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
 /* P5 Saju Boy chapter guide + messenger-style scenes. */
 .v2-saju-boy-bubble { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 12px; align-items: center; margin: 0 0 22px; border: 1px solid color-mix(in srgb, var(--saju-primary) 65%, var(--saju-border)); border-radius: 20px 20px 20px 7px; padding: 13px 15px; background: color-mix(in srgb, var(--saju-primary) 16%, var(--saju-bg-card)); }
 .v2-saju-boy-avatar { width: 54px; height: 54px; border-radius: 18px; background: color-mix(in srgb, var(--saju-blush) 30%, var(--saju-bg-card)); overflow: hidden; }

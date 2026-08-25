@@ -39,7 +39,7 @@
   font-size: .78rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 99999px) {
   .relationship-context-textarea {
     min-height: 128px;
     font-size: 16px;

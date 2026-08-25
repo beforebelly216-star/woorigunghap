@@ -1,7 +1,7 @@
 .section { margin: 18px 0 58px; font-family: var(--saju-font-sans); }
 .heading { max-width: 660px; margin-bottom: 20px; }
 .heading small { color: var(--saju-primary-deep); font-size: .72rem; font-weight: 900; letter-spacing: .13em; }
-.heading h2 { margin: 7px 0 9px; color: var(--saju-ink); font-size: clamp(1.9rem, 7vw, 2.7rem); line-height: 1.15; letter-spacing: -.035em; }
+.heading h2 { margin: 7px 0 9px; color: var(--saju-ink); font-size: 1.9rem; line-height: 1.15; letter-spacing: -.035em; }
 .heading p { margin: 0; color: var(--saju-ink-soft); line-height: 1.65; }
 .typeTabs { width: min(100%, 390px); margin: 0 auto 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 5px; border: 1px solid var(--saju-border); border-radius: 16px; background: color-mix(in srgb, var(--saju-bg-card) 88%, var(--saju-primary) 12%); }
 .typeButton, .typeButtonActive { min-height: 42px; border: 0; border-radius: 11px; padding: 8px 6px; cursor: pointer; font-size: .75rem; font-weight: 900; line-height: 1.25; }
@@ -16,7 +16,7 @@
 .names span { color: var(--saju-primary-deep); }
 .mystery { margin-top: 34px; color: var(--saju-primary-deep); font-size: .68rem; font-weight: 900; letter-spacing: .09em; }
 .tone { align-self: flex-start; margin-top: 9px; border: 1px solid color-mix(in srgb, var(--saju-primary) 45%, var(--saju-border)); border-radius: 999px; padding: 4px 8px; background: color-mix(in srgb, var(--saju-primary) 10%, transparent); color: var(--saju-primary-deep); font-size: .62rem; font-weight: 900; text-transform: uppercase; }
-.shareCopy { display: block; margin-top: 14px; color: var(--saju-ink); font-size: clamp(1.6rem, 6.6vw, 2.35rem); line-height: 1.2; letter-spacing: -.04em; overflow-wrap: anywhere; }
+.shareCopy { display: block; margin-top: 14px; color: var(--saju-ink); font-size: 1.6rem; line-height: 1.2; letter-spacing: -.04em; overflow-wrap: anywhere; }
 .pairType { margin: 14px 0 0; color: var(--saju-ink-soft); font-size: .82rem; font-weight: 700; line-height: 1.45; }
 .pairType b { color: var(--saju-ink); }
 .clue { margin-top: 18px; border: 1px solid color-mix(in srgb, var(--saju-primary) 48%, var(--saju-border)); border-radius: 18px 18px 18px 6px; padding: 14px; background: color-mix(in srgb, var(--saju-primary) 12%, var(--saju-bg-card)); color: var(--saju-ink); font-size: .86rem; line-height: 1.55; }
@@ -39,9 +39,8 @@
 .shareError, .privacyNote { width: min(100%, 390px); margin: 10px auto 0; font-size: .78rem; line-height: 1.5; }
 .shareError { color: #A84A5D; }
 .privacyNote { color: var(--saju-ink-soft); }
-@media (min-width: 520px) { .actions { grid-template-columns: 1fr 1fr; } }
 
-@media (max-width: 379px) {
+@media (max-width: 99999px) {
   .heading h2 { font-size: 1.75rem; }
   .typeButton, .typeButtonActive { min-height: 40px; font-size: .68rem; }
   .card { border-radius: 24px; padding: 22px 18px; }
