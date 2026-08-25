@@ -34,21 +34,22 @@
 - [x] `/free` Foundation v2 적용
 
 ### 4단계 — 1:1 입력/결제
-- [x] **1:1 입력/checkout Foundation v2 적용**
-  - compact 480px 전용 layout owner `one-to-one-flow.module.css` 추가
-  - legacy `.input-page/.input-shell` 의존 제거
-  - checkout의 `report-p5-mobile.css` 직접 import 제거
-  - relationship / step progress / PersonBirthFields / textarea / nav button 위계 통일
-  - checkout summary / unlock preview / 정책 동의 / sticky payment CTA 통일
-  - free prefill / order recovery / 정책 동의 / 1,000원 / 결제 검증 계약 유지
-  - **Core calculation validation #690 PASS: 전체 contracts + lint + production build**
+- [x] 1:1 입력/checkout Foundation v2 적용
+
+### 5단계 — 생성중 상태 UI
+- [x] **결제 후 준비/생성/복구/실패 상태 Foundation v2 적용**
+  - compact 480px 상태 layout owner `result-status.css` 추가
+  - 기존 gradient/shadow 상태 카드 제거
+  - Suspense fallback / loading / missing recovery / account fatal / terminal fatal 동일 visual hierarchy 적용
+  - staged generation / retry / terminal failure / 결제 복구 / ownership / payment verification 로직 유지
+  - P5 UI 계약에 상태 화면 responsive/legacy visual 회귀 검증 추가
+  - **Core calculation validation #694 PASS: 전체 contracts + lint + production build**
 
 ### 이후 순서
-- [ ] **5단계 생성중 상태 UI Foundation 적용**
-  - 결제 완료 후 준비/생성/복구/실패 상태를 Foundation v2 hierarchy로 통일
-  - 무한 생성중 방지·재시도·종료 메시지 hotfix 계약 유지
-  - 생성 상태에서 broad mobile/legacy visual override 제거
-- [ ] 6단계 1:1 결과 IA/레이아웃 전면 적용
+- [ ] **6단계 1:1 결과 IA/레이아웃 전면 적용**
+  - report 640px 기준 progressive disclosure로 hero/점수/Relationship Label/Two Sides/강점·주의/관계흐름/행동가이드/CH0~CH9/공유 순서 재정렬
+  - 완성 리포트의 legacy gradient/shadow/card 과잉과 broad `max-width:99999px` CSS 제거
+  - 기존 계산 snapshot, 저장 결과, 공유, account link, CH0~CH9 콘텐츠 계약 유지
 - [ ] 7단계 1:N 입력/결제 및 비교 결과
 - [ ] 8단계 보관함/계정
 - [ ] 9단계 Shared View / 공유 카드 시각 통합
@@ -66,11 +67,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: UI/UX 4단계 — 1:1 입력/checkout Foundation v2 적용
+- Task: UI/UX 5단계 — 1:1 결제 후 생성/복구/실패 상태 Foundation v2 적용
 - Status: complete
-- Validation: Core calculation validation #690 PASS — 전체 contracts + lint + production build
-- Commit: 17cda92 기능/스타일/계약, 상태문서 후속 포함 PR #50
-- Remaining: 5단계 결제 후 생성중/복구/실패 상태 UI Foundation 적용
-- Risk: 1:1 결과/1:N/보관함/공유 화면에는 레거시 broad mobile CSS가 아직 남아 있음; 실제 multi-viewport 육안 QA 미실행
+- Validation: Core calculation validation #694 PASS — 전체 contracts + lint + production build
+- Commit: d720ab7 스타일/계약, 상태문서 후속 포함 PR #51
+- Remaining: 6단계 1:1 완성 결과 IA/레이아웃 전면 적용 + 완성 리포트 legacy broad CSS 정리
+- Risk: 완성 1:1 리포트와 1:N/보관함/공유 화면에는 legacy gradient/shadow/99999 CSS가 아직 남아 있음; multi-viewport 육안 QA 미실행
 - Deploy: 없음. Git 자동배포 false 유지, Production 미배포
 ```
