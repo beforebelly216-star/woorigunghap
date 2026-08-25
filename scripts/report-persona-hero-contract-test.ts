@@ -25,7 +25,12 @@ assert.match(chapter, /partner-inner-mind-hero/);
 assert.match(chapter, />그 사람의 속마음</);
 assert.match(chapter, />사주로 보면</);
 assert.ok(css.includes(".partner-inner-mind-hero"));
-assert.ok(css.includes("@media (max-width: 700px) { .partner-inner-mind-hero"));
+// Breakpoint values are part of the responsive design system and may change.
+// The contract should protect the mobile-specific hero treatment, not a historical literal width.
+assert.match(
+  css,
+  /@media \(max-width: [^)]+\) \{ \.partner-inner-mind-hero \{ padding: 22px 19px; border-radius: 22px; \} \}/,
+);
 
 const personalizedHero = personalizeNarrativeNames({
   partnerInnerMindHero: {
