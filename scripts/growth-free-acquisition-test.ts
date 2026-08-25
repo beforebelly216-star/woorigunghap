@@ -45,16 +45,28 @@ assert.match(homeSource, /<strong>3,000원<\/strong>/);
 assert.ok(homeSource.indexOf("무료로 내 관계 성향 보기") < homeSource.indexOf("<strong>1,000원</strong>"), "첫 설득은 무료 CTA여야 합니다.");
 
 const freePageSource = readFileSync("src/app/free/page.tsx", "utf8");
+const freePageCss = readFileSync("src/app/free/free-page.module.css", "utf8");
 assert.match(freePageSource, /0원 · 결제 없음/);
 assert.match(freePageSource, /무료 결과가 잘 맞는다고 느껴졌을 때만/);
+assert.match(freePageSource, /free-page\.module\.css/);
+assert.doesNotMatch(freePageSource, /className="input-page"|className="input-shell"/, "무료 화면은 레거시 input-page shell에 의존하지 않아야 합니다.");
+assert.match(freePageCss, /--saju-width-compact/);
+assert.match(freePageCss, /@media \(max-width:\s*480px\)/);
+assert.doesNotMatch(freePageCss, /99999px|gradient|box-shadow/i);
 
 const freeClientSource = readFileSync("src/components/free-self-analysis.tsx", "utf8");
+const freeClientCss = readFileSync("src/components/free-self-analysis.module.css", "utf8");
 assert.match(freeClientSource, /sessionStorage\.setItem\(FREE_SELF_PERSON_STORAGE_KEY/);
 assert.match(freeClientSource, /href="\/one-to-one\?from=free"/);
 assert.match(freeClientSource, /1,000원/);
 assert.match(freeClientSource, /3,000원/);
 assert.match(freeClientSource, /\{analysis \? \(/, "유료 CTA는 무료 결과가 생긴 뒤에 렌더링되어야 합니다.");
 assert.doesNotMatch(freeClientSource, /birthDate=.*from=free|birthTime=.*from=free/);
+assert.match(freeClientCss, /var\(--saju-action\)/);
+assert.match(freeClientCss, /var\(--saju-ink\)/);
+assert.match(freeClientCss, /:global\(\.person-panel\)/);
+assert.match(freeClientCss, /@media \(max-width:\s*480px\)/);
+assert.doesNotMatch(freeClientCss, /--saju-primary-deep|--saju-accent|--saju-blush|gradient|box-shadow/i);
 
 const freeApiSource = readFileSync("src/app/api/free/self-analysis/route.ts", "utf8");
 for (const forbidden of ["anthropic", "/api/orders", "paymentId", "PortOne", "server-report-store"]) {
@@ -68,4 +80,4 @@ assert.match(oneToOneSource, /sessionStorage\.getItem/);
 assert.match(oneToOneSource, /fromFree/);
 assert.match(oneToOneSource, /personA: toPersonBirthForm\(parsed\)/);
 
-console.log("Growth free acquisition contract passed.");
+console.log("Growth free acquisition + Foundation v2 contract passed.");
