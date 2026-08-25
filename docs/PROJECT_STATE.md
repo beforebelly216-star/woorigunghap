@@ -61,15 +61,15 @@
 
 ## 배포 상태
 
-- `be983fb`에 1:1 AI 생성 hotfix `f758c4f`와 Claude Sonnet 5 전환을 포함해 Vercel Production 배포 완료했다.
-- Production deployment: `https://woorigunghap-uty7-k3axqsi1p-beforebelly216-stars-projects.vercel.app` · GitHub/Vercel status `success`.
-- 사용자 실결제 화면에서 Production `be983fb`가 `AI_QUALITY`로 종료되는 것을 확인했다. 복구 hotfix `d9f7cae`는 검증 완료됐지만 아직 Production 미배포다.
+- `5435861`에 Claude Sonnet 5 전환과 `AI_QUALITY` 결제 결과 복구 hotfix `d9f7cae`를 포함해 Vercel Production 배포 완료했다.
+- Production deployment: `https://woorigunghap-uty7-q7pw0wrsd-beforebelly216-stars-projects.vercel.app` · GitHub deployment `6087168964` · GitHub/Vercel status `success`.
+- 실패한 동일 결제의 lock은 해제되어 새로고침 재시도가 가능하다. 실제 생성→저장→재열람 성공 여부는 사용자 paid runtime 재검증이 남아 있다.
 - Git 자동배포는 비활성화 상태를 유지한다.
 - Production과 최신 `main`은 일시적으로 다를 수 있다.
 
 ## 남은 핵심 QA / 리스크
 
-1. 사용자 승인 후 `d9f7cae` 포함 최신 `main`을 Production 배포하고 실패한 동일 결제로 1:1 생성 복구 확인
+1. 실패한 동일 결제로 Production `5435861`의 1:1 생성→저장→재열람 복구 확인
 2. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View 링크 확인
 3. 홈 → 무료 결과 → 1:1 prefill 실제 동작 확인
 4. **360 / 390 / 430 / 768 / 1280px 전체 Foundation 화면 육안 QA 및 spacing/overflow 최종 보정**

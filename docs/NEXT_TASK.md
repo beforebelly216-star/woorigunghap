@@ -15,7 +15,7 @@
   - [x] 과도한 INTRO 일주/오행 exact-match 및 장문 중복 terminal gate 원인 확인
   - [x] `d9f7cae` 모델 1회 재시도 → 서버 사실 기반 보정 → 재검사 → 저장 복구 구현
   - [x] 재현/관련 계약 8개, lint, production build PASS
-  - [ ] 사용자 승인 후 Production 배포
+  - [x] `5435861` Vercel Production 배포 (`success`, deployment `6087168964`)
   - [ ] 실패한 동일 결제로 생성→저장→재열람 확인
 - [x] **1:1 AI 과다 출력·장시간 대기·완성 형식 확정 실패 구조 개선**
   - 목표 분량을 공백 제외 약 2,500~4,000자로 축소하고 CH0~CH9·관계별 편집 기준 유지
@@ -77,11 +77,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: Production 실결제 `AI_QUALITY` 종료 원인 분석 및 결정론적 release repair hotfix
-- Status: partial — 코드·계약·build 완료, Production 배포 승인 대기
-- Validation: 실패 재현/복구 포함 관련 계약 8개 PASS; lint 오류 0건(기존 warning 3건); production build PASS
-- Commit: d9f7cae 코드/테스트, 상태문서 후속 커밋 별도
-- Remaining: 사용자 승인 후 최신 main Production 배포 → 실패한 동일 결제로 생성/저장/재열람 확인
-- Risk: Vercel runtime log 프로젝트 조회 404; 세부 quality issue는 배포 후 구조화 로그 확인 필요
-- Deploy: 현재 Production be983fb; d9f7cae 미배포; Git 자동배포 false 유지
+- Task: `AI_QUALITY` 결정론적 release repair hotfix Production 배포
+- Status: partial — Production 배포 성공, 동일 결제 paid runtime 재검증 대기
+- Validation: 관련 계약 8개 PASS; lint 오류 0건(기존 warning 3건); production build 및 GitHub 전체 CI PASS
+- Commit: d9f7cae hotfix · 5435861 Production deployment
+- Remaining: 사용자가 실패한 동일 결제 결과 화면을 새로고침해 생성→저장→재열람 확인
+- Risk: Vercel runtime log 프로젝트 조회 404로 서버 로그 직접 확인 불가
+- Deploy: Production 5435861 / deployment 6087168964 success; Git 자동배포 false 복구
 ```
