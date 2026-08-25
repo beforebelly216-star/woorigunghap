@@ -1,48 +1,28 @@
-/* 우리사주 공통 파스텔 디자인 토큰. 핵심 화면은 이 팔레트만 사용한다. */
+/* 오행 밸런스 시스템 — 우리사주 공통 디자인 토큰 (2026-08-25 확정, docs/DESIGN_FIVE_ELEMENT_SYSTEM.md 참고).
+   theme-unification.css가 헤더/푸터/주요 UI를 이 토큰에 연결하므로, 여기 값을 바꾸면 사이트 전반에 반영된다.
+   다크모드는 지원하지 않는다(라이트 단일 팔레트, 사용자 확정). */
 :root {
-  --saju-bg-base: #F4F1FA;
-  --saju-bg-card: #FCFBFF;
-  --saju-bg-soft: #ECE7F6;
-  --saju-ink: #373247;
-  --saju-ink-soft: #746C8A;
-  --saju-primary: #B7A9E6;
-  --saju-primary-deep: #806FC0;
-  --saju-accent: #F6A77E;
-  --saju-mint: #89D2BF;
-  --saju-blush: #F2BDD0;
-  --saju-border: #DCD4E9;
-  --saju-track: #E7E1EF;
-  --saju-shadow: 0 18px 50px rgba(73, 59, 111, .10);
-  --saju-element-wood: #A8D8B9;
-  --saju-element-fire: #FF9E9E;
-  --saju-element-earth: #E8C995;
-  --saju-element-metal: #D9D5E8;
-  --saju-element-water: #A5C9E8;
-  --saju-unknown: #E8E5EC;
+  --saju-bg-base: #FAFAF8;
+  --saju-bg-card: #FFFFFF;
+  --saju-bg-soft: #F1F0EC;
+  --saju-ink: #26262A;
+  --saju-ink-soft: #6B6B72;
+  /* 아래 3개는 스펙상 새 브랜드색이 아니라 기존 컴포넌트 호환을 위한 중립 톤이다.
+     실제 "단일 강조색"은 --saju-primary-deep(잉크)만 쓴다. */
+  --saju-primary: #D9D5CE;
+  --saju-primary-deep: #26262A;
+  --saju-accent: #E7DCC0;
+  --saju-mint: #A7B8AC;
+  --saju-blush: #E3C7BC;
+  --saju-border: #E6E4DF;
+  --saju-track: #ECEAE4;
+  --saju-shadow: 0 14px 34px rgba(38, 38, 42, .08);
+  --saju-element-wood: #4C8C5C;
+  --saju-element-fire: #D65B4A;
+  --saju-element-earth: #C99A3E;
+  --saju-element-metal: #8B93A6;
+  --saju-element-water: #3E7DAD;
+  --saju-unknown: #E6E4DF;
   --saju-font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --saju-font-serif: "Nanum Myeongjo", "Noto Serif KR", Georgia, serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --saju-bg-base: #1F1B2E;
-    --saju-bg-card: #2A2540;
-    --saju-bg-soft: #332D4A;
-    --saju-ink: #EDE9F7;
-    --saju-ink-soft: #B9B1D0;
-    --saju-primary: #BFB2E8;
-    --saju-primary-deep: #A898DC;
-    --saju-accent: #F3A47D;
-    --saju-mint: #96D8C6;
-    --saju-blush: #EFB6C8;
-    --saju-border: #4A4264;
-    --saju-track: #3D3654;
-    --saju-shadow: 0 18px 50px rgba(0, 0, 0, .22);
-    --saju-element-wood: #86C5A0;
-    --saju-element-fire: #F08F8F;
-    --saju-element-earth: #D9B981;
-    --saju-element-metal: #C9C3DA;
-    --saju-element-water: #91BDE0;
-    --saju-unknown: #464056;
-  }
 }
