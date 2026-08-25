@@ -62,8 +62,8 @@ button, input, select { font: inherit; }
 .step-progress-bar-done { background: var(--saju-primary-deep, #273b31); }
 .step-progress-label { display: block; margin-top: 8px; color: var(--saju-ink-soft, #6d766f); font-size: .82rem; font-weight: 700; }
 .step-nav { display: flex; gap: 10px; margin-top: 8px; }
-.step-nav .secondary-action { flex: 0 0 auto; min-width: 96px; }
-.step-nav .primary-action { flex: 1; }
+.step-nav .secondary-action { flex: 0 0 auto; width: auto; min-width: 96px; }
+.step-nav .primary-action { flex: 1; width: auto; }
 .person-panel { margin: 0; padding: 28px; min-width: 0; }
 .person-panel legend { padding: 0 8px; font-family: Georgia, serif; font-size: 1.55rem; }
 .field-stack { display: grid; gap: 8px; margin-top: 20px; }
