@@ -1,5 +1,5 @@
-/* P5 mobile QA hardening for 360 / 390 / 430px widths. */
-@media (max-width: 99999px) {
+/* P5 mobile QA hardening for mobile/tablet widths. */
+@media (max-width: 700px) {
   .v2-page {
     overflow-x: clip;
   }
@@ -57,9 +57,7 @@
   .checkout-unlock-preview article p {
     overflow-wrap: anywhere;
   }
-}
 
-@media (max-width: 99999px) {
   /* 52px button + vertical padding + iOS home indicator + breathing room. */
   .checkout-shell {
     padding-bottom: calc(112px + env(safe-area-inset-bottom));
@@ -68,9 +66,7 @@
   .checkout-sticky-cta {
     box-shadow: 0 -10px 30px rgba(84, 70, 122, .08);
   }
-}
 
-@media (max-width: 99999px) {
   .checkout-unlock-preview {
     padding: 18px;
     border-radius: 20px;

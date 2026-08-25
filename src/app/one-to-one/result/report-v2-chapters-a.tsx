@@ -1,5 +1,6 @@
 import type { EnhancedDetailedReportContent } from "@/lib/narrative/report-deep-content";
 import { BulletList, Chapter, Paragraph } from "./report-v2-components";
+import { ReportFoundationSummary } from "./report-foundation-summary";
 
 function safeItems(items: string[]) {
   return items.filter(Boolean);
@@ -29,6 +30,9 @@ export default function ReportChaptersA({
     : safeItems(content.personA.strengths.slice(0, 3));
 
   return <>
+    <ReportFoundationSummary content={content} personAName={personAName} personBName={personBName} />
+
+    <div id="deep-report-start" className="foundation-deep-report-marker" aria-hidden="true" />
     <Chapter
       index={0}
       eyebrow="TOTAL DIAGNOSIS"
