@@ -156,7 +156,7 @@ async function main() {
 
   const v7Engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
   assert.match(v7Engine, /PAID_REPORT_SEGMENTS = \["intro", "dynamics", "action"\]/);
-  assert.match(v7Engine, /paid-report-v7-editorial-v14-day-pillar-characters/);
+  assert.match(v7Engine, /paid-report-v7-editorial-v15-concise-structured/);
   assert.match(v7Engine, /paid-report-evidence-v7/);
   assert.match(v7Engine, /paidEditorialFacts/);
   assert.match(v7Engine, /paidEditorialEvidence/);
@@ -174,12 +174,12 @@ async function main() {
   assert.match(v7Engine, /계산값이 없는 숫자나 비율도 만들지 마세요/);
   assert.match(v7Engine, /전용 계산 근거가 없는 본문에서 새로 만들지 마세요/);
   assert.match(v7Engine, /payloadText = JSON\.stringify\(payload\.aiPayload\)/);
-  assert.match(v7Engine, /preferStructured: false/);
+  assert.match(v7Engine, /preferStructured: true/);
   assert.match(v7Engine, /combineAnthropicUsage\(generated\.allUsage\)/);
 
   const requestEngine = readFileSync("src/lib/narrative/report-engine-v6-request.ts", "utf8");
   assert.match(requestEngine, /autoStructuredHaiku45/);
-  assert.match(requestEngine, /const maxAttempts = isLongSegment \? 1 : 2/);
+  assert.match(requestEngine, /const maxAttempts = 2/);
   assert.match(requestEngine, /Progress-first policy/);
   assert.match(requestEngine, /DEVELOPER_LABEL_A_B_EXPOSED/);
   assert.match(requestEngine, /INTERNAL_METRIC_EXPOSED/);

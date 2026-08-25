@@ -338,7 +338,13 @@ export function collectPaidNarrativeQualityIssues(
   const strings = collectStrings(value);
   const joined = strings.join("\n");
   const characters = collectCharacters(value);
-  const minCharacters = label === "INTRO" ? 1200 : label === "DYNAMICS" || label === "ACTION" ? 1800 : 0;
+  const minCharacters = label === "INTRO"
+    ? 650
+    : label === "DYNAMICS"
+      ? 900
+      : label === "ACTION"
+        ? 1_050
+        : 0;
 
   if (label === "INTRO") {
     issues.push(...collectPaidIntroEvidenceIssues(value, userPrompt));
@@ -430,6 +436,10 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function isTransientAnthropicStatus(status: number) {
+  return status === 408 || status === 409 || status === 429 || status >= 500;
+}
+
 function betterCandidate<T>(current: SegmentAttempt<T> | null, next: SegmentAttempt<T>) {
   if (!current) return next;
   const currentCritical = criticalIssues(current.qualityIssues).length;
@@ -490,19 +500,16 @@ export async function requestStructuredSegment<T>(args: {
   system: string;
   user: string;
   maxTokens: number;
+  retryMaxTokens?: number;
   timeoutMs?: number;
   preferStructured?: boolean;
   validate: (value: unknown) => value is T;
   qualityIssues: (value: T) => string[];
   label: string;
 }): Promise<{ best: SegmentAttempt<T>; attempts: number; allUsage: AnthropicRawUsage[] }> {
-  const requestedTimeoutMs = Math.max(args.timeoutMs ?? 60_000, 60_000);
-  const isLongSegment = args.label === "DYNAMICS" || args.label === "ACTION";
-  const perAttemptTimeoutMs = isLongSegment
-    ? Math.max(requestedTimeoutMs, 205_000)
-    : Math.max(requestedTimeoutMs, 120_000);
-  const totalBudgetMs = isLongSegment ? 220_000 : 180_000;
-  const maxAttempts = isLongSegment ? 1 : 2;
+  const perAttemptTimeoutMs = Math.max(args.timeoutMs ?? 75_000, 60_000);
+  const totalBudgetMs = Math.min(240_000, perAttemptTimeoutMs * 2 + 10_000);
+  const maxAttempts = 2;
   const startedAt = Date.now();
   const allUsage: AnthropicRawUsage[] = [];
   let lastFailure = "UNKNOWN";
@@ -523,9 +530,11 @@ export async function requestStructuredSegment<T>(args: {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const remainingBudgetMs = Math.max(1_000, totalBudgetMs - (Date.now() - startedAt));
+    if (attempt > 1 && remainingBudgetMs < 30_000) break;
     const attemptTimeoutMs = Math.min(perAttemptTimeoutMs, remainingBudgetMs);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), attemptTimeoutMs);
+    const attemptStartedAt = Date.now();
     try {
       const duplicateDetail = lastDuplicateSamples.length
         ? ` 중복된 문장 예시: ${lastDuplicateSamples.map((item) => `[${item}]`).join(" / ")} 같은 문장을 다른 필드에 재사용하지 마세요.`
@@ -534,16 +543,10 @@ export async function requestStructuredSegment<T>(args: {
         ? `직전 응답은 다음 출시 차단 이슈를 포함했습니다: ${lastQualityIssues.join(", ")}.${duplicateDetail} JSON 구조를 유지하면서 해당 이슈를 제거하세요.`
         : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고 완결된 객체를 출력하세요.";
       const expandedSystem = attempt === 1 ? baseSystem : `${baseSystem}\n\n[재시도 지시] ${retryReason}`;
-      const firstAttemptMaxTokens = args.label === "INTRO"
-        ? Math.max(args.maxTokens, 5_000)
-        : args.label === "DYNAMICS"
-          ? Math.max(args.maxTokens, 9_000)
-          : args.label === "ACTION"
-            ? Math.max(args.maxTokens, 8_000)
-            : args.maxTokens;
-      const attemptMaxTokens = attempt === 1
-        ? firstAttemptMaxTokens
-        : Math.min(12_000, Math.ceil(firstAttemptMaxTokens * 1.2));
+      const retryMaxTokens = Math.max(args.maxTokens, args.retryMaxTokens ?? args.maxTokens);
+      const attemptMaxTokens = attempt > 1 && lastFailure === "MAX_TOKENS"
+        ? retryMaxTokens
+        : args.maxTokens;
 
       let result = await callAnthropic({
         apiKey: args.apiKey,
@@ -576,6 +579,7 @@ export async function requestStructuredSegment<T>(args: {
 
       const { response, body } = result;
       if (body?.usage) allUsage.push(body.usage);
+      const requestId = response.headers.get("request-id") ?? response.headers.get("x-request-id");
       if (!response.ok) {
         if (isCreditBalanceLow(body)) throw new Error("ANTHROPIC_CREDIT_BALANCE_LOW");
         lastFailure = `HTTP_${response.status}_${safeError(body)}`;
@@ -585,8 +589,10 @@ export async function requestStructuredSegment<T>(args: {
           status: response.status,
           reason: safeError(body),
           detail: safeErrorDetail(body),
+          requestId,
+          elapsedMs: Date.now() - attemptStartedAt,
         }));
-        if ((response.status === 429 || response.status === 529) && attempt < maxAttempts) {
+        if (isTransientAnthropicStatus(response.status) && attempt < maxAttempts) {
           const retryAfterSeconds = Number(response.headers.get("retry-after"));
           const waitMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
             ? Math.min(8_000, retryAfterSeconds * 1000)
@@ -598,7 +604,27 @@ export async function requestStructuredSegment<T>(args: {
 
       if (body?.stop_reason === "max_tokens") {
         lastFailure = "MAX_TOKENS";
-        console.warn("[woorigunghap:v6-segment-truncated]", JSON.stringify({ label: args.label, attempt, maxTokens: attemptMaxTokens }));
+        console.warn("[woorigunghap:v6-segment-truncated]", JSON.stringify({
+          label: args.label,
+          attempt,
+          maxTokens: attemptMaxTokens,
+          outputTokens: body.usage?.output_tokens ?? null,
+          requestId,
+          elapsedMs: Date.now() - attemptStartedAt,
+        }));
+        continue;
+      }
+
+      if (body?.stop_reason && body.stop_reason !== "end_turn") {
+        lastFailure = `STOP_REASON_${body.stop_reason.replace(/[^A-Z0-9_-]/gi, "_").toUpperCase()}`;
+        console.warn("[woorigunghap:v6-segment-stop-reason]", JSON.stringify({
+          label: args.label,
+          attempt,
+          stopReason: body.stop_reason,
+          outputTokens: body.usage?.output_tokens ?? null,
+          requestId,
+          elapsedMs: Date.now() - attemptStartedAt,
+        }));
         continue;
       }
 
@@ -613,11 +639,26 @@ export async function requestStructuredSegment<T>(args: {
         parsed = parseJsonText(text);
       } catch {
         lastFailure = "INVALID_JSON";
+        console.warn("[woorigunghap:v6-segment-json]", JSON.stringify({
+          label: args.label,
+          attempt,
+          responseCharacters: text.length,
+          outputTokens: body?.usage?.output_tokens ?? null,
+          requestId,
+          elapsedMs: Date.now() - attemptStartedAt,
+        }));
         continue;
       }
       if (!matchesJsonSchema(parsed, args.schema) || !args.validate(parsed)) {
         lastFailure = "SCHEMA_MISMATCH";
-        console.warn("[woorigunghap:v6-segment-schema]", JSON.stringify({ label: args.label, attempt }));
+        console.warn("[woorigunghap:v6-segment-schema]", JSON.stringify({
+          label: args.label,
+          attempt,
+          responseCharacters: text.length,
+          outputTokens: body?.usage?.output_tokens ?? null,
+          requestId,
+          elapsedMs: Date.now() - attemptStartedAt,
+        }));
         continue;
       }
 
@@ -646,6 +687,16 @@ export async function requestStructuredSegment<T>(args: {
       }
 
       if (critical.length === 0) {
+        console.info("[woorigunghap:v6-segment-attempt-complete]", JSON.stringify({
+          label: args.label,
+          attempt,
+          maxTokens: attemptMaxTokens,
+          outputTokens: body?.usage?.output_tokens ?? null,
+          characters: candidate.characters,
+          structured: !structuredRejected,
+          requestId,
+          elapsedMs: Date.now() - attemptStartedAt,
+        }));
         return { best: candidate, attempts: attempt, allUsage };
       }
 

@@ -50,8 +50,8 @@ for (const removedCopy of [
 }
 
 assert.ok(
-  oneToOneRoute.includes("paid-report-v7-editorial-server-store-20260824-staged-fanout-v2"),
-  "1:1 route must expose the staged generation runtime version",
+  oneToOneRoute.includes("paid-report-v7-concise-structured-20260826"),
+  "1:1 route must expose the concise structured generation runtime version",
 );
 assert.ok(oneToOneRoute.includes("export const maxDuration = 300"), "1:1 route must use the Hobby Fluid Compute duration ceiling");
 assert.ok(oneToOneRoute.includes('requestedSegment === "dynamics" ? ["dynamics", "action"] : [requestedSegment]'), "intro must run alone and only the two long segments may overlap");

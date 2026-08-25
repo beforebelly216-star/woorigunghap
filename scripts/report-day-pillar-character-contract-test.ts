@@ -29,7 +29,7 @@ assert.equal(getDayPillarCharacter("갑축"), null, "60갑자에 없는 음양 �
 assert.equal(getDayPillarCharacter(null), null);
 
 const engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
-assert.ok(engine.includes("paid-report-v7-editorial-v14-day-pillar-characters"));
+assert.ok(engine.includes("paid-report-v7-editorial-v15-concise-structured"));
 assert.ok(engine.includes("dayPillarCharacter"), "AI 편집 payload에 일주 캐릭터가 연결되어야 합니다.");
 assert.ok(engine.includes("일주 캐릭터는 보조 편집 렌즈"), "캐릭터가 계산 근거를 덮어쓰지 못하는 규칙이 필요합니다.");
 

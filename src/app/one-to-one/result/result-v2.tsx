@@ -56,10 +56,20 @@ const STAGE_COPY: Record<"prepare" | PaidReportSegmentName, string> = {
 };
 
 class FatalGenerationError extends Error {
-  constructor(message: string) {
+  reason: string | null;
+
+  constructor(message: string, reason: string | null = null) {
     super(message);
     this.name = "FatalGenerationError";
+    this.reason = reason;
   }
+}
+
+function fatalGenerationTitle(reason: string | null) {
+  if (reason && ["API_AUTH", "API_BILLING", "API_PERMISSION", "API_MODEL", "API_REQUEST", "AI_MODE", "API_KEY_MISSING"].includes(reason)) {
+    return "리포트 생성 설정을 확인해야 해요.";
+  }
+  return "리포트 생성을 이번 시도에서 마치지 못했어요.";
 }
 
 function gradeFor(score: number) {
@@ -141,6 +151,7 @@ export default function ResultV2() {
   const [segmentMetas, setSegmentMetas] = useState<Partial<Record<PaidReportSegmentName, PaidReportSegmentMeta>>>({});
   const [status, setStatus] = useState<"loading" | "ready" | "missing" | "fatal">("loading");
   const [fatalMessage, setFatalMessage] = useState<string | null>(null);
+  const [fatalReason, setFatalReason] = useState<string | null>(null);
   const [stage, setStage] = useState<"prepare" | PaidReportSegmentName>("prepare");
   const [stageAttempt, setStageAttempt] = useState(1);
   const [completedSegments, setCompletedSegments] = useState(0);
@@ -213,7 +224,10 @@ export default function ResultV2() {
             || response.status >= 500;
 
           if (!transient) {
-            throw new FatalGenerationError(payload?.error ?? "상세 리포트 생성 설정을 확인해야 합니다.");
+            throw new FatalGenerationError(
+              payload?.error ?? "상세 리포트 생성을 완료하지 못했습니다.",
+              payload?.reason ?? payload?.code ?? null,
+            );
           }
         } catch (error) {
           if (error instanceof FatalGenerationError) throw error;
@@ -304,6 +318,7 @@ export default function ResultV2() {
       setOrder(draft);
       setStatus("loading");
       setFatalMessage(null);
+      setFatalReason(null);
 
       let progress = loadReportProgress(draft.paymentId, draft.createdAt)
         ?? emptyReportProgress(draft.paymentId, draft.createdAt);
@@ -373,6 +388,7 @@ export default function ResultV2() {
         if (cancelled || (error instanceof Error && error.message === "CANCELLED")) return;
         if (error instanceof FatalGenerationError) {
           setFatalMessage(error.message);
+          setFatalReason(error.reason);
           setStatus("fatal");
           return;
         }
@@ -410,7 +426,7 @@ export default function ResultV2() {
     <Link href="/account/reports">보관함으로 돌아가기</Link>
   </div></main>;
 
-  if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리사주</p><h1>자동 대기로 해결할 수 없는 설정 문제가 있어요.</h1><p>{fatalMessage ?? "결제 또는 API 설정을 확인해 주세요."}</p><p>결제는 다시 하지 않아도 됩니다.</p></div></main>;
+  if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리사주</p><h1>{fatalGenerationTitle(fatalReason)}</h1><p>{fatalMessage ?? "결제 또는 API 상태를 확인해 주세요."}</p><p>결제는 다시 하지 않아도 됩니다.</p></div></main>;
 
   const { personA, personB, relationshipType } = order.inputSnapshot;
   const relationshipLabel = RELATIONSHIP_LABELS[relationshipType];

@@ -40,7 +40,7 @@ import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
-const REPORT_RUNTIME_VERSION = "paid-report-v7-editorial-server-store-20260824-staged-fanout-v2";
+const REPORT_RUNTIME_VERSION = "paid-report-v7-concise-structured-20260826";
 const PHASES = ["prepare", ...PAID_REPORT_SEGMENTS] as const;
 type ReportPhase = (typeof PHASES)[number];
 
@@ -73,11 +73,14 @@ function classifyReportFailure(message: string) {
   if (message.includes("HTTP_404")) return "API_MODEL";
   if (message.includes("HTTP_429")) return "API_RATE_LIMIT";
   if (message.includes("HTTP_529")) return "API_OVERLOADED";
+  if (/HTTP_(408|409|500|502|503|504)/.test(message)) return "API_TRANSIENT";
   if (message.includes("HTTP_400") || message.includes("HTTP_413") || message.includes("HTTP_422")) return "API_REQUEST";
   if (message.includes("QUALITY_CRITICAL")) return "AI_QUALITY";
   if (message.includes("TIMEOUT")) return "API_TIMEOUT";
   if (message.includes("MAX_TOKENS")) return "AI_OUTPUT_TRUNCATED";
   if (message.includes("SCHEMA") || message.includes("INVALID_JSON")) return "AI_FORMAT";
+  if (message.includes("STOP_REASON_REFUSAL")) return "AI_REFUSAL";
+  if (message.includes("STOP_REASON_")) return "AI_STOPPED";
   if (message.includes("MODE_NOT_ANTHROPIC")) return "AI_MODE";
   if (message.includes("API_KEY_MISSING")) return "API_KEY_MISSING";
   if (message.includes("REQUEST_FAILED")) return "API_NETWORK";
@@ -99,11 +102,14 @@ function failureMessage(reason: string) {
     case "API_KEY_MISSING": return "Claude API 키 설정을 확인해야 합니다. 추가 결제는 필요하지 않습니다.";
     case "API_RATE_LIMIT": return "Claude API 요청이 혼잡해 자동 대기를 중단했습니다. 잠시 후 새로고침하면 같은 결제로 다시 시도할 수 있습니다.";
     case "API_OVERLOADED": return "Claude API가 일시적으로 혼잡해 자동 대기를 중단했습니다. 잠시 후 새로고침하면 같은 결제로 다시 시도할 수 있습니다.";
+    case "API_TRANSIENT": return "Claude API의 일시 오류가 반복되어 이번 생성을 중단했습니다. 잠시 후 같은 결제로 다시 시도할 수 있습니다.";
     case "API_TIMEOUT": return "AI 응답이 제한 시간 안에 끝나지 않아 자동 대기를 중단했습니다. 새로고침하면 같은 결제로 다시 시도할 수 있습니다.";
     case "API_NETWORK": return "AI 서버 연결이 반복해서 완료되지 않아 자동 대기를 중단했습니다. 잠시 후 새로고침해 주세요.";
     case "AI_OUTPUT_TRUNCATED": return "AI 응답이 끝까지 완성되지 않았습니다. 새로고침하면 같은 결제로 다시 시도할 수 있습니다.";
     case "AI_FORMAT": return "AI 응답을 완성된 리포트 형식으로 확정하지 못했습니다. 새로고침하면 같은 결제로 다시 시도할 수 있습니다.";
     case "AI_QUALITY": return "AI 응답에 계산 근거와 맞지 않는 부분이 남아 자동 대기를 중단했습니다. 새로고침하면 같은 결제로 다시 시도할 수 있습니다.";
+    case "AI_REFUSAL": return "AI가 이 요청의 서술 생성을 완료하지 않았습니다. 같은 결제로 다시 시도할 수 있습니다.";
+    case "AI_STOPPED": return "AI 응답이 정상 종료되지 않아 이번 생성을 중단했습니다. 같은 결제로 다시 시도할 수 있습니다.";
     default: return "상세 해설 생성을 완료하지 못했습니다. 새로고침하면 같은 결제로 다시 시도할 수 있습니다.";
   }
 }
@@ -437,6 +443,12 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : "궁합 계산에 실패했습니다.";
     if (message.startsWith("PAID_REPORT_SEGMENT_FAILED") || message.includes("ANTHROPIC")) {
       const reason = classifyReportFailure(message);
+      console.warn("[woorigunghap:paid-report-stopped]", JSON.stringify({
+        phase,
+        reason,
+        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+        detail: message.slice(0, 240),
+      }));
       return NextResponse.json(
         {
           error: failureMessage(reason),

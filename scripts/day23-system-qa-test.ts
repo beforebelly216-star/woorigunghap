@@ -58,14 +58,14 @@ assert.match(oneToOneReport, /completeReportSegmentGeneration\(paymentId, segmen
 assert.match(oneToOneReport, /releaseReportSegmentGeneration/);
 assert.match(oneToOneReport, /SERVER_REPORT_SEGMENT_SAVE_FAILED/);
 
-// Progress-first policy keeps one full-budget long-segment attempt per HTTP request.
+// Concise segments get one bounded recovery attempt while staying inside the route budget.
 // Editorial findings stay visible as warnings; only release blockers trigger a retry/failure.
-assert.match(requestEngine, /const maxAttempts = isLongSegment \? 1 : 2/);
+assert.match(requestEngine, /const maxAttempts = 2/);
 assert.match(requestEngine, /for \(let attempt = 1; attempt <= maxAttempts; attempt \+= 1\)/);
 assert.match(requestEngine, /Progress-first policy/);
 assert.match(requestEngine, /critical\.length === 0/);
 assert.doesNotMatch(requestEngine, /QUALITY_RETRY/);
-assert.match(requestEngine, /response\.status === 429 \|\| response\.status === 529/);
+assert.match(requestEngine, /isTransientAnthropicStatus\(response\.status\)/);
 assert.match(requestEngine, /matchesJsonSchema/);
 assert.match(requestEngine, /shape\.type === "number"/);
 assert.match(requestEngine, /QUALITY_SHORTFALL/);
@@ -86,13 +86,13 @@ assert.match(requestEngine, /NAME_TOKEN_OVERUSE/);
 assert.match(requestEngine, /QUALITY_CRITICAL/);
 assert.match(requestEngine, /RELATIONSHIP_ROMANCE_LEAK/);
 assert.match(requestEngine, /COWORKER_HIERARCHY_NOT_REFLECTED/);
-assert.match(requestEngine, /INTRO" \? 1200/);
-assert.match(requestEngine, /1800/);
-assert.match(requestEngine, /totalBudgetMs = isLongSegment \? 220_000 : 180_000/);
+assert.match(requestEngine, /\? 650/);
+assert.match(requestEngine, /\? 900/);
+assert.match(requestEngine, /Math\.min\(240_000, perAttemptTimeoutMs \* 2 \+ 10_000\)/);
 
 // Paid AI payload deliberately removes raw person-level numbers that caused unsupported
 // psychological interpretations in real Claude samples, while keeping server scores authoritative.
-assert.match(paidEngine, /paid-report-v7-editorial-v14-day-pillar-characters/);
+assert.match(paidEngine, /paid-report-v7-editorial-v15-concise-structured/);
 assert.match(paidEngine, /paid-report-evidence-v7/);
 assert.match(paidEngine, /paidEditorialFacts/);
 assert.match(paidEngine, /dayPillar: value\.pillars\.day/);

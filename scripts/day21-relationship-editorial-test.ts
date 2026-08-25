@@ -134,7 +134,7 @@ assert.equal(
 );
 
 const engine = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
-assert.match(engine, /paid-report-v7-editorial-v14-day-pillar-characters/);
+assert.match(engine, /paid-report-v7-editorial-v15-concise-structured/);
 assert.match(engine, /paid-report-evidence-v7/);
 assert.match(engine, /relationshipPromptRules\(/);
 assert.match(engine, /input\.coworkerHierarchy \?\? null/);
@@ -158,7 +158,9 @@ assert.match(engine, /situationStrategy: SITUATION_STRATEGY_SCHEMA/);
 assert.match(engine, /actionPlan30: ACTION_PLAN_30_SCHEMA/);
 assert.match(engine, /PARTNER_DEEP_DIVE_SHORT/);
 assert.match(engine, /ACTION_PLAN_30_WEEKS_INVALID/);
-assert.match(engine, /maxTokens: 7000/);
+assert.match(engine, /maxTokens: 2_600/);
+assert.match(engine, /maxTokens: 3_000/);
+assert.match(engine, /2,500~4,000자/);
 
 const form = readFileSync("src/components/one-to-one-form.tsx", "utf8");
 assert.match(form, /coworkerHierarchy/);
