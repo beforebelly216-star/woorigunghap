@@ -43,7 +43,7 @@
   - 전 화면 480px 강제 원칙 폐기
   - 과거 라벤더/고정 breakpoint 문자열에 과결합된 UI 계약을 기능 계약 중심으로 갱신
   - CI에서 발견한 `vercel.json` Git 자동배포 `true`를 정책대로 `false`로 복구
-  - PR #47에서 전체 회귀 + lint + build 최종 확인 후 `main` 병합
+  - **Core calculation validation #677 PASS: 전체 contracts + lint + production build**
 
 ### 2단계 — Foundation 실제 화면 적용
 
@@ -88,10 +88,10 @@ npm run build
 HANDOFF
 - Worker: GPT
 - Task: UI/UX 1단계 — Design Foundation v2 전면 재작성 및 shared token/계약 정렬
-- Status: complete on PR #47; final CI/merge 진행 중
-- Validation: 만세력·궁합·결제/AI·1:N·Growth·report contracts 재검증 중; Foundation v2 P5 UI/공유/persona contracts PASS, lint/build는 최종 CI 대기
+- Status: complete
+- Validation: Core calculation validation #677 PASS — 전체 계산/결제/AI/1:N/account/Growth/report contracts + lint + production build
 - Commit: 9f88799 (Foundation 구현/테스트 + Vercel 자동배포 false 복구; 상태문서 커밋은 후속)
-- Remaining: PR #47 CI 전체 PASS 후 main 병합 → 2단계 공통 shell/홈 적용 + 레거시 전 화면 480px 강제 CSS를 화면별로 제거
-- Risk: 기존 화면 CSS에 max-width:99999px/480px 강제 흔적이 남아 새 responsive 원칙과 충돌; 2단계에서 실제 렌더링 QA 필수
+- Remaining: 2단계 공통 shell/홈 적용 + 레거시 전 화면 480px/max-width:99999px 강제 CSS를 화면별로 제거하고 360/390/430/768/1280 실제 렌더링 QA
+- Risk: 레거시 폭 강제 CSS가 아직 실제 화면에 남아 새 responsive 원칙과 충돌; 계산/결제/AI 로직 변경 없음
 - Deploy: 없음. Production은 사용자 승인 전 건드리지 않음
 ```
