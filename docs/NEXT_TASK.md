@@ -68,7 +68,19 @@
 
 결제/권한/개인정보/결과 유실/AI 중복비용 수준의 blocker 또는 hotfix가 새로 확인되면 즉시 우선한다.
 
-- [ ] **UI/UX 추가 개선**
+- [ ] **전체 UI/UX 비주얼 아이덴티티 재설계 (2026-08-25 사용자 명시 요청 — NEXT_TASK 순서보다 우선)**
+  - 진행 방식: **화면별 순차 진행**(한 번에 전체 X). 작은 단위로 커밋
+  - 비주얼 방향: 기존 라벤더 파스텔 마스코트를 대체. 3안 제시함, **사용자 최종 선택 대기**
+    - A. 먹·한지·인주 — 한지 질감 + 붓글씨 헤드라인 + 점수를 도장(인주) 낙관으로 표현
+    - B. 오행 밸런스 시스템 — 오행 5색을 장식이 아닌 상시 기능 정보로 사용(상단 5색 바 + 점수 링)
+    - C. 심야 포차 네온 — 남색 밤하늘 + 간판형 헤드라인 + 네온 링 점수, 가장 공유·화제 지향적
+    - mockup 파일(사용자 세션에 전달됨): `woorisaju-visual-identity-directions.html`
+  - **방향 확정 즉시 `docs/DECISIONS.md`의 리포트 섹션(현재 취소선 처리된 파스텔 마스코트 결정)을 확정안으로 갱신할 것**
+  - 제안 순서(조정 가능): 홈 → 입력/결제 → 생성중 → 1:1 결과 → 1:N 결과 → 보관함/계정. 화면마다 별도 커밋 + Core Validation 전체 실행
+  - **push는 Claude Code 세션에서 진행** (claude.ai chat sandbox는 GitHub push 자격증명 없음 — `docs/DECISIONS.md` 개발/배포 섹션 참고)
+  - 기존 라벤더 파스텔 마스코트 관련 완료 기능(`## UI / UX hotfix 상태`)은 방향 확정 전까지 회귀 아님, 교체 대상으로 유지
+
+- [ ] **UI/UX 추가 개선 (위 재설계와 별개로 남아있는 세부 항목)**
   - [x] 홈 paid-first 구조 제거 → `무료로 내 관계 성향 보기` free-first CTA → `/free` Aha → 결과 뒤 1:1/1:N 유료 CTA
   - [x] 무료 결과 → 1:1 이동 시 같은 세션의 본인 입력을 첫 번째 사람으로 prefill하고 raw birth input을 URL에 넣지 않음
   - 홈 → 입력 → 결제 전 → 생성중 → 결과 → 보관함 정보 위계·CTA·모바일 사용성 재검토
@@ -180,11 +192,11 @@ npm run build
 ```text
 HANDOFF
 - Worker: Claude
-- Task: 사용자 요청(UI 개선) — 1:1 결과 hero에 다음 행동(전체 리포트 읽기·지금 공유하기) 추가
-- Status: partial — 코드/테스트 완료, GitHub push는 못함(세션에 자격증명 없음)
-- Validation: lint 0 errors, tsc --noEmit PASS, Core Validation 40개 스크립트 전부 PASS(test:report:p5-ui, test:hotfix:runtime-ux 포함); next build은 sandbox network가 fonts.googleapis.com 차단해 미검증(원본 main도 동일 재현 확인, 회귀 아님)
-- Commit: 로컬 전용 f4bc40e94bb629acdf5431ddfb25b2ddc7b288da (parent e60f0f7bec57418c55d1a26550d3287689b75d37 = 현재 origin/main). origin에는 아직 없음
-- Remaining: (1) 사용자가 전달받은 patch를 적용/push하거나 다음 작업자가 push 권한 있는 세션에서 동일 변경 재적용 (2) 1:N 결과 화면에도 동일 다음 행동 명확화 적용 (3) 여전히 최우선인 PR #45 실제 1:1 결제 runtime 검증 및 360/390/430px 육안 QA는 미수행 상태 그대로임(실사용/실기기 필요, 이 세션에서 수행 불가)
-- Risk: 없음(순수 UI, 결제/생성/계산 로직 미변경). 다만 push 전이라 아직 어떤 환경에도 실제 반영되지 않음
-- Resume: 최신 main/HANDOFF 재확인 후, 이 patch가 이미 main에 반영됐으면 1:N 결과 화면 동행 개선 또는 blocker/hotfix 큐 우선 진행. 아직 반영 안 됐으면 patch부터 적용
+- Task: (1) 1:1 결과 hero 다음 행동 UI 추가 (2) 사용자 요청으로 전체 UI/UX 비주얼 아이덴티티 재설계 범위/방식 확정
+- Status: partial — (1) 코드/테스트 완료, push만 남음 (2) 방향 3안 제시, 사용자 최종 선택 대기. 둘 다 GitHub push 안 됨(세션 자격증명 없음)
+- Validation: (1) lint 0 errors, tsc --noEmit PASS, Core Validation 40개 스크립트 전부 PASS; next build은 sandbox network(fonts.googleapis.com 차단)로 미검증, 원본 main도 동일 재현되어 회귀 아님 확인
+- Commit: 로컬 전용, origin에는 없음(현재 origin/main = e60f0f7bec57418c55d1a26550d3287689b75d37). patch 파일 2개를 사용자에게 전달함(1:1 hero 변경 + 이 문서 갱신들)
+- Remaining: (1) 사용자가 A/B/C 중 방향 확정 → docs/DECISIONS.md 리포트 섹션 갱신 → 화면별 순차 구현 시작(제안 순서: 홈→입력/결제→생성중→1:1 결과→1:N 결과→보관함) (2) 이후 작업은 Claude Code 세션에서 진행하기로 함 — 다음 worker가 Claude Code면 이 HANDOFF와 patch 내용을 먼저 반영한 뒤 시작 (3) 최우선 blocker(PR #45 실제 1:1 결제 runtime 검증)와 360/390/430px 육안 QA는 여전히 미수행 — 실사용/실기기 필요, 이 세션에서 불가
+- Risk: 없음(순수 UI/문서). 다만 두 세션 모두 push 전이라 origin/main에는 아직 아무것도 반영되지 않음
+- Resume: 최신 main 재확인 → 이 HANDOFF와 patch가 이미 반영됐으면 확정된 방향으로 화면별 순차 진행. 아직이면 먼저 patch 적용 + 방향 확정부터
 ```
