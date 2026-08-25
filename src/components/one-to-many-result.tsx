@@ -9,7 +9,7 @@ function formatScore(score: number) {
 
 export function OneToManyResult({ view, demo = false }: { view: OneToManyResultView; demo?: boolean }) {
   return (
-    <main className="comparison-report-page">
+    <main className="comparison-report-page one-to-many-result-page">
       <div className="comparison-report-shell">
         <Link href="/one-to-many" className="back-link compact">← 비교 정보 다시 입력</Link>
 
@@ -23,8 +23,6 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
             <span>{view.closenessNotice}</span>
           </div>
         </header>
-
-        {!demo ? <OneToManyShareCard view={view} /> : null}
 
         <section className="comparison-section" aria-labelledby="ranking-title">
           <div className="comparison-section-heading">
@@ -51,10 +49,29 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
           </ol>
         </section>
 
+        <section className="comparison-section" aria-labelledby="candidate-role-title">
+          <div className="comparison-section-heading">
+            <p className="card-label">후보 역할</p>
+            <h2 id="candidate-role-title">누가 더 높은가보다, 누구와 어떤 관계가 되는가</h2>
+            <p>각 후보가 이 관계에서 보여주는 대표적인 역할과 바로 체감하기 쉬운 차이를 먼저 정리했어요.</p>
+          </div>
+          <div className="candidate-role-grid">
+            {view.candidateInsights.map((candidate) => {
+              const ranking = view.rankings.find((item) => item.candidateId === candidate.candidateId);
+              return <article className="candidate-role-card" key={candidate.candidateId}>
+                <small>{ranking ? `${ranking.rank}위 · ${ranking.score}점` : `${candidate.score}점`}</small>
+                <h3>{candidate.displayName} · {candidate.insightTitle}</h3>
+                <p>{candidate.oneLine}</p>
+                <strong>{candidate.practicalTip}</strong>
+              </article>;
+            })}
+          </div>
+        </section>
+
         <section className="comparison-section" aria-labelledby="summary-metrics-title">
           <div className="comparison-section-heading">
-            <p className="card-label">쉬운 비교</p>
-            <h2 id="summary-metrics-title">연락부터 장기관계까지 한눈에</h2>
+            <p className="card-label">공통 지표 비교</p>
+            <h2 id="summary-metrics-title">연락부터 장기관계까지 같은 기준으로 비교</h2>
             <p>연락·대화, 편안함·신뢰, 갈등 회복, 생활·장기관계를 같은 기준으로 비교했어요.</p>
           </div>
           <div className="summary-metric-list">
@@ -104,8 +121,8 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
 
         <section className="comparison-section" aria-labelledby="candidate-insights-title">
           <div className="comparison-section-heading">
-            <p className="card-label">후보별 해석</p>
-            <h2 id="candidate-insights-title">실제 관계에서 잘 맞는 장면과 부딪힐 장면</h2>
+            <p className="card-label">후보별 강점과 주의</p>
+            <h2 id="candidate-insights-title">각 후보와 실제로 잘 맞는 장면과 부딪힐 장면</h2>
             <p>연락, 약속, 생활 습관, 갈등 뒤 대화처럼 실제로 겪을 장면으로 풀었어요.</p>
           </div>
           <div className="candidate-insight-list">
@@ -149,7 +166,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
           <details className="detail-score-panel">
             <summary>
               <span>
-                <small className="card-label">분석 근거</small>
+                <small className="card-label">상세 후보 리포트</small>
                 <strong id="detail-score-title">관계 9개 기준 상세 점수</strong>
               </span>
               <b>펼쳐보기</b>
@@ -183,6 +200,8 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
             <p>{view.finalSummary}</p>
           </div>
         </section>
+
+        {!demo ? <div className="one-to-many-share-slot"><OneToManyShareCard view={view} /></div> : null}
 
         <aside className="comparison-method-note">
           <strong>{demo ? "이 화면은 결과 구조 검증용 고정 데모예요." : "점수와 순위는 서버 계산 결과예요."}</strong>
