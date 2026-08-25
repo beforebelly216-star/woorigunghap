@@ -8,7 +8,7 @@ import type {
 import { buildSituationalRecommendations } from "@/lib/compatibility/one-to-many-view";
 import type { CompatibilityDimension } from "@/lib/compatibility/types";
 import {
-  DEFAULT_REPORT_MODEL,
+  resolveReportModel,
   type NarrativeUsage,
 } from "@/lib/narrative/report-engine";
 import {
@@ -288,7 +288,7 @@ export async function generateOneToManyNarrative(
   }
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ONE_TO_MANY_REPORT_FAILED_API_KEY_MISSING");
-  const model = process.env.ANTHROPIC_NARRATIVE_MODEL || DEFAULT_REPORT_MODEL;
+  const model = resolveReportModel();
   const evidence = buildOneToManyNarrativeEvidence(snapshot);
   const payloadText = JSON.stringify(evidence);
   const payloadBytes = Buffer.byteLength(payloadText, "utf8");
@@ -301,7 +301,7 @@ export async function generateOneToManyNarrative(
       schema: ONE_TO_MANY_NARRATIVE_SCHEMA,
       maxTokens: 4800,
       timeoutMs: 90_000,
-      preferStructured: false,
+      preferStructured: true,
       label: "ONE_TO_MANY",
       validate: (value) => validNarrative(value, expectedCandidateIds, evidence.situationalRecommendations),
       qualityIssues: narrativeQualityIssues,

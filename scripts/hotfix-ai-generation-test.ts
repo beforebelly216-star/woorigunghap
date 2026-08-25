@@ -51,7 +51,7 @@ try {
 
   const recovered = await requestStructuredSegment({
     apiKey: "test-key",
-    model: "claude-haiku-4-5-20251001",
+    model: "claude-sonnet-5",
     schema,
     system: "test",
     user: "test",
@@ -71,6 +71,10 @@ try {
     "only truncation may use the explicit retry token ceiling",
   );
   assert.ok(truncationBodies.every((body) => body.output_config), "supported models must use structured outputs on every retry");
+  assert.ok(
+    truncationBodies.every((body) => (body.thinking as { type?: string } | undefined)?.type === "disabled"),
+    "Sonnet 5 narrative calls must disable adaptive thinking so it cannot consume the bounded output budget",
+  );
 
   const fallbackBodies: Array<Record<string, unknown>> = [];
   let fallbackCall = 0;
@@ -89,7 +93,7 @@ try {
 
   const fallback = await requestStructuredSegment({
     apiKey: "test-key",
-    model: "claude-haiku-4-5-20251001",
+    model: "claude-sonnet-5",
     schema,
     system: "test",
     user: "test",
@@ -112,6 +116,9 @@ try {
 
 const requestSource = readFileSync("src/lib/narrative/report-engine-v6-request.ts", "utf8");
 const engineSource = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
+const reportModelSource = readFileSync("src/lib/narrative/report-engine.ts", "utf8");
+const oneToManySource = readFileSync("src/lib/narrative/one-to-many-report-engine.ts", "utf8");
+const envExample = readFileSync(".env.example", "utf8");
 
 assert.doesNotMatch(requestSource, /Math\.max\(args\.maxTokens,\s*(?:5_000|9_000|8_000)\)/, "hidden legacy token inflation must stay removed");
 assert.match(engineSource, /2,500~4,000자/, "the paid 1:1 prompt must state the concise whole-report target");
@@ -119,8 +126,13 @@ assert.match(engineSource, /maxTokens: 1_800/);
 assert.match(engineSource, /maxTokens: 2_600/);
 assert.match(engineSource, /maxTokens: 3_000/);
 assert.match(engineSource, /preferStructured: true/g);
+assert.match(reportModelSource, /DEFAULT_REPORT_MODEL = "claude-sonnet-5"/);
+assert.match(reportModelSource, /model === "claude-haiku-4-5-20251001"/);
+assert.match(requestSource, /thinking: \{ type: "disabled" \}/);
+assert.match(oneToManySource, /preferStructured: true/);
+assert.match(envExample, /ANTHROPIC_NARRATIVE_MODEL=claude-sonnet-5/);
 
-console.log("1:1 concise structured-generation resilience contract: PASS");
+console.log("Sonnet 5 concise structured-generation resilience contract: PASS");
 }
 
 void main();

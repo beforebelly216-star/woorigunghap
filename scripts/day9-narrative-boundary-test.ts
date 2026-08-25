@@ -206,8 +206,8 @@ async function main() {
   assertCondition(!existsSync("src/app/api/narrative/status/route.ts"), "임시 공개 narrative 상태 API를 운영 배포에 남기면 안 됩니다.");
 
   const conservativeCost = calculateAnthropicUsageCost({ input_tokens: 7000, output_tokens: 4000 }, 1450);
-  assertCondition(conservativeCost.estimatedUsd === 0.027, `Haiku 원가 계산 오류(USD): ${conservativeCost.estimatedUsd}`);
-  assertCondition(conservativeCost.estimatedKrw === 39.15, `Haiku 원가 계산 오류(KRW): ${conservativeCost.estimatedKrw}`);
+  assertCondition(conservativeCost.estimatedUsd === 0.054, `Sonnet 5 원가 계산 오류(USD): ${conservativeCost.estimatedUsd}`);
+  assertCondition(conservativeCost.estimatedKrw === 78.3, `Sonnet 5 원가 계산 오류(KRW): ${conservativeCost.estimatedKrw}`);
 
   console.log("Day 9 AI privacy superset + reduced-facts paid-v7 evidence + server-side name personalization checks: PASS");
   console.log(

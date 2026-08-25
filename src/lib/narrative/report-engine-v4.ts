@@ -146,7 +146,6 @@ async function requestAnthropic(payloadText: string, apiKey: string, model: stri
       body: JSON.stringify({
         model,
         max_tokens: MAX_OUTPUT_TOKENS,
-        temperature: 0.45,
         system: detailedSystemPrompt(),
         messages: [{
           role: "user",

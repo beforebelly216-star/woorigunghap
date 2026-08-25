@@ -5,11 +5,11 @@ import type { OneToOneReportInput } from "@/lib/report-input";
 
 export const REPORT_PROMPT_VERSION = "report-prompt-v3-personalized" as const;
 export const REPORT_EVIDENCE_PACK_VERSION = "report-evidence-pack-v1" as const;
-export const DEFAULT_REPORT_MODEL = "claude-haiku-4-5-20251001" as const;
+export const DEFAULT_REPORT_MODEL = "claude-sonnet-5" as const;
 export const DEFAULT_USD_KRW_COST_RATE = 1450;
 
-const HAIKU_INPUT_USD_PER_MTOK = 1;
-const HAIKU_OUTPUT_USD_PER_MTOK = 5;
+const SONNET_INPUT_USD_PER_MTOK = 2;
+const SONNET_OUTPUT_USD_PER_MTOK = 10;
 const ELEMENTS: FiveElement[] = ["wood", "fire", "earth", "metal", "water"];
 const MAX_EVIDENCE_ARRAY_ITEMS = 8;
 const MAX_EVIDENCE_OBJECT_KEYS = 12;
@@ -79,6 +79,14 @@ export type CompatibilityNarrative = {
     limitation: string;
   };
 };
+
+export function resolveReportModel(configured = process.env.ANTHROPIC_NARRATIVE_MODEL) {
+  const model = configured?.trim();
+  if (!model || model === "claude-haiku-4-5" || model === "claude-haiku-4-5-20251001") {
+    return DEFAULT_REPORT_MODEL;
+  }
+  return model;
+}
 
 export type NarrativeUsage = {
   inputTokens: number;
@@ -549,8 +557,8 @@ export function calculateAnthropicUsageCost(
   const cacheCreationInputTokens = positiveInteger(usage.cache_creation_input_tokens);
   const cacheReadInputTokens = positiveInteger(usage.cache_read_input_tokens);
   const estimatedUsd =
-    (inputTokens / 1_000_000) * HAIKU_INPUT_USD_PER_MTOK +
-    (outputTokens / 1_000_000) * HAIKU_OUTPUT_USD_PER_MTOK;
+    (inputTokens / 1_000_000) * SONNET_INPUT_USD_PER_MTOK +
+    (outputTokens / 1_000_000) * SONNET_OUTPUT_USD_PER_MTOK;
   return {
     inputTokens,
     outputTokens,
@@ -560,8 +568,8 @@ export function calculateAnthropicUsageCost(
     estimatedKrw: round(estimatedUsd * usdKrwRate, 2),
     usdKrwRate,
     pricing: {
-      inputUsdPerMillionTokens: HAIKU_INPUT_USD_PER_MTOK,
-      outputUsdPerMillionTokens: HAIKU_OUTPUT_USD_PER_MTOK,
+      inputUsdPerMillionTokens: SONNET_INPUT_USD_PER_MTOK,
+      outputUsdPerMillionTokens: SONNET_OUTPUT_USD_PER_MTOK,
     },
   };
 }
@@ -585,7 +593,7 @@ async function generateWithAnthropic(
 ) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY_MISSING");
-  const model = process.env.ANTHROPIC_NARRATIVE_MODEL?.trim() || DEFAULT_REPORT_MODEL;
+  const model = resolveReportModel();
   const payload = buildReportEvidencePack(snapshot, input);
   const payloadText = JSON.stringify(payload);
   const controller = new AbortController();

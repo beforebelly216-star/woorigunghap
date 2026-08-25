@@ -3,11 +3,11 @@ import type { CompatibilityDimension } from "@/lib/compatibility/types";
 
 export const NARRATIVE_PROMPT_VERSION = "narrative-prompt-v2-claude" as const;
 export const NARRATIVE_PAYLOAD_VERSION = "narrative-payload-v1" as const;
-export const DEFAULT_NARRATIVE_MODEL = "claude-haiku-4-5-20251001" as const;
+export const DEFAULT_NARRATIVE_MODEL = "claude-sonnet-5" as const;
 export const DEFAULT_USD_KRW_COST_RATE = 1450;
 
-const HAIKU_INPUT_USD_PER_MTOK = 1;
-const HAIKU_OUTPUT_USD_PER_MTOK = 5;
+const SONNET_INPUT_USD_PER_MTOK = 2;
+const SONNET_OUTPUT_USD_PER_MTOK = 10;
 const MAX_EVIDENCE_DIMENSIONS = 4;
 const MAX_EVIDENCE_ARRAY_ITEMS = 6;
 const MAX_EVIDENCE_OBJECT_KEYS = 8;
@@ -348,8 +348,8 @@ export function calculateAnthropicUsageCost(
   // 현재 우리사주 요청은 prompt caching을 사용하지 않는다. 따라서 표준 입력/출력 토큰만 비용에 반영한다.
   // cache token이 생기는 구조로 바뀌면 해당 시점에 cache 전용 단가를 별도로 추가한다.
   const estimatedUsd =
-    (inputTokens / 1_000_000) * HAIKU_INPUT_USD_PER_MTOK +
-    (outputTokens / 1_000_000) * HAIKU_OUTPUT_USD_PER_MTOK;
+    (inputTokens / 1_000_000) * SONNET_INPUT_USD_PER_MTOK +
+    (outputTokens / 1_000_000) * SONNET_OUTPUT_USD_PER_MTOK;
 
   return {
     inputTokens,
@@ -360,8 +360,8 @@ export function calculateAnthropicUsageCost(
     estimatedKrw: round(estimatedUsd * usdKrwRate, 2),
     usdKrwRate,
     pricing: {
-      inputUsdPerMillionTokens: HAIKU_INPUT_USD_PER_MTOK,
-      outputUsdPerMillionTokens: HAIKU_OUTPUT_USD_PER_MTOK,
+      inputUsdPerMillionTokens: SONNET_INPUT_USD_PER_MTOK,
+      outputUsdPerMillionTokens: SONNET_OUTPUT_USD_PER_MTOK,
     },
   };
 }
@@ -385,7 +385,10 @@ async function generateWithAnthropic(snapshot: CompatibilityCalculationSnapshot)
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY_MISSING");
 
-  const model = process.env.ANTHROPIC_NARRATIVE_MODEL?.trim() || DEFAULT_NARRATIVE_MODEL;
+  const configuredModel = process.env.ANTHROPIC_NARRATIVE_MODEL?.trim();
+  const model = !configuredModel || configuredModel === "claude-haiku-4-5" || configuredModel === "claude-haiku-4-5-20251001"
+    ? DEFAULT_NARRATIVE_MODEL
+    : configuredModel;
   const payload = buildNarrativeAiPayload(snapshot);
   const payloadText = JSON.stringify(payload);
   const controller = new AbortController();
@@ -403,6 +406,7 @@ async function generateWithAnthropic(snapshot: CompatibilityCalculationSnapshot)
       body: JSON.stringify({
         model,
         max_tokens: 900,
+        ...(model === "claude-sonnet-5" ? { thinking: { type: "disabled" } } : {}),
         system: [
           "당신은 우리사주 리포트의 한국어 편집자입니다.",
           "입력으로 주어진 compact compatibility payload의 계산값과 근거만 사용하세요.",

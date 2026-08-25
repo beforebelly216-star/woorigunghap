@@ -472,6 +472,7 @@ async function callAnthropic(args: {
   const requestBody: Record<string, unknown> = {
     model: args.model,
     max_tokens: args.maxTokens,
+    ...(args.model === "claude-sonnet-5" ? { thinking: { type: "disabled" } } : {}),
     system: `${args.system}${plainJsonRule}`,
     messages: [{ role: "user", content: args.user }],
   };

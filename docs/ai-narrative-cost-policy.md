@@ -1,6 +1,6 @@
 # 우리사주 AI 서술·원가 정책 v3
 
-기준일: 2026-08-16
+기준일: 2026-08-26
 
 ## 1. 역할 분리
 
@@ -12,22 +12,22 @@
 ## 2. 기본 모델과 호출 구조
 
 - Provider: Anthropic
-- Model ID: `claude-haiku-4-5-20251001`
-- Extended thinking은 사용하지 않는다.
+- Model ID: `claude-sonnet-5`
+- Sonnet 5의 기본 adaptive thinking은 리포트 생성 호출에서 명시적으로 끈다. 현재 작업은 서버 계산 근거를 제한된 JSON 스키마의 한국어 서술로 편집하는 작업이므로, thinking이 출력 상한을 소모해 JSON이 잘리는 위험을 피한다.
 - 1:1 유료 리포트는 현재 3개 장문 세그먼트로 생성한다.
   1. `intro`: 총평 + 두 사람 개인 원국
   2. `dynamics`: 기본 케미 + 결속/마찰 + 양방향 영향
   3. `action`: 관계 흐름 + 관계유형 + 위험신호 + 실전 매뉴얼
 - 세그먼트별 성공 결과를 즉시 저장하므로 이후 구간에서 실패해도 이미 성공한 구간을 다시 과금하지 않는 것을 기본 원칙으로 한다.
-- 1:1은 Claude Haiku 4.5의 JSON Schema 구조화 출력을 우선 사용하며, 구조화 출력 기능이 400으로 거부되는 호환 상황에서만 같은 시도 안에서 plain JSON으로 한 번 전환한다.
+- 1:1과 1:N은 Claude Sonnet 5의 JSON Schema 구조화 출력을 우선 사용하며, 구조화 출력 기능이 400으로 거부되는 호환 상황에서만 같은 시도 안에서 plain JSON으로 한 번 전환한다.
 - 1:N은 후보별 N회 호출이 아니라 서버가 점수/순위를 확정한 뒤 비교용 evidence pack을 묶어 호출하는 방향을 유지한다.
 
 ## 3. API 단가 상수
 
-Claude Haiku 4.5 표준 API 기준:
+Claude Sonnet 5 표준 API 기준:
 
-- Input: USD 1 / 1M tokens
-- Output: USD 5 / 1M tokens
+- Input: USD 2 / 1M tokens
+- Output: USD 10 / 1M tokens
 
 내부 원가 환산 기본값:
 
@@ -35,7 +35,7 @@ Claude Haiku 4.5 표준 API 기준:
 
 원가 계산:
 
-`estimatedUsd = inputTokens / 1,000,000 * 1 + outputTokens / 1,000,000 * 5`
+`estimatedUsd = inputTokens / 1,000,000 * 2 + outputTokens / 1,000,000 * 10`
 
 `estimatedKrw = estimatedUsd * AI_COST_USD_KRW`
 
@@ -95,18 +95,19 @@ v7은 한 번의 짧은 호출이 아니라 3개 장문 세그먼트다. 따라�
 간결화된 v15 prompt 운영 전 추정 범위:
 
 - 일반 목표: 전체 약 `12,000 input + 3,500 output`
-  - USD 0.0295
-  - 1 USD = 1,450원 기준 약 42.78원
+  - USD 0.059
+  - 1 USD = 1,450원 기준 약 85.55원
 - 보수 목표: 전체 약 `18,000 input + 5,000 output`
-  - USD 0.043
-  - 약 62.35원
+  - USD 0.086
+  - 약 124.70원
 - 세 세그먼트의 첫 시도 출력 상한 합계 `7,400 output`을 모두 소진하는 예시 `18,000 input + 7,400 output`
-  - USD 0.055
-  - 약 79.75원
+  - USD 0.11
+  - 약 159.50원
 
 전체 본문은 공백 제외 약 2,500~4,000자를 목표로 하며, `max_tokens`는 글자 수 목표가 아니라 JSON 완결성을 위한 안전 상한이다. 잘림이 확인된 경우에만 해당 세그먼트의 명시된 재시도 상한을 사용한다.
 
 실제 과금은 Claude 응답의 `usage.input_tokens` / `usage.output_tokens`를 세 세그먼트 합산해서 판단한다. 한국어 문자 수를 토큰 수로 간주하지 않는다.
+Sonnet 5의 tokenizer는 같은 텍스트에서도 Haiku 4.5보다 token 수가 늘 수 있으므로, 위 수치는 고정 과금액이 아니라 usage 관측용 시나리오다.
 
 ## 7. 재시도 원가 관리
 

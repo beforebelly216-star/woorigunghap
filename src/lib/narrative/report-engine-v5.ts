@@ -360,7 +360,6 @@ async function requestAnthropic(payloadText: string, apiKey: string, model: stri
       body: JSON.stringify({
         model,
         max_tokens: MAX_OUTPUT_TOKENS,
-        temperature: 0.5,
         system: systemPrompt(strictExpansion),
         messages: [{ role: "user", content: `다음 계산 결과만 근거로 유료 상세 궁합 리포트를 작성하세요.\n\n${payloadText}` }],
         output_config: { format: { type: "json_schema", schema: PAID_REPORT_SCHEMA } },

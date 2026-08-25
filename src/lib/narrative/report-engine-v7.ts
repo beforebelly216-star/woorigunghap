@@ -1,7 +1,7 @@
 import type { CompatibilityCalculationSnapshot } from "@/lib/compatibility/engine";
 import type { OneToOneReportInput } from "@/lib/report-input";
 import {
-  DEFAULT_REPORT_MODEL,
+  resolveReportModel,
   REPORT_EVIDENCE_PACK_VERSION,
   buildReportEvidencePack,
   type NarrativeUsage,
@@ -535,7 +535,7 @@ export async function generatePaidReportSegmentV7(
   }
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("PAID_REPORT_SEGMENT_FAILED_API_KEY_MISSING");
-  const model = process.env.ANTHROPIC_NARRATIVE_MODEL || DEFAULT_REPORT_MODEL;
+  const model = resolveReportModel();
   const payload = payloadFor(snapshot, input);
   const payloadText = JSON.stringify(payload.aiPayload);
   const payloadBytes = Buffer.byteLength(payloadText, "utf8");
