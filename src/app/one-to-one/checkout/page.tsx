@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import "../../report-p5-mobile.css";
 import { PaymentButton } from "@/components/payment-button";
 import { PurchasePolicyConsent } from "@/components/purchase-policy-consent";
 import { loadOrderDraft } from "@/lib/order-storage";
 import type { OneToOneOrderDraft } from "@/lib/orders";
 import { COWORKER_HIERARCHY_LABELS, RELATIONSHIP_LABELS } from "@/lib/report-input";
+import styles from "../one-to-one-flow.module.css";
 
 function formatBirth(order: OneToOneOrderDraft, person: "personA" | "personB") {
   const value = order.inputSnapshot[person];
@@ -120,8 +120,8 @@ function CheckoutContent() {
 
 export default function OneToOneCheckoutPage() {
   return (
-    <main className="input-page">
-      <div className="checkout-shell">
+    <main className={styles.checkoutPage}>
+      <div className={styles.checkoutShell}>
         <Suspense fallback={<p className="checkout-state" role="status">주문 정보를 불러오는 중이에요.</p>}>
           <CheckoutContent />
         </Suspense>
