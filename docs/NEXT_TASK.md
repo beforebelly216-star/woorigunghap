@@ -10,10 +10,16 @@
 5. improvement / Growth 고도화
 
 ## Blocker / 운영 검증
-- [ ] **PR #45 Production 배포 후 실제 1:1 runtime 재검증**
+- [x] **1:1 AI 과다 출력·장시간 대기·완성 형식 확정 실패 구조 개선**
+  - 목표 분량을 공백 제외 약 2,500~4,000자로 축소하고 CH0~CH9·관계별 편집 기준 유지
+  - 암묵적 token 확대를 제거하고 segment별 1차/재시도 ceiling, timeout, 총 요청 예산을 명시
+  - structured output 우선 + 기존 JSON fallback, transient/max_tokens 제한 재시도, 요청 단위 관측 로그 추가
+  - 원자 저장, 완료 segment 재사용, single-flight/idempotency 및 결제 검증 경계 유지
+  - `f758c4f` — 관련 contracts, lint, production build PASS
+- [ ] **`f758c4f` 포함 최신 main Production 배포 후 실제 1:1 runtime 재검증**
   - [ ] 기존 stuck 주문 회복 확인
   - [ ] 신규 실제 결제 → 전체 생성 → 서버 저장 → 보관함 재열람 시간 측정
-  - [ ] AI/transport/dependency 실패 시 종료 메시지 확인
+  - [ ] AI/transport/dependency 실패 시 구조화 로그와 종료 메시지 확인
 
 ## Hotfix / 실기기 QA
 - [ ] 실제 1:1·1:N Web Share / 이미지 저장 / Shared View 링크 확인
@@ -60,11 +66,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: UI/UX 9단계 — Shared View + 1:1·1:N 9:16 공유 카드 Foundation v2 시각 통합
-- Status: complete
-- Validation: Core calculation validation #710 PASS — 전체 contracts + lint + production build
-- Commit: 9af42bd 기능/스타일/계약, 상태문서 후속 포함 PR #55
-- Remaining: 전체 360/390/430/768/1280 multi-viewport 육안 QA 및 spacing/overflow 최종 보정
-- Risk: 실제 배포 렌더링/Web Share/이미지 저장 실기기 QA는 미실행
+- Task: 1:1 AI 과다 출력/장시간 대기/완성 형식 실패 구조 개선 + 목표 분량 약 50% 축소
+- Status: complete — 코드·계약·정책 문서 완료, Production 배포는 미실행
+- Validation: AI 생성 복원력 및 관련 17개 계약 PASS; lint 오류 0건(기존 warning 3건); production build PASS
+- Commit: f758c4f 코드/테스트/정책, 상태문서 후속 커밋 별도
+- Remaining: 사용자 승인 후 최신 main Production 1회 배포 → 기존 stuck 주문과 신규 실제 결제로 생성/저장/재열람 및 구조화 로그 확인
+- Risk: 현재 환경에서 Vercel runtime log 조회 불가; 실제 Anthropic paid runtime은 미검증
 - Deploy: 없음. Git 자동배포 false 유지, Production 미배포
 ```
