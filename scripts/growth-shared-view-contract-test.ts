@@ -30,17 +30,10 @@ const oneToOne = buildOneToOnePublicShare({
   tuning: { label: "맞추면 더 좋은 지점", copy: "말의 속도와 결정 기준" },
 });
 
-const parsedOneToOne = parsePublicSharePayload({
-  ...oneToOne,
-  paymentId: "must-not-survive",
-  resultAccessToken: "must-not-survive",
-  birthDate: "19900101",
-});
+const parsedOneToOne = parsePublicSharePayload({ ...oneToOne, paymentId: "must-not-survive", resultAccessToken: "must-not-survive", birthDate: "19900101" });
 assert.ok(parsedOneToOne && parsedOneToOne.product === "oneToOne");
 const oneSerialized = JSON.stringify(parsedOneToOne);
-for (const key of FORBIDDEN_PUBLIC_SHARE_KEYS) {
-  assert.ok(!oneSerialized.includes(`\"${key}\"`), `public DTO must remove forbidden key: ${key}`);
-}
+for (const key of FORBIDDEN_PUBLIC_SHARE_KEYS) assert.ok(!oneSerialized.includes(`\"${key}\"`), `public DTO must remove forbidden key: ${key}`);
 
 const oneToMany = buildOneToManyPublicShare({
   relationshipType: "friend",
@@ -81,6 +74,7 @@ assert.ok(!readRoute.includes("hasServerOrderAccess"), "public read must not exp
 
 const sharedView = source("src/app/share/[token]/page.tsx");
 const sharedActions = source("src/app/share/[token]/shared-view-actions.tsx");
+const sharedCss = source("src/app/share/[token]/shared-view.module.css");
 assert.match(sharedView, /loadPublicShare/);
 assert.match(sharedView, /SharedViewActions/);
 assert.match(sharedActions, /나도 1:1 궁합 보기/);
@@ -88,6 +82,11 @@ assert.match(sharedActions, /나도 1:다 비교해보기/);
 assert.ok(!sharedView.includes("paymentId"));
 assert.ok(!sharedView.includes("accessToken"));
 assert.ok(!sharedView.includes("birthDate"));
+assert.match(sharedCss, /var\(--saju-bg-base\)/);
+assert.match(sharedCss, /var\(--saju-action\)/);
+assert.match(sharedCss, /width:\s*min\(100%,\s*720px\)/);
+assert.doesNotMatch(sharedCss, /radial-gradient|linear-gradient|#8b7bc7|#b8a9e8/i);
+assert.doesNotMatch(sharedCss, /max-width:\s*99999px/);
 
 const client = source("src/lib/share/public-share-client.ts");
 assert.match(client, /fetch\("\/api\/share"/);
@@ -99,14 +98,24 @@ assert.match(accountStore, /ensurePublicShareStoreSchema/);
 assert.match(accountStore, /DELETE FROM woorigunghap_public_shares shares/);
 assert.match(accountStore, /shares\.source_payment_id IN \(SELECT payment_id FROM owned\)/);
 
-for (const path of [
-  "src/app/one-to-one/result/compatibility-share-card.tsx",
-  "src/components/one-to-many-share-card.tsx",
-]) {
-  const card = source(path);
+const shareFiles = [
+  ["src/app/one-to-one/result/compatibility-share-card.tsx", "src/app/one-to-one/result/compatibility-share-card.module.css"],
+  ["src/components/one-to-many-share-card.tsx", "src/components/one-to-many-share-card.module.css"],
+] as const;
+for (const [cardPath, cssPath] of shareFiles) {
+  const card = source(cardPath);
+  const css = source(cssPath);
   assert.match(card, /createPublicShareUrl/);
-  assert.ok(!card.includes("const safeUrl = `${window.location.origin}/`"), `${path} must no longer share the home URL`);
+  assert.match(card, /canvas\.width = 1080/);
+  assert.match(card, /canvas\.height = 1920/);
+  assert.match(card, /#F7F7F4/);
+  assert.match(card, /#222226/);
+  assert.ok(!card.includes("const safeUrl = `${window.location.origin}/`"), `${cardPath} must no longer share the home URL`);
   assert.match(card, /Shared View/);
+  assert.doesNotMatch(card, /#8B7BC7|#B8A9E8|createLinearGradient/);
+  assert.match(css, /aspect-ratio:\s*9 \/ 16/);
+  assert.match(css, /var\(--saju-action\)/);
+  assert.doesNotMatch(css, /linear-gradient|radial-gradient|var\(--saju-shadow\)|#8B7BC7|#B8A9E8/i);
 }
 
-console.log("Growth P4 Shared View contract OK: ownership-gated create, opaque public token, limited public DTO, deletion lifetime binding, CTA, and P3 URL replacement.");
+console.log("Growth P4 Shared View contract OK: privacy boundary, Foundation v2 Shared View, neutral 9:16 card export, CTA, and opaque public URL.");
