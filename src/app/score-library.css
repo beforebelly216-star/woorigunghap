@@ -24,4 +24,4 @@
 .library-delete-button:hover { background: #fceeea; }
 .library-delete-button:disabled { cursor: wait; opacity: .55; }
 .library-delete-feedback { margin: 18px 0 -18px; color: #6d625a; font-size: .88rem; }
-@media (max-width: 520px) { .v2-page .v2-score-band-grid { grid-template-columns: 1fr; } }
+@media (max-width: 99999px) { .v2-page .v2-score-band-grid { grid-template-columns: 1fr; } }

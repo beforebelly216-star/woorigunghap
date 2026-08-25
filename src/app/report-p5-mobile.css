@@ -1,5 +1,5 @@
 /* P5 mobile QA hardening for 360 / 390 / 430px widths. */
-@media (max-width: 430px) {
+@media (max-width: 99999px) {
   .v2-page {
     overflow-x: clip;
   }
@@ -59,7 +59,7 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 99999px) {
   /* 52px button + vertical padding + iOS home indicator + breathing room. */
   .checkout-shell {
     padding-bottom: calc(112px + env(safe-area-inset-bottom));
@@ -70,7 +70,7 @@
   }
 }
 
-@media (max-width: 390px) {
+@media (max-width: 99999px) {
   .checkout-unlock-preview {
     padding: 18px;
     border-radius: 20px;

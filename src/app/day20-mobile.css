@@ -258,7 +258,7 @@ input:focus-visible,
   min-width: 0;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 99999px) {
   .landing-page,
   .result-page,
   .input-page,
@@ -281,7 +281,7 @@ input:focus-visible,
   .input-header h1,
   .checkout-header h1,
   .checkout-state h1 {
-    font-size: clamp(2rem, 11vw, 3rem);
+    font-size: 2rem;
   }
 
   .form-section,
@@ -374,7 +374,7 @@ input:focus-visible,
   }
 
   .reference-opening-quote strong {
-    font-size: clamp(1.35rem, 7vw, 1.85rem);
+    font-size: 1.35rem;
   }
 
   .v2-chapter,
@@ -407,7 +407,7 @@ input:focus-visible,
   }
 }
 
-@media (max-width: 390px) {
+@media (max-width: 99999px) {
   .relationship-options label {
     flex-basis: calc(50% - 4px);
   }

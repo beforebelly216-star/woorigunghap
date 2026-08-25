@@ -3,6 +3,6 @@
   "regions": ["icn1"],
   "fluid": true,
   "git": {
-    "deploymentEnabled": false
+    "deploymentEnabled": true
   }
 }
