@@ -10,6 +10,7 @@
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
 - 배포: Vercel Production. **Git 자동 배포는 비활성화하며 Preview/Production 배포는 사용자 명시 승인 후 별도 실행**
 - 최신 승인 Production 배포: `87c3c95` Vercel `Ready`(Production). 기능/문서 코드는 1:1 result hero next-action strip 및 오행 밸런스 시스템 방향 확정 문서(`58c8db1`, `9ba7b0c`, `cfc2411`)를 포함한다. 배포 직후 자동배포는 `46bfbfa`에서 다시 비활성화됐다.
+- **main이 Production 배포보다 앞서 있음 (2026-08-25)**: 전역 오행 토큰 적용, 1:1 입력 위자드화, 전체 화면 모바일 폭 강제(PC 포함) 작업이 `main`(`0333b15`)에는 merge됐지만 아직 Production에는 배포되지 않았다. 사용자 승인 후 별도 배포 필요.
 - 레거시 내부 식별자: GitHub 저장소 `beforebelly216-star/woorigunghap`, 기존 Vercel 도메인, DB의 `woorigunghap_*` 식별자는 호환성을 위해 유지한다.
 
 ## 현재 구현 상태

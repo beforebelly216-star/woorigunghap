@@ -189,12 +189,13 @@ npm run build
 ```text
 HANDOFF
 - Worker: Claude Code
-- Task: (1) 이전 세션 patch 3개(1:1 결과 hero 다음 행동 UI + 전체 UI/UX 재설계 결정 + 오행 밸런스 시스템 방향 확정 문서) 적용 및 push (2) 사용자 승인 하에 1회 Production 배포
-- Status: done — patch 3개 모두 순서대로 적용/커밋/push 완료. Git 자동배포를 1회 임시 활성화해 Production 배포 성공 확인 후 재비활성화 완료
-- Validation: 이 세션은 Node.js/npm이 설치되어 있지 않아 lint/build 로컬 재검증 불가. 코드 변경(58c8db1) 자체는 원 patch 작성 시점에 lint 0 errors, tsc --noEmit PASS, Core Validation 40개 스크립트 PASS 확인됨(재검증 아님, 이전 세션 결과 인용). docs 전용 커밋(9ba7b0c, cfc2411)은 코드 검증 대상 없음
-- Commit: `58c8db1`(feat hero), `9ba7b0c`(docs 재설계 결정), `cfc2411`(docs 오행 방향 확정), `87c3c95`(chore 자동배포 활성화), `46bfbfa`(chore 자동배포 비활성화). 전부 origin/main push 완료
-- Deploy: 사용자 승인 Production 배포 `87c3c95` → Vercel `Ready`(Production 배지 확인, 사용자 스크린샷으로 확인). 배포 직후 `46bfbfa`에서 자동배포 재비활성화
-- Remaining: (1) `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md` 스펙에 따라 홈 화면부터 순차 구현 시작 (2) 1:N 결과 화면에도 다음 행동 명확화 적용 (3) 최우선 blocker(PR #45 실제 1:1 결제 runtime 검증)와 360/390/430px 육안 QA는 여전히 미수행 — 실사용/실기기 필요 (4) 이 세션 환경에 Node.js 설치 시 lint/build 재검증 권장
-- Risk: 없음(순수 UI/문서 변경, 결제·생성·계산 로직 미변경). 배포 후 자동배포는 규칙대로 다시 꺼진 상태
-- Resume: `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md` 기준 홈 화면부터 순차 구현 시작
+- Task: 사용자 지시로 방향 전환 — (1) 오행 팔레트를 전역 토큰(report-theme.css)에 적용 (2) 1:1 입력 폼을 4단계 모바일 위자드로 리팩터링 (3) PC를 포함한 모든 화면 폭을 항상 모바일 폭(480px)으로 고정
+- Status: (1)(2)(3) 모두 코드 완료, main에 merge/push 완료. 순서대로 진행하며 매 단계 Preview 브랜치로 push → 사용자 스크린샷 확인 → merge
+- Validation: 이 세션 전체에 Node.js/npm 없음 — lint/build/계약 테스트 로컬 실행 불가. CSS 대량 치환(sed 기반) 후 모든 파일 중괄호/괄호 균형만 스크립트로 확인함. 실제 렌더링 검증은 Vercel Preview 스크린샷(사용자 제공)에 의존
+- 진행 중 발견한 회귀 1건: 홈 화면에 스코프 한정 다크모드 오버라이드를 추가했다가 마스코트 일러스트가 깨지고 헤더와 색이 어긋나는 문제 발생 → 즉시 revert(`b402eca`) 후 원인 파악, 다크모드를 아예 제거하는 방향으로 재작업. 이후 작업은 이 교훈을 반영해 전역 토큰 우선 + 다크모드 완전 삭제 + 브랜치/Preview로 먼저 확인하는 방식으로 진행
+- Commit(주요, main 기준 최신순): `0333b15`(chore 자동배포 비활성화 유지), merge commit(one-to-one-stepper), `377d453`(전체 CSS 모바일 강제 스윕 — vw clamp 제거, max-width 미디어쿼리 항상 매칭화, min-width 데스크톱 확장 블록 삭제), `9b68e38`(홈 화면 body 480px 고정 + 관련 grid 수정), `463c750`(1:1 입력 4단계 위자드), merge commit(five-element-global-tokens), `ef283d5`/`46bfbfa` 등 자동배포 토글 커밋들
+- Deploy: Production 배포 안 함(코드만 main에 반영, Vercel 자동배포는 규칙대로 계속 비활성화 상태). 사용자가 각 단계 Preview 브랜치(claude/five-element-global-tokens, claude/one-to-one-stepper)에서 스크린샷으로 확인 후 merge 승인
+- Remaining: (1) 1:1 입력 위자드와 모바일 강제 레이아웃을 실제 Production에 배포해 확인 (2) 1:N 입력 폼도 동일하게 위자드화 검토 (3) `globals.css`에 남아있는 Day17~19대 레거시 하드코딩 색상(`.rank-chip`, `.candidate-tip`, `.detail-score-table` 등)은 아직 오행 팔레트로 안 옮김 — 해당 화면(1:N 결과) 작업 시 같이 정리 (4) 최우선 blocker(PR #45 실제 1:1 결제 runtime 검증)와 실기기 QA는 여전히 미수행 (5) 이 세션 환경에 Node.js 설치 시 lint/build/계약 테스트 전체 재검증 강력 권장 — 이번 작업은 전부 미검증 상태로 push됨
+- Risk: 중간(순수 CSS/레이아웃 변경이지만 검증 없이 sed로 29개 미디어쿼리를 일괄 치환함. 중괄호 균형은 확인했으나 실제 브라우저 렌더링/기존 계약 테스트의 색상 hex 문자열 assertion 등은 미확인)
+- Resume: Production 배포 승인 여부를 사용자에게 먼저 확인 → 배포 후 실기기/여러 해상도 QA → 이후 1:N 입력 위자드 또는 레거시 색상 정리로 이어감
 ```
