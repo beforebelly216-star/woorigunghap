@@ -1,217 +1,24 @@
-/*
- * 2026-08-24 UI hotfix: legacy cream/beige surfaces are overridden here so
- * home, input, checkout, result, account/library and shared flows use one
- * lavender-pastel system. Keep this import last in the root layout.
- */
-:root {
-  --background: var(--saju-bg-base);
-  --foreground: var(--saju-ink);
-}
-
-html,
-body,
-.site-content {
-  background: var(--saju-bg-base);
-  color: var(--saju-ink);
-}
-
-body {
-  font-family: var(--saju-font-sans);
-}
-
-.site-content {
-  flex: 1;
-}
-
-.site-header,
-.site-footer {
-  background: color-mix(in srgb, var(--saju-bg-card) 88%, var(--saju-bg-base));
-  color: var(--saju-ink);
-  border-color: var(--saju-border);
-}
-
-.site-brand,
-.site-header a,
-.site-footer a {
-  color: var(--saju-ink);
-}
-
-:where(
-  .landing-page,
-  .input-page,
-  .result-page,
-  .report-page,
-  .v2-page,
-  .library-page,
-  .comparison-report-page,
-  .payment-result-page
-) {
-  background: var(--saju-bg-base);
-  color: var(--saju-ink);
-}
-
-:where(
-  .input-shell,
-  .checkout-shell,
-  .report-shell,
-  .comparison-report-shell,
-  .library-shell
-) {
-  color: var(--saju-ink);
-}
-
-:where(
-  .form-section,
-  .person-panel,
-  .checkout-card,
-  .checkout-unlock-preview,
-  .checkout-state,
-  .v2-state,
-  .library-state,
-  .library-card,
-  .library-card-shell,
-  .policy-consent,
-  .account-save-panel,
-  .comparison-section,
-  .comparison-empty-state,
-  .ranking-card,
-  .summary-metric-card,
-  .situation-card,
-  .candidate-insight,
-  .detail-score-panel,
-  .comparison-method-note
-) {
-  background: var(--saju-bg-card);
-  color: var(--saju-ink);
-  border-color: var(--saju-border);
-}
-
-.library-card-generating,
-.comparison-notice,
-.form-success,
-.checkout-unlock-preview article {
-  background: var(--saju-bg-soft);
-  color: var(--saju-ink);
-  border-color: var(--saju-border);
-}
-
-:where(
-  .input-header p,
-  .checkout-header p,
-  .library-intro,
-  .library-card small,
-  .library-card p,
-  .section-copy,
-  .field-help,
-  .field-hint,
-  .checkout-note,
-  .comparison-summary,
-  .comparison-section-heading p,
-  .comparison-method-note p
-) {
-  color: var(--saju-ink-soft);
-}
-
-:where(.eyebrow, .card-label, .library-card > span, .demo-badge) {
-  color: var(--saju-primary-deep);
-}
-
-:where(
-  input[type="text"],
-  input[type="email"],
-  input[type="number"],
-  textarea,
-  select
-) {
-  background: var(--saju-bg-card);
-  color: var(--saju-ink);
-  border-color: var(--saju-border);
-}
-
-:where(input, textarea, select):focus-visible,
-:where(button, a):focus-visible {
-  outline-color: var(--saju-primary-deep);
-}
-
-.segmented-control label,
-.relationship-options label {
-  background: var(--saju-bg-card);
-  color: var(--saju-ink-soft);
-  border-color: var(--saju-border);
-}
-
-.segmented-control label.selected,
-.relationship-options label.selected {
-  background: var(--saju-primary-deep);
-  color: #F9F7FF;
-  border-color: var(--saju-primary-deep);
-}
-
-.primary-action,
-.primary-link,
-.card-action,
-.payment-button {
-  background: var(--saju-primary-deep);
-  color: #F9F7FF;
-  border-color: var(--saju-primary-deep);
-}
-
-.secondary-action,
-.secondary-link,
-.back-link,
-.library-delete-button {
-  background: var(--saju-bg-card);
-  color: var(--saju-ink);
-  border-color: var(--saju-border);
-}
-
-.library-page {
-  background: var(--saju-bg-base);
-}
-
-.library-shell h1,
-.library-card strong,
-.library-state h2 {
-  color: var(--saju-ink);
-}
-
-.library-card b {
-  color: var(--saju-primary-deep);
-}
-
-.library-card-shell,
-.library-card {
-  box-shadow: 0 14px 36px rgba(73, 59, 111, .07);
-}
-
-.library-delete-feedback {
-  color: var(--saju-primary-deep);
-}
-
-.checkout-total,
-.checkout-row,
-.checkout-person,
-.detail-score-table th,
-.detail-score-table td {
-  border-color: var(--saju-border);
-}
-
-.comparison-track,
-.v2-progress-track {
-  background: var(--saju-track);
-}
-
-.comparison-track > span,
-.v2-progress-track > span {
-  background: var(--saju-primary-deep);
-}
-
-@media (max-width: 99999px) {
-  .site-header {
-    background: var(--saju-bg-base);
-  }
-
-  :where(.library-page, .input-page, .result-page, .v2-page, .comparison-report-page) {
-    background: var(--saju-bg-base);
-  }
-}
+/* Foundation v2 shell alignment. Screen-specific legacy styling stays in its owning stylesheet until that screen's rollout step. */
+:root { --background: var(--saju-bg-base); --foreground: var(--saju-ink); }
+html, body, .site-content { background: var(--saju-bg-base); color: var(--saju-ink); }
+body { font-family: var(--saju-font-sans); }
+.site-header, .site-footer { background: var(--saju-bg-base); color: var(--saju-ink); border-color: var(--saju-border); }
+.site-brand, .site-header a, .site-footer a { color: inherit; }
+:where(.landing-page,.input-page,.result-page,.report-page,.v2-page,.library-page,.comparison-report-page,.payment-result-page) { background: var(--saju-bg-base); color: var(--saju-ink); }
+:where(.input-shell,.checkout-shell,.report-shell,.comparison-report-shell,.library-shell) { color: var(--saju-ink); }
+:where(.form-section,.person-panel,.checkout-card,.checkout-unlock-preview,.checkout-state,.v2-state,.library-state,.library-card,.library-card-shell,.policy-consent,.account-save-panel,.comparison-section,.comparison-empty-state,.ranking-card,.summary-metric-card,.situation-card,.candidate-insight,.detail-score-panel,.comparison-method-note) { background: var(--saju-bg-card); color: var(--saju-ink); border-color: var(--saju-border); }
+.library-card-generating,.comparison-notice,.form-success,.checkout-unlock-preview article { background: var(--saju-bg-soft); color: var(--saju-ink); border-color: var(--saju-border); }
+:where(.input-header p,.checkout-header p,.library-intro,.library-card small,.library-card p,.section-copy,.field-help,.field-hint,.checkout-note,.comparison-summary,.comparison-section-heading p,.comparison-method-note p) { color: var(--saju-ink-soft); }
+:where(.eyebrow,.card-label,.library-card > span,.demo-badge) { color: var(--saju-ink-soft); }
+:where(input[type="text"],input[type="email"],input[type="number"],textarea,select) { background: var(--saju-bg-card); color: var(--saju-ink); border-color: var(--saju-border); }
+:where(input,textarea,select):focus-visible,:where(button,a):focus-visible { outline-color: var(--saju-ink); }
+.segmented-control label,.relationship-options label { background: var(--saju-bg-card); color: var(--saju-ink-soft); border-color: var(--saju-border); }
+.segmented-control label.selected,.relationship-options label.selected { background: var(--saju-action); color: var(--saju-ink-inverse); border-color: var(--saju-action); }
+.primary-action,.primary-link,.card-action,.payment-button { background: var(--saju-action); color: var(--saju-ink-inverse); border-color: var(--saju-action); }
+.secondary-action,.secondary-link,.back-link,.library-delete-button { background: var(--saju-bg-card); color: var(--saju-ink); border-color: var(--saju-border); }
+.library-shell h1,.library-card strong,.library-state h2 { color: var(--saju-ink); }
+.library-card b,.library-delete-feedback { color: var(--saju-ink); }
+.library-card-shell,.library-card { box-shadow: none; }
+.checkout-total,.checkout-row,.checkout-person,.detail-score-table th,.detail-score-table td { border-color: var(--saju-border); }
+.comparison-track,.v2-progress-track { background: var(--saju-track); }
+.comparison-track > span,.v2-progress-track > span { background: var(--saju-action); }
