@@ -13,12 +13,7 @@ export type CompatibilityScoreBand = {
   description: string;
 };
 
-/**
- * Actual configured output bounds of each deterministic dimension scorer.
- * These are not user-facing score caps. They define the raw engine scale so
- * that each relationship's attainable raw range can be normalized to the
- * product's full 30..100 public range without an arbitrary bonus.
- */
+/** Configured raw output interval for each deterministic dimension scorer. */
 export const COMPATIBILITY_DIMENSION_RAW_BOUNDS: Record<CompatibilityDimension, { min: number; max: number }> = {
   dayMaster: { min: 55, max: 85 },
   dayBranch: { min: 45, max: 90 },
@@ -60,14 +55,28 @@ export function getCompatibilityRawRange(relationshipType: RelationshipType) {
 }
 
 /**
- * Normalize the deterministic engine's configured attainable raw interval to
- * the full public 30..100 scale. This is range normalization, not a hidden
- * entertainment bonus: weak raw outcomes move toward 30, strongest outcomes
- * can reach 100, and every relationship uses the same public endpoints.
+ * All five relationships must be able to use the same 30..100 public scale.
+ * The common raw interval is the overlap of every relationship's configured
+ * attainable interval: the highest raw minimum to the lowest raw maximum.
  */
-export function calibrateCompatibilityScore(rawScore: number, relationshipType: RelationshipType) {
+export function getCommonCompatibilityRawRange() {
+  const relationshipTypes: RelationshipType[] = ["crush", "flirting", "lover", "friend", "coworker"];
+  const ranges = relationshipTypes.map(getCompatibilityRawRange);
+  return {
+    min: Math.max(...ranges.map((range) => range.min)),
+    max: Math.min(...ranges.map((range) => range.max)),
+  };
+}
+
+/**
+ * Normalize the shared attainable raw interval to the full public 30..100
+ * scale. This is not an entertainment bonus: poor raw outcomes are pushed
+ * toward 30, while only genuinely strong raw outcomes approach 100. Values
+ * outside the shared attainable interval clamp to the absolute endpoints.
+ */
+export function calibrateCompatibilityScore(rawScore: number) {
   if (!Number.isFinite(rawScore)) throw new RangeError("궁합 점수는 유한한 숫자여야 합니다.");
-  const range = getCompatibilityRawRange(relationshipType);
+  const range = getCommonCompatibilityRawRange();
   const clampedRaw = Math.min(range.max, Math.max(range.min, rawScore));
   const ratio = (clampedRaw - range.min) / (range.max - range.min);
   return Math.round(
