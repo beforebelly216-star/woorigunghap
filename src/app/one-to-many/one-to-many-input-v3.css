@@ -1,0 +1,299 @@
+.one-to-many-page .one-to-many-v3 {
+  display: grid;
+  gap: 24px;
+}
+
+.one-to-many-page .one-to-many-v3 .step-progress {
+  padding: 6px 0 2px;
+}
+
+.one-to-many-page .one-to-many-v3 .step-progress-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.one-to-many-page .one-to-many-v3 .step-progress-item {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--saju-ink-faint);
+  font-size: .76rem;
+  font-weight: 750;
+}
+
+.one-to-many-page .one-to-many-v3 .step-progress-dot {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--saju-border-strong);
+  border-radius: 50%;
+  background: var(--saju-bg-card);
+  color: var(--saju-ink-soft);
+  font-family: var(--saju-font-data);
+}
+
+.one-to-many-page .one-to-many-v3 .step-progress-item.is-active {
+  color: var(--saju-ink);
+}
+
+.one-to-many-page .one-to-many-v3 .step-progress-item.is-active .step-progress-dot {
+  border-color: var(--saju-action);
+  background: var(--saju-action);
+  color: var(--saju-ink-inverse);
+}
+
+.one-to-many-page .one-to-many-v3 .step-progress-item.is-done .step-progress-dot {
+  border-color: var(--zootopi-butter-deep);
+  background: var(--zootopi-butter);
+  color: var(--saju-ink);
+}
+
+.one-to-many-page .one-to-many-v3 .v3-intro-card {
+  padding: 20px;
+  border: 1px solid var(--saju-border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--zootopi-butter) 18%, var(--saju-bg-card));
+}
+
+.one-to-many-page .one-to-many-v3 .v3-intro-card h2,
+.one-to-many-page .one-to-many-v3 .candidate-stage-head h2,
+.one-to-many-page .one-to-many-v3 .review-head h2,
+.one-to-many-page .one-to-many-v3 .candidate-count-section h2 {
+  margin: 6px 0 8px;
+  font-family: var(--saju-font-heading);
+  font-size: 1.32rem;
+  line-height: 1.3;
+  letter-spacing: -.025em;
+}
+
+.one-to-many-page .one-to-many-v3 .v3-intro-card p:last-child,
+.one-to-many-page .one-to-many-v3 .candidate-stage-head p:last-child,
+.one-to-many-page .one-to-many-v3 .review-head p:last-child,
+.one-to-many-page .one-to-many-v3 .candidate-count-section p:last-child {
+  margin: 0;
+  color: var(--saju-ink-soft);
+  font-size: .88rem;
+  line-height: 1.6;
+}
+
+.one-to-many-page .one-to-many-v3 .form-section,
+.one-to-many-page .one-to-many-v3 .one-to-many-group,
+.one-to-many-page .one-to-many-v3 .candidate-count-section {
+  padding: 4px 0 24px;
+  border-bottom: 1px solid var(--saju-border);
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-count-section {
+  display: grid;
+  gap: 16px;
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-count-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-count-options button,
+.one-to-many-page .one-to-many-v3 .candidate-tabs button,
+.one-to-many-page .one-to-many-v3 .review-block-head button {
+  min-height: 44px;
+  border: 1px solid var(--saju-border-strong);
+  border-radius: 12px;
+  background: var(--saju-bg-card);
+  color: var(--saju-ink-soft);
+  font-weight: 800;
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-count-options button.selected,
+.one-to-many-page .one-to-many-v3 .candidate-tabs button.selected {
+  border-color: var(--saju-action);
+  background: var(--saju-action);
+  color: var(--saju-ink-inverse);
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-stage-head,
+.one-to-many-page .one-to-many-v3 .review-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-counter {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: var(--saju-bg-soft);
+  color: var(--saju-ink-soft);
+  font-family: var(--saju-font-data);
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-tabs button {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-tabs small {
+  font-size: .72rem;
+  opacity: .78;
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-editor {
+  padding: 18px;
+  border: 1px solid var(--saju-border);
+  border-radius: 18px;
+  background: var(--saju-bg-card);
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--saju-border);
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-editor .person-panel {
+  padding-top: 18px;
+}
+
+.one-to-many-page .one-to-many-v3 .candidate-editor .candidate-remove {
+  position: static;
+  min-height: 40px;
+}
+
+.one-to-many-page .one-to-many-v3 .add-candidate {
+  width: 100%;
+}
+
+.one-to-many-page .one-to-many-v3 .step-nav {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--saju-bg-base) 94%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.one-to-many-page .one-to-many-v3 .step-nav .primary-action:only-child {
+  grid-column: 1 / -1;
+}
+
+.one-to-many-page .one-to-many-v3 .step-nav .primary-action,
+.one-to-many-page .one-to-many-v3 .step-nav .secondary-action {
+  margin: 0;
+  min-height: 54px;
+}
+
+.one-to-many-page .one-to-many-v3 .review-block {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--saju-border);
+}
+
+.one-to-many-page .one-to-many-v3 .review-block-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.one-to-many-page .one-to-many-v3 .review-block-head > div {
+  display: grid;
+  gap: 4px;
+}
+
+.one-to-many-page .one-to-many-v3 .review-block-head button {
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: .78rem;
+}
+
+.one-to-many-page .one-to-many-v3 .review-block small,
+.one-to-many-page .one-to-many-v3 .review-candidate-list small {
+  display: block;
+  color: var(--saju-ink-faint);
+  font-size: .75rem;
+}
+
+.one-to-many-page .one-to-many-v3 .review-candidate-list {
+  display: grid;
+  gap: 0;
+  margin-top: 14px;
+  border-top: 1px solid var(--saju-border);
+}
+
+.one-to-many-page .one-to-many-v3 .review-candidate-list > div {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 3px 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--saju-border);
+}
+
+.one-to-many-page .one-to-many-v3 .review-candidate-list > div > span {
+  grid-row: 1 / span 2;
+  color: var(--saju-ink-faint);
+  font-size: .75rem;
+  font-weight: 800;
+}
+
+.one-to-many-page .one-to-many-v3 .analysis-tip {
+  padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--zootopi-butter-deep) 35%, var(--saju-border));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--zootopi-butter) 22%, var(--saju-bg-card));
+}
+
+.one-to-many-page .one-to-many-v3 .analysis-tip p {
+  margin: 5px 0 0;
+  color: var(--saju-ink-soft);
+  font-size: .82rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 480px) {
+  .one-to-many-page .one-to-many-v3 .step-progress-item {
+    grid-template-columns: 26px 1fr;
+    font-size: .7rem;
+  }
+
+  .one-to-many-page .one-to-many-v3 .step-progress-dot {
+    width: 26px;
+    height: 26px;
+  }
+
+  .one-to-many-page .one-to-many-v3 .candidate-stage-head,
+  .one-to-many-page .one-to-many-v3 .review-head {
+    display: grid;
+  }
+
+  .one-to-many-page .one-to-many-v3 .candidate-tabs {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .one-to-many-page .one-to-many-v3 .step-nav {
+    grid-template-columns: .8fr 1.6fr;
+  }
+}
