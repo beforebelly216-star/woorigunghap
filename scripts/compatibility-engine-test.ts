@@ -1,8 +1,13 @@
 import assert from "node:assert/strict";
 import { calculateOneToOneCompatibility } from "../src/lib/compatibility/engine";
-import { calibrateCompatibilityScore, getCompatibilityScoreBand } from "../src/lib/compatibility/score-scale";
+import {
+  calibrateCompatibilityScore,
+  getCommonCompatibilityRawRange,
+  getCompatibilityRawRange,
+  getCompatibilityScoreBand,
+} from "../src/lib/compatibility/score-scale";
 import { RELATIONSHIP_SCORE_WEIGHTS } from "../src/lib/compatibility/weights";
-import type { OneToOneReportInput, PersonBirthInput } from "../src/lib/report-input";
+import type { OneToOneReportInput, PersonBirthInput, RelationshipType } from "../src/lib/report-input";
 
 function person(
   displayName: string,
@@ -21,6 +26,7 @@ function person(
 }
 
 const TIMING_OPTIONS = { timingBaseYear: 2026 } as const;
+const RELATIONSHIP_TYPES: RelationshipType[] = ["crush", "flirting", "lover", "friend", "coworker"];
 const a = person("A", "1990-05-15", "14:30");
 const b = person("B", "1992-10-24", "05:30");
 const base: OneToOneReportInput = {
@@ -29,6 +35,28 @@ const base: OneToOneReportInput = {
   personB: b,
 };
 
+const commonRawRange = getCommonCompatibilityRawRange();
+assert.ok(commonRawRange.min < commonRawRange.max);
+assert.equal(calibrateCompatibilityScore(commonRawRange.min), 30, "공통 원점수 하단은 공개 30점이어야 합니다.");
+assert.equal(calibrateCompatibilityScore(commonRawRange.max), 100, "공통 원점수 상단은 공개 100점이어야 합니다.");
+assert.equal(calibrateCompatibilityScore(commonRawRange.min - 100), 30, "공통 하단 미만은 30점에 고정합니다.");
+assert.equal(calibrateCompatibilityScore(commonRawRange.max + 100), 100, "공통 상단 초과는 100점에 고정합니다.");
+assert.ok(calibrateCompatibilityScore(60) < 60, "낮은 원점수를 재미 목적으로 끌어올리지 않아야 합니다.");
+assert.equal(getCompatibilityScoreBand(30).min, 30);
+
+for (const relationshipType of RELATIONSHIP_TYPES) {
+  const total = Object.values(RELATIONSHIP_SCORE_WEIGHTS[relationshipType]).reduce<number>(
+    (sum, value) => sum + value,
+    0,
+  );
+  assert.equal(total, 100, `${relationshipType} 관계별 가중치 합계는 100이어야 합니다.`);
+  const range = getCompatibilityRawRange(relationshipType);
+  assert.ok(
+    range.min <= commonRawRange.min && range.max >= commonRawRange.max,
+    `${relationshipType}도 공통 30~100 공개구간 전체에 도달 가능한 원점수 범위를 가져야 합니다.`,
+  );
+}
+
 const first = calculateOneToOneCompatibility(base, TIMING_OPTIONS);
 const second = calculateOneToOneCompatibility(base, TIMING_OPTIONS);
 assert.deepEqual(first, second, "같은 입력과 기준연도는 완전히 동일한 계산 스냅샷을 반환해야 합니다.");
@@ -36,12 +64,6 @@ assert.equal(first.profile, "romance");
 assert.equal(Object.keys(first.dimensions).length, 9);
 assert.ok(first.score >= 30 && first.score <= 100);
 assert.equal(first.score, calibrateCompatibilityScore(first.rawTotal));
-assert.equal(calibrateCompatibilityScore(0), 30, "30점 아래 값은 절대 최저점 30으로만 제한합니다.");
-assert.equal(calibrateCompatibilityScore(30), 30, "raw 30을 45점 등으로 올려 보이면 안 됩니다.");
-assert.equal(calibrateCompatibilityScore(74), 74, "엔터테인먼트 목적의 숨은 가점/상향 보정을 금지합니다.");
-assert.equal(calibrateCompatibilityScore(100), 100, "절대 최대점은 100입니다.");
-assert.equal(calibrateCompatibilityScore(140), 100, "100점 초과는 허용하지 않습니다.");
-assert.equal(getCompatibilityScoreBand(30).min, 30);
 assert.ok(getCompatibilityScoreBand(first.score).label.length > 0);
 assert.equal(first.scenarioPolicy.pairScenarios, 1);
 assert.equal(first.aiBoundary.scoreMutableByAi, false);
@@ -58,14 +80,6 @@ assert.deepEqual(
 assert.ok(first.threeYearTiming, "서버 렌더링용 threeYearTiming은 계산 스냅샷에 그대로 유지되어야 합니다.");
 assert.equal(first.strengths.length, 2);
 assert.equal(first.adjustmentPoints.length, 2);
-
-for (const relationshipType of ["crush", "flirting", "lover", "friend", "coworker"] as const) {
-  const total = Object.values(RELATIONSHIP_SCORE_WEIGHTS[relationshipType]).reduce<number>(
-    (sum, value) => sum + value,
-    0,
-  );
-  assert.equal(total, 100, `${relationshipType} 관계별 가중치 합계는 100이어야 합니다.`);
-}
 
 const crush = calculateOneToOneCompatibility({ ...base, relationshipType: "crush" }, TIMING_OPTIONS);
 const flirting = calculateOneToOneCompatibility({ ...base, relationshipType: "flirting" }, TIMING_OPTIONS);
@@ -139,11 +153,7 @@ assert.ok(boundaryResult.scenarioPolicy.personAScenarios > 12);
 
 for (const result of [first, crush, flirting, oneUnknown, bothUnknown, boundaryResult]) {
   assert.ok(result.score >= 30 && result.score <= 100, "공개 점수는 모든 관계에서 동일하게 30~100 범위여야 합니다.");
-  assert.equal(
-    result.score,
-    Math.round(result.rawTotal),
-    "30~100 범위 안의 공개 점수는 결정론 원점수의 반올림값과 같아야 하며 숨은 상향 보정이 없어야 합니다.",
-  );
+  assert.equal(result.score, calibrateCompatibilityScore(result.rawTotal));
   for (const [dimension, score] of Object.entries(result.dimensions)) {
     assert.ok(Number.isFinite(score.normalizedScore), `${dimension} normalizedScore must be finite`);
     assert.ok(score.normalizedScore >= 0 && score.normalizedScore <= 100, `${dimension} normalizedScore out of range`);
@@ -157,5 +167,5 @@ for (const result of [first, crush, flirting, oneUnknown, bothUnknown, boundaryR
 }
 
 console.log(
-  `Compatibility engine validation passed: lover=${first.score}, crush=${crush.score}, flirting=${flirting.score}, friendUnknown=${oneUnknown.score}, coworkerUnknown=${bothUnknown.score}; public range=30-100 without uplift`,
+  `Compatibility engine validation passed: lover=${first.score}(raw ${first.rawTotal}), crush=${crush.score}(raw ${crush.rawTotal}), flirting=${flirting.score}(raw ${flirting.rawTotal}), friendUnknown=${oneUnknown.score}(raw ${oneUnknown.rawTotal}), coworkerUnknown=${bothUnknown.score}(raw ${bothUnknown.rawTotal}); public full range=30-100`,
 );
