@@ -9,25 +9,46 @@
 4. post-beta 운영 QA
 5. improvement
 
-## 최신 사용자 명시 작업 — 무료 천생연분 결과
+## 최신 사용자 명시 작업 — 궁합 점수 v1.5
 
-- [x] 기존 무료 관계 성향 UI/API/결과 생성기 삭제 상태 유지
-- [x] `/free` 입력 → `/api/free/soulmate` 결정론 계산 → `/free/result` 연결
-- [x] 사주팔자 전체 원국(년월일시/천간지지)을 결과 첫 핵심 데이터로 표시
-- [x] 일간 / 성향 키워드 / 강점 / 보완점 4개 요약
-- [x] 10개 일간 내부 비교 후 의미 있는 TOP 2~3만 추천
-- [x] 천생연분 지수/궁합 확률/퍼센트 미사용
-- [x] 오행 구성 / 음양 균형 / 추천 천간·지지 / 특히 잘 맞는 조건 / 주의 구성 구현
-- [x] `만남 & 관계 가이드`, `인연 시기 흐름`, 추천 활동/컬러 삭제
-- [x] 주토피 Hero + 중간 Commentary + 마지막 해설 + CTA companion 구현
-- [x] 1:1 궁합 CTA 연결
-- [x] 용신은 EVIDENCE_ONLY 경계 유지, 확정 판정 금지
-- [x] 신규 `test:soulmate-result` + Growth 계약 갱신
-- [x] **PR #65 / Core calculation validation #778 PASS** — 전체 contracts, lint, production build
-- [x] PR #65 → `main` 병합 (`4740c240`)
-- [x] Vercel Preview 배포 — branch `preview/soulmate-result-v1`, deploy trigger `7f0b031c`, Vercel success
-- [x] Preview 배포 후 branch 자동배포 OFF 원복 (`4182eb52`)
-- [ ] Preview 390px 실화면을 승인 레퍼런스와 pixel-level 대조·보정
+- [x] 기존 raw 30→public 45 등 숨은 점수 상향 보정 삭제
+- [x] 공개 종합점수 절대 범위 **30~100** 고정
+- [x] 절대 최대 100점 ceiling 유지
+- [x] 관계유형별 별도 최대점 ceiling 삭제 — 모든 관계가 100점까지 가능
+- [x] 짝사랑 / 썸 / 연인 / 친구 / 직장동료 5개 관계별 최종 가중치 분리
+- [x] 낮은 점수 30~49 해석 구간 추가, 결과가 나쁠 때 억지 가점 금지
+- [x] AI score/ranking 불변 경계 유지
+- [x] scoring `1.5.0`, engine `compatibility-engine-v1.5.0`
+- [x] **PR #66 / Core calculation validation #787 PASS** — 전체 contracts, lint, production build PASS
+- [ ] PR #66 → `main` 병합
+
+검증 샘플(동일 두 사람 / 기준연도 2026):
+- 연인 74
+- 짝사랑 75
+- 썸 74
+- 친구(한쪽 시간 미상 샘플) 74
+- 직장동료(양쪽 시간 미상 샘플) 74
+- `raw 30 → 30`, `raw 74 → 74`, `raw 100 → 100`, `100 초과 → 100`
+
+## 다음 사용자 작업 — 1:1 결과 전면 재설계
+
+- [ ] 기존 1:1 결과 UI/UX 및 불필요한 과거 콘텐츠 명세 폐기 범위 확정
+- [ ] 핵심 계산·결제·저장·single-flight·privacy 계약만 보존
+- [ ] 새 390px 결과 구조 구현
+  - 한눈에 보기
+  - 두 사람의 사주 원국
+  - 끌림 + 시너지
+  - 관계 구조
+  - 두 사람의 관계 성향
+  - 갈등 루프
+  - 관계유형별 심층 분석
+  - 장기 전망
+  - 관계 사용설명서
+  - 주토피 마무리
+- [ ] 목표 본문 약 5,000자, 허용 약 4,000~6,000자
+- [ ] 사용자 입력 별칭 그대로 사용 (`나/상대방/A/B` 사용자 노출 금지)
+- [ ] 일상어 결론마다 사주 근거가 자연스럽게 읽히는 Sonnet 5 narrative 설계
+- [ ] 내부 시스템 지침은 결과 화면에 노출하지 않음
 
 ## Blocker / 운영 검증
 
@@ -37,10 +58,10 @@
 
 ## 실기기 QA
 
-- [ ] 360 / 390 / 430px 홈·무료 입력·천생연분 결과·1:1·1:N UX
+- [ ] 천생연분 결과 Preview 390px pixel-level 보정
+- [ ] 360 / 390 / 430px 핵심 UX
 - [ ] 실제 1:1·1:N Web Share / 이미지 저장 / Shared View 링크
 - [ ] 비회원 결과 → Kakao 로그인 → 귀속 → 보관함
-- [ ] 회원탈퇴 / 데이터 삭제 / Kakao unlink
 
 ## 기본 검증
 
@@ -52,11 +73,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 무료 천생연분 결정론 결과 엔진 + 승인 390px 결과 UI 구현 + Preview 배포
+- Task: 궁합 공개점수 무상향 30~100 범위 + 5개 관계유형별 가중치 v1.5
 - Status: complete
-- Validation: PR #65 / Core calculation validation #778 PASS — soulmate + 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS
-- Commit: main merge `4740c240`; Preview trigger `7f0b031c`; Preview auto-deploy OFF `4182eb52`; 상태문서 갱신이 최신 main
-- Remaining: Preview 390px 실화면을 승인 레퍼런스와 pixel-level 대조·보정 → 360/390/430 QA
-- Risk: 추천은 일간 생극·오행·음양·일지 관계 기반 heuristic이며 용신 확정/확률 표시는 하지 않음. 유료 backend 변경 없음
-- Deploy: Preview Vercel success. Production 미수행. Git 자동배포 OFF 유지
+- Validation: PR #66 / Core calculation validation #787 PASS — 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS
+- Commit: PR #66 head `e6d6e776`; main 병합 대기
+- Remaining: PR #66 main 병합 후 1:1 새 결과 구조/Sonnet 5 narrative/390px UI 구현 시작
+- Risk: 관계별 가중치가 변경되어 신규 계산 결과 점수는 구버전과 달라질 수 있음. 저장된 기존 구매 결과는 재계산/덮어쓰기 금지
+- Deploy: 이번 작업 배포 없음. Production/Preview 자동배포 OFF 유지
 ```
