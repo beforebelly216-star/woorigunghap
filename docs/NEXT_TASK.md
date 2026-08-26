@@ -34,29 +34,34 @@
 
 ## UI / UX 전면 재설계 v3 — 사용자 명시 우선 작업
 
-> 현재 배포된 주토피 stock-theme UI/UX/레이아웃은 사용자 평가상 전면 재설계 대상. 세부 CSS 수정부터 시작하지 않는다. `docs/JOOTOPI_UI_REDESIGN.md`가 이번 재설계의 디자인 기준 문서다.
+> `docs/JOOTOPI_UI_REDESIGN.md`가 v3 디자인 기준 문서다. 현재 Production 스킨을 부분 보정하지 않고 승인된 v3 언어를 화면별로 확장한다.
 
 ### 전체 단계
-- [ ] **1단계 Design Direction / Reference 확정**
-  - [ ] 1A Brand Mood — 대부분 확정. 남은 Typography / Iconography / Data visualization / Motion / 신규 포즈 검수
-  - [ ] 1B Layout Grammar
-  - [ ] 1C Jootopi Character Rules 최종 규격
-  - [ ] 1D Reference Board
-- [ ] **2단계 홈 화면만 전면 재설계** — 390px mobile-first, 홈 승인 전 핵심 화면 확장 금지
-- [ ] **3단계 입력 UX 재설계** — `/free`, 1:1, 1:N
+- [x] **1단계 Design Direction / Reference 확정**
+  - [x] 1A Brand Mood — Typography B / Iconography B / Data Visualization A / Motion A
+  - [x] 1B Layout Grammar — A, 정보 우선 클린 그리드
+  - [x] 1C Jootopi Character Rules — B, 적절한 캐릭터 균형
+  - [x] 1D Reference Board — 사용자 승인
+  - [ ] 캐릭터 시트·신규 포즈 최종 Production 검수 — 사용자 요청으로 후순위 보류
+- [ ] **2단계 홈 화면만 전면 재설계** — A안 구현 완료, 검증/실화면 확인 후 완료 처리
+  - [x] 390px mobile-first 정보 우선 레이아웃 구현
+  - [x] free-first 유지: 홈 직접 1:1/1:N 유료 전환 제거
+  - [x] White/Off-white + Black/Yellow, 주토피 guide 역할 적용
+  - [x] 관련 Growth/UI 정적 계약 갱신
+  - [ ] GitHub Actions 전체 contracts + lint + production build
+  - [ ] 실제 390px 화면 확인
+- [ ] **3단계 입력 UX 재설계** — `/free` → 1:1 → 1:N 순서
 - [ ] **4단계 결제·생성 UX 재설계** — 상품 요약/CTA/대기/복귀/실패·재시도, backend contract 유지
 - [ ] 후속: 1:1 결과 → 1:N 결과 → 보관함/공유/계정 → multi-viewport QA
 
-### 1A 핵심 확정값 요약
-- 캐릭터 × 핀테크
-- Color: White/warm off-white 중심 B 80% + Black×Yellow C 20%
-- Shape: Balanced
-- Information style: Hybrid
-- Character presence: Moment-based 50 + Host 50
-- Voice: 무조건 반말; 귀여움 50 / 영리함 35 / 장난기 15; 주식 밈 과다사용 금지
-- Placement: Hero 20 / Companion 50 / Micro 30
-- Dialogue: Talk 20 / Commentary 65 / Scene 15
-- Character Source of Truth: 사용자 제공 원본 주토피 캐릭터 시트. 기존 승인 포즈를 생성형 AI로 임의 재작성하지 않는다.
+### v3 확정 조합
+- Typography: **B** — 캐릭터 × 핀테크 균형
+- Iconography: **B** — Line + Solid 하이브리드
+- Data Visualization: **A** — 미니멀·클린, 주식 요소 낮음
+- Motion: **A** — 필요한 순간의 최소 모션
+- Layout Grammar: **A** — 정보 우선 클린 그리드
+- Character Rules: **B** — 가이드형 균형 배치
+- Character Source of Truth: 사용자 제공 원본 주토피 캐릭터 시트. 이미지/신규 포즈 최종 확정은 후순위.
 
 ## 기존 UI / UX v2 완료 이력
 - [x] 1~9단계 기존 Design Foundation/공통 shell/홈/무료/1:1/생성/1:N/보관함/Shared View 구현
@@ -75,11 +80,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 주토피 중심 UI/UX 전면 재설계 v3의 1A Brand Mood를 사용자와 단계별 확정하고 다음 대화용 기준 문서 저장
+- Task: v3 디자인 방향 확정 + 사용자 선택 홈 A안 390px 구현
 - Status: partial
-- Validation: 문서/디자인 결정 작업만 수행; runtime 코드 변경 없음, lint/build 불필요
-- Commit: 587f4a9 docs/JOOTOPI_UI_REDESIGN.md 신규 저장; 본 NEXT_TASK 갱신 커밋이 최신
-- Remaining: docs/JOOTOPI_UI_REDESIGN.md의 1A 남은 항목부터 진행 — Typography → Iconography → Data visualization → Motion → 신규 7포즈 Production 검수. 이후 1B Layout Grammar → 1C → 1D. 그 뒤 2단계 홈 재설계.
-- Risk: 신규 7포즈 extension은 생성 이미지이므로 원본 캐릭터 시트와 100% 동일한 공식 자산으로 간주하지 말 것. 원본 시트에서 분리한 13개 v1.1 에셋이 더 높은 신뢰도의 Identity 자산. 현재 에셋 ZIP은 채팅 산출물이므로 새 세션에서 바이너리 자체가 필요하면 다시 업로드/저장소 편입 필요.
-- Deploy: 이번 디자인 문서 작업은 Production 배포 없음. 기존 Production 상태 유지.
+- Validation: PR #58 생성; Growth/UI 계약 갱신. PR Actions가 아직 생성되지 않아 전체 contracts/lint/build 미확인
+- Commit: PR #58 head에 홈 page/CSS, 계약 테스트, docs/JOOTOPI_UI_REDESIGN.md 반영
+- Remaining: PR #58 CI 확인 → PASS 시 main 병합 및 PROJECT_STATE 갱신 → 실제 390px 확인 → 3단계 `/free` 입력 UX 재설계
+- Risk: 홈은 free-first 결정에 따라 시안의 직접 유료 CTA/fake score·ranking을 의도적으로 제외. 캐릭터 이미지/신규 포즈 확정은 후순위
+- Deploy: 없음. Vercel Preview/Production은 사용자 승인 전 실행 금지
 ```
