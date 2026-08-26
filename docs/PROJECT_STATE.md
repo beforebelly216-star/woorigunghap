@@ -1,6 +1,6 @@
 # 우리사주 프로젝트 상태
 
-> GPT와 Claude가 공유하는 현재 상태 문서. GitHub 최신 `main`과 실제 코드가 최우선이며, 의미 있는 작업 완료 후 갱신한다.
+> GPT와 Claude가 공유하는 현재 상태 문서. GitHub 최신 `main`과 실제 코드가 최우선이다. 과거 작업 일지는 누적하지 않고 현재 실제 상태만 유지한다.
 
 ## 기준선
 
@@ -10,111 +10,90 @@
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic narrative mode
 - 상품: 1:1 1,000원 / 1:N 3,000원
 - 관계 유형: 짝사랑 / 썸 / 연인 / 친구 / 직장동료
-- 배포: Vercel Production. Git 자동배포는 비활성화가 기본이며 Preview/Production은 사용자 명시 승인 후 별도 실행한다.
+- 배포: Vercel Production. Git 자동배포는 기본 비활성화이며 Preview/Production은 사용자 명시 승인 후 별도 실행한다.
 
-## 현재 구현 상태
+## 핵심 기능 상태
 
 - 홈 free-first 퍼널과 `/free` deterministic 자기 분석 구현
-- 1:1 입력/결제 compact 480px, 완성 리포트 report 640px Foundation v2 적용
-- 1:N 입력/결제 compact 480px, 비교 결과 compare 960px Foundation v2 적용
-- 계정/보관함은 `account-foundation.css`가 Foundation v2 layout owner로 관리
-- **Shared View는 Foundation v2 neutral canvas + typography/divider 위계로 전환했다.** 기존 lavender radial/linear gradient, 큰 shadow, card wall, `max-width:99999px` 규칙을 제거했다.
-- **1:1·1:N 9:16 공유 카드 preview와 실제 1080×1920 canvas export를 같은 Foundation v2 시각체계로 통일했다.** neutral base/card, ink score/CTA, gray hierarchy를 사용하며 장식 gradient/라벤더 원형 장식을 제거했다.
-- Receipt / Recap / Relationship Label / Two Sides / Send This 카드 목적과 P6 A/B experiment는 유지한다.
-- public share DTO에는 생년월일시·유료 본문·paymentId·accessToken 등 민감/유료 식별 정보를 포함하지 않는다.
-- Shared View reaction, analytics, 신규 궁합 CTA, Web Share, 이미지 저장, 이름 opt-in 동작 유지
 - 서버 결정론적 만세력 + 9개 궁합 지표 계산
+- 1:1 및 1:N 입력·결제·결과·저장·재열람 흐름 구현
 - PortOne 결제 검증 / webhook 멱등 처리
-- 결제 검증 뒤 AI 서술 생성, segment single-flight/idempotency
-- **1:1 AI 리포트는 CH0~CH9 구조와 관계별 해석 품질을 유지하면서 전체 목표를 공백 제외 약 2,500~4,000자로 축소했다.** intro/dynamics/action의 1차 출력 한도는 각각 1,800/2,600/3,000 tokens이며 `max_tokens` 중단 때만 2,400/3,400/3,800으로 한 번 재시도한다.
-- **Anthropic structured output을 우선 사용하고 미지원 응답은 기존 JSON 파싱으로 호환한다.** 408/409/429/5xx transport 실패, 중단 사유, 요청 ID, 소요 시간, 출력량을 구조화 로그로 남기며 각 segment는 명시적 timeout과 총 요청 예산 안에서 최대 2회만 시도한다.
-- **유료 1:1·1:N AI 서술 기본 모델을 Claude Haiku 4.5에서 `claude-sonnet-5`로 전환했다.** 기존 운영 환경변수에 Haiku 4.5가 남아 있어도 Sonnet 5로 마이그레이션하고, adaptive thinking은 꺼서 제한된 출력 예산을 완결된 JSON 본문에 사용한다. 1:N도 structured output을 우선한다.
-- **구조가 유효한 1:1 응답이 `QUALITY_CRITICAL` 편집 검사로 결제 결과 전체를 막지 않도록 최종 복구 단계를 추가했다.** 모델 재시도 뒤에도 남은 일주·오행 누락은 서버 권위 사실로 보정하고 A/B·내부 필드명·관계유형 금칙어는 결정론적으로 치환한 뒤 다시 검사한다. 장문 중복은 편집 warning으로만 남긴다.
-- segment별 PostgreSQL 원자 저장, 완료 segment 재사용, 결제별 single-flight/idempotency는 그대로 유지한다. 실패 lock은 해제해 같은 결제로 안전하게 다시 시도할 수 있다.
-- Neon 서버 저장 / 비회원 복구 / 선택형 Kakao 로그인 / 계정 보관함
+- 결제 검증 후에만 AI 서술 생성
+- 유료 AI 기본 모델 `claude-sonnet-5`, structured output 우선
+- 1:1 segment별 PostgreSQL 원자 저장, 완료 segment 재사용, single-flight/idempotency 유지
+- 1:N도 동일 결제 중복 생성 방지 및 저장 결과 재사용 유지
+- 비회원 결과 복구 / Kakao 로그인 / 계정 보관함 구현
+- Shared View / 1:1·1:N Web Share / 1080×1920 공유 이미지 생성 경로 구현
+- public share DTO에는 원본 생년월일시·유료 본문·paymentId·accessToken 등 민감/유료 식별 정보를 포함하지 않는다.
 
-## UI / UX — v3 재설계 진행 상태
+## UI / UX v3 진행 상태
 
-- **사용자 승인 디자인 조합:** Typography B / Iconography B / Data Visualization A / Motion A / Layout Grammar A / Character Rules B.
-- `docs/JOOTOPI_UI_REDESIGN.md`가 v3 재설계 기준 문서다.
-- 핵심 문장: **정보는 빠르고 명확하게, 주토피는 적재적소에.**
-- **홈 A안 코드 구현 완료:** 390px mobile-first 정보 우선 레이아웃, White/Off-white + Black/Yellow, 주토피 guide 역할.
-- 홈은 기존 제품 결정인 free-first를 유지한다. 첫 CTA는 `/free`의 `무료로 내 관계 성향 보기`이며 홈에서 1:1·1:N 직접 유료 전환을 하지 않는다.
-- 홈에 실제 사용자 데이터처럼 보이는 fake score/ranking/chart를 넣지 않는다. 1:1 1,000원 / 1:N 3,000원은 기능·가격 설명만 제공한다.
-- **`/free` v3 입력 화면 구현 완료:** 단일 정보 카드, 짧은 설명, 주토피 guide, Black/Yellow CTA, mobile-first 간격으로 정리했다.
-- **공용 출생시간 입력은 오전/오후 선택 없이 24시간제 `HHMM`으로 통일했다.** 기존 저장 form의 12시간제 `meridiem` 상태는 읽기 호환 레이어에서만 변환하며 UI에는 노출하지 않는다.
-- **1:1 입력 v3 구현 완료:** 사용자 승인 B안대로 `내 정보+관계 → 상대방 정보 → 확인` 3단계로 재구성했다. free prefill, 관계 유형·관계기간·직장동료 위계, 상대 정보 수준 A/B, 주문 draft·복구·결제 진입 계약은 유지한다.
-- 확인 단계에서 두 사람 입력 요약과 수정 진입을 제공하며, 개인정보 안내와 별칭 사용 원칙을 유지한다.
-- **1:N 입력 v3 구현 완료:** 사용자 승인 B안대로 `기본 정보 → 후보 정보 → 확인` 3단계로 재구성했다. 후보 수를 2~5명에서 선택하고 후보 탭으로 한 명씩 편집하며 마지막 단계에서 관계·기준자·후보 전체를 확인/수정할 수 있다.
-- 1:N 저장 draft 복원도 24시간제 HHMM을 그대로 유지하도록 정리했으며 기존 localStorage draft, 서버 주문 draft, 3,000원 결제 진입 계약은 유지한다.
-- 캐릭터 시트와 신규 포즈의 최종 Production 검수는 사용자 요청에 따라 후순위로 보류했다.
-- 입력 UX v3 구현 범위(`/free`, 1:1, 1:N`)는 코드 및 Production 배포까지 완료했다. 실제 360/390/430px 육안 QA는 실기기 QA로 남아 있다.
+기준 문서: `docs/JOOTOPI_UI_REDESIGN.md`
 
-## 기존 UI / UX — Design Foundation v2
+확정 조합: Typography B / Iconography B / Data Visualization A / Motion A / Layout Grammar A / Character Rules B.
+핵심 문장: **정보는 빠르고 명확하게, 주토피는 적재적소에.**
 
-- **주토피 stock-theme 시각 스킨 적용:** 홈, 1:1 결과의 캔들/히트맵·마스코트, 1:N 순위/비교 시각화를 공통 주토피 브랜드 문법으로 확장했다.
-- `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md`는 기존 v2 구현의 기준점이며, v3 재설계가 화면별로 이를 대체하고 있다.
-- 핵심 시각 문법: neutral canvas + 실제 데이터에만 쓰는 오행 기능색 + typography-first + progressive disclosure.
-- 2단계 공통 shell + 홈 완료
-- 3단계 무료 분석 입력/결과 완료
-- 4단계 1:1 입력/결제 완료
-- 5단계 생성중/복구/실패 상태 완료
-- 6단계 1:1 완성 결과 완료
-- 7단계 1:N 입력/결제/비교 결과 완료
-- 8단계 보관함/계정 완료
-- **9단계 Shared View / 공유 카드 시각 통합 완료**
-- 다크모드는 지원하지 않는다.
+- **홈 v3 완료:** 390px mobile-first, White/Off-white + Black/Yellow, free-first 유지
+- **`/free` v3 완료:** 단일 정보 카드, 짧은 설명, 24시간제 HHMM
+- **1:1 입력 v3 완료:** `내 정보+관계 → 상대방 정보 → 확인` 3단계
+- **1:N 입력 v3 완료:** `기본 정보 → 후보 정보 → 확인` 3단계, 후보 2~5명
+- **결제·생성 UX v3 코드 완료:** PR #62 병합 `ef8ea140`
+  - 1:1·1:N 모두 `입력 완료 → 결제 → 생성` 진행 맥락 표시
+  - 결제 직전 상품 요약, 가격, 제공 내용, 자동 저장·복구 안내 재구성
+  - 모바일 sticky 결제 CTA 적용
+  - 1:1 생성 대기 상태와 1:N 생성/복구/실패 상태를 neutral v3 surface로 정리
+  - 기존 결제 검증·계산·AI·저장·single-flight/idempotency backend contract는 변경하지 않음
+- 캐릭터 시트·신규 포즈 최종 Production 검수는 사용자 요청에 따라 후순위로 보류
+
+## AI / 유료 결과 안정성
+
+- 1:1 리포트 목표 분량: 공백 제외 약 2,500~4,000자
+- intro/dynamics/action 단계 생성과 진행 저장 유지
+- `max_tokens` 중단 시 제한된 1회 확장 재시도
+- transport/API 실패를 구조화 로그로 분류
+- 구조적으로 유효한 결과가 편집 취향 수준의 품질 검사 때문에 결제 결과 전체를 막지 않도록 서버 보정·재검사 경로 유지
+- 실패 lock은 해제되어 같은 결제로 안전하게 재시도 가능
 
 ## 검증 상태
 
-- **PR #61 / Core calculation validation #746 PASS** — v3 1:N 3단계 입력, 후보 2~5명 관리, 24시간제 draft 복원, 확인/수정 진입, 상태 문서 포함 최종 head에서 전체 contracts, lint, production build 통과.
-- **PR #60 / Core calculation validation #742 PASS** — v3 1:1 3단계 입력, free prefill 24시간제 호환, 개인정보/상대 정보 수준 계약, 전체 contracts, lint, production build 통과.
-- **PR #59 / Core calculation validation #736 PASS** — v3 `/free` 입력 UI, 24시간제 공용 시간 입력, legacy form-state 읽기 호환, 전체 contracts, lint, production build 통과.
-- **PR #58 / Core calculation validation #732 PASS** — v3 홈 A안 + free-first/1:N/UI 계약 정합성, 전체 contracts, lint, production build 통과.
-- **PR #55 / Core calculation validation #710 PASS**
-- 만세력/경계/궁합/결제/AI/1:N/account/editorial/policy/Growth/report 전체 계약 PASS
-- 1:1 AI 생성 복원력 계약 PASS: 명시적 token ceiling, `max_tokens` 1회 확장 재시도, structured-output fallback, fatal UX 분류 검증
-- Sonnet 5 모델 전환 및 1:1·1:N 관련 계약 8개 PASS; lint 오류 0건(기존 warning 3건); production build PASS
-- `QUALITY_CRITICAL` 재현/복구 및 품질·일주·중복·runtime 관련 계약 8개 PASS; lint 오류 0건(기존 warning 3건); production build PASS
-- Shared View contract에 Foundation v2 neutral styling, legacy lavender/gradient 제거, 1080×1920 canvas export 색상 기준 검증 추가
-- lint PASS: 오류 0건, 기존 미사용 변수 warning 3건
-- production build PASS
-- public DTO/privacy/opaque token/Web Share/image download/analytics/reaction 로직 변경 없음
+- **PR #62 / Core calculation validation #752 PASS** — v3 결제·생성 presentation, 기존 payment/AI/single-flight/storage/recovery 계약, 전체 account/editorial/policy/Growth/system QA, lint, production build 통과
+- PR #61 / validation #746 PASS — 1:N 입력 v3 + 전체 contracts/lint/build
+- PR #60 / validation #742 PASS — 1:1 입력 v3 + 전체 contracts/lint/build
+- PR #59 / validation #736 PASS — `/free` v3 + 24시간 HHMM + 전체 contracts/lint/build
+- PR #58 / validation #732 PASS — 홈 v3 + 전체 contracts/lint/build
+- 만세력/경계/궁합/결제/AI/1:N/account/editorial/policy/Growth/report 계약 현재 PASS
 
 ## 배포 상태
 
-- **v3 홈 A안 + `/free` + 1:1 + 1:N 입력 v3를 포함한 PR #61을 `main`에 병합(`79d8307a`)하고 Vercel Production 배포 완료했다.** 승인된 일회성 배포 트리거 `430c5538`의 Vercel status는 `success`이며, 배포 완료 직후 `41730e8b`에서 `git.deploymentEnabled=false`로 복구했다.
-- Production 프로젝트: `woorigunghap-uty7` / team `beforebelly216-stars-projects`.
-- Production URL은 기존 프로젝트 주소 `https://woorigunghap-uty7-q7pw0wrsd-beforebelly216-stars-projects.vercel.app`를 유지한다.
-- Git 자동배포는 다시 비활성화 상태이며 이후 Preview/Production은 사용자 명시 승인 후 별도 수행한다.
-- **주토피 stock-theme UI 스킨을 runtime commit `8f586db`로 main에 반영하고, `7b46a8e`에서 승인된 Vercel Production 배포를 완료했다. Vercel status `success`; `aaa6c2a`에서 Git 자동배포를 다시 비활성화했다.**
-- `5435861`에 Claude Sonnet 5 전환과 `AI_QUALITY` 결제 결과 복구 hotfix `d9f7cae`를 포함해 Vercel Production 배포 완료했다.
-- 실패한 동일 결제의 lock은 해제되어 새로고침 재시도가 가능하다. 실제 생성→저장→재열람 성공 여부는 사용자 paid runtime 재검증이 남아 있다.
-- Production과 최신 `main`은 상태 문서/배포설정 커밋 때문에 SHA가 다를 수 있으나, 기능 코드는 PR #61 병합 내용을 포함한다.
+- 현재 Production에는 **홈 + `/free` + 1:1 입력 + 1:N 입력 v3**까지 반영되어 있다.
+- 해당 Production 배포는 PR #61 기능 병합 `79d8307a` 이후 승인된 트리거 `430c5538`에서 Vercel status `success`, 이후 `41730e8b`에서 Git 자동배포를 다시 비활성화했다.
+- **PR #62 결제·생성 UX v3 (`ef8ea140`)는 `main`에는 병합됐지만 아직 Production에 배포하지 않았다.** 이번 작업에는 별도 배포 승인이 없었다.
+- Git 자동배포는 `deploymentEnabled=false` 상태를 유지한다.
+- Vercel connector는 현재 team 조회는 가능하지만 project/deployment 목록 조회가 정상 동작하지 않아 자동 Production 육안 QA가 제한된다. 이는 코드 실패로 판정하지 않는다.
 
 ## 남은 핵심 QA / 리스크
 
-1. 실패한 동일 결제로 Production `5435861`의 1:1 생성→저장→재열람 복구 확인
-2. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View 링크 확인
-3. 홈 → 무료 결과 → 1:1 prefill 실제 동작 확인
-4. **v3 홈·`/free`·1:1·1:N 360 / 390 / 430px 실기기 UX 확인**
-5. 768 / 1280px 전체 화면 spacing/overflow 최종 QA
-6. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
-7. 회원탈퇴/데이터 삭제/Kakao unlink
-8. 결과/계정 삭제 뒤 public share 및 analytics 정리 확인
-
-현재 연결된 Vercel 프로젝트의 runtime log는 프로젝트 조회 404로 접근하지 못했다. 이번 배포 성공 여부는 GitHub commit status의 Vercel `success`로 확인했다. 실제 Sonnet 5 응답 시간·저장 완료 여부와 유료 runtime 복구는 별도 paid QA가 남아 있다.
+1. 실패했던 동일 결제로 실제 Production 1:1 생성 → 저장 → 재열람 복구 확인
+2. 신규 실제 결제의 전체 생성 시간 및 보관함 재열람 확인
+3. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View 링크 확인
+4. 홈 → `/free` → 유료 CTA → 1:1 prefill 실제 동작 확인
+5. **v3 홈·`/free`·1:1·1:N 360 / 390 / 430px Production 실기기 UX 확인**
+6. PR #62 결제·생성 UX v3의 Production 배포 후 360/390/430px 결제·대기·실패 상태 육안 QA
+7. 768 / 1280px spacing/overflow 최종 QA
+8. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
+9. 회원탈퇴 / 데이터 삭제 / Kakao unlink
+10. 결과/계정 삭제 뒤 public share 및 analytics 정리 확인
 
 ## 출시 blocker 정의
 
 - 결제 성공 후 결과 유실
-- 동일 결제의 AI 중복 생성/중복 비용
+- 동일 결제 AI 중복 생성/중복 비용
 - 권한 없는 유료 결과 열람
 - 정책 동의 없는 결제
 - 개인정보·비밀값·내부 지표의 부적절한 노출
 - 탈퇴 후 삭제 대상 데이터 잔존
 - 친구/직장동료 결과에 구조적으로 잘못된 연애/성적 프레임 혼입
 - JSON/API/저장 실패로 유료 결과 생성 불가
-- 결제 완료 후 플랫폼 timeout/무한 재시도로 1:1 결과에 도달하지 못함
+- 결제 완료 후 플랫폼 timeout/무한 재시도로 결과에 도달하지 못함
 
 문체 취향, 재미, 일부 반복/분량 편차는 blocker가 아니다.
