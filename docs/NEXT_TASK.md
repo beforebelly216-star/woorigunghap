@@ -23,8 +23,8 @@
 - [x] 하단 고정 4탭 내비게이션
 - [x] 기존 글로벌 footer 홈에서 제거
 - [x] 관련 1:N / Growth / report UI 계약을 새 홈 기준으로 갱신
-- [x] **Core calculation validation #759 PASS** — 전체 contracts, lint, production build
-- [ ] PR #63 main 병합
+- [x] **Core calculation validation #761 PASS** — 최종 head 전체 contracts, lint, production build
+- [x] PR #63 → `main` 병합 (`cf8e1ffb`)
 - [ ] 사용자 배포 승인 시 Vercel Production 배포
 - [ ] Production 390px 화면을 첨부 레퍼런스와 직접 대조하고 pixel-level 보정
 
@@ -60,9 +60,9 @@ HANDOFF
 - Worker: GPT
 - Task: 사용자 첨부 A안 레퍼런스를 기준으로 홈을 390px 앱형 구조로 전면 재작성
 - Status: complete
-- Validation: PR #63 / Core calculation validation #759 PASS — 전체 contracts, lint, production build PASS
-- Commit: PR #63 branch gpt/home-a99; main 병합 직전 상태
-- Remaining: PR #63 main 병합 → 사용자 배포 승인 시 Production 배포 → 390px 레퍼런스와 실화면 직접 대조하여 pixel-level 보정
+- Validation: PR #63 / Core calculation validation #761 PASS — 전체 contracts, lint, production build PASS
+- Commit: 기능 병합 `cf8e1ffb`; 이후 PROJECT_STATE/NEXT_TASK 문서 갱신이 최신 main
+- Remaining: 사용자 배포 승인 시 Production 배포 → 390px 레퍼런스와 실화면 직접 대조하여 pixel-level 보정
 - Risk: 홈 TOP3/차트는 레퍼런스 재현용 정적 샘플 UI. 결제·계산·AI·저장 backend는 변경 없음
 - Deploy: 미수행. Git 자동배포 OFF 유지
 ```
