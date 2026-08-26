@@ -23,7 +23,7 @@
 - [x] 하단 고정 4탭 내비게이션
 - [x] 기존 글로벌 footer 홈에서 제거
 - [x] 관련 1:N / Growth / report UI 계약을 새 홈 기준으로 갱신
-- [ ] Core calculation validation 최종 PASS 확인
+- [x] **Core calculation validation #759 PASS** — 전체 contracts, lint, production build
 - [ ] PR #63 main 병합
 - [ ] 사용자 배포 승인 시 Vercel Production 배포
 - [ ] Production 390px 화면을 첨부 레퍼런스와 직접 대조하고 pixel-level 보정
@@ -59,10 +59,10 @@ Git 자동배포는 OFF 유지.
 HANDOFF
 - Worker: GPT
 - Task: 사용자 첨부 A안 레퍼런스를 기준으로 홈을 390px 앱형 구조로 전면 재작성
-- Status: partial
-- Validation: PR #63 Core calculation validation 최종 실행 중; 이전 실패는 구 free-first 1:N 계약이 원인이었고 새 기준으로 수정 완료
-- Commit: branch gpt/home-a99 최신 head는 GitHub PR #63 확인
-- Remaining: 최종 validation PASS → PR #63 main 병합 → 사용자 배포 승인 시 Production 배포 후 390px 레퍼런스 대조 보정
-- Risk: 홈의 TOP3/차트는 현재 레퍼런스 재현용 정적 샘플 UI. 결제·계산·AI·저장 backend는 변경 없음
+- Status: complete
+- Validation: PR #63 / Core calculation validation #759 PASS — 전체 contracts, lint, production build PASS
+- Commit: PR #63 branch gpt/home-a99; main 병합 직전 상태
+- Remaining: PR #63 main 병합 → 사용자 배포 승인 시 Production 배포 → 390px 레퍼런스와 실화면 직접 대조하여 pixel-level 보정
+- Risk: 홈 TOP3/차트는 레퍼런스 재현용 정적 샘플 UI. 결제·계산·AI·저장 backend는 변경 없음
 - Deploy: 미수행. Git 자동배포 OFF 유지
 ```
