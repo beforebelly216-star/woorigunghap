@@ -13,6 +13,9 @@ export default function OneToOnePage() {
           <strong>1:1 궁합 입력</strong>
           <span>?</span>
         </header>
+        <p className={inputStyles.visuallyHidden}>
+          실명 대신 별칭을 입력해도 됩니다. 결과에서는 입력한 이름이나 별칭을 “OOO님”처럼 표시하며, 이름·별칭 원문은 AI 서술 생성 요청에 전달하지 않습니다.
+        </p>
         <Suspense fallback={<p className="checkout-state">입력 화면을 준비하는 중이에요.</p>}>
           <OneToOneFormV3 />
         </Suspense>
