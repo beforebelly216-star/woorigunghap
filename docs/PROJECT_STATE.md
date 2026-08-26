@@ -43,6 +43,7 @@
   - 하단 고정 4탭: 홈 / 보관함 / 이벤트 / 마이페이지
 - 홈은 390px 앱형 단일 컬럼이며 pastel pink/lavender/butter yellow, rounded card, 제한적 gradient/shadow를 레퍼런스대로 사용한다.
 - 홈 경로에서는 기존 글로벌 footer를 숨기고 전용 상단/하단 앱 chrome을 사용한다.
+- PR #63은 `main`에 병합 완료(`cf8e1ffb`).
 
 ### 기타 화면
 
@@ -63,7 +64,7 @@
 
 ## 검증 상태
 
-- **PR #63 / Core calculation validation #759 PASS** — A안 390px 홈 전면 재구성, 1:1·1:N 직접 진입, 홈 전용 상단/하단 chrome, 기존 free-first 홈 계약 폐기 및 관련 1:N/Growth/report UI 계약 갱신. 전체 contracts, lint, production build 통과.
+- **PR #63 / Core calculation validation #761 PASS** — 최종 문서 포함 head에서 A안 390px 홈 전면 재구성, 1:1·1:N 직접 진입, 홈 전용 상단/하단 chrome, 기존 free-first 홈 계약 폐기 및 관련 1:N/Growth/report UI 계약 갱신. 전체 contracts, lint, production build 통과.
 - PR #62 / validation #752 PASS — 결제·생성 v3 + 전체 contracts/lint/build
 - PR #61 / validation #746 PASS — 1:N 입력 v3
 - PR #60 / validation #742 PASS — 1:1 입력 v3
