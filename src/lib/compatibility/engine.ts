@@ -21,12 +21,12 @@ import { calculateThreeYearTimingAlignment, type ThreeYearTimingAssessment } fro
 import { calibrateCompatibilityScore } from "./score-scale";
 import type { CompatibilityDimension, CompatibilityProfile } from "./types";
 import {
-  COMPATIBILITY_SCORE_WEIGHTS,
   COMPATIBILITY_SCORING_VERSION,
-  getCompatibilityDimensionWeight,
+  RELATIONSHIP_SCORE_WEIGHTS,
+  getRelationshipDimensionWeight,
 } from "./weights";
 
-export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.4.0";
+export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.5.0";
 
 export const COMPATIBILITY_DIMENSIONS = [
   "dayMaster",
@@ -164,6 +164,7 @@ function scorePreparedPair(
   a: PreparedCompatibilityPerson,
   b: PreparedCompatibilityPerson,
   profile: CompatibilityProfile,
+  relationshipType: OneToOneReportInput["relationshipType"],
   labelA: string,
   labelB: string,
 ): ScenarioResult {
@@ -184,11 +185,10 @@ function scorePreparedPair(
     earthlyBranchInteraction: scoreEarthlyBranchInteraction(a, b, profile),
     specialStars: scoreSpecialStars(a, b, profile),
     spouseStarRealization: scoreSpouseStarRealization(a, b, profile),
-    // 시나리오별 기본점은 70으로 유지하고 최종 집계 후 A/B 대운·세운 증거로 치환한다.
     luckCycleAlignment: scoreLuckCycleAlignment(profile),
   };
 
-  const dimensions: Record<CompatibilityDimension, DimensionResult> = {
+  const baseDimensions: Record<CompatibilityDimension, DimensionResult> = {
     dayMaster: {
       normalizedScore: dayMaster.normalizedScore,
       weightedPoints: dayMaster.weightedPoints,
@@ -210,6 +210,18 @@ function scorePreparedPair(
       }]),
     ) as Record<Exclude<CompatibilityDimension, "dayMaster" | "dayBranch">, DimensionResult>,
   };
+
+  const dimensions = {} as Record<CompatibilityDimension, DimensionResult>;
+  for (const dimension of COMPATIBILITY_DIMENSIONS) {
+    const normalizedScore = baseDimensions[dimension].normalizedScore;
+    const maxPoints = getRelationshipDimensionWeight(relationshipType, dimension);
+    dimensions[dimension] = {
+      normalizedScore,
+      maxPoints,
+      weightedPoints: round4((normalizedScore / 100) * maxPoints),
+      evidence: baseDimensions[dimension].evidence,
+    };
+  }
 
   const rawTotal = round4(Object.values(dimensions).reduce(
     (sum, dimension) => sum + dimension.weightedPoints,
@@ -259,7 +271,14 @@ export function calculateOneToOneCompatibility(
 
   for (const a of preparedA.scenarios) {
     for (const b of preparedB.scenarios) {
-      scenarioResults.push(scorePreparedPair(a.prepared, b.prepared, profile, a.label, b.label));
+      scenarioResults.push(scorePreparedPair(
+        a.prepared,
+        b.prepared,
+        profile,
+        input.relationshipType,
+        a.label,
+        b.label,
+      ));
     }
   }
 
@@ -268,7 +287,7 @@ export function calculateOneToOneCompatibility(
     const normalizedScore = round1(median(
       scenarioResults.map((scenario) => scenario.dimensions[dimension].normalizedScore),
     ));
-    const maxPoints = getCompatibilityDimensionWeight(profile, dimension);
+    const maxPoints = getRelationshipDimensionWeight(input.relationshipType, dimension);
     dimensions[dimension] = {
       normalizedScore,
       maxPoints,
@@ -278,7 +297,7 @@ export function calculateOneToOneCompatibility(
 
   const timingBaseYear = options.timingBaseYear ?? currentKoreanYear();
   const threeYearTiming = calculateThreeYearTimingAlignment(input, timingBaseYear);
-  const timingWeight = getCompatibilityDimensionWeight(profile, "luckCycleAlignment");
+  const timingWeight = getRelationshipDimensionWeight(input.relationshipType, "luckCycleAlignment");
   dimensions.luckCycleAlignment = {
     normalizedScore: threeYearTiming.normalizedScore,
     maxPoints: timingWeight,
@@ -292,8 +311,6 @@ export function calculateOneToOneCompatibility(
   ));
   const score = calibrateCompatibilityScore(rawTotal);
 
-  // 각 출생시간 시나리오 총점에는 기존 중립 타이밍 70점이 들어 있다.
-  // 실제 3년 타이밍 범위와의 차이를 5점 배점에 환산해 최종 불확실성 범위에 더한다.
   const timingMinDelta = ((threeYearTiming.scoreRange.min - 70) / 100) * timingWeight;
   const timingMaxDelta = ((threeYearTiming.scoreRange.max - 70) / 100) * timingWeight;
   const rawMin = Math.min(...scenarioResults.map(
@@ -317,10 +334,10 @@ export function calculateOneToOneCompatibility(
       : representative.dimensions[dimension].evidence;
   }
 
-  const weightValues: number[] = Object.values(COMPATIBILITY_SCORE_WEIGHTS[profile]);
+  const weightValues: number[] = Object.values(RELATIONSHIP_SCORE_WEIGHTS[input.relationshipType]);
   const weightTotal = weightValues.reduce((sum, value) => sum + value, 0);
   if (weightTotal !== 100) {
-    throw new Error(`${profile} 궁합 배점 합계가 100이 아닙니다: ${weightTotal}`);
+    throw new Error(`${input.relationshipType} 궁합 배점 합계가 100이 아닙니다: ${weightTotal}`);
   }
 
   const summary = summarizeDimensions(dimensions);
