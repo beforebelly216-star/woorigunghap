@@ -99,7 +99,7 @@ assert.match(paidPageSource, /one-to-many-foundation\.css/);
 assert.match(paidPageSource, /OneToManyPaidResult/);
 assert.match(paidClientSource, /one-to-many-result-wrap/);
 assert.match(inputPageSource, /one-to-many-foundation\.css/);
-assert.match(inputPageSource, /className="one-to-many-page"/);
+assert.match(inputPageSource, /className="one-to-many-page reference-input-screen one-to-many-reference-page"/);
 assert.doesNotMatch(inputPageSource, /className="input-page"|className="input-shell"/);
 assert.match(checkoutSource, /one-to-many-foundation\.css/);
 assert.match(checkoutSource, /className="one-to-many-checkout-page"/);
@@ -113,4 +113,4 @@ assert.match(demoSource, /demo/);
 assert.match(errorSource, /reset/);
 assert.match(formSource, /1:N 궁합 분석 시작하기 · 3,000원/);
 
-console.log("Day 15 one-to-many result UI + Foundation v2 checks: PASS");
+console.log("Day 15 one-to-many result UI + rebuilt input shell checks: PASS");
