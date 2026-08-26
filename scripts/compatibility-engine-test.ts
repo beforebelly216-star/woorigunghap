@@ -60,7 +60,10 @@ assert.equal(first.strengths.length, 2);
 assert.equal(first.adjustmentPoints.length, 2);
 
 for (const relationshipType of ["crush", "flirting", "lover", "friend", "coworker"] as const) {
-  const total = Object.values(RELATIONSHIP_SCORE_WEIGHTS[relationshipType]).reduce((sum, value) => sum + value, 0);
+  const total = Object.values(RELATIONSHIP_SCORE_WEIGHTS[relationshipType]).reduce<number>(
+    (sum, value) => sum + value,
+    0,
+  );
   assert.equal(total, 100, `${relationshipType} 관계별 가중치 합계는 100이어야 합니다.`);
 }
 
