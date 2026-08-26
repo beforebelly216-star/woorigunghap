@@ -20,7 +20,7 @@
 - [x] 1:1 입력 UI를 390px 3단계 모바일 레퍼런스형으로 전면 재구성
 - [x] 1:N 입력 UI를 같은 모바일 디자인 언어로 전면 재구성
 - [x] 결제·계산·AI·저장 backend 계약 유지
-- [x] **PR #64 / Core calculation validation #767 PASS** — 전체 contracts, lint, production build
+- [x] **PR #64 / Core calculation validation #769 PASS** — 전체 contracts, lint, production build
 - [ ] PR #64 → `main` 병합
 - [ ] 사용자 승인 시 Preview/Production 배포 후 첨부 이미지와 390px pixel-level 대조·보정
 
@@ -58,7 +58,7 @@ HANDOFF
 - Worker: GPT
 - Task: 무료 천생연분 입력 신설 + 기존 무료 관계성향 제거 + 1:1/1:N 입력 UI 전면 재구성
 - Status: complete
-- Validation: PR #64 / Core calculation validation #767 PASS — 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS
+- Validation: PR #64 / Core calculation validation #769 PASS — 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS
 - Commit: PR #64 branch gpt/ui-free-soulmate-v4; main 병합 대기
 - Remaining: PR #64 main 병합 → 배포 승인 시 390px 실화면 대조 보정 → 이후 무료 천생연분 deterministic 결과 로직 구현
 - Risk: 무료 천생연분 submit은 현재 UI-only 완료 상태이며 실제 결과 계산/API는 의도적으로 미구현. 유료 backend 변경 없음
