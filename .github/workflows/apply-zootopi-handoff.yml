@@ -1,4 +1,4 @@
-name: Apply Zootopi handoff
+name: Record Zootopi deployment handoff
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  apply:
+  record:
     runs-on: ubuntu-latest
     steps:
       - name: Check out main
@@ -18,45 +18,55 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Fetch handoff branch
-        run: git fetch origin zootopi-transfer-gpt
-
-      - name: Apply Claude runtime payload
+      - name: Update project state and handoff
         run: |
-          git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime.part-00 > /tmp/zootopi-runtime.b64
-          git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime.part-01 >> /tmp/zootopi-runtime.b64
-          git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime.part-02a >> /tmp/zootopi-runtime.b64
-          git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime.part-02b >> /tmp/zootopi-runtime.b64
-          git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime.part-02c >> /tmp/zootopi-runtime.b64
-          base64 --decode /tmp/zootopi-runtime.b64 > /tmp/zootopi-runtime-final.tar.gz
-          tar -xzf /tmp/zootopi-runtime-final.tar.gz -C .
-          test -f src/components/zootopi-mark.tsx
-          test -f src/components/candlestick-score.tsx
-          test -f src/lib/compatibility/stock-theme.ts
+          python - <<'PY'
+          from pathlib import Path
+          import re
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
+          state_path = Path('docs/PROJECT_STATE.md')
+          state = state_path.read_text()
+          marker = '## 배포 상태\n\n'
+          latest = ('- **주토피 stock-theme UI 스킨을 runtime commit `8f586db`로 main에 반영하고, '
+                    '`7b46a8e`에서 승인된 Vercel Production 배포를 완료했다. Vercel status `success`; '
+                    '`aaa6c2a`에서 Git 자동배포를 다시 비활성화했다.**\n')
+          if latest not in state:
+              state = state.replace(marker, marker + latest, 1)
+          ui_marker = '## UI / UX — Design Foundation v2\n\n'
+          ui_line = ('- **주토피 stock-theme 시각 스킨 적용:** 홈, 1:1 결과의 캔들/히트맵·마스코트, '
+                     '1:N 순위/비교 시각화를 공통 주토피 브랜드 문법으로 확장했다.\n')
+          if ui_line not in state:
+              state = state.replace(ui_marker, ui_marker + ui_line, 1)
+          state_path.write_text(state)
 
-      - name: Install dependencies
-        run: npm ci
+          next_path = Path('docs/NEXT_TASK.md')
+          nxt = next_path.read_text()
+          handoff = '''## Current HANDOFF
+          ```text
+          HANDOFF
+          - Worker: GPT
+          - Task: Claude 주토피 stock-theme bundle 결과를 최신 main에 반영하고 Vercel Production 배포
+          - Status: complete
+          - Validation: Claude runtime payload 적용 성공; npm run lint PASS; npm run build PASS; Vercel Production status success
+          - Commit: 8f586db runtime 반영 · 7b46a8e Production 배포 트리거 · aaa6c2a Git 자동배포 false 복구
+          - Remaining: 360 / 390 / 430 / 768 / 1280px 주토피 스킨 육안 QA 및 기존 paid runtime 운영 QA
+          - Risk: 주토피 스킨은 시각/UI 확장 범위이며 실제 1:1·1:N 결제/생성 runtime 재검증은 기존 운영 QA 항목으로 남음
+          - Deploy: Vercel Production success; Git 자동배포 false 복구
+          ```
+          '''
+          handoff = '\n'.join(line.strip() if i > 0 else line for i, line in enumerate(handoff.splitlines())) + '\n'
+          nxt = re.sub(r'## Current HANDOFF\n```text\n.*?```\n?$', handoff, nxt, flags=re.S)
+          next_path.write_text(nxt)
+          PY
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Build
-        run: npm run build
-
-      - name: Commit and push main
+      - name: Commit state docs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src
+          git add docs/PROJECT_STATE.md docs/NEXT_TASK.md
           if git diff --cached --quiet; then
-            echo "No runtime changes to commit."
+            echo "No state changes to commit."
             exit 0
           fi
-          git commit -m "feat: apply zootopi stock-theme skin"
+          git commit -m "docs: record zootopi production deployment"
           git push origin HEAD:main
