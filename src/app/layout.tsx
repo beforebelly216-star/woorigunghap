@@ -13,6 +13,7 @@ import "./day22-policy.css";
 import "./score-library.css";
 import "./theme-unification.css";
 import "./account-foundation.css";
+import "./paid-flow-v3.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
