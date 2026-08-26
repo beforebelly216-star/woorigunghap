@@ -9,26 +9,28 @@
 4. post-beta 운영 QA
 5. improvement
 
-## 최신 사용자 명시 작업 — 궁합 점수 v1.5
+## 최신 사용자 명시 작업 — 궁합 점수 v1.6
 
-- [x] 기존 raw 30→public 45 등 숨은 점수 상향 보정 삭제
+- [x] 과거 raw 30→public 45 같은 숨은 점수 상향 보정 삭제
 - [x] 공개 종합점수 절대 범위 **30~100** 고정
 - [x] 절대 최대 100점 ceiling 유지
-- [x] 관계유형별 별도 최대점 ceiling 삭제 — 모든 관계가 100점까지 가능
+- [x] 관계유형별 별도 최대점 ceiling 삭제
 - [x] 짝사랑 / 썸 / 연인 / 친구 / 직장동료 5개 관계별 최종 가중치 분리
-- [x] 낮은 점수 30~49 해석 구간 추가, 결과가 나쁠 때 억지 가점 금지
+- [x] 세부 지표 자체 상한 때문에 100점이 사실상 불가능하던 문제 확인
+- [x] 다섯 관계가 공통으로 도달 가능한 deterministic raw 구간을 공개 30~100에 선형 정규화
+- [x] 공통 raw 하단 → 공개 30, 공통 raw 상단 → 공개 100 도달 계약 추가
+- [x] 약한 raw 결과는 공개점수에서 더 낮아질 수 있어 재미 목적의 억지 가점 없음
 - [x] AI score/ranking 불변 경계 유지
-- [x] scoring `1.5.0`, engine `compatibility-engine-v1.5.0`
-- [x] **PR #66 / Core calculation validation #787 PASS** — 전체 contracts, lint, production build PASS
-- [x] PR #66 → `main` 병합 (`41f9852f`)
+- [x] scoring `1.6.0`, engine `compatibility-engine-v1.5.0`
+- [x] **PR #67 / Core calculation validation #791 PASS** — 전체 contracts, lint, production build PASS
+- [ ] PR #67 → `main` 병합
 
-검증 샘플(동일 두 사람 / 기준연도 2026):
-- 연인 74
-- 짝사랑 75
-- 썸 74
-- 친구(한쪽 시간 미상 샘플) 74
-- 직장동료(양쪽 시간 미상 샘플) 74
-- `raw 30 → 30`, `raw 74 → 74`, `raw 100 → 100`, `100 초과 → 100`
+#791 샘플(동일 기준 데이터 / 기준연도 2026):
+- 연인 **72** (raw 73.625)
+- 짝사랑 **74** (raw 74.585)
+- 썸 **73** (raw 74.022)
+- 친구 시간미상 샘플 **73** (raw 73.975)
+- 직장동료 양쪽 시간미상 샘플 **72** (raw 73.63)
 
 ## 다음 사용자 작업 — 1:1 결과 전면 재설계
 
@@ -73,11 +75,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 궁합 공개점수 무상향 30~100 범위 + 5개 관계유형별 가중치 v1.5
+- Task: 5개 관계별 가중치 + 실제 도달 가능한 공개 30~100 점수 척도 v1.6
 - Status: complete
-- Validation: PR #66 / Core calculation validation #787 PASS — 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS
-- Commit: main merge `41f9852f`; 이 HANDOFF 문서 커밋이 최신 main
-- Remaining: 1:1 새 결과 구조/Sonnet 5 narrative/390px UI 구현 시작
-- Risk: 관계별 가중치 변경으로 신규 계산 결과는 구버전과 달라질 수 있음. 저장된 기존 구매 결과는 재계산/덮어쓰기 금지
+- Validation: PR #67 / Core calculation validation #791 PASS — 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS
+- Commit: PR #67 head `110e2a86`; main 병합 대기
+- Remaining: PR #67 main 병합 → 1:1 새 결과 구조/Sonnet 5 narrative/390px UI 구현
+- Risk: 신규 계산 점수는 구버전보다 낮거나 높아질 수 있음. 저장된 기존 구매 결과는 재계산/덮어쓰기 금지
 - Deploy: 이번 작업 배포 없음. Production/Preview 자동배포 OFF 유지
 ```

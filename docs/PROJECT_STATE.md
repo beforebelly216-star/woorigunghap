@@ -15,9 +15,9 @@
 ## 핵심 기능
 
 - 서버 결정론적 만세력 + 9개 궁합 지표
-- 궁합 scoring v1.5: 5개 관계유형별 최종 가중치 + 공개 점수 30~100 절대 범위
-- 공개 점수 숨은 상향 보정 없음. raw 30→30, raw 74→74, raw 100→100
-- 관계별 별도 ceiling 없음. 모든 관계가 100점까지 가능하되 절대 최대 100은 유지
+- 궁합 scoring **v1.6**: 5개 관계유형별 최종 가중치 + 실제 도달 가능한 공개 점수 30~100 절대 범위
+- 관계별 별도 ceiling 없음. 모든 관계가 동일 공개 30~100 척도를 사용하며 절대 최대 100은 유지
+- 세부 지표 raw 범위의 공통 교집합을 공개 30~100에 선형 정규화하므로 약한 결과를 재미 목적으로 끌어올리지 않음
 - 무료 천생연분: 입력 → 결정론 사주 분석 → 결과 화면
 - 1:1 / 1:N 입력·결제·결과·저장·재열람
 - PortOne 결제 검증 / webhook 멱등 처리
@@ -56,15 +56,16 @@
 
 ## 검증 상태
 
-- **PR #66 / Core calculation validation #787 PASS** — scoring v1.5, 30~100 무상향 공개점수, 5개 관계 가중치, 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS.
-- 샘플 동일 두 사람: 연인 74 / 짝사랑 75 / 썸 74. 기존 public uplift 제거 후 raw 74는 그대로 74.
+- **PR #67 / Core calculation validation #791 PASS** — scoring v1.6 full-range normalization, 5개 관계 가중치, 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS.
+- #791 샘플: 연인 72(raw 73.625), 짝사랑 74(raw 74.585), 썸 73(raw 74.022), 친구 시간미상 73(raw 73.975), 직장동료 양쪽 시간미상 72(raw 73.63).
+- 공통 raw 하단 → 공개 30, 공통 raw 상단 → 공개 100 계약 검증 완료. 낮은 raw 60은 공개점수에서 60보다 낮아져 임의 상향이 없음을 확인.
+- PR #66 / validation #787 PASS — 5개 관계 가중치 분리 및 과거 raw30→45 uplift 제거.
 - PR #65 / validation #778 PASS — 무료 천생연분 결정론 결과.
-- PR #64 / validation #773 PASS — 무료 천생연분 입력 + 1:1·1:N 입력 재구성.
 
 ## 배포 상태
 
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
-- Production에는 최신 무료 천생연분 및 scoring v1.5 변경을 아직 배포하지 않았다.
+- Production에는 최신 무료 천생연분 및 scoring v1.6 변경을 아직 배포하지 않았다.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
