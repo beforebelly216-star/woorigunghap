@@ -48,7 +48,7 @@
 - **1:N 입력 v3 구현 완료:** 사용자 승인 B안대로 `기본 정보 → 후보 정보 → 확인` 3단계로 재구성했다. 후보 수를 2~5명에서 선택하고 후보 탭으로 한 명씩 편집하며 마지막 단계에서 관계·기준자·후보 전체를 확인/수정할 수 있다.
 - 1:N 저장 draft 복원도 24시간제 HHMM을 그대로 유지하도록 정리했으며 기존 localStorage draft, 서버 주문 draft, 3,000원 결제 진입 계약은 유지한다.
 - 캐릭터 시트와 신규 포즈의 최종 Production 검수는 사용자 요청에 따라 후순위로 보류했다.
-- 입력 UX v3 구현 범위(`/free`, 1:1, 1:N)는 코드 기준 완료했다. 실제 390px 육안 QA는 Production 배포 후 실기기 QA로 남아 있다.
+- 입력 UX v3 구현 범위(`/free`, 1:1, 1:N`)는 코드 및 Production 배포까지 완료했다. 실제 360/390/430px 육안 QA는 실기기 QA로 남아 있다.
 
 ## 기존 UI / UX — Design Foundation v2
 
@@ -67,7 +67,7 @@
 
 ## 검증 상태
 
-- **PR #61 / Core calculation validation #745 PASS** — v3 1:N 3단계 입력, 후보 2~5명 관리, 24시간제 draft 복원, 확인/수정 진입, 전체 contracts, lint, production build 통과.
+- **PR #61 / Core calculation validation #746 PASS** — v3 1:N 3단계 입력, 후보 2~5명 관리, 24시간제 draft 복원, 확인/수정 진입, 상태 문서 포함 최종 head에서 전체 contracts, lint, production build 통과.
 - **PR #60 / Core calculation validation #742 PASS** — v3 1:1 3단계 입력, free prefill 24시간제 호환, 개인정보/상대 정보 수준 계약, 전체 contracts, lint, production build 통과.
 - **PR #59 / Core calculation validation #736 PASS** — v3 `/free` 입력 UI, 24시간제 공용 시간 입력, legacy form-state 읽기 호환, 전체 contracts, lint, production build 통과.
 - **PR #58 / Core calculation validation #732 PASS** — v3 홈 A안 + free-first/1:N/UI 계약 정합성, 전체 contracts, lint, production build 통과.
@@ -83,13 +83,14 @@
 
 ## 배포 상태
 
-- **v3 홈 A안, `/free`, 1:1, 1:N 입력 v3는 코드 기준 PR #61 병합 대상으로 준비됐고 사용자 승인에 따라 이번 작업에서 Vercel Production 배포한다.** Git 자동배포는 비활성화 상태를 유지한다.
+- **v3 홈 A안 + `/free` + 1:1 + 1:N 입력 v3를 포함한 PR #61을 `main`에 병합(`79d8307a`)하고 Vercel Production 배포 완료했다.** 승인된 일회성 배포 트리거 `430c5538`의 Vercel status는 `success`이며, 배포 완료 직후 `41730e8b`에서 `git.deploymentEnabled=false`로 복구했다.
+- Production 프로젝트: `woorigunghap-uty7` / team `beforebelly216-stars-projects`.
+- Production URL은 기존 프로젝트 주소 `https://woorigunghap-uty7-q7pw0wrsd-beforebelly216-stars-projects.vercel.app`를 유지한다.
+- Git 자동배포는 다시 비활성화 상태이며 이후 Preview/Production은 사용자 명시 승인 후 별도 수행한다.
 - **주토피 stock-theme UI 스킨을 runtime commit `8f586db`로 main에 반영하고, `7b46a8e`에서 승인된 Vercel Production 배포를 완료했다. Vercel status `success`; `aaa6c2a`에서 Git 자동배포를 다시 비활성화했다.**
 - `5435861`에 Claude Sonnet 5 전환과 `AI_QUALITY` 결제 결과 복구 hotfix `d9f7cae`를 포함해 Vercel Production 배포 완료했다.
-- Production deployment: `https://woorigunghap-uty7-q7pw0wrsd-beforebelly216-stars-projects.vercel.app` · GitHub deployment `6087168964` · GitHub/Vercel status `success`.
 - 실패한 동일 결제의 lock은 해제되어 새로고침 재시도가 가능하다. 실제 생성→저장→재열람 성공 여부는 사용자 paid runtime 재검증이 남아 있다.
-- Git 자동배포는 비활성화 상태를 유지한다.
-- Production과 최신 `main`은 일시적으로 다를 수 있다.
+- Production과 최신 `main`은 상태 문서/배포설정 커밋 때문에 SHA가 다를 수 있으나, 기능 코드는 PR #61 병합 내용을 포함한다.
 
 ## 남은 핵심 QA / 리스크
 
@@ -102,7 +103,7 @@
 7. 회원탈퇴/데이터 삭제/Kakao unlink
 8. 결과/계정 삭제 뒤 public share 및 analytics 정리 확인
 
-현재 연결된 Vercel 프로젝트의 runtime log는 프로젝트 조회 404로 접근하지 못했다. 화면 문구와 서버 분류 경로로 `QUALITY_CRITICAL`은 확정했으며, 세부 issue 목록과 실제 Sonnet 5 응답 시간·저장 완료 여부는 hotfix 배포 후 paid QA에서 확인해야 한다.
+현재 연결된 Vercel 프로젝트의 runtime log는 프로젝트 조회 404로 접근하지 못했다. 이번 배포 성공 여부는 GitHub commit status의 Vercel `success`로 확인했다. 실제 Sonnet 5 응답 시간·저장 완료 여부와 유료 runtime 복구는 별도 paid QA가 남아 있다.
 
 ## 출시 blocker 정의
 
