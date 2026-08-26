@@ -8,6 +8,7 @@ on:
       - "src/**"
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
+      - "scripts/soulmate-*.ts"
       - "scripts/day*.ts"
       - "scripts/one-to-one-*.ts"
       - "scripts/report-*.ts"
@@ -22,6 +23,7 @@ on:
       - "src/**"
       - "scripts/manse-*.ts"
       - "scripts/compatibility-*.ts"
+      - "scripts/soulmate-*.ts"
       - "scripts/day*.ts"
       - "scripts/one-to-one-*.ts"
       - "scripts/report-*.ts"
@@ -57,6 +59,7 @@ jobs:
           npm run test:compatibility:useful-god-prep
           npm run test:compatibility:strength-shadow
           npm run test:compatibility:engine
+          npm run test:soulmate-result
       - name: Run payment and narrative boundaries
         run: |
           npm run test:day8:payment-gate

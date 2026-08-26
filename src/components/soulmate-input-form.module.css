@@ -5,9 +5,7 @@
 .privacy strong { display: block; font-size: .86rem; line-height: 1.35; }
 .privacy p { margin: 4px 0 0; color: #6f6a70; font-size: .74rem; line-height: 1.45; }
 .bulb, .lock { font-size: 1.25rem; text-align: center; }
-.submit { width: 100%; min-height: 58px !important; border-radius: 15px !important; background: linear-gradient(135deg,#ffbf00,#ffc928) !important; color: #171619 !important; box-shadow: 0 10px 22px rgba(255,190,0,.18); }
+.submit { width: 100%; min-height: 58px !important; border-radius: 15px !important; background: linear-gradient(135deg,#ffbf00,#ffc928) !important; color: #171619 !important; box-shadow: 0 10px 22px rgba(255,190,0,.18); transition: opacity .16s ease, transform .16s ease; }
+.submit:disabled { opacity: .72; cursor: wait; transform: none; }
 .note { margin: -8px 0 0; color: #77737a; font-size: .74rem; text-align: center; }
-.pending { padding: 16px 18px; border: 1px dashed #c9b1ee; border-radius: 14px; background: #faf7ff; }
-.pending strong { display: block; font-size: .86rem; }
-.pending p { margin: 6px 0 0; color: #6f6a70; font-size: .76rem; line-height: 1.5; }
 @media (max-width: 390px) { .card { padding: 22px 16px; border-radius: 16px; } .privacy { grid-template-columns: 28px 1fr 24px; padding: 13px 12px; } }

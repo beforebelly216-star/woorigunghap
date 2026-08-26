@@ -14,6 +14,7 @@ const freePageCss = readFileSync("src/app/free/free-page.module.css", "utf8");
 const soulmateSource = readFileSync("src/components/soulmate-input-form.tsx", "utf8");
 const soulmateCss = readFileSync("src/components/soulmate-input-form.module.css", "utf8");
 const soulmateContract = readFileSync("src/lib/soulmate-input-contract.ts", "utf8");
+const soulmateResult = readFileSync("src/app/free/result/soulmate-result-client.tsx", "utf8");
 assert.match(freePageSource, /당신의 천생연분을/);
 assert.match(freePageSource, /무료로/);
 assert.match(freePageSource, /SoulmateInputForm/);
@@ -21,10 +22,15 @@ assert.match(freePageSource, /reference-input-screen/);
 assert.match(freePageCss, /390px/);
 assert.match(freePageCss, /free-soulmate-page/);
 assert.match(soulmateSource, /SOULMATE_PERSON_STORAGE_KEY/);
-assert.match(soulmateSource, /결과 계산 로직은 아직 연결하지 않았습니다/);
+assert.match(soulmateSource, /\/api\/free\/soulmate/);
+assert.match(soulmateSource, /router\.push\("\/free\/result"\)/);
+assert.match(soulmateSource, /외부 AI 호출 없이/);
 assert.match(soulmateSource, /내 천생연분 보기/);
 assert.match(soulmateCss, /#ffbf00|#ffc928/i);
 assert.match(soulmateContract, /parseSoulmatePerson/);
+assert.match(soulmateResult, /내 사주 한눈에 보기/);
+assert.match(soulmateResult, /가장 잘 맞는 일간 TOP/);
+assert.doesNotMatch(soulmateResult, /천생연분 지수/);
 
 for (const retired of [
   "src/components/free-self-analysis.tsx",

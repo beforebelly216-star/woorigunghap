@@ -15,9 +15,10 @@
 ## 핵심 기능
 
 - 서버 결정론적 만세력 + 9개 궁합 지표
+- 무료 천생연분: 입력 → 결정론 사주 분석 → 결과 화면
 - 1:1 / 1:N 입력·결제·결과·저장·재열람
 - PortOne 결제 검증 / webhook 멱등 처리
-- 결제 검증 후에만 AI 서술 생성
+- 결제 검증 후에만 유료 AI 서술 생성
 - `claude-sonnet-5`, structured output 우선
 - 1:1 segment 저장 + single-flight/idempotency
 - 1:N 중복 생성 방지 + 저장 결과 재사용
@@ -32,24 +33,26 @@
 - 2026-08-27 사용자 첨부 A안 390px 모바일 레퍼런스가 홈 UI의 최우선 기준이다.
 - 홈은 390px 앱형 단일 컬럼, pastel pink/lavender/butter yellow, rounded card 기반이다.
 - 현재 상품 진입 순서: **무료 천생연분 → 1:1 궁합 → 1:N 궁합**.
-- TOP 3 / 관계 흐름 / 주토피 한마디 / 하단 4탭 구조 유지.
 
 ### 무료 천생연분
 
-- 기존 `/free` 관계 성향 자기분석 UI/API/결과 생성기는 **폐기·삭제 완료**.
-- `/free`는 사용자 첨부 모바일 폼 레퍼런스를 기준으로 **무료 내 천생연분 보기 입력 UI**로 교체.
+- 기존 `/free` 관계 성향 자기분석 UI/API/결과 생성기는 폐기·삭제 완료.
 - 입력: 이름/별칭 → 성별 → 양력/음력 → YYYYMMDD → 24시간제 HHMM → 시간 모름.
-- 현재는 **UI/UX만 구현**. 입력값은 sessionStorage 보조 사본으로 저장 가능.
-- 사주원국을 기준으로 잘 어울리는 사주 팔자를 설명하는 천생연분 결과 계산/서술 로직은 아직 미구현.
+- `/api/free/soulmate`가 기존 만세력 원국을 사용해 무료 결정론 결과를 생성하며 외부 AI/결제를 사용하지 않는다.
+- `/free/result`는 승인된 390px 레퍼런스 기반 앱형 결과 화면이다.
+- 결과 순서: Hero → 사주팔자 전체 원국 → 일간/성향 키워드/강점/보완점 → 추천 일간 TOP 2~3 → 잘 맞는 사주의 구체적 구성 → 주토피 마지막 해설 → 1:1 CTA.
+- `천생연분 지수`/퍼센트는 사용하지 않는다.
+- `만남 & 관계 가이드`, `인연 시기 흐름`, 추천 활동/컬러는 제외한다.
+- 추천 근거: 일간 생극, 오행 분포, 음양 보완, 일지 합충. 용신은 현재 EVIDENCE_ONLY라 확정 판정하지 않는다.
+- 주토피는 Hero + 중간 Commentary + 마지막 해설 + CTA companion 수준으로 사용한다.
 
 ### 1:1 / 1:N 입력
 
-- 기존 desktop-like 입력 UI는 폐기하고 사용자 첨부 모바일 레퍼런스형으로 전면 재구성.
-- 공통 입력 컨트롤은 무료/1:1/1:N이 같은 디자인 언어를 사용.
+- 기존 desktop-like 입력 UI는 폐기하고 사용자 첨부 모바일 레퍼런스형으로 재구성.
 - 출생시간은 오전/오후 선택 없이 **24시간제 HHMM**.
-- 1:1 기능 구조: `내 정보 → 상대방 정보 → 확인` 3단계. 기존 관계 유형·prefill·주문/결제 진입 로직 유지.
-- 1:N 기능 구조: `기본 정보 → 후보 정보 → 확인`, 후보 2~5명. 기존 draft·주문/결제 진입 로직 유지.
-- 결제·계산·AI·저장 backend contract는 변경하지 않음.
+- 1:1: `내 정보 → 상대방 정보 → 확인` 3단계.
+- 1:N: `기본 정보 → 후보 정보 → 확인`, 후보 2~5명.
+- 유료 결제·계산·AI·저장 backend contract는 변경하지 않음.
 
 ## AI / 유료 결과 안정성
 
@@ -61,27 +64,25 @@
 
 ## 검증 상태
 
-- **PR #64 / Core calculation validation #773 PASS** — 최종 head에서 무료 천생연분 입력 UI, 기존 무료 분석 runtime 제거, 1:1·1:N 입력 레퍼런스형 재구성, 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build 통과.
-- PR #64 → `main` 병합 완료: `9fb74606`.
-- PR #63 / validation #761 PASS — A99 홈 재구성
-- PR #62 / validation #752 PASS — 결제·생성 v3
+- **PR #65 / Core calculation validation #778 PASS** — 무료 천생연분 결정론 결과, 결과 UI 계약, 기존 calculation/payment/AI/1:N/account/Growth contracts, lint, production build 전체 통과.
+- PR #64 / validation #773 PASS — 무료 천생연분 입력 + 1:1·1:N 입력 재구성.
+- PR #63 / validation #761 PASS — A99 홈 재구성.
+- PR #62 / validation #752 PASS — 결제·생성 v3.
 
 ## 배포 상태
 
-- **Preview 배포 완료**: branch `preview/ui-free-soulmate-v4`, deploy trigger commit `b124e1fb`, Vercel status `success`.
-- Preview 확인용 Vercel deployment detail: `https://vercel.com/beforebelly216-stars-projects/woorigunghap-uty7/idKMJopt7a2PVUVc7mk5UeeESNxp`
-- Preview 배포 후 branch `vercel.json`은 commit `1c015a00`에서 `deploymentEnabled:false`로 원복.
-- Production에는 PR #64 변경을 아직 배포하지 않았다.
+- 기존 입력 UI Preview: `preview/ui-free-soulmate-v4`, Vercel success.
+- PR #65 천생연분 결과 구현은 `main` 병합 후 별도 Preview 배포 예정(사용자 승인 완료).
+- Production에는 최신 무료 천생연분 변경을 아직 배포하지 않는다.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. Preview 390px 실화면을 사용자 첨부 레퍼런스와 pixel-level 대조·보정
-2. 360 / 390 / 430px 홈·무료·1:1·1:N 입력 overflow/spacing QA
-3. **무료 천생연분 deterministic 결과 로직 설계·구현** — 사용자 사주원국 → 잘 어울리는 상대 사주 팔자/오행·일간·지지 조건 설명
-4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
-5. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
-6. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함
+1. 천생연분 결과 Preview 390px 실화면을 승인 레퍼런스와 pixel-level 대조·보정
+2. 360 / 390 / 430px 홈·무료·천생연분 결과·1:1·1:N overflow/spacing QA
+3. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
+4. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
+5. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함
 
 ## 출시 blocker
 
