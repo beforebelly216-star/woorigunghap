@@ -52,6 +52,15 @@
   - [x] PR #58 → `main` 병합 (`0c8554c`)
   - [ ] 실제 390px 화면 확인
 - [ ] **3단계 입력 UX 재설계** — `/free` → 1:1 → 1:N 순서
+  - [x] `/free` v3 입력 화면 구현: 단일 정보 카드, 주토피 guide, Black/Yellow CTA, 긴 설명 축소
+  - [x] 공용 출생시간 입력을 **24시간제 HHMM**으로 변경하고 오전/오후 선택 제거
+  - [x] 기존 12시간제 form state 복구 시 24시간제로 표시·정규화하는 호환 레이어 유지
+  - [x] `Growth free acquisition` 계약 갱신
+  - [x] **PR #59 / Core calculation validation #734: 전체 contracts + lint + production build PASS**
+  - [ ] PR #59 → `main` 병합
+  - [ ] `/free` 실제 390px 화면 확인
+  - [ ] 1:1 입력 UX 재설계
+  - [ ] 1:N 입력 UX 재설계
 - [ ] **4단계 결제·생성 UX 재설계** — 상품 요약/CTA/대기/복귀/실패·재시도, backend contract 유지
 - [ ] 후속: 1:1 결과 → 1:N 결과 → 보관함/공유/계정 → multi-viewport QA
 
@@ -81,11 +90,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: v3 디자인 방향 확정 + 사용자 선택 홈 A안 390px 구현 및 main 병합
+- Task: v3 `/free` 입력 UX 재설계 + 출생시간 24시간제 공용 전환
 - Status: partial
-- Validation: Core calculation validation #732 PASS — 전체 contracts, lint, production build PASS
-- Commit: 0c8554c PR #58 main 병합; 이후 본 HANDOFF 문서 갱신
-- Remaining: 실제 390px 홈 화면 확인 → 3단계 `/free` 입력 UX 재설계 → 1:1 → 1:N 순서
-- Risk: 시안의 직접 유료 CTA/fake score·ranking은 free-first 정책 때문에 의도적으로 제외. 캐릭터 이미지/신규 포즈 확정은 후순위
+- Validation: PR #59 / Core calculation validation #734 PASS — 전체 contracts, lint, production build PASS
+- Commit: PR #59 head에 `/free` page/CSS, free form, 공용 PersonBirthFields, Growth 계약 반영
+- Remaining: PR #59 main 병합 → `/free` 390px 실화면 확인 → 1:1 입력 UX 재설계 → 1:N 입력 UX 재설계
+- Risk: 기존 저장 form의 12시간제 meridiem 값은 읽기 호환용으로만 유지하고 UI에는 노출하지 않음
 - Deploy: 없음. Vercel Preview/Production은 사용자 승인 전 실행 금지
 ```
