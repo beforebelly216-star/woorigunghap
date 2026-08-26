@@ -73,9 +73,7 @@ export function normalizePersonBirthForm(
 ): { person: PersonBirthInput | null; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
   const birthDate = toIsoBirthDate(person.birthDate);
-  if (!birthDate) {
-    errors[`${prefix}.birthDate`] = "생년월일 8자리를 YYYYMMDD 형식으로 다시 입력해 주세요.";
-  }
+  if (!birthDate) errors[`${prefix}.birthDate`] = "생년월일 8자리를 YYYYMMDD 형식으로 다시 입력해 주세요.";
 
   const birthTime = person.birthTimeKnown
     ? person.meridiem
@@ -130,38 +128,30 @@ export function PersonBirthFields({
       <legend>{title}</legend>
 
       <label className="field-stack" htmlFor={id("displayName")}>
-        <span>이름 또는 별칭</span>
-        <input
-          id={id("displayName")}
-          type="text"
-          maxLength={20}
-          placeholder={placeholder}
-          value={value.displayName}
-          aria-invalid={Boolean(displayNameError)}
-          aria-describedby={displayNameError ? id("displayName", "error") : undefined}
-          onChange={(event) => onChange({ ...value, displayName: event.target.value })}
-        />
+        <span>이름 또는 별칭 <b className="required-dot">•</b></span>
+        <div className="input-with-count">
+          <input
+            id={id("displayName")}
+            type="text"
+            maxLength={10}
+            placeholder={placeholder}
+            value={value.displayName}
+            aria-invalid={Boolean(displayNameError)}
+            aria-describedby={displayNameError ? id("displayName", "error") : undefined}
+            onChange={(event) => onChange({ ...value, displayName: event.target.value })}
+          />
+          <small>{value.displayName.length} / 10</small>
+        </div>
         {displayNameError ? <small id={id("displayName", "error")} className="field-error">{displayNameError}</small> : null}
       </label>
 
       <div className="field-stack">
-        <span id={id("gender", "label")}>성별</span>
-        <div
-          className="segmented-control"
-          role="radiogroup"
-          aria-labelledby={id("gender", "label")}
-          aria-invalid={Boolean(genderError)}
-          aria-describedby={genderError ? id("gender", "error") : undefined}
-        >
+        <span id={id("gender", "label")}>성별 <b className="required-dot">•</b></span>
+        <div className="segmented-control gender-control" role="radiogroup" aria-labelledby={id("gender", "label")} aria-invalid={Boolean(genderError)}>
           {GENDERS.map((gender) => (
             <label key={gender} className={value.gender === gender ? "selected" : ""}>
-              <input
-                type="radio"
-                name={`${prefix}-gender`}
-                value={gender}
-                checked={value.gender === gender}
-                onChange={() => onChange({ ...value, gender })}
-              />
+              <input type="radio" name={`${prefix}-gender`} value={gender} checked={value.gender === gender} onChange={() => onChange({ ...value, gender })} />
+              <span aria-hidden="true" className="gender-icon">{gender === "female" ? "♀" : "♂"}</span>
               {GENDER_LABELS[gender]}
             </label>
           ))}
@@ -170,8 +160,8 @@ export function PersonBirthFields({
       </div>
 
       <div className="field-stack">
-        <span id={id("calendar", "label")}>달력 기준</span>
-        <div className="segmented-control" role="radiogroup" aria-labelledby={id("calendar", "label")}>
+        <span id={id("calendar", "label")}>달력 선택 <b className="required-dot">•</b></span>
+        <div className="calendar-choice" role="radiogroup" aria-labelledby={id("calendar", "label")}>
           {CALENDAR_TYPES.map((calendarType) => (
             <label key={calendarType} className={value.calendarType === calendarType ? "selected" : ""}>
               <input
@@ -179,83 +169,59 @@ export function PersonBirthFields({
                 name={`${prefix}-calendar`}
                 value={calendarType}
                 checked={value.calendarType === calendarType}
-                onChange={() => onChange({
-                  ...value,
-                  calendarType,
-                  isLeapMonth: calendarType === "solar" ? false : value.isLeapMonth,
-                })}
+                onChange={() => onChange({ ...value, calendarType, isLeapMonth: calendarType === "solar" ? false : value.isLeapMonth })}
               />
-              {calendarType === "solar" ? "양력" : "음력"}
+              <span className="calendar-icon" aria-hidden="true">{calendarType === "solar" ? "☀️" : "🌙"}</span>
+              <strong>{calendarType === "solar" ? "양력 (기본)" : "음력"}</strong>
+              <small>{calendarType === "solar" ? "일반적인 공용 달력" : "음력/구음력 기준"}</small>
             </label>
           ))}
         </div>
+        <small className="field-hint">ⓘ 양력이 기본값입니다. 음력 생일은 음력 선택 시 입력해 주세요.</small>
       </div>
 
       <label className="field-stack" htmlFor={id("birthDate")}>
-        <span>생년월일</span>
-        <input
+        <span>생년월일 <b className="required-dot">•</b></span>
+        <div className="input-with-icon"><span aria-hidden="true">▣</span><input
           id={id("birthDate")}
           type="text"
           inputMode="numeric"
           autoComplete="bday"
           enterKeyHint="next"
           maxLength={8}
-          placeholder="예: 19980815"
+          placeholder="YYYYMMDD"
           value={value.birthDate}
           aria-invalid={Boolean(birthDateError)}
           aria-describedby={ariaDescribedBy(id("birthDate", "hint"), birthDateError && id("birthDate", "error"))}
           onChange={(event) => onChange({ ...value, birthDate: numbersOnly(event.target.value, 8) })}
-        />
-        <small id={id("birthDate", "hint")} className="field-hint">하이픈 없이 YYYYMMDD 8자리로 입력해 주세요.</small>
+        /></div>
+        <small id={id("birthDate", "hint")} className="field-hint">예) 19950721 · 하이픈 없이 8자리</small>
         {birthDateError ? <small id={id("birthDate", "error")} className="field-error">{birthDateError}</small> : null}
       </label>
 
       {value.calendarType === "lunar" ? (
-        <label className="check-row">
-          <input
-            type="checkbox"
-            checked={value.isLeapMonth}
-            onChange={(event) => onChange({ ...value, isLeapMonth: event.target.checked })}
-          />
-          윤달 생일이에요
-        </label>
+        <label className="check-row"><input type="checkbox" checked={value.isLeapMonth} onChange={(event) => onChange({ ...value, isLeapMonth: event.target.checked })} />윤달 생일이에요</label>
       ) : null}
 
       <div className="field-stack">
-        <span id={id("birthTime", "label")}>출생시간 <small className="inline-hint">24시간제</small></span>
-        <input
+        <span id={id("birthTime", "label")}>출생시간 (24시간제) <b className="required-dot">•</b></span>
+        <div className="input-with-icon"><span aria-hidden="true">◷</span><input
           id={id("birthTime")}
           type="text"
           inputMode="numeric"
           autoComplete="off"
           enterKeyHint="done"
           maxLength={4}
-          placeholder="예: 1430"
+          placeholder="HHMM"
           value={birthTimeValue}
           disabled={!value.birthTimeKnown}
           aria-labelledby={id("birthTime", "label")}
           aria-invalid={Boolean(birthTimeError)}
           aria-describedby={ariaDescribedBy(id("birthTime", "hint"), birthTimeError && id("birthTime", "error"))}
-          onChange={(event) => onChange({
-            ...value,
-            birthTime: numbersOnly(event.target.value, 4),
-            meridiem: undefined,
-          })}
-        />
-        <small id={id("birthTime", "hint")} className="field-hint">HHMM 4자리로 입력해 주세요. 예: 오전 9시 30분은 0930, 오후 2시 30분은 1430.</small>
-        <label className="check-row">
-          <input
-            type="checkbox"
-            checked={!value.birthTimeKnown}
-            onChange={(event) => onChange({
-              ...value,
-              birthTimeKnown: !event.target.checked,
-              birthTime: event.target.checked ? "" : birthTimeValue,
-              meridiem: undefined,
-            })}
-          />
-          정확한 출생시간을 몰라요
-        </label>
+          onChange={(event) => onChange({ ...value, birthTime: numbersOnly(event.target.value, 4), meridiem: undefined })}
+        /></div>
+        <small id={id("birthTime", "hint")} className="field-hint">예) 오후 2시 30분은 1430, 오전 9시 30분은 0930</small>
+        <label className="check-row"><input type="checkbox" checked={!value.birthTimeKnown} onChange={(event) => onChange({ ...value, birthTimeKnown: !event.target.checked, birthTime: event.target.checked ? "" : birthTimeValue, meridiem: undefined })} /><span><strong>출생시간을 모르겠어요</strong><br/><small>모르는 경우에도 분석이 가능해요.</small></span></label>
         {birthTimeError ? <small id={id("birthTime", "error")} className="field-error">{birthTimeError}</small> : null}
       </div>
     </fieldset>
