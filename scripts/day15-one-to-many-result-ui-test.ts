@@ -111,6 +111,6 @@ assert.match(foundationCss, /@media \(max-width:\s*480px\)/);
 assert.doesNotMatch(foundationCss, /max-width:\s*99999px|linear-gradient|radial-gradient|box-shadow:\s*0\s+\d/i);
 assert.match(demoSource, /demo/);
 assert.match(errorSource, /reset/);
-assert.match(formSource, /3,000원 결제로 계속하기/);
+assert.match(formSource, /1:N 궁합 분석 시작하기 · 3,000원/);
 
 console.log("Day 15 one-to-many result UI + Foundation v2 checks: PASS");
