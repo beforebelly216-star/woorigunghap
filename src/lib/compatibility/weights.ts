@@ -125,9 +125,15 @@ export function getRelationshipDimensionWeight(
 }
 
 export function getCompatibilityProfileTotal(profile: CompatibilityProfile) {
-  return Object.values(COMPATIBILITY_SCORE_WEIGHTS[profile]).reduce((sum, value) => sum + value, 0);
+  return Object.values(COMPATIBILITY_SCORE_WEIGHTS[profile]).reduce<number>(
+    (sum, value) => sum + value,
+    0,
+  );
 }
 
 export function getRelationshipWeightTotal(relationshipType: RelationshipType) {
-  return Object.values(RELATIONSHIP_SCORE_WEIGHTS[relationshipType]).reduce((sum, value) => sum + value, 0);
+  return Object.values(RELATIONSHIP_SCORE_WEIGHTS[relationshipType]).reduce<number>(
+    (sum, value) => sum + value,
+    0,
+  );
 }
