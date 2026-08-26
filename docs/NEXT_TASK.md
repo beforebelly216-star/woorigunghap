@@ -56,8 +56,8 @@
   - [x] 공용 출생시간 입력을 **24시간제 HHMM**으로 변경하고 오전/오후 선택 제거
   - [x] 기존 12시간제 form state 복구 시 24시간제로 표시·정규화하는 호환 레이어 유지
   - [x] `Growth free acquisition` 계약 갱신
-  - [x] **PR #59 / Core calculation validation #734: 전체 contracts + lint + production build PASS**
-  - [ ] PR #59 → `main` 병합
+  - [x] **PR #59 / Core calculation validation #736: 전체 contracts + lint + production build PASS**
+  - [x] PR #59 → `main` 병합 (`5af70d3`)
   - [ ] `/free` 실제 390px 화면 확인
   - [ ] 1:1 입력 UX 재설계
   - [ ] 1:N 입력 UX 재설계
@@ -92,9 +92,9 @@ HANDOFF
 - Worker: GPT
 - Task: v3 `/free` 입력 UX 재설계 + 출생시간 24시간제 공용 전환
 - Status: partial
-- Validation: PR #59 / Core calculation validation #734 PASS — 전체 contracts, lint, production build PASS
-- Commit: PR #59 head에 `/free` page/CSS, free form, 공용 PersonBirthFields, Growth 계약 반영
-- Remaining: PR #59 main 병합 → `/free` 390px 실화면 확인 → 1:1 입력 UX 재설계 → 1:N 입력 UX 재설계
+- Validation: PR #59 / Core calculation validation #736 PASS — 전체 contracts, lint, production build PASS
+- Commit: `5af70d3` PR #59 main 병합; 이후 본 HANDOFF 문서 갱신
+- Remaining: `/free` 실제 390px 화면 확인 → 1:1 입력 UX 재설계 → 1:N 입력 UX 재설계
 - Risk: 기존 저장 form의 12시간제 meridiem 값은 읽기 호환용으로만 유지하고 UI에는 노출하지 않음
 - Deploy: 없음. Vercel Preview/Production은 사용자 승인 전 실행 금지
 ```
