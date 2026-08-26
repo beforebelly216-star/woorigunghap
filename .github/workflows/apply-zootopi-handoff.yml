@@ -23,7 +23,8 @@ jobs:
 
       - name: Apply Claude runtime payload
         run: |
-          git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime-final.tar.gz.b64 | base64 -d > /tmp/zootopi-runtime-final.tar.gz
+          git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime-final.tar.gz.b64 > /tmp/zootopi-runtime-final.b64
+          base64 --decode --ignore-garbage /tmp/zootopi-runtime-final.b64 > /tmp/zootopi-runtime-final.tar.gz
           tar -xzf /tmp/zootopi-runtime-final.tar.gz -C .
           test -f src/components/zootopi-mark.tsx
           test -f src/components/candlestick-score.tsx
