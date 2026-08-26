@@ -7,6 +7,8 @@ import { AuthStatus } from "@/components/auth-status";
 export function SiteHeader() {
   const pathname = usePathname();
 
+  if (pathname === "/free/result") return null;
+
   if (pathname === "/") {
     return <header className="site-header site-header-home-a99">
       <Link href="/" className="site-brand">우리사주</Link>
