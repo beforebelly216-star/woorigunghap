@@ -42,7 +42,7 @@ assert.match(homeSource, /무료로 내 관계 성향 보기/);
 assert.doesNotMatch(homeSource, /1:1 궁합 보기 · 1,000원/);
 assert.match(homeSource, /price: "1,000원"/);
 assert.match(homeSource, /price: "3,000원"/);
-assert.ok(homeSource.indexOf("무료로 내 관계 성향 보기") < homeSource.indexOf('price: "1,000원"'), "첫 설득은 무료 CTA여야 합니다.");
+assert.ok(homeSource.indexOf("<section className={styles.hero}") < homeSource.indexOf("<section className={styles.productSection}"), "첫 화면 설득은 무료 분석 hero여야 합니다.");
 assert.doesNotMatch(homeSource, /href="\/one-to-one"|href="\/one-to-many"/, "홈에서 유료 상품으로 바로 전환시키지 않아야 합니다.");
 
 const freePageSource = readFileSync("src/app/free/page.tsx", "utf8");
