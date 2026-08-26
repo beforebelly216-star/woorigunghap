@@ -13,7 +13,7 @@ export default function OneToOnePage() {
           <p className={styles.eyebrow}>1:1 관계 궁합 · 3단계</p>
           <h1>두 사람을 차례로 입력해 주세요.</h1>
           <p>
-            내 정보와 관계 → 상대방 정보 → 확인 순서로 진행합니다. 출생시간은 24시간제 HHMM으로 입력하고, 모르면 시간 없이도 분석할 수 있습니다.
+            내 정보와 관계 → 상대방 정보 → 확인 순서로 진행합니다. 출생시간은 24시간제 HHMM으로 입력하고, 모르면 시간 없이도 분석할 수 있습니다. 이름은 실명 대신 별칭을 써도 됩니다.
           </p>
         </header>
         <Suspense fallback={<p className="checkout-state">입력 화면을 준비하는 중이에요.</p>}>
