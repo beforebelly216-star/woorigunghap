@@ -43,12 +43,12 @@
   - [x] 1C Jootopi Character Rules — B, 적절한 캐릭터 균형
   - [x] 1D Reference Board — 사용자 승인
   - [ ] 캐릭터 시트·신규 포즈 최종 Production 검수 — 사용자 요청으로 후순위 보류
-- [ ] **2단계 홈 화면만 전면 재설계** — A안 구현 완료, 검증/실화면 확인 후 완료 처리
+- [ ] **2단계 홈 화면만 전면 재설계** — A안 코드/자동검증 완료, 실제 390px 화면 확인만 남음
   - [x] 390px mobile-first 정보 우선 레이아웃 구현
   - [x] free-first 유지: 홈 직접 1:1/1:N 유료 전환 제거
   - [x] White/Off-white + Black/Yellow, 주토피 guide 역할 적용
-  - [x] 관련 Growth/UI 정적 계약 갱신
-  - [ ] GitHub Actions 전체 contracts + lint + production build
+  - [x] 관련 Growth/UI/1:N 정적 계약 갱신
+  - [x] **Core calculation validation #730: 전체 contracts + lint + production build PASS**
   - [ ] 실제 390px 화면 확인
 - [ ] **3단계 입력 UX 재설계** — `/free` → 1:1 → 1:N 순서
 - [ ] **4단계 결제·생성 UX 재설계** — 상품 요약/CTA/대기/복귀/실패·재시도, backend contract 유지
@@ -82,9 +82,9 @@ HANDOFF
 - Worker: GPT
 - Task: v3 디자인 방향 확정 + 사용자 선택 홈 A안 390px 구현
 - Status: partial
-- Validation: PR #58 생성; Growth/UI 계약 갱신. PR Actions가 아직 생성되지 않아 전체 contracts/lint/build 미확인
-- Commit: PR #58 head에 홈 page/CSS, 계약 테스트, docs/JOOTOPI_UI_REDESIGN.md 반영
-- Remaining: PR #58 CI 확인 → PASS 시 main 병합 및 PROJECT_STATE 갱신 → 실제 390px 확인 → 3단계 `/free` 입력 UX 재설계
-- Risk: 홈은 free-first 결정에 따라 시안의 직접 유료 CTA/fake score·ranking을 의도적으로 제외. 캐릭터 이미지/신규 포즈 확정은 후순위
+- Validation: Core calculation validation #730 PASS — 전체 contracts, lint, production build PASS
+- Commit: PR #58 head 기준 홈 page/CSS, free-first/1:N/UI 계약, 디자인 문서 반영
+- Remaining: PR #58 main 병합 → 실제 390px 화면 확인 → 3단계 `/free` 입력 UX 재설계
+- Risk: 시안의 직접 유료 CTA/fake score·ranking은 free-first 정책 때문에 의도적으로 제외. 캐릭터 이미지/신규 포즈 확정은 후순위
 - Deploy: 없음. Vercel Preview/Production은 사용자 승인 전 실행 금지
 ```
