@@ -25,7 +25,7 @@ for (const token of [
   "#4D8B5F", "#D55A4A", "#C9973D", "#858E9E", "#3E78A8",
   "#2F7D4A", "#9A6A12", "#B74343", "#356F9C",
 ]) assert.ok(theme.includes(token), `Design Foundation v2 token missing: ${token}`);
-assert.doesNotMatch(theme, /#F4F1FA|#B7A9E6|#806FC0/i, "retired lavender P5 brand tokens must not return");
+assert.doesNotMatch(theme, /#F4F1FA|#B7A9E6|#806FC0/i, "retired lavender P5 brand tokens must not return to shared report theme");
 assert.doesNotMatch(theme, /prefers-color-scheme:\s*dark/, "Design Foundation v2 is light-only");
 assert.match(theme, /Pretendard/);
 assert.match(theme, /IBM Plex Mono/);
@@ -47,14 +47,16 @@ assert.match(overrides, /deep-strategy-signals/);
 assert.match(overrides, /deep-observable-scenes/);
 assert.match(home, /home-p5\.module\.css/);
 assert.match(home, /report-theme\.css/);
-assert.match(home, /JOOTOPI GUIDE/);
+assert.match(home, /당신의 궁합/);
+assert.match(home, /오늘의 궁합 TOP 3/);
+assert.match(home, /관계 흐름 한눈에 보기/);
+assert.match(home, /주토피의 오늘의 한마디/);
 assert.match(home, /<ZootopiMark/);
-assert.match(homeCss, /var\(--saju-action\)/);
-assert.match(homeCss, /var\(--saju-ink\)/);
-assert.match(homeCss, /var\(--zootopi-butter/);
-assert.match(homeCss, /@media \(max-width:\s*820px\)/);
-assert.match(homeCss, /@media \(max-width:\s*480px\)/);
-assert.doesNotMatch(homeCss, /max-width:\s*99999px|linear-gradient|radial-gradient|box-shadow/i);
+assert.match(homeCss, /width:\s*min\(100%,\s*390px\)/);
+assert.match(homeCss, /\.quickGrid/);
+assert.match(homeCss, /\.rankGrid/);
+assert.match(homeCss, /\.bottomNav/);
+assert.match(homeCss, /@media \(max-width:\s*360px\)/);
 assert.match(oneToOnePage, /one-to-one-flow\.module\.css/);
 assert.doesNotMatch(oneToOnePage, /className="input-page"|className="input-shell"/);
 assert.match(checkout, /one-to-one-flow\.module\.css/);
@@ -104,4 +106,4 @@ assert.match(mobile, /overflow-x:\s*clip/);
 assert.match(mobile, /\.v2-reading-progress[\s\S]*left:\s*14px;[\s\S]*width:\s*calc\(100% - 28px\)/);
 assert.ok(result.indexOf("<CompatibilityShareCard") < result.indexOf("<section className=\"v2-basic-facts\""), "share card should appear immediately after hero before detailed facts");
 
-console.log("Design Foundation v2 report + one-to-one flow + generation state responsive safety contract: PASS");
+console.log("Report Foundation + approved A-reference home + paid flow responsive safety contract: PASS");
