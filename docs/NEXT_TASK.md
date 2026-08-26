@@ -9,24 +9,29 @@
 4. post-beta 운영 QA
 5. improvement
 
-## 최신 사용자 명시 작업 — 홈 A99
+## 최신 사용자 명시 작업 — 무료 천생연분 + 입력 UI 전면 재구성
 
-- [x] 과거 home free-first / neutral desktop landing UI 결정 폐기
-- [x] 사용자가 2026-08-27 첨부한 **A안 390px 레퍼런스**를 홈 최우선 기준으로 전환
-- [x] 390px 앱형 단일 컬럼 재구성
-- [x] 상단 우리사주 + 알림
-- [x] 크림 hero + 주토피
-- [x] 1:1 / 1:N 2열 직접 진입 카드
-- [x] 오늘의 궁합 TOP 3
-- [x] 관계 흐름 주간 chart
-- [x] 주토피 오늘의 한마디
-- [x] 하단 고정 4탭 내비게이션
-- [x] 기존 글로벌 footer 홈에서 제거
-- [x] 관련 1:N / Growth / report UI 계약을 새 홈 기준으로 갱신
-- [x] **Core calculation validation #761 PASS** — 최종 head 전체 contracts, lint, production build
-- [x] PR #63 → `main` 병합 (`cf8e1ffb`)
-- [ ] 사용자 배포 승인 시 Vercel Production 배포
-- [ ] Production 390px 화면을 첨부 레퍼런스와 직접 대조하고 pixel-level 보정
+- [x] 홈의 1:1 왼쪽에 `무료 천생연분` 진입 추가
+- [x] `/free`를 무료 천생연분 입력 화면으로 교체
+- [x] 기존 무료 관계 성향 UI/API/결과 생성기 삭제
+- [x] 무료 천생연분 결과 계산은 미구현 상태로 유지
+- [x] 공통 입력 UI를 첨부 레퍼런스형으로 재구성
+- [x] 출생시간 24시간제 HHMM, 오전/오후 선택 없음
+- [x] 1:1 입력 UI를 390px 3단계 모바일 레퍼런스형으로 전면 재구성
+- [x] 1:N 입력 UI를 같은 모바일 디자인 언어로 전면 재구성
+- [x] 결제·계산·AI·저장 backend 계약 유지
+- [x] **PR #64 / Core calculation validation #771 PASS** — 최종 문서 포함 head 전체 contracts, lint, production build
+- [ ] PR #64 → `main` 병합
+- [ ] 사용자 승인 시 Preview/Production 배포 후 첨부 이미지와 390px pixel-level 대조·보정
+
+## 다음 기능 작업
+
+- [ ] **무료 천생연분 결과 로직 구현**
+  - 사용자 사주원국 deterministic snapshot 사용
+  - 어떤 오행/일간/지지/기운 조합의 상대가 잘 맞는지 설명 가능한 구조 설계
+  - 특정 실제 인물 미래 예측이 아니라 `잘 맞는 상대 사주 특성` 중심
+  - 원본 이름/생년월일시를 외부 AI에 직접 전달하지 않는 원칙 유지
+  - 결과 화면 UI는 입력 화면 확정 후 별도 설계
 
 ## Blocker / 운영 검증
 
@@ -36,33 +41,26 @@
 
 ## 실기기 QA
 
+- [ ] 360 / 390 / 430px 홈·무료·1:1·1:N 입력 UX
 - [ ] 실제 1:1·1:N Web Share / 이미지 저장 / Shared View 링크
-- [ ] 360 / 390 / 430px 홈·입력·결제 UX
 - [ ] 비회원 결과 → Kakao 로그인 → 귀속 → 보관함
 - [ ] 회원탈퇴 / 데이터 삭제 / Kakao unlink
-
-## 결제·생성 v3
-
-- [x] PR #62 / validation #752 PASS
-- [x] main 병합 `ef8ea140`
-- [ ] Vercel Production 배포 — 사용자 명시 승인 필요
-- [ ] Production 결제·대기·실패 상태 육안 QA
 
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
-Production 배포는 사용자 명시 승인 뒤 수행한다.
+Preview/Production 배포는 사용자 명시 승인 뒤 수행한다.
 Git 자동배포는 OFF 유지.
 
 ## Current HANDOFF
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 사용자 첨부 A안 레퍼런스를 기준으로 홈을 390px 앱형 구조로 전면 재작성
+- Task: 무료 천생연분 입력 신설 + 기존 무료 관계성향 제거 + 1:1/1:N 입력 UI 전면 재구성
 - Status: complete
-- Validation: PR #63 / Core calculation validation #761 PASS — 전체 contracts, lint, production build PASS
-- Commit: 기능 병합 `cf8e1ffb`; 이후 PROJECT_STATE/NEXT_TASK 문서 갱신이 최신 main
-- Remaining: 사용자 배포 승인 시 Production 배포 → 390px 레퍼런스와 실화면 직접 대조하여 pixel-level 보정
-- Risk: 홈 TOP3/차트는 레퍼런스 재현용 정적 샘플 UI. 결제·계산·AI·저장 backend는 변경 없음
+- Validation: PR #64 / Core calculation validation #771 PASS — 최종 문서 포함 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS
+- Commit: PR #64 branch gpt/ui-free-soulmate-v4; main 병합 대기
+- Remaining: PR #64 main 병합 → 배포 승인 시 390px 실화면 대조 보정 → 이후 무료 천생연분 deterministic 결과 로직 구현
+- Risk: 무료 천생연분 submit은 현재 UI-only 완료 상태이며 실제 결과 계산/API는 의도적으로 미구현. 유료 backend 변경 없음
 - Deploy: 미수행. Git 자동배포 OFF 유지
 ```
