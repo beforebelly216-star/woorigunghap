@@ -61,7 +61,7 @@
 
 ## 검증 상태
 
-- **PR #64 / Core calculation validation #769 PASS** — 무료 천생연분 입력 UI, 기존 무료 분석 runtime 제거, 1:1·1:N 입력 레퍼런스형 재구성, 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build 통과.
+- **PR #64 / Core calculation validation #771 PASS** — 최종 문서 포함 head에서 무료 천생연분 입력 UI, 기존 무료 분석 runtime 제거, 1:1·1:N 입력 레퍼런스형 재구성, 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build 통과.
 - PR #63 / validation #761 PASS — A99 홈 재구성
 - PR #62 / validation #752 PASS — 결제·생성 v3
 
