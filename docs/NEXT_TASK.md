@@ -23,7 +23,7 @@
 - [x] AI score/ranking 불변 경계 유지
 - [x] scoring `1.6.0`, engine `compatibility-engine-v1.5.0`
 - [x] **PR #67 / Core calculation validation #791 PASS** — 전체 contracts, lint, production build PASS
-- [ ] PR #67 → `main` 병합
+- [x] PR #67 → `main` 병합 (`ef66e7c1`)
 
 #791 샘플(동일 기준 데이터 / 기준연도 2026):
 - 연인 **72** (raw 73.625)
@@ -78,8 +78,8 @@ HANDOFF
 - Task: 5개 관계별 가중치 + 실제 도달 가능한 공개 30~100 점수 척도 v1.6
 - Status: complete
 - Validation: PR #67 / Core calculation validation #791 PASS — 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS
-- Commit: PR #67 head `110e2a86`; main 병합 대기
-- Remaining: PR #67 main 병합 → 1:1 새 결과 구조/Sonnet 5 narrative/390px UI 구현
+- Commit: main merge `ef66e7c1`; 이 HANDOFF 문서 커밋이 최신 main
+- Remaining: 1:1 새 결과 구조/Sonnet 5 narrative/390px UI 구현
 - Risk: 신규 계산 점수는 구버전보다 낮거나 높아질 수 있음. 저장된 기존 구매 결과는 재계산/덮어쓰기 금지
 - Deploy: 이번 작업 배포 없음. Production/Preview 자동배포 OFF 유지
 ```
