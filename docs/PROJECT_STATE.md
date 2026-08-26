@@ -68,15 +68,17 @@
 
 ## 배포 상태
 
-- PR #64 변경은 아직 Production에 배포하지 않았다.
-- 현재 Production은 최신 UI 코드보다 이전 상태일 수 있다.
-- Git 자동배포 OFF 유지.
+- **Preview 배포 완료**: branch `preview/ui-free-soulmate-v4`, deploy trigger commit `b124e1fb`, Vercel status `success`.
+- Preview 확인용 Vercel deployment detail: `https://vercel.com/beforebelly216-stars-projects/woorigunghap-uty7/idKMJopt7a2PVUVc7mk5UeeESNxp`
+- Preview 배포 후 branch `vercel.json`은 commit `1c015a00`에서 `deploymentEnabled:false`로 원복.
+- Production에는 PR #64 변경을 아직 배포하지 않았다.
+- `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. **무료 천생연분 deterministic 결과 로직 설계·구현** — 사용자 사주원국 → 잘 어울리는 상대 사주 팔자/오행·일간·지지 조건 설명
-2. Preview 또는 Production 배포 후 첨부 레퍼런스와 390px 실화면 pixel-level 대조·보정
-3. 360 / 390 / 430px 홈·무료·1:1·1:N 입력 overflow/spacing QA
+1. Preview 390px 실화면을 사용자 첨부 레퍼런스와 pixel-level 대조·보정
+2. 360 / 390 / 430px 홈·무료·1:1·1:N 입력 overflow/spacing QA
+3. **무료 천생연분 deterministic 결과 로직 설계·구현** — 사용자 사주원국 → 잘 어울리는 상대 사주 팔자/오행·일간·지지 조건 설명
 4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
 5. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
 6. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함
