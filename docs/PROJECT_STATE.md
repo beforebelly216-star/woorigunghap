@@ -35,6 +35,7 @@
 
 ## UI / UX — Design Foundation v2
 
+- **주토피 stock-theme 시각 스킨 적용:** 홈, 1:1 결과의 캔들/히트맵·마스코트, 1:N 순위/비교 시각화를 공통 주토피 브랜드 문법으로 확장했다.
 - `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md`가 전체 UI/UX의 단일 디자인 Source of Truth다.
 - 핵심 시각 문법: neutral canvas + 실제 데이터에만 쓰는 오행 기능색 + typography-first + progressive disclosure.
 - 2단계 공통 shell + 홈 완료
@@ -61,6 +62,7 @@
 
 ## 배포 상태
 
+- **주토피 stock-theme UI 스킨을 runtime commit `8f586db`로 main에 반영하고, `7b46a8e`에서 승인된 Vercel Production 배포를 완료했다. Vercel status `success`; `aaa6c2a`에서 Git 자동배포를 다시 비활성화했다.**
 - `5435861`에 Claude Sonnet 5 전환과 `AI_QUALITY` 결제 결과 복구 hotfix `d9f7cae`를 포함해 Vercel Production 배포 완료했다.
 - Production deployment: `https://woorigunghap-uty7-q7pw0wrsd-beforebelly216-stars-projects.vercel.app` · GitHub deployment `6087168964` · GitHub/Vercel status `success`.
 - 실패한 동일 결제의 lock은 해제되어 새로고침 재시도가 가능하다. 실제 생성→저장→재열람 성공 여부는 사용자 paid runtime 재검증이 남아 있다.

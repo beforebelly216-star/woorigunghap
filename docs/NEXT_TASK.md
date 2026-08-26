@@ -77,11 +77,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: `AI_QUALITY` 결정론적 release repair hotfix Production 배포
-- Status: partial — Production 배포 성공, 동일 결제 paid runtime 재검증 대기
-- Validation: 관련 계약 8개 PASS; lint 오류 0건(기존 warning 3건); production build 및 GitHub 전체 CI PASS
-- Commit: d9f7cae hotfix · 5435861 Production deployment
-- Remaining: 사용자가 실패한 동일 결제 결과 화면을 새로고침해 생성→저장→재열람 확인
-- Risk: Vercel runtime log 프로젝트 조회 404로 서버 로그 직접 확인 불가
-- Deploy: Production 5435861 / deployment 6087168964 success; Git 자동배포 false 복구
+- Task: Claude 주토피 stock-theme bundle 결과를 최신 main에 반영하고 Vercel Production 배포
+- Status: complete
+- Validation: Claude runtime payload 적용 성공; npm run lint PASS; npm run build PASS; Vercel Production status success
+- Commit: 8f586db runtime 반영 · 7b46a8e Production 배포 트리거 · aaa6c2a Git 자동배포 false 복구
+- Remaining: 360 / 390 / 430 / 768 / 1280px 주토피 스킨 육안 QA 및 기존 paid runtime 운영 QA
+- Risk: 주토피 스킨은 시각/UI 확장 범위이며 실제 1:1·1:N 결제/생성 runtime 재검증은 기존 운영 QA 항목으로 남음
+- Deploy: Vercel Production success; Git 자동배포 false 복구
 ```
