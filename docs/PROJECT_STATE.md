@@ -33,10 +33,21 @@
 - segment별 PostgreSQL 원자 저장, 완료 segment 재사용, 결제별 single-flight/idempotency는 그대로 유지한다. 실패 lock은 해제해 같은 결제로 안전하게 다시 시도할 수 있다.
 - Neon 서버 저장 / 비회원 복구 / 선택형 Kakao 로그인 / 계정 보관함
 
-## UI / UX — Design Foundation v2
+## UI / UX — v3 재설계 진행 상태
+
+- **사용자 승인 디자인 조합:** Typography B / Iconography B / Data Visualization A / Motion A / Layout Grammar A / Character Rules B.
+- `docs/JOOTOPI_UI_REDESIGN.md`가 v3 재설계 기준 문서다.
+- 핵심 문장: **정보는 빠르고 명확하게, 주토피는 적재적소에.**
+- **홈 A안 코드 구현 완료:** 390px mobile-first 정보 우선 레이아웃, White/Off-white + Black/Yellow, 주토피 guide 역할.
+- 홈은 기존 제품 결정인 free-first를 유지한다. 첫 CTA는 `/free`의 `무료로 내 관계 성향 보기`이며 홈에서 1:1·1:N 직접 유료 전환을 하지 않는다.
+- 홈에 실제 사용자 데이터처럼 보이는 fake score/ranking/chart를 넣지 않는다. 1:1 1,000원 / 1:N 3,000원은 기능·가격 설명만 제공한다.
+- 캐릭터 시트와 신규 포즈의 최종 Production 검수는 사용자 요청에 따라 후순위로 보류했다.
+- 다음 UI 작업은 실제 390px 홈 육안 확인 후 `/free` → 1:1 → 1:N 입력 UX 재설계다.
+
+## 기존 UI / UX — Design Foundation v2
 
 - **주토피 stock-theme 시각 스킨 적용:** 홈, 1:1 결과의 캔들/히트맵·마스코트, 1:N 순위/비교 시각화를 공통 주토피 브랜드 문법으로 확장했다.
-- `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md`가 전체 UI/UX의 단일 디자인 Source of Truth다.
+- `docs/DESIGN_FIVE_ELEMENT_SYSTEM.md`는 기존 v2 구현의 기준점이며, v3 재설계가 화면별로 이를 대체하고 있다.
 - 핵심 시각 문법: neutral canvas + 실제 데이터에만 쓰는 오행 기능색 + typography-first + progressive disclosure.
 - 2단계 공통 shell + 홈 완료
 - 3단계 무료 분석 입력/결과 완료
@@ -50,6 +61,7 @@
 
 ## 검증 상태
 
+- **PR #58 / Core calculation validation #730 PASS** — v3 홈 A안 + free-first/1:N/UI 계약 정합성, 전체 contracts, lint, production build 통과.
 - **PR #55 / Core calculation validation #710 PASS**
 - 만세력/경계/궁합/결제/AI/1:N/account/editorial/policy/Growth/report 전체 계약 PASS
 - 1:1 AI 생성 복원력 계약 PASS: 명시적 token ceiling, `max_tokens` 1회 확장 재시도, structured-output fallback, fatal UX 분류 검증
@@ -62,6 +74,7 @@
 
 ## 배포 상태
 
+- **v3 홈 A안은 코드 기준 최신 main 반영 대상이며 Vercel Preview/Production에는 아직 배포하지 않았다.** 사용자 명시 승인 전 배포하지 않는다.
 - **주토피 stock-theme UI 스킨을 runtime commit `8f586db`로 main에 반영하고, `7b46a8e`에서 승인된 Vercel Production 배포를 완료했다. Vercel status `success`; `aaa6c2a`에서 Git 자동배포를 다시 비활성화했다.**
 - `5435861`에 Claude Sonnet 5 전환과 `AI_QUALITY` 결제 결과 복구 hotfix `d9f7cae`를 포함해 Vercel Production 배포 완료했다.
 - Production deployment: `https://woorigunghap-uty7-q7pw0wrsd-beforebelly216-stars-projects.vercel.app` · GitHub deployment `6087168964` · GitHub/Vercel status `success`.
@@ -74,10 +87,11 @@
 1. 실패한 동일 결제로 Production `5435861`의 1:1 생성→저장→재열람 복구 확인
 2. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View 링크 확인
 3. 홈 → 무료 결과 → 1:1 prefill 실제 동작 확인
-4. **360 / 390 / 430 / 768 / 1280px 전체 Foundation 화면 육안 QA 및 spacing/overflow 최종 보정**
-5. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
-6. 회원탈퇴/데이터 삭제/Kakao unlink
-7. 결과/계정 삭제 뒤 public share 및 analytics 정리 확인
+4. **v3 홈 390px 육안 확인 후 `/free` → 1:1 → 1:N 입력 UX 재설계**
+5. 360 / 390 / 430 / 768 / 1280px 전체 화면 spacing/overflow 최종 QA
+6. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
+7. 회원탈퇴/데이터 삭제/Kakao unlink
+8. 결과/계정 삭제 뒤 public share 및 analytics 정리 확인
 
 현재 연결된 Vercel 프로젝트의 runtime log는 프로젝트 조회 404로 접근하지 못했다. 화면 문구와 서버 분류 경로로 `QUALITY_CRITICAL`은 확정했으며, 세부 issue 목록과 실제 Sonnet 5 응답 시간·저장 완료 여부는 hotfix 배포 후 paid QA에서 확인해야 한다.
 

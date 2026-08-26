@@ -73,10 +73,13 @@ assert.equal(parseOneToManyReportInput({ ...input(2), candidates: "not-an-array"
 
 const formSource = readFileSync("src/components/one-to-many-form.tsx", "utf8");
 const homeSource = readFileSync("src/app/page.tsx", "utf8");
+const freeResultSource = readFileSync("src/components/free-self-analysis.tsx", "utf8");
 assert.match(formSource, /ONE_TO_MANY_MIN_CANDIDATES/);
 assert.match(formSource, /ONE_TO_MANY_MAX_CANDIDATES/);
 assert.match(formSource, /localStorage\.setItem/);
 assert.match(formSource, /localStorage\.getItem/);
-assert.match(homeSource, /href="\/one-to-many"/);
+assert.match(homeSource, /label: "1:N"/);
+assert.doesNotMatch(homeSource, /href="\/one-to-many"/, "free-first 홈은 1:N으로 바로 이동시키지 않아야 합니다.");
+assert.match(freeResultSource, /href="\/one-to-many"/, "무료 결과 이후에는 1:N 진입이 유지되어야 합니다.");
 
 console.log("Day 13 one-to-many input contract checks: PASS");
