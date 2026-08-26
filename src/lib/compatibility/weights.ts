@@ -1,7 +1,7 @@
 import type { RelationshipType } from "@/lib/report-input";
 import type { CompatibilityDimension, CompatibilityProfile } from "./types";
 
-export const COMPATIBILITY_SCORING_VERSION = "1.5.0";
+export const COMPATIBILITY_SCORING_VERSION = "1.6.0";
 
 /**
  * Dimension scorers still use the three interpretation profiles for rules that
