@@ -55,12 +55,19 @@
   - [x] `/free` v3 입력 화면 구현: 단일 정보 카드, 주토피 guide, Black/Yellow CTA, 긴 설명 축소
   - [x] 공용 출생시간 입력을 **24시간제 HHMM**으로 변경하고 오전/오후 선택 제거
   - [x] 기존 12시간제 form state 복구 시 24시간제로 표시·정규화하는 호환 레이어 유지
-  - [x] `Growth free acquisition` 계약 갱신
   - [x] **PR #59 / Core calculation validation #736: 전체 contracts + lint + production build PASS**
   - [x] PR #59 → `main` 병합 (`5af70d3`)
   - [ ] `/free` 실제 390px 화면 확인
-  - [ ] 1:1 입력 UX 재설계
-  - [ ] 1:N 입력 UX 재설계
+  - [x] **1:1 입력 UX B안 구현** — `내 정보+관계 → 상대방 정보 → 확인` 3단계
+    - [x] free prefill / 관계유형 / 관계기간 / 직장동료 위계 유지
+    - [x] 24시간 HHMM / 출생시간 모름 유지
+    - [x] 확인 단계 두 사람 요약 + 수정 진입
+    - [x] 결제 복구 / 주문 draft / 결제 진입 계약 유지
+    - [x] 개인정보 별칭·AI 비전달 안내 유지
+    - [x] **PR #60 / Core calculation validation #741: 전체 contracts + lint + production build PASS**
+    - [ ] PR #60 → `main` 병합
+    - [ ] 실제 390px 화면 확인
+  - [ ] **1:N 입력 UX 재설계**
 - [ ] **4단계 결제·생성 UX 재설계** — 상품 요약/CTA/대기/복귀/실패·재시도, backend contract 유지
 - [ ] 후속: 1:1 결과 → 1:N 결과 → 보관함/공유/계정 → multi-viewport QA
 
@@ -90,11 +97,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: v3 `/free` 입력 UX 재설계 + 출생시간 24시간제 공용 전환
+- Task: 사용자 승인 B안 기준 v3 1:1 입력 UX 3단계 재설계
 - Status: partial
-- Validation: PR #59 / Core calculation validation #736 PASS — 전체 contracts, lint, production build PASS
-- Commit: `5af70d3` PR #59 main 병합; 이후 본 HANDOFF 문서 갱신
-- Remaining: `/free` 실제 390px 화면 확인 → 1:1 입력 UX 재설계 → 1:N 입력 UX 재설계
-- Risk: 기존 저장 form의 12시간제 meridiem 값은 읽기 호환용으로만 유지하고 UI에는 노출하지 않음
+- Validation: PR #60 / Core calculation validation #741 PASS — 전체 contracts, lint, production build PASS
+- Commit: PR #60 head에 1:1 v3 form/CSS/page 및 Growth·partner-info 계약, 상태 문서 반영
+- Remaining: PR #60 main 병합 → 1:1 390px 실화면 QA → 1:N 입력 UX 시안/재설계
+- Risk: 관계 유형은 기능 보존을 위해 1단계 `내 정보` 안에 포함. backend 계산·결제·복구 계약 변경 없음
 - Deploy: 없음. Vercel Preview/Production은 사용자 승인 전 실행 금지
 ```
