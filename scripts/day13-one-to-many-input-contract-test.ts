@@ -97,8 +97,8 @@ assert.match(cssSource, /\.review-block/);
 assert.match(cssSource, /--zootopi-butter/);
 assert.doesNotMatch(cssSource, /gradient|box-shadow/i);
 
-assert.match(homeSource, /label: "1:N"/);
-assert.doesNotMatch(homeSource, /href="\/one-to-many"/, "free-first 홈은 1:N으로 바로 이동시키지 않아야 합니다.");
-assert.match(freeResultSource, /href="\/one-to-many"/, "무료 결과 이후에는 1:N 진입이 유지되어야 합니다.");
+assert.match(homeSource, /href="\/one-to-many"/, "승인된 A안 홈은 1:N 직접 진입을 제공해야 합니다.");
+assert.match(homeSource, /1:N 궁합/);
+assert.match(freeResultSource, /href="\/one-to-many"/, "무료 결과 이후에도 1:N 진입이 유지되어야 합니다.");
 
-console.log("Day 13 one-to-many input v3 contract checks: PASS");
+console.log("Day 13 one-to-many input v3 + A-reference home entry contract checks: PASS");
