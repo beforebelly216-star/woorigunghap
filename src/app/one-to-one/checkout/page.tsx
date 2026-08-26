@@ -61,13 +61,18 @@ function CheckoutContent() {
 
   return (
     <>
-      <header className="checkout-header">
-        <p className="eyebrow">결제 전 마지막 확인</p>
-        <h1>입력 내용을 확인해 주세요.</h1>
-        <p>결제가 확인된 뒤 이 주문의 입력 스냅샷으로 궁합 계산과 디지털 리포트 생성이 즉시 시작됩니다.</p>
+      <header className="checkout-header checkout-v3-header">
+        <p className="eyebrow">1:1 궁합 · 결제</p>
+        <h1>이제 두 사람의 관계를 열어볼게요.</h1>
+        <p>입력 내용을 한 번만 확인하고 결제하면, 바로 궁합 계산과 상세 리포트 생성이 시작됩니다.</p>
+        <ol className="paid-flow-steps" aria-label="결제 진행 단계">
+          <li className="is-done"><span>01</span><strong>입력 완료</strong></li>
+          <li className="is-current"><span>02</span><strong>결제</strong></li>
+          <li><span>03</span><strong>리포트 생성</strong></li>
+        </ol>
       </header>
 
-      <section className="checkout-card" aria-label="주문 정보">
+      <section className="checkout-card checkout-v3-summary" aria-label="주문 정보">
         <div className="checkout-row">
           <span>관계</span>
           <strong>{RELATIONSHIP_LABELS[order.inputSnapshot.relationshipType]}</strong>
@@ -98,22 +103,29 @@ function CheckoutContent() {
         </div>
       </section>
 
-      <section className="checkout-unlock-preview" aria-labelledby="checkout-unlock-title">
+      <section className="checkout-unlock-preview checkout-v3-unlocks" aria-labelledby="checkout-unlock-title">
         <p className="card-label">결제 후 바로 열리는 것</p>
-        <h2 id="checkout-unlock-title">사주소년이 두 사람의 관계를 끝까지 읽어드려요.</h2>
+        <h2 id="checkout-unlock-title">점수만 보는 게 아니라, 관계에서 써먹을 답까지 정리해요.</h2>
         <div>
-          <article><span>01</span><strong>그 사람의 속마음</strong><p>계산된 관계 반응을 바탕으로, 겉으로 드러나는 모습과 속의 반응 차이를 풀어봅니다.</p></article>
-          <article><span>02</span><strong>갈등과 회복의 사용법</strong><p>어떤 장면에서 자주 어긋나고 어떻게 다시 대화하면 좋은지 정리합니다.</p></article>
-          <article><span>03</span><strong>실전 관계 매뉴얼</strong><p>연락, 표현, 거리 조절과 앞으로 써먹을 행동 가이드를 챕터별로 제공합니다.</p></article>
+          <article><span>01</span><strong>두 사람의 핵심 케미</strong><p>어디서 잘 맞고 어디서 온도 차가 생기는지 계산 근거와 함께 보여드립니다.</p></article>
+          <article><span>02</span><strong>갈등과 회복의 사용법</strong><p>자주 어긋나는 장면과 다시 대화가 풀리는 방식을 관계 유형에 맞춰 정리합니다.</p></article>
+          <article><span>03</span><strong>실전 관계 매뉴얼</strong><p>연락, 표현, 거리 조절과 앞으로 바로 써먹을 행동 가이드를 챕터별로 제공합니다.</p></article>
         </div>
-        <p className="checkout-price-anchor">한 번 결제로 완성된 리포트 전체를 저장해 다시 볼 수 있어요.</p>
+        <p className="checkout-price-anchor">한 번 결제로 완성된 리포트를 저장해 다시 볼 수 있어요.</p>
       </section>
+
+      <div className="checkout-v3-assurance" aria-label="결제 안내">
+        <span><b>1회 결제</b>추가 결제 없음</span>
+        <span><b>자동 저장</b>완성 결과 재열람</span>
+        <span><b>중간 이탈 복구</b>같은 주문으로 재확인</span>
+      </div>
+
       <PurchasePolicyConsent checked={policyAccepted} onChange={setPolicyAccepted} />
       <div className="checkout-sticky-cta">
-        <PaymentButton product="oneToOne" paymentId={order.paymentId} inputSnapshot={order.inputSnapshot} agreementAccepted={policyAccepted} buttonLabel="속마음까지 다 보기 · 1,000원" />
+        <PaymentButton product="oneToOne" paymentId={order.paymentId} inputSnapshot={order.inputSnapshot} agreementAccepted={policyAccepted} buttonLabel="1:1 전체 리포트 보기 · 1,000원" />
       </div>
       <Link href="/one-to-one" className="back-link checkout-back">입력 수정하기</Link>
-      <p className="checkout-note">결제 승인 후 서버가 입력 해시와 금액을 검증한 뒤 결과를 생성·저장합니다. 결제창을 닫거나 네트워크가 끊겨도 같은 주문으로 다시 확인할 수 있고, 완료된 결과는 복구키 또는 로그인 계정 보관함에서 재열람할 수 있습니다.</p>
+      <p className="checkout-note">결제 승인 뒤 바로 생성이 시작됩니다. 생성 중 화면을 이동해도 같은 결과 링크로 다시 확인할 수 있고, 완성된 결과는 복구키 또는 로그인 계정 보관함에서 재열람할 수 있습니다.</p>
     </>
   );
 }
