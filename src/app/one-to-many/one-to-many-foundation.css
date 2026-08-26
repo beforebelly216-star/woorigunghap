@@ -437,6 +437,9 @@
 
 .one-to-many-result-page .ranking-score {
   margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--saju-font-data);
 }
 
@@ -445,6 +448,62 @@
   line-height: 1;
   letter-spacing: -.04em;
 }
+
+/* 주토피 주식 테마 — 1:N 비교 총평 캡션, 순위 미니 캔들, 공통지표 히트맵 매트릭스(§10, §12.2, §13.2) */
+.one-to-many-result-page .comparison-hero .zt-caption {
+  margin-top: 20px;
+  max-width: 420px;
+}
+
+.one-to-many-result-page .stock-badge-tag {
+  display: inline-flex;
+  margin-left: 6px;
+  padding: 2px 9px;
+  border-radius: var(--saju-radius-pill);
+  font-size: .68rem;
+  font-weight: 850;
+  vertical-align: middle;
+}
+.one-to-many-result-page .stock-badge-tag.is-up { background: var(--zootopi-stock-up-soft); color: var(--zootopi-butter-deep); }
+.one-to-many-result-page .stock-badge-tag.is-flat { background: var(--saju-bg-soft); color: var(--saju-ink-soft); }
+
+.one-to-many-result-page .metrics-heatmap-matrix {
+  margin-bottom: 20px;
+  border: 1px solid var(--saju-border);
+  border-radius: var(--saju-radius-card);
+  padding: 18px;
+  background: var(--saju-bg-card);
+}
+.one-to-many-result-page .metrics-heatmap-scroll { overflow-x: auto; }
+.one-to-many-result-page .metrics-heatmap-table { width: 100%; min-width: 420px; border-collapse: collapse; }
+.one-to-many-result-page .metrics-heatmap-table caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.one-to-many-result-page .metrics-heatmap-table th,
+.one-to-many-result-page .metrics-heatmap-table td {
+  padding: 10px 12px;
+  text-align: center;
+  font-size: .84rem;
+}
+.one-to-many-result-page .metrics-heatmap-table thead th {
+  color: var(--saju-ink-soft);
+  font-size: .74rem;
+  font-weight: 800;
+}
+.one-to-many-result-page .metrics-heatmap-table tbody th {
+  text-align: left;
+  color: var(--saju-ink);
+  font-weight: 800;
+  white-space: nowrap;
+}
+.one-to-many-result-page .metrics-heatmap-table tbody td {
+  border-radius: 10px;
+  background: var(--tile-heat, var(--saju-bg-soft));
+  color: var(--zootopi-char-ink);
+  font-family: var(--saju-font-data);
+  font-weight: 800;
+}
+.one-to-many-result-page .v2-heatmap-legend { display: flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--saju-ink-faint); font-size: .72rem; }
+.one-to-many-result-page .v2-heatmap-legend-ramp { flex: 1; height: 8px; display: flex; gap: 2px; border-radius: var(--saju-radius-pill); overflow: hidden; }
+.one-to-many-result-page .v2-heatmap-legend-ramp i { flex: 1; }
 
 .one-to-many-result-page .ranking-card p {
   color: var(--saju-ink-soft);

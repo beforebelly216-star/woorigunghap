@@ -174,22 +174,25 @@
 .v2-pair-type small { color: var(--saju-primary-deep); font-size: .72rem; font-weight: 900; letter-spacing: .08em; }
 .v2-pair-type strong { margin-top: 7px; color: var(--saju-ink); font-size: 1.35rem; }
 .v2-pair-type span { margin-top: 6px; color: var(--saju-ink-soft); font-size: .9rem; line-height: 1.5; }
-.v2-score-gauge { --score: 0; width: 176px; aspect-ratio: 1; margin: 18px auto 12px; border-radius: 50%; padding: 12px; background: conic-gradient(var(--saju-primary-deep) calc(var(--score) * 1%), var(--saju-track) 0); box-shadow: var(--saju-shadow); }
-.v2-score-gauge > div { width: 100%; height: 100%; display: grid; grid-template-columns: auto auto; place-content: center; align-items: baseline; column-gap: 4px; border-radius: 50%; background: var(--saju-bg-card); color: var(--saju-ink); }
-.v2-score-gauge span { grid-column: 1 / -1; justify-self: center; margin-bottom: 2px; color: var(--saju-primary-deep); font-size: .74rem; font-weight: 900; }
-.v2-score-gauge strong { font-size: 2.65rem; font-weight: 900; font-variant-numeric: tabular-nums; }
-.v2-score-gauge small { color: var(--saju-ink-soft); font-size: .72rem; }
-.v2-radar-layout { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: center; margin-top: 22px; border: 1px solid var(--saju-border); border-radius: 26px; padding: 18px; background: var(--saju-bg-card); box-shadow: var(--saju-shadow); }
-.v2-radar-chart { width: min(100%, 320px); margin: 0 auto; }
-.v2-radar-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-.v2-radar-grid { fill: none; stroke: var(--saju-border); stroke-width: 1; }
-.v2-radar-axis { stroke: var(--saju-border); stroke-width: 1; }
-.v2-radar-score { fill: color-mix(in srgb, var(--saju-primary) 34%, transparent); stroke: var(--saju-primary-deep); stroke-width: 2.5; }
-.v2-radar-point { fill: var(--saju-primary-deep); }
-.v2-radar-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
-.v2-radar-legend > div { display: flex; justify-content: space-between; gap: 8px; border-radius: 12px; padding: 9px 10px; background: var(--saju-bg-soft); }
-.v2-radar-legend span { min-width: 0; color: var(--saju-ink-soft); font-size: .74rem; line-height: 1.3; }
-.v2-radar-legend strong { color: var(--saju-ink); font-size: .82rem; font-variant-numeric: tabular-nums; }
+/* 인연 주가 지수 캔들스틱 공용 스타일은 src/components/candlestick-score.css로 이동했다
+   (1:1·1:N 결과가 함께 쓰는 공용 컴포넌트라 route별 foundation CSS가 아니라 컴포넌트 곁에 둔다). */
+
+/* 궁합 히트맵 — 9개 지표를 3×3 타일로 시각화. 색은 보조 채널, 숫자·라벨이 항상 주 채널(§12.1). */
+.v2-heatmap-layout { margin-top: 22px; border: 1px solid var(--saju-border); border-radius: 26px; padding: 18px; background: var(--saju-bg-card); box-shadow: var(--saju-shadow); }
+.v2-heatmap-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.v2-heatmap-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; aspect-ratio: 1; border-radius: 14px; background: var(--tile-heat); }
+.v2-heatmap-tile small { color: var(--zootopi-char-ink); font-size: .68rem; font-weight: 800; opacity: .82; }
+.v2-heatmap-tile strong { color: var(--zootopi-char-ink); font-size: 1.15rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+.v2-heatmap-legend { display: flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--saju-ink-faint); font-size: .72rem; }
+.v2-heatmap-legend-ramp { flex: 1; height: 8px; display: flex; gap: 2px; border-radius: var(--saju-radius-pill); overflow: hidden; }
+.v2-heatmap-legend-ramp i { flex: 1; }
+.v2-heatmap-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin-top: 14px; }
+.v2-heatmap-list > div { display: flex; justify-content: space-between; gap: 8px; border-radius: 12px; padding: 9px 10px; background: var(--saju-bg-soft); }
+.v2-heatmap-list span { min-width: 0; color: var(--saju-ink-soft); font-size: .74rem; line-height: 1.3; }
+.v2-heatmap-list strong { color: var(--saju-ink); font-size: .82rem; font-variant-numeric: tabular-nums; }
+
+/* 챕터 전환부 주토피 소형 표정 아이콘(§16) — 시각적 쉼표, 반말 캡션 없이 아이콘만. */
+.v2-chapter-zootopi { position: absolute; top: 0; right: 0; width: 40px; height: 40px; opacity: .92; }
 /* P5 long-form reading progress. */
 .v2-reading-progress { position: fixed; z-index: 45; top: 0; left: 0; width: 100%; height: 5px; background: color-mix(in srgb, var(--saju-primary) 18%, var(--saju-bg-card)); pointer-events: none; }
 .v2-reading-progress > span { display: block; height: 100%; background: linear-gradient(90deg, var(--saju-primary-deep), var(--saju-blush)); transition: width .15s linear; }

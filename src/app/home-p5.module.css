@@ -141,6 +141,7 @@
 .productCard > p { margin: 0; color: var(--saju-ink-soft); line-height: 1.7; font-size: .94rem; }
 .productCard ul { margin: 24px 0 30px; padding-left: 19px; color: var(--saju-ink-soft); line-height: 1.8; font-size: .9rem; }
 .productCard li::marker { color: var(--saju-ink-faint); }
+.productCard :global(.zt-caption) { margin-bottom: 22px; }
 .price { margin-top: auto; padding-top: 8px; display: flex; align-items: baseline; gap: 8px; border-top: 1px solid var(--saju-border); }
 .price strong { padding-top: 20px; font-family: var(--saju-font-data); font-size: 1.55rem; }
 .price span { color: var(--saju-ink-soft); font-size: .8rem; }

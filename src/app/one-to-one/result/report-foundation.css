@@ -72,14 +72,8 @@
 }
 .v2-pair-type small { color: var(--saju-ink-soft); }
 .v2-pair-type strong { font-size: 1.45rem; }
-.v2-score-gauge {
-  width: 156px;
-  margin: 30px 0 16px;
-  padding: 9px;
-  box-shadow: none;
-  background: conic-gradient(var(--saju-action) calc(var(--score) * 1%), var(--saju-track) 0);
-}
-.v2-score-gauge span { color: var(--saju-ink-soft); }
+.v2-hero .v2-candle { margin: 30px 0 0; align-items: flex-start; }
+.v2-hero .zt-caption { margin: 16px 0 16px; max-width: 420px; }
 .v2-score-meaning {
   max-width: 520px;
   margin: 0;
@@ -205,6 +199,8 @@
   box-shadow: none !important;
   border-color: var(--saju-border) !important;
 }
+
+.v2-chapter-heading { position: relative; }
 
 #v2-share-card { margin-top: 18px; }
 .v2-footer { padding: 36px 0 0; }

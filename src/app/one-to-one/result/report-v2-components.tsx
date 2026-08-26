@@ -5,6 +5,10 @@ import {
   PARTNER_INFORMATION_LEVEL_COPY,
   partnerInformationLevelFromFacts,
 } from "@/lib/partner-information-level";
+import { getHeatToken } from "@/lib/compatibility/stock-theme";
+import { ZootopiMark, type ZootopiExpression } from "@/components/zootopi-mark";
+import { CandlestickScore } from "@/components/candlestick-score";
+import { HeatLegendRamp } from "@/components/heat-legend-ramp";
 
 const ELEMENT_LABELS: Record<FiveElement, string> = {
   wood: "목(木)", fire: "화(火)", earth: "토(土)", metal: "금(金)", water: "수(水)",
@@ -57,35 +61,41 @@ export function PillarGrid({ facts }: { facts: BasicPersonFacts }) {
   </div>;
 }
 
-export function CompatibilityRadar({ dimensions }: { dimensions: Array<{ label: string; score: number }> }) {
-  const size = 280;
-  const center = size / 2;
-  const radius = 96;
-  const count = Math.max(3, dimensions.length);
-  const point = (index: number, ratio: number) => {
-    const angle = -Math.PI / 2 + (Math.PI * 2 * index) / count;
-    return [center + Math.cos(angle) * radius * ratio, center + Math.sin(angle) * radius * ratio] as const;
-  };
-  const polygon = (ratio: number) => Array.from({ length: count }, (_, index) => point(index, ratio).join(",")).join(" ");
-  const scorePolygon = dimensions.map((dimension, index) => point(index, Math.min(1, Math.max(0, dimension.score / 100))).join(",")).join(" ");
-
-  return <div className="v2-radar-layout">
-    <div className="v2-radar-chart" aria-label="9개 핵심 궁합 지표 레이더 차트">
-      <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-hidden="true">
-        {[.25, .5, .75, 1].map((ratio) => <polygon className="v2-radar-grid" key={ratio} points={polygon(ratio)} />)}
-        {dimensions.map((_, index) => {
-          const [x, y] = point(index, 1);
-          return <line className="v2-radar-axis" key={index} x1={center} y1={center} x2={x} y2={y} />;
-        })}
-        <polygon className="v2-radar-score" points={scorePolygon} />
-        {dimensions.map((dimension, index) => {
-          const [x, y] = point(index, Math.min(1, Math.max(0, dimension.score / 100)));
-          return <circle className="v2-radar-point" key={dimension.label} cx={x} cy={y} r="3.5" />;
-        })}
-      </svg>
+/**
+ * 궁합 히트맵 — 레이더 차트 대체(docs/zootopi-stock-theme-work-order-v1.md §12.1).
+ * 데이터는 기존과 동일한 9개 지표 점수를 그대로 재사용하고 새 계산은 하지 않는다.
+ * 색은 보조 채널이며 숫자·라벨을 항상 함께 표기한다(diverging/무지개 배색 대신 단일 색조 sequential 램프).
+ */
+export function CompatibilityHeatmap({ dimensions }: { dimensions: Array<{ label: string; shortLabel?: string; score: number }> }) {
+  return <div className="v2-heatmap-layout">
+    <div className="v2-heatmap-grid" role="img" aria-label="9개 핵심 궁합 지표 히트맵">
+      {dimensions.map((dimension) => {
+        const score = Math.round(dimension.score);
+        return <div
+          className="v2-heatmap-tile"
+          key={dimension.label}
+          style={{ "--tile-heat": getHeatToken(score) } as React.CSSProperties}
+        >
+          <small>{dimension.shortLabel ?? dimension.label}</small>
+          <strong>{score}</strong>
+        </div>;
+      })}
     </div>
-    <div className="v2-radar-legend">{dimensions.map((dimension) => <div key={dimension.label}><span>{dimension.label}</span><strong>{Math.round(dimension.score)}</strong></div>)}</div>
+    <HeatLegendRamp />
+    <div className="v2-heatmap-list">{dimensions.map((dimension) => <div key={dimension.label}><span>{dimension.label}</span><strong>{Math.round(dimension.score)}</strong></div>)}</div>
   </div>;
+}
+
+export { CandlestickScore };
+
+const CHAPTER_ZOOTOPI_EXPRESSION: Record<number, ZootopiExpression> = {
+  0: "idea", 2: "surprised", 8: "idea", 9: "analyzing",
+};
+
+/** 챕터 전환부 소형 표정 아이콘(§16) — 시각적 쉼표용, 반말 캡션 없이 아이콘만. */
+function ChapterZootopiMark({ chapter }: { chapter: number }) {
+  const expression = CHAPTER_ZOOTOPI_EXPRESSION[chapter] ?? "smile";
+  return <div className="v2-chapter-zootopi" aria-hidden="true"><ZootopiMark expression={expression} /></div>;
 }
 
 export function ElementFacts({ facts }: { facts: BasicPersonFacts }) {
@@ -159,6 +169,7 @@ export function Chapter({
     <div className="v2-chapter-heading">
       <span>CH{index}</span>
       <div><small>{eyebrow}</small><h2>{title}</h2>{intro ? <p>{intro}</p> : null}</div>
+      <ChapterZootopiMark chapter={index} />
     </div>
     <SajuBoyBubble chapter={index} />
     <div className="day19-chapter-body">{children}</div>

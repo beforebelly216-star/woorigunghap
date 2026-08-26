@@ -1,6 +1,8 @@
 import Link from "next/link";
 import "./report-theme.css";
+import "../components/zootopi-mark.css";
 import styles from "./home-p5.module.css";
+import { ZootopiCaption } from "@/components/zootopi-mark";
 
 function SajuBoyMark() {
   return <div className={styles.mascot} aria-hidden="true">
@@ -41,6 +43,7 @@ export default function Home() {
           <h3>한 사람과의 관계를 깊게</h3>
           <p>짝사랑 · 썸 · 연인 · 친구 · 직장동료. 두 사람의 사주팔자, 9개 궁합 지표, 속마음 번역, 갈등·회복과 실전 관계 매뉴얼까지 확인합니다.</p>
           <ul><li>CH0~CH9 상세 리포트</li><li>60일주 캐릭터 + 9축 궁합</li><li>완성 결과 저장·재열람</li></ul>
+          <ZootopiCaption expression="idea">이 관계, 인연 주가 지수로 한 번 볼래?</ZootopiCaption>
           <div className={styles.price}><strong>1,000원</strong><span>1회 결제</span></div>
           <Link href="/one-to-one" className={styles.cardAction}>1:1 궁합 시작하기</Link>
         </article>

@@ -77,4 +77,35 @@
   --saju-width-compact: 480px;
   --saju-width-report: 640px;
   --saju-width-compare: 960px;
+
+  /* 주토피 브랜드 스킨 레이어 — docs/DECISIONS.md UI/디자인 addendum(2026-08-25) 참고.
+     오행 5색/semantic 토큰과 절대 대체하지 않는다. */
+
+  /* 캐릭터 일러스트 전용 팔레트 — SVG/이미지 자산 내부 전용, UI 배경/버튼/배지 금지 */
+  --zootopi-char-cream: #FFE8A7;
+  --zootopi-char-tan: #FFDDA6;
+  --zootopi-char-lilac: #F7C9F5;
+  --zootopi-char-purple: #8E7AEC;
+  --zootopi-char-accent-red: #FF6B6B;
+  --zootopi-char-brown: #8D6E63;
+  --zootopi-char-ink: #333333;
+  --zootopi-char-paper: #F9F7F2;
+
+  /* UI 액센트 팔레트 */
+  --zootopi-butter: #F5C242;
+  --zootopi-butter-soft: #FBE8B8;
+  --zootopi-butter-deep: #A66F12;
+
+  --zootopi-stock-up: #D93B2B; /* 상승/상한가 — 국내 증시 관행: 상승=빨강 */
+  --zootopi-stock-up-soft: #FBEAE7;
+  --zootopi-stock-down: #2F6FE0; /* 하락 — 국내 증시 관행: 하락=파랑. 실사용자 점수에는 사용하지 않는다 */
+  --zootopi-stock-down-soft: #EAF1FD;
+  --zootopi-stock-flat: var(--saju-ink-soft); /* 보합/중립 */
+
+  /* 히트맵 전용 순차(sequential) 램프 — 지표 점수는 단일 축 데이터이므로 diverging/무지개 배색 금지 */
+  --zootopi-heat-1: #FCEFD2;
+  --zootopi-heat-2: #F8DCA0;
+  --zootopi-heat-3: #F3C466;
+  --zootopi-heat-4: #D99A2E;
+  --zootopi-heat-5: #A66F12;
 }

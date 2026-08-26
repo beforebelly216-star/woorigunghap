@@ -29,7 +29,9 @@ import {
   buildOneToOneResultUrl,
   isResultAccessToken,
 } from "@/lib/result-access-token";
-import { CompatibilityRadar, ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
+import { CandlestickScore, CompatibilityHeatmap, ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
+import { ZootopiCaption, type ZootopiExpression } from "@/components/zootopi-mark";
+import { getZootopiScoreCaption } from "@/lib/compatibility/stock-theme";
 import ReportChaptersA from "./report-v2-chapters-a";
 import ReportChaptersB from "./report-v2-chapters-b";
 import { CompatibilityShareCard } from "./compatibility-share-card";
@@ -46,6 +48,19 @@ const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
   earthlyBranchInteraction: "지지 형충파해", specialStars: "귀인 신호",
   spouseStarRealization: "관계 역할 맞물림", luckCycleAlignment: "관계 타이밍",
 };
+
+const DIMENSION_SHORT_LABELS: Record<CompatibilityDimension, string> = {
+  dayMaster: "일간", dayBranch: "일지", usefulGodFit: "용신",
+  elementComplementarity: "오행", heavenlyStemInteraction: "천간",
+  earthlyBranchInteraction: "지지", specialStars: "귀인",
+  spouseStarRealization: "역할", luckCycleAlignment: "타이밍",
+};
+
+function zootopiExpressionForScore(score: number): ZootopiExpression {
+  if (score >= 85) return "idea";
+  if (score >= 55) return "smile";
+  return "thinking";
+}
 
 const SEGMENTS: PaidReportSegmentName[] = ["intro", "dynamics", "action"];
 const STAGE_COPY: Record<"prepare" | PaidReportSegmentName, string> = {
@@ -70,16 +85,6 @@ function fatalGenerationTitle(reason: string | null) {
     return "리포트 생성 설정을 확인해야 해요.";
   }
   return "리포트 생성을 이번 시도에서 마치지 못했어요.";
-}
-
-function gradeFor(score: number) {
-  if (score >= 90) return "S";
-  if (score >= 80) return "A";
-  if (score >= 70) return "B";
-  if (score >= 60) return "C";
-  if (score >= 50) return "D";
-  if (score >= 40) return "E";
-  return "F";
 }
 
 function wait(ms: number) {
@@ -465,9 +470,8 @@ export default function ResultV2() {
         <strong>{shareArchetype.label}</strong>
         <span>{shareArchetype.subtitle}</span>
       </div>
-      <div className="v2-score-gauge" style={{ "--score": publicScore } as React.CSSProperties}>
-        <div><span>{gradeFor(publicScore)}</span><strong>{publicScore}</strong><small>/ 100</small></div>
-      </div>
+      <CandlestickScore score={publicScore} />
+      <ZootopiCaption expression={zootopiExpressionForScore(publicScore)}>{getZootopiScoreCaption(publicScore)}</ZootopiCaption>
       <div className="v2-score-meaning" role="note">
         <small>이 점수는 어느 정도?</small>
         <strong>{scoreBand.label}</strong>
@@ -504,7 +508,7 @@ export default function ResultV2() {
 
     <section className="v2-score-section">
       <div className="v2-section-title"><small>COMPATIBILITY SCORE</small><h2>핵심 궁합 지표</h2><p>점수는 해설의 근거 강도를 보여주는 참고값입니다. 본문에서 실제 관계에서 어떤 의미인지 자세히 설명합니다.</p></div>
-      <CompatibilityRadar dimensions={visibleDimensions.map(([dimension, value]) => ({ label: DIMENSION_LABELS[dimension], score: value.normalizedScore }))} />
+      <CompatibilityHeatmap dimensions={visibleDimensions.map(([dimension, value]) => ({ label: DIMENSION_LABELS[dimension], shortLabel: DIMENSION_SHORT_LABELS[dimension], score: value.normalizedScore }))} />
     </section>
 
     {(personACharacter || personBCharacter) && <section className="day-pillar-character-section">

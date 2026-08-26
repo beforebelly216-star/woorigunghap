@@ -1,10 +1,59 @@
 import Link from "next/link";
 import type { OneToManyResultView } from "@/lib/compatibility/one-to-many-view";
 import { getCompatibilityScoreBand } from "@/lib/compatibility/score-scale";
+import { getHeatToken } from "@/lib/compatibility/stock-theme";
 import { OneToManyShareCard } from "@/components/one-to-many-share-card";
+import { CandlestickScore } from "@/components/candlestick-score";
+import { ZootopiCaption } from "@/components/zootopi-mark";
+import { HeatLegendRamp } from "@/components/heat-legend-ramp";
 
 function formatScore(score: number) {
   return Number.isInteger(score) ? String(score) : score.toFixed(1);
+}
+
+/** §10 항목 1 — 비교 총평은 Hero급 대우, 은유 적극 사용(§3). 1위 후보 기준 반말 코멘트. */
+function comparisonHeroCaption(view: OneToManyResultView) {
+  const top = view.rankings.find((candidate) => candidate.rank === 1);
+  if (!top) return "관심종목들 비교, 지금부터 같이 볼래?";
+  if (top.score >= 85) return `${top.displayName} 쪽이 지금 제일 잘나가는데?`;
+  if (top.score >= 70) return `${top.displayName} 쪽이 전체적으로 우상향이야.`;
+  return "차이가 크지 않은 구간이야, 하나씩 같이 비교해볼래?";
+}
+
+/** §10 항목 4 — N×4 히트맵 매트릭스(§12.2). 연락·대화/편안함·신뢰/갈등회복/생활·장기관계 4개만 쓴다. */
+const COMMON_METRIC_MATRIX_IDS = ["communication", "emotionalStability", "conflictManagement", "longTerm"] as const;
+
+function CommonMetricsHeatmapMatrix({ view }: { view: OneToManyResultView }) {
+  const columns = view.summaryMetrics.filter((metric) => (COMMON_METRIC_MATRIX_IDS as readonly string[]).includes(metric.id));
+  if (columns.length === 0) return null;
+  return <div className="metrics-heatmap-matrix" role="img" aria-label="후보별 공통 지표 히트맵 매트릭스">
+    <div className="metrics-heatmap-scroll" tabIndex={0} aria-label="후보 × 지표 히트맵, 좌우로 스크롤 가능">
+      <table className="metrics-heatmap-table">
+        <caption>후보별 연락·대화, 편안함·신뢰, 갈등 회복, 생활·장기관계 비교</caption>
+        <thead>
+          <tr>
+            <th scope="col">후보</th>
+            {columns.map((metric) => <th scope="col" key={metric.id}>{metric.label}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {view.rankings.map((candidate) => (
+            <tr key={candidate.candidateId}>
+              <th scope="row">{candidate.displayName}</th>
+              {columns.map((metric) => {
+                const value = metric.values.find((item) => item.candidateId === candidate.candidateId);
+                const score = value ? Math.round(value.score) : null;
+                return <td key={metric.id} style={score !== null ? { "--tile-heat": getHeatToken(score) } as React.CSSProperties : undefined}>
+                  {score !== null ? score : "–"}
+                </td>;
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <HeatLegendRamp />
+  </div>;
 }
 
 export function OneToManyResult({ view, demo = false }: { view: OneToManyResultView; demo?: boolean }) {
@@ -22,6 +71,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
             <strong>점수 차이를 읽는 방법</strong>
             <span>{view.closenessNotice}</span>
           </div>
+          <ZootopiCaption expression="idea">{comparisonHeroCaption(view)}</ZootopiCaption>
         </header>
 
         <section className="comparison-section" aria-labelledby="ranking-title">
@@ -41,6 +91,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
                 <div className="ranking-score">
                   <span>{candidate.score}</span>
                   <small>점</small>
+                  <CandlestickScore score={candidate.score} compact />
                 </div>
                 <small className="ranking-score-level">{getCompatibilityScoreBand(candidate.score).label}</small>
                 <p>{candidate.confidenceLabel}</p>
@@ -74,6 +125,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
             <h2 id="summary-metrics-title">연락부터 장기관계까지 같은 기준으로 비교</h2>
             <p>연락·대화, 편안함·신뢰, 갈등 회복, 생활·장기관계를 같은 기준으로 비교했어요.</p>
           </div>
+          <CommonMetricsHeatmapMatrix view={view} />
           <div className="summary-metric-list">
             {view.summaryMetrics.map((metric) => (
               <article className="summary-metric-card" key={metric.id}>
@@ -135,7 +187,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
                 <div className="candidate-insight-body">
                   <p className="comparison-summary">{candidate.oneLine}</p>
                   <div className="candidate-insight-column strength-tone">
-                    <h3>잘 맞는 지점</h3>
+                    <h3>잘 맞는 지점 <span className="stock-badge-tag is-up">호재</span></h3>
                     {candidate.strengths.map((strength) => (
                       <div key={`${strength.label}-${strength.copy}`}>
                         <strong>{strength.label}</strong>
@@ -144,7 +196,7 @@ export function OneToManyResult({ view, demo = false }: { view: OneToManyResultV
                     ))}
                   </div>
                   <div className="candidate-insight-column caution-tone">
-                    <h3>조율할 지점</h3>
+                    <h3>조율할 지점 <span className="stock-badge-tag is-flat">리스크</span></h3>
                     {candidate.cautions.map((caution) => (
                       <div key={`${caution.label}-${caution.copy}`}>
                         <strong>{caution.label}</strong>
