@@ -87,10 +87,26 @@ for (const forbidden of ["anthropic", "/api/orders", "paymentId", "PortOne", "se
 }
 assert.match(freeApiSource, /buildFreeSelfAnalysis/);
 
-const oneToOneSource = readFileSync("src/components/one-to-one-form.tsx", "utf8");
+const oneToOnePageSource = readFileSync("src/app/one-to-one/page.tsx", "utf8");
+const oneToOneSource = readFileSync("src/components/one-to-one-form-v3.tsx", "utf8");
+const oneToOneCss = readFileSync("src/app/one-to-one/one-to-one-input-v3.module.css", "utf8");
+assert.match(oneToOnePageSource, /OneToOneFormV3/);
+assert.match(oneToOnePageSource, /1:1 관계 궁합 · 3단계/);
+assert.match(oneToOnePageSource, /24시간제 HHMM/);
+assert.match(oneToOneSource, /const STEP_LABELS = \["내 정보", "상대방 정보", "확인"\]/);
 assert.match(oneToOneSource, /FREE_SELF_PERSON_STORAGE_KEY/);
 assert.match(oneToOneSource, /sessionStorage\.getItem/);
 assert.match(oneToOneSource, /fromFree/);
 assert.match(oneToOneSource, /personA: toPersonBirthForm\(parsed\)/);
+assert.match(oneToOneSource, /birthTime\.replace\(":", ""\)/, "free prefill은 24시간 HHMM으로 표시해야 합니다.");
+assert.match(oneToOneSource, /RELATIONSHIP_TYPES\.map/);
+assert.match(oneToOneSource, /validateOneToOneReportInput/);
+assert.match(oneToOneSource, /createRecoveredOneToOneOrderDraft/);
+assert.match(oneToOneSource, /\/api\/orders\/one-to-one/);
+assert.match(oneToOneSource, /v3-review-card/);
+assert.match(oneToOneCss, /grid-template-columns:\s*repeat\(3/);
+assert.match(oneToOneCss, /--zootopi-butter/);
+assert.match(oneToOneCss, /@media \(max-width:\s*480px\)/);
+assert.doesNotMatch(oneToOneCss, /gradient|box-shadow/i);
 
-console.log("Growth free acquisition + v3 free input + 24-hour birth time contract passed.");
+console.log("Growth free acquisition + v3 free input + v3 one-to-one input + 24-hour birth time contract passed.");
