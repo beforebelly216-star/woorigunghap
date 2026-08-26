@@ -61,7 +61,8 @@
 
 ## 검증 상태
 
-- **PR #64 / Core calculation validation #771 PASS** — 최종 문서 포함 head에서 무료 천생연분 입력 UI, 기존 무료 분석 runtime 제거, 1:1·1:N 입력 레퍼런스형 재구성, 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build 통과.
+- **PR #64 / Core calculation validation #773 PASS** — 최종 head에서 무료 천생연분 입력 UI, 기존 무료 분석 runtime 제거, 1:1·1:N 입력 레퍼런스형 재구성, 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build 통과.
+- PR #64 → `main` 병합 완료: `9fb74606`.
 - PR #63 / validation #761 PASS — A99 홈 재구성
 - PR #62 / validation #752 PASS — 결제·생성 v3
 
@@ -74,7 +75,7 @@
 ## 남은 핵심 작업 / 리스크
 
 1. **무료 천생연분 deterministic 결과 로직 설계·구현** — 사용자 사주원국 → 잘 어울리는 상대 사주 팔자/오행·일간·지지 조건 설명
-2. PR #64 Preview 또는 Production 배포 후 첨부 레퍼런스와 390px 실화면 pixel-level 대조·보정
+2. Preview 또는 Production 배포 후 첨부 레퍼런스와 390px 실화면 pixel-level 대조·보정
 3. 360 / 390 / 430px 홈·무료·1:1·1:N 입력 overflow/spacing QA
 4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
 5. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
