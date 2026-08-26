@@ -22,7 +22,9 @@
 - [x] 결제·계산·AI·저장 backend 계약 유지
 - [x] **PR #64 / Core calculation validation #773 PASS** — 최종 head 전체 contracts, lint, production build
 - [x] PR #64 → `main` 병합 (`9fb74606`)
-- [ ] 사용자 승인 시 Preview/Production 배포 후 첨부 이미지와 390px pixel-level 대조·보정
+- [x] Vercel Preview 배포 — branch `preview/ui-free-soulmate-v4`, deploy commit `b124e1fb`, Vercel success
+- [x] Preview 배포 후 branch 자동배포 OFF 원복 (`1c015a00`)
+- [ ] Preview 390px 실화면을 첨부 이미지와 pixel-level 대조·보정
 
 ## 다음 기능 작업
 
@@ -56,11 +58,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 무료 천생연분 입력 신설 + 기존 무료 관계성향 제거 + 1:1/1:N 입력 UI 전면 재구성
+- Task: 무료 천생연분/1:1/1:N 입력 UI 전면 재구성 후 Vercel Preview 배포
 - Status: complete
-- Validation: PR #64 / Core calculation validation #773 PASS — 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS
-- Commit: PR #64 main 병합 `9fb74606`; PROJECT_STATE `47344b50`; 본 HANDOFF 갱신이 최신 main
-- Remaining: 배포 승인 시 390px 실화면 대조 보정 → 이후 무료 천생연분 deterministic 결과 로직 구현
-- Risk: 무료 천생연분 submit은 현재 UI-only 완료 상태이며 실제 결과 계산/API는 의도적으로 미구현. 유료 backend 변경 없음
-- Deploy: 미수행. Git 자동배포 OFF 유지
+- Validation: PR #64 / Core calculation validation #773 PASS — 전체 contracts, lint, production build PASS; Preview Vercel status success
+- Commit: main `9fb74606`; Preview trigger `b124e1fb`; Preview auto-deploy OFF `1c015a00`; 상태문서 갱신이 최신 main
+- Remaining: Preview 390px 실화면 캡처를 첨부 레퍼런스와 직접 대조하여 pixel-level 보정 → 이후 무료 천생연분 deterministic 결과 로직 구현
+- Risk: 무료 천생연분 결과 계산/API는 의도적으로 미구현. Production에는 이번 UI 변경 미배포
+- Deploy: Preview 성공. Production 미수행. Git 자동배포 OFF 유지
 ```
