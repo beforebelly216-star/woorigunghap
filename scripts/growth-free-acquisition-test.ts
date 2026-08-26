@@ -10,7 +10,7 @@ const person: PersonBirthInput = {
   calendarType: "solar",
   birthDate: "1998-08-15",
   birthTimeKnown: true,
-  birthTime: "09:30",
+  birthTime: "14:30",
   isLeapMonth: false,
 };
 
@@ -47,27 +47,39 @@ assert.doesNotMatch(homeSource, /href="\/one-to-one"|href="\/one-to-many"/, "홈
 
 const freePageSource = readFileSync("src/app/free/page.tsx", "utf8");
 const freePageCss = readFileSync("src/app/free/free-page.module.css", "utf8");
-assert.match(freePageSource, /0원 · 결제 없음/);
-assert.match(freePageSource, /무료 결과가 잘 맞는다고 느껴졌을 때만/);
+assert.match(freePageSource, /무료 · 결제 없음/);
+assert.match(freePageSource, /내 관계 성향을/);
+assert.match(freePageSource, /<ZootopiMark/);
 assert.match(freePageSource, /free-page\.module\.css/);
 assert.doesNotMatch(freePageSource, /className="input-page"|className="input-shell"/, "무료 화면은 레거시 input-page shell에 의존하지 않아야 합니다.");
 assert.match(freePageCss, /--saju-width-compact/);
+assert.match(freePageCss, /--zootopi-butter/);
 assert.match(freePageCss, /@media \(max-width:\s*480px\)/);
 assert.doesNotMatch(freePageCss, /99999px|gradient|box-shadow/i);
 
 const freeClientSource = readFileSync("src/components/free-self-analysis.tsx", "utf8");
 const freeClientCss = readFileSync("src/components/free-self-analysis.module.css", "utf8");
+const birthFieldsSource = readFileSync("src/components/person-birth-fields.tsx", "utf8");
 assert.match(freeClientSource, /sessionStorage\.setItem\(FREE_SELF_PERSON_STORAGE_KEY/);
 assert.match(freeClientSource, /href="\/one-to-one\?from=free"/);
 assert.match(freeClientSource, /1,000원/);
 assert.match(freeClientSource, /3,000원/);
+assert.match(freeClientSource, /내 관계 성향 보기/);
 assert.match(freeClientSource, /\{analysis \? \(/, "유료 CTA는 무료 결과가 생긴 뒤에 렌더링되어야 합니다.");
 assert.doesNotMatch(freeClientSource, /birthDate=.*from=free|birthTime=.*from=free/);
 assert.match(freeClientCss, /var\(--saju-action\)/);
 assert.match(freeClientCss, /var\(--saju-ink\)/);
+assert.match(freeClientCss, /var\(--zootopi-butter\)/);
 assert.match(freeClientCss, /:global\(\.person-panel\)/);
 assert.match(freeClientCss, /@media \(max-width:\s*480px\)/);
 assert.doesNotMatch(freeClientCss, /--saju-primary-deep|--saju-accent|--saju-blush|gradient|box-shadow/i);
+
+assert.match(birthFieldsSource, /24시간제/);
+assert.match(birthFieldsSource, /placeholder="예: 1430"/);
+assert.match(birthFieldsSource, /hour > 23 \|\| minute > 59/);
+assert.doesNotMatch(birthFieldsSource, /출생시간 오전 또는 오후/);
+assert.doesNotMatch(birthFieldsSource, />오전<|>오후</);
+assert.match(birthFieldsSource, /legacyTwelveHourToTwentyFour/, "기존 저장된 12시간제 form state는 읽기 호환해야 합니다.");
 
 const freeApiSource = readFileSync("src/app/api/free/self-analysis/route.ts", "utf8");
 for (const forbidden of ["anthropic", "/api/orders", "paymentId", "PortOne", "server-report-store"]) {
@@ -81,4 +93,4 @@ assert.match(oneToOneSource, /sessionStorage\.getItem/);
 assert.match(oneToOneSource, /fromFree/);
 assert.match(oneToOneSource, /personA: toPersonBirthForm\(parsed\)/);
 
-console.log("Growth free acquisition + Foundation v2 contract passed.");
+console.log("Growth free acquisition + v3 free input + 24-hour birth time contract passed.");
