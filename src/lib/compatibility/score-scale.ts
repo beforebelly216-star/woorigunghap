@@ -62,10 +62,10 @@ export function getCompatibilityRawRange(relationshipType: RelationshipType) {
 export function getCommonCompatibilityRawRange() {
   const relationshipTypes: RelationshipType[] = ["crush", "flirting", "lover", "friend", "coworker"];
   const ranges = relationshipTypes.map(getCompatibilityRawRange);
-  return {
-    min: Math.max(...ranges.map((range) => range.min)),
-    max: Math.min(...ranges.map((range) => range.max)),
-  };
+  const min = Math.max(...ranges.map((range) => range.min));
+  const max = Math.min(...ranges.map((range) => range.max));
+  if (!(max > min)) throw new Error("관계별 궁합 원점수 공통 정규화 구간이 유효하지 않습니다.");
+  return { min, max };
 }
 
 /**
