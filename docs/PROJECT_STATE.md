@@ -43,8 +43,10 @@
 - 홈에 실제 사용자 데이터처럼 보이는 fake score/ranking/chart를 넣지 않는다. 1:1 1,000원 / 1:N 3,000원은 기능·가격 설명만 제공한다.
 - **`/free` v3 입력 화면 구현 완료:** 단일 정보 카드, 짧은 설명, 주토피 guide, Black/Yellow CTA, mobile-first 간격으로 정리했다.
 - **공용 출생시간 입력은 오전/오후 선택 없이 24시간제 `HHMM`으로 통일했다.** 기존 저장 form의 12시간제 `meridiem` 상태는 읽기 호환 레이어에서만 변환하며 UI에는 노출하지 않는다.
+- **1:1 입력 v3 구현 완료:** 사용자 승인 B안대로 `내 정보+관계 → 상대방 정보 → 확인` 3단계로 재구성했다. free prefill, 관계 유형·관계기간·직장동료 위계, 상대 정보 수준 A/B, 주문 draft·복구·결제 진입 계약은 유지한다.
+- 확인 단계에서 두 사람 입력 요약과 수정 진입을 제공하며, 개인정보 안내와 별칭 사용 원칙을 유지한다.
 - 캐릭터 시트와 신규 포즈의 최종 Production 검수는 사용자 요청에 따라 후순위로 보류했다.
-- 다음 UI 작업은 `/free` 390px 실화면 확인 후 1:1 → 1:N 입력 UX 재설계다.
+- 다음 UI 작업은 1:N 입력 UX 재설계다. 홈·`/free`·1:1의 실제 390px 육안 QA는 별도 실기기 QA로 남아 있다.
 
 ## 기존 UI / UX — Design Foundation v2
 
@@ -63,7 +65,8 @@
 
 ## 검증 상태
 
-- **PR #59 / Core calculation validation #734 PASS** — v3 `/free` 입력 UI, 24시간제 공용 시간 입력, legacy form-state 읽기 호환, 전체 contracts, lint, production build 통과.
+- **PR #60 / Core calculation validation #741 PASS** — v3 1:1 3단계 입력, free prefill 24시간제 호환, 개인정보/상대 정보 수준 계약, 전체 contracts, lint, production build 통과.
+- **PR #59 / Core calculation validation #736 PASS** — v3 `/free` 입력 UI, 24시간제 공용 시간 입력, legacy form-state 읽기 호환, 전체 contracts, lint, production build 통과.
 - **PR #58 / Core calculation validation #732 PASS** — v3 홈 A안 + free-first/1:N/UI 계약 정합성, 전체 contracts, lint, production build 통과.
 - **PR #55 / Core calculation validation #710 PASS**
 - 만세력/경계/궁합/결제/AI/1:N/account/editorial/policy/Growth/report 전체 계약 PASS
@@ -77,7 +80,7 @@
 
 ## 배포 상태
 
-- **v3 홈 A안과 `/free` 입력 v3는 코드 기준 최신 main 반영 대상이며 Vercel Preview/Production에는 아직 배포하지 않았다.** 사용자 명시 승인 전 배포하지 않는다.
+- **v3 홈 A안, `/free` 입력 v3, 1:1 입력 v3는 코드 기준 최신 main 반영 대상이며 Vercel Preview/Production에는 아직 배포하지 않았다.** 사용자 명시 승인 전 배포하지 않는다.
 - **주토피 stock-theme UI 스킨을 runtime commit `8f586db`로 main에 반영하고, `7b46a8e`에서 승인된 Vercel Production 배포를 완료했다. Vercel status `success`; `aaa6c2a`에서 Git 자동배포를 다시 비활성화했다.**
 - `5435861`에 Claude Sonnet 5 전환과 `AI_QUALITY` 결제 결과 복구 hotfix `d9f7cae`를 포함해 Vercel Production 배포 완료했다.
 - Production deployment: `https://woorigunghap-uty7-q7pw0wrsd-beforebelly216-stars-projects.vercel.app` · GitHub deployment `6087168964` · GitHub/Vercel status `success`.
@@ -90,8 +93,8 @@
 1. 실패한 동일 결제로 Production `5435861`의 1:1 생성→저장→재열람 복구 확인
 2. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View 링크 확인
 3. 홈 → 무료 결과 → 1:1 prefill 실제 동작 확인
-4. **v3 홈·`/free` 390px 육안 확인 후 1:1 → 1:N 입력 UX 재설계**
-5. 360 / 390 / 430 / 768 / 1280px 전체 화면 spacing/overflow 최종 QA
+4. **1:N 입력 UX v3 재설계**
+5. 홈·`/free`·1:1 포함 360 / 390 / 430 / 768 / 1280px 전체 화면 spacing/overflow 최종 QA
 6. 비회원 결과 → Kakao 로그인 → 귀속 → 보관함 재열람
 7. 회원탈퇴/데이터 삭제/Kakao unlink
 8. 결과/계정 삭제 뒤 public share 및 analytics 정리 확인
