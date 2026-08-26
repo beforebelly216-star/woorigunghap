@@ -1,6 +1,9 @@
+import type { RelationshipType } from "@/lib/report-input";
+import type { CompatibilityDimension } from "./types";
+import { RELATIONSHIP_SCORE_WEIGHTS } from "./weights";
+
 export const PUBLIC_COMPATIBILITY_SCORE_FLOOR = 30;
 export const PUBLIC_COMPATIBILITY_SCORE_CEILING = 100;
-export const PUBLIC_COMPATIBILITY_RAW_FLOOR = 30;
 
 export type CompatibilityScoreBand = {
   min: number;
@@ -8,6 +11,24 @@ export type CompatibilityScoreBand = {
   label: string;
   shortLabel: string;
   description: string;
+};
+
+/**
+ * Actual configured output bounds of each deterministic dimension scorer.
+ * These are not user-facing score caps. They define the raw engine scale so
+ * that each relationship's attainable raw range can be normalized to the
+ * product's full 30..100 public range without an arbitrary bonus.
+ */
+export const COMPATIBILITY_DIMENSION_RAW_BOUNDS: Record<CompatibilityDimension, { min: number; max: number }> = {
+  dayMaster: { min: 55, max: 85 },
+  dayBranch: { min: 45, max: 90 },
+  usefulGodFit: { min: 50, max: 90 },
+  elementComplementarity: { min: 55, max: 95 },
+  heavenlyStemInteraction: { min: 45, max: 90 },
+  earthlyBranchInteraction: { min: 40, max: 90 },
+  specialStars: { min: 60, max: 85 },
+  spouseStarRealization: { min: 55, max: 85 },
+  luckCycleAlignment: { min: 45, max: 92 },
 };
 
 export const COMPATIBILITY_SCORE_BANDS: readonly CompatibilityScoreBand[] = [
@@ -25,18 +46,34 @@ export const COMPATIBILITY_SCORE_BANDS: readonly CompatibilityScoreBand[] = [
   { min: 30, max: 39, label: "맞추기 어려운 궁합", shortLabel: "맞추기 어려움", description: "여러 핵심 지표가 동시에 약한 조합입니다. 좋은 점을 억지로 부풀리기보다 실제로 반복될 수 있는 갈등 구조를 먼저 보는 편이 낫습니다." },
 ] as const;
 
+export function getCompatibilityRawRange(relationshipType: RelationshipType) {
+  let min = 0;
+  let max = 0;
+  const weights = RELATIONSHIP_SCORE_WEIGHTS[relationshipType];
+  for (const dimension of Object.keys(weights) as CompatibilityDimension[]) {
+    const weight = weights[dimension];
+    const bounds = COMPATIBILITY_DIMENSION_RAW_BOUNDS[dimension];
+    min += (bounds.min / 100) * weight;
+    max += (bounds.max / 100) * weight;
+  }
+  return { min, max };
+}
+
 /**
- * Public score is the deterministic weighted score itself, rounded to an
- * integer and clamped only to the absolute 30..100 product range.
- * No entertainment uplift, relationship ceiling, or hidden bonus is applied.
+ * Normalize the deterministic engine's configured attainable raw interval to
+ * the full public 30..100 scale. This is range normalization, not a hidden
+ * entertainment bonus: weak raw outcomes move toward 30, strongest outcomes
+ * can reach 100, and every relationship uses the same public endpoints.
  */
-export function calibrateCompatibilityScore(rawScore: number) {
+export function calibrateCompatibilityScore(rawScore: number, relationshipType: RelationshipType) {
   if (!Number.isFinite(rawScore)) throw new RangeError("궁합 점수는 유한한 숫자여야 합니다.");
-  const clamped = Math.min(
-    PUBLIC_COMPATIBILITY_SCORE_CEILING,
-    Math.max(PUBLIC_COMPATIBILITY_RAW_FLOOR, rawScore),
+  const range = getCompatibilityRawRange(relationshipType);
+  const clampedRaw = Math.min(range.max, Math.max(range.min, rawScore));
+  const ratio = (clampedRaw - range.min) / (range.max - range.min);
+  return Math.round(
+    PUBLIC_COMPATIBILITY_SCORE_FLOOR
+      + ratio * (PUBLIC_COMPATIBILITY_SCORE_CEILING - PUBLIC_COMPATIBILITY_SCORE_FLOOR),
   );
-  return Math.round(clamped);
 }
 
 export function getCompatibilityScoreBand(score: number): CompatibilityScoreBand {
