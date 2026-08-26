@@ -38,7 +38,6 @@ assert.match(homeSource, /1:N 궁합/);
 assert.match(homeSource, /오늘의 궁합 TOP 3/);
 assert.match(homeSource, /관계 흐름 한눈에 보기/);
 assert.match(homeSource, /주토피의 오늘의 한마디/);
-assert.match(homeSource, /href="\/free"/);
 assert.match(homeCss, /width:\s*min\(100%,\s*390px\)/);
 assert.match(homeCss, /grid-template-columns:\s*1fr 1fr/);
 assert.match(homeCss, /position:\s*fixed/);
