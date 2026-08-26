@@ -18,15 +18,7 @@
   - [x] `5435861` Vercel Production 배포 (`success`, deployment `6087168964`)
   - [ ] 실패한 동일 결제로 생성→저장→재열람 확인
 - [x] **1:1 AI 과다 출력·장시간 대기·완성 형식 확정 실패 구조 개선**
-  - 목표 분량을 공백 제외 약 2,500~4,000자로 축소하고 CH0~CH9·관계별 편집 기준 유지
-  - 암묵적 token 확대를 제거하고 segment별 1차/재시도 ceiling, timeout, 총 요청 예산을 명시
-  - structured output 우선 + 기존 JSON fallback, transient/max_tokens 제한 재시도, 요청 단위 관측 로그 추가
-  - 원자 저장, 완료 segment 재사용, single-flight/idempotency 및 결제 검증 경계 유지
-  - `f758c4f` — 관련 contracts, lint, production build PASS
 - [x] **Claude Haiku 4.5 → Claude Sonnet 5 전환 및 Production 배포**
-  - `claude-sonnet-5` 기본화, 기존 Haiku 운영 환경변수 자동 마이그레이션
-  - adaptive thinking 비활성화로 bounded JSON 출력 예산 보호, 1:1·1:N structured output 우선
-  - `be983fb` Production 배포 status `success`; Git 자동배포 다시 비활성화
 - [ ] **Production `be983fb` 실제 1:1 runtime 재검증**
   - [ ] 기존 stuck 주문 회복 확인
   - [ ] 신규 실제 결제 → 전체 생성 → 서버 저장 → 보관함 재열람 시간 측정
@@ -40,29 +32,35 @@
 - [ ] 회원탈퇴 / 데이터 삭제 / Kakao unlink
 - [ ] 결과/계정 삭제 뒤 public share와 analytics 정리 확인
 
-## UI / UX 전면 개편
-- [x] 1단계 Design Foundation v2
-- [x] 2단계 공통 shell + 홈
-- [x] 3단계 무료 분석 입력/결과
-- [x] 4단계 1:1 입력/결제
-- [x] 5단계 생성중/복구/실패 상태
-- [x] 6단계 1:1 완성 결과 IA/레이아웃
-- [x] 7단계 1:N 입력/결제/비교 결과
-- [x] 8단계 보관함/계정
-- [x] **9단계 Shared View / 공유 카드 시각 통합**
-  - Shared View를 neutral canvas + typography/divider 위계로 전환
-  - 1:1·1:N 9:16 preview와 실제 1080×1920 canvas export를 동일 시각체계로 통일
-  - lavender gradient/장식 원/큰 shadow 제거
-  - Receipt/Recap/Relationship Label/Two Sides/Send This + P6 A/B experiment 유지
-  - public DTO/privacy/opaque token/Web Share/image download/analytics/reaction/new-analysis CTA 유지
-  - **Core calculation validation #710 PASS: 전체 contracts + lint + production build**
+## UI / UX 전면 재설계 v3 — 사용자 명시 우선 작업
 
-### 다음 UI 작업
-- [ ] **전체 multi-viewport 육안 QA + spacing/overflow 최종 보정**
-  - 360 / 390 / 430 / 768 / 1280px
-  - 홈, 무료 분석, 1:1 입력/결제/생성/결과, 1:N 입력/결제/결과, 보관함/로그인, Shared View
-  - CTA safe-area, 긴 한글 줄바꿈, horizontal overflow, sticky/fixed 충돌, desktop content rail 확인
-  - 기능 로직 변경 없이 CSS/markup 최소 보정
+> 현재 배포된 주토피 stock-theme UI/UX/레이아웃은 사용자 평가상 전면 재설계 대상. 세부 CSS 수정부터 시작하지 않는다. `docs/JOOTOPI_UI_REDESIGN.md`가 이번 재설계의 디자인 기준 문서다.
+
+### 전체 단계
+- [ ] **1단계 Design Direction / Reference 확정**
+  - [ ] 1A Brand Mood — 대부분 확정. 남은 Typography / Iconography / Data visualization / Motion / 신규 포즈 검수
+  - [ ] 1B Layout Grammar
+  - [ ] 1C Jootopi Character Rules 최종 규격
+  - [ ] 1D Reference Board
+- [ ] **2단계 홈 화면만 전면 재설계** — 390px mobile-first, 홈 승인 전 핵심 화면 확장 금지
+- [ ] **3단계 입력 UX 재설계** — `/free`, 1:1, 1:N
+- [ ] **4단계 결제·생성 UX 재설계** — 상품 요약/CTA/대기/복귀/실패·재시도, backend contract 유지
+- [ ] 후속: 1:1 결과 → 1:N 결과 → 보관함/공유/계정 → multi-viewport QA
+
+### 1A 핵심 확정값 요약
+- 캐릭터 × 핀테크
+- Color: White/warm off-white 중심 B 80% + Black×Yellow C 20%
+- Shape: Balanced
+- Information style: Hybrid
+- Character presence: Moment-based 50 + Host 50
+- Voice: 무조건 반말; 귀여움 50 / 영리함 35 / 장난기 15; 주식 밈 과다사용 금지
+- Placement: Hero 20 / Companion 50 / Micro 30
+- Dialogue: Talk 20 / Commentary 65 / Scene 15
+- Character Source of Truth: 사용자 제공 원본 주토피 캐릭터 시트. 기존 승인 포즈를 생성형 AI로 임의 재작성하지 않는다.
+
+## 기존 UI / UX v2 완료 이력
+- [x] 1~9단계 기존 Design Foundation/공통 shell/홈/무료/1:1/생성/1:N/보관함/Shared View 구현
+- 기존 구현은 기능/계약 보존 참고용이며 v3 시각 방향의 기준은 아님.
 
 ## 콘텐츠 개선 backlog
 - [ ] 사주소년 화자는 유지하되 정보 전달 우선, 관계 유형별 감정 온도 분리
@@ -77,11 +75,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: Claude 주토피 stock-theme bundle 결과를 최신 main에 반영하고 Vercel Production 배포
-- Status: complete
-- Validation: Claude runtime payload 적용 성공; npm run lint PASS; npm run build PASS; Vercel Production status success
-- Commit: 8f586db runtime 반영 · 7b46a8e Production 배포 트리거 · aaa6c2a Git 자동배포 false 복구
-- Remaining: 360 / 390 / 430 / 768 / 1280px 주토피 스킨 육안 QA 및 기존 paid runtime 운영 QA
-- Risk: 주토피 스킨은 시각/UI 확장 범위이며 실제 1:1·1:N 결제/생성 runtime 재검증은 기존 운영 QA 항목으로 남음
-- Deploy: Vercel Production success; Git 자동배포 false 복구
+- Task: 주토피 중심 UI/UX 전면 재설계 v3의 1A Brand Mood를 사용자와 단계별 확정하고 다음 대화용 기준 문서 저장
+- Status: partial
+- Validation: 문서/디자인 결정 작업만 수행; runtime 코드 변경 없음, lint/build 불필요
+- Commit: 587f4a9 docs/JOOTOPI_UI_REDESIGN.md 신규 저장; 본 NEXT_TASK 갱신 커밋이 최신
+- Remaining: docs/JOOTOPI_UI_REDESIGN.md의 1A 남은 항목부터 진행 — Typography → Iconography → Data visualization → Motion → 신규 7포즈 Production 검수. 이후 1B Layout Grammar → 1C → 1D. 그 뒤 2단계 홈 재설계.
+- Risk: 신규 7포즈 extension은 생성 이미지이므로 원본 캐릭터 시트와 100% 동일한 공식 자산으로 간주하지 말 것. 원본 시트에서 분리한 13개 v1.1 에셋이 더 높은 신뢰도의 Identity 자산. 현재 에셋 ZIP은 채팅 산출물이므로 새 세션에서 바이너리 자체가 필요하면 다시 업로드/저장소 편입 필요.
+- Deploy: 이번 디자인 문서 작업은 Production 배포 없음. 기존 Production 상태 유지.
 ```
