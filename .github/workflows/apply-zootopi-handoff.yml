@@ -25,7 +25,9 @@ jobs:
         run: |
           git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime.part-00 > /tmp/zootopi-runtime.b64
           git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime.part-01 >> /tmp/zootopi-runtime.b64
-          git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime.part-02 >> /tmp/zootopi-runtime.b64
+          git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime.part-02a >> /tmp/zootopi-runtime.b64
+          git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime.part-02b >> /tmp/zootopi-runtime.b64
+          git show origin/zootopi-transfer-gpt:.handoff/zootopi-runtime.part-02c >> /tmp/zootopi-runtime.b64
           base64 --decode /tmp/zootopi-runtime.b64 > /tmp/zootopi-runtime-final.tar.gz
           tar -xzf /tmp/zootopi-runtime-final.tar.gz -C .
           test -f src/components/zootopi-mark.tsx
