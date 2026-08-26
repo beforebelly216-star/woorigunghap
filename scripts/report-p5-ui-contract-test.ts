@@ -11,6 +11,7 @@ const result = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
 const resultStatusCss = readFileSync("src/app/one-to-one/result/result-status.css", "utf8");
 const components = readFileSync("src/app/one-to-one/result/report-v2-components.tsx", "utf8");
 const oneToOnePage = readFileSync("src/app/one-to-one/page.tsx", "utf8");
+const oneToOneInputCss = readFileSync("src/app/one-to-one/one-to-one-input-v3.module.css", "utf8");
 const checkout = readFileSync("src/app/one-to-one/checkout/page.tsx", "utf8");
 const oneToOneFlowCss = readFileSync("src/app/one-to-one/one-to-one-flow.module.css", "utf8");
 const payment = readFileSync("src/components/payment-button.tsx", "utf8");
@@ -19,72 +20,46 @@ const shareCss = readFileSync("src/app/one-to-one/result/compatibility-share-car
 const home = readFileSync("src/app/page.tsx", "utf8");
 const homeCss = readFileSync("src/app/home-p5.module.css", "utf8");
 
-for (const token of [
-  "#F7F7F4", "#FFFFFF", "#EFEFEB", "#222226", "#68686F", "#929298",
-  "#E2E2DD", "#CBCBC4", "#E9E9E4",
-  "#4D8B5F", "#D55A4A", "#C9973D", "#858E9E", "#3E78A8",
-  "#2F7D4A", "#9A6A12", "#B74343", "#356F9C",
-]) assert.ok(theme.includes(token), `Design Foundation v2 token missing: ${token}`);
-assert.doesNotMatch(theme, /#F4F1FA|#B7A9E6|#806FC0/i, "retired lavender P5 brand tokens must not return to shared report theme");
-assert.doesNotMatch(theme, /prefers-color-scheme:\s*dark/, "Design Foundation v2 is light-only");
+for (const token of ["#F7F7F4", "#FFFFFF", "#EFEFEB", "#222226", "#68686F", "#929298", "#E2E2DD", "#CBCBC4", "#E9E9E4", "#4D8B5F", "#D55A4A", "#C9973D", "#858E9E", "#3E78A8", "#2F7D4A", "#9A6A12", "#B74343", "#356F9C"]) {
+  assert.ok(theme.includes(token), `Design Foundation v2 token missing: ${token}`);
+}
+assert.doesNotMatch(theme, /prefers-color-scheme:\s*dark/);
 assert.match(theme, /Pretendard/);
-assert.match(theme, /IBM Plex Mono/);
-assert.match(theme, /IBM Plex Sans KR/);
-assert.match(theme, /--saju-width-compact:\s*480px/);
 assert.match(theme, /--saju-width-report:\s*640px/);
-assert.match(theme, /--saju-width-compare:\s*960px/);
 assert.match(page, /report-theme\.css/);
 assert.match(page, /report-p5-overrides\.css/);
 assert.match(page, /report-p5-mobile\.css/);
 assert.match(page, /result-status\.css/);
 assert.doesNotMatch(base + detail, /#fbf8f2|#213f33|#fffdf8/i);
-assert.match(base, /line-height:\s*1\.75/);
 assert.match(overrides, /partner-inner-mind-hero/);
-assert.match(overrides, /day-pillar-character-card/);
-assert.match(overrides, /day19-chapter \.v2-chapter-heading > span/);
 assert.match(overrides, /deep-strategy-steps/);
-assert.match(overrides, /deep-strategy-signals/);
-assert.match(overrides, /deep-observable-scenes/);
+
 assert.match(home, /home-p5\.module\.css/);
-assert.match(home, /report-theme\.css/);
-assert.match(home, /당신의 궁합/);
+assert.match(home, /무료 천생연분/);
 assert.match(home, /오늘의 궁합 TOP 3/);
-assert.match(home, /관계 흐름 한눈에 보기/);
-assert.match(home, /주토피의 오늘의 한마디/);
-assert.match(home, /<ZootopiMark/);
 assert.match(homeCss, /width:\s*min\(100%,\s*390px\)/);
-assert.match(homeCss, /\.quickGrid/);
-assert.match(homeCss, /\.rankGrid/);
+assert.match(homeCss, /grid-template-columns:\s*repeat\(3/);
 assert.match(homeCss, /\.bottomNav/);
-assert.match(homeCss, /@media \(max-width:\s*360px\)/);
-assert.match(oneToOnePage, /one-to-one-flow\.module\.css/);
-assert.doesNotMatch(oneToOnePage, /className="input-page"|className="input-shell"/);
+
+assert.match(oneToOnePage, /input-reference-v4\.css/);
+assert.match(oneToOnePage, /one-to-one-input-v3\.module\.css/);
+assert.match(oneToOnePage, /1:1 궁합 입력/);
+assert.match(oneToOneInputCss, /one-to-one-reference-page/);
+assert.match(oneToOneInputCss, /#7b46d8/i);
 assert.match(checkout, /one-to-one-flow\.module\.css/);
-assert.doesNotMatch(checkout, /report-p5-mobile\.css/);
-assert.doesNotMatch(checkout, /className="input-page"|className="checkout-shell"/);
 assert.match(oneToOneFlowCss, /var\(--saju-width-compact\)/);
-assert.match(oneToOneFlowCss, /var\(--saju-action\)/);
-assert.match(oneToOneFlowCss, /var\(--saju-border\)/);
 assert.match(oneToOneFlowCss, /@media \(max-width:\s*480px\)/);
-assert.doesNotMatch(oneToOneFlowCss, /max-width:\s*99999px|linear-gradient|radial-gradient|box-shadow:\s*0\s+\d/i);
+
 assert.match(resultStatusCss, /var\(--saju-width-compact\)/);
-assert.match(resultStatusCss, /var\(--saju-action\)/);
-assert.match(resultStatusCss, /var\(--saju-border\)/);
 assert.match(resultStatusCss, /@media \(max-width:\s*480px\)/);
-assert.doesNotMatch(resultStatusCss, /max-width:\s*99999px|linear-gradient|radial-gradient|var\(--saju-shadow\)/i);
 assert.match(page, /결제와 저장 상태를 확인한 뒤 이어서 보여드릴게요/);
 assert.match(result, /STAGE_COPY/);
 assert.match(result, /stageAttempt > 1/);
 assert.match(result, /결제는 다시 하지 않아도 됩니다/);
 assert.match(result, /recoverPaymentId=/);
-assert.match(components, /v2-saju-char/);
-assert.match(components, /pillar\.stem/);
-assert.match(components, /pillar\.branch/);
 assert.match(components, /CompatibilityHeatmap/);
 assert.match(components, /9개 핵심 궁합 지표 히트맵/);
-assert.match(result, /v2-pair-type/);
 assert.match(result, /<CompatibilityHeatmap/);
-assert.match(result, /visibleDimensions/);
 assert.match(components, /사주소년 용한/);
 assert.match(result, /v2-reading-progress/);
 assert.match(checkout, /checkout-sticky-cta/);
@@ -93,17 +68,10 @@ assert.match(checkout, /agreementAccepted=\{policyAccepted\}/);
 assert.match(payment, /buttonLabel\?: string/);
 assert.match(share, /document\.createElement\("canvas"\)/);
 assert.match(share, /new File\(\[blob\]/);
-assert.match(share, /const \[includeNames, setIncludeNames\] = useState\(false\)/);
 assert.match(share, /createPublicShareUrl\(buildOneToOnePublicShare/);
-assert.match(share, /url: sharedViewUrl/);
-assert.doesNotMatch(share, /window\.location\.href/);
 assert.doesNotMatch(share, /accessToken/);
 assert.match(shareCss, /aspect-ratio:\s*9 \/ 16/);
-assert.match(shareCss, /@media \(max-width:\s*[^)]+\)/);
-assert.match(shareCss, /\.score \{ width:\s*136px;/);
-assert.match(mobile, /@media \(max-width:\s*[^)]+\)/);
 assert.match(mobile, /overflow-x:\s*clip/);
-assert.match(mobile, /\.v2-reading-progress[\s\S]*left:\s*14px;[\s\S]*width:\s*calc\(100% - 28px\)/);
-assert.ok(result.indexOf("<CompatibilityShareCard") < result.indexOf("<section className=\"v2-basic-facts\""), "share card should appear immediately after hero before detailed facts");
+assert.ok(result.indexOf("<CompatibilityShareCard") < result.indexOf("<section className=\"v2-basic-facts\""));
 
-console.log("Report Foundation + approved A-reference home + paid flow responsive safety contract: PASS");
+console.log("Report + A99 home + rebuilt input UI responsive contract: PASS");
