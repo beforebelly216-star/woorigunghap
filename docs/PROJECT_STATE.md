@@ -65,15 +65,17 @@
 ## 검증 상태
 
 - **PR #65 / Core calculation validation #778 PASS** — 무료 천생연분 결정론 결과, 결과 UI 계약, 기존 calculation/payment/AI/1:N/account/Growth contracts, lint, production build 전체 통과.
+- PR #65 → `main` 병합 완료: `4740c240`.
 - PR #64 / validation #773 PASS — 무료 천생연분 입력 + 1:1·1:N 입력 재구성.
 - PR #63 / validation #761 PASS — A99 홈 재구성.
 - PR #62 / validation #752 PASS — 결제·생성 v3.
 
 ## 배포 상태
 
-- 기존 입력 UI Preview: `preview/ui-free-soulmate-v4`, Vercel success.
-- PR #65 천생연분 결과 구현은 `main` 병합 후 별도 Preview 배포 예정(사용자 승인 완료).
-- Production에는 최신 무료 천생연분 변경을 아직 배포하지 않는다.
+- **천생연분 결과 Preview 배포 완료**: branch `preview/soulmate-result-v1`, deploy trigger `7f0b031c`, Vercel status `success`.
+- Vercel deployment detail: `https://vercel.com/beforebelly216-stars-projects/woorigunghap-uty7/GQzipRKZLGcmTEKfnBMdwu3YAvrf`
+- Preview 배포 후 branch `vercel.json`은 `4182eb52`에서 `deploymentEnabled:false`로 원복.
+- Production에는 최신 무료 천생연분 변경을 배포하지 않았다.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
