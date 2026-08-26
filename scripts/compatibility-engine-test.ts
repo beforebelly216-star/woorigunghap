@@ -136,6 +136,11 @@ assert.ok(boundaryResult.scenarioPolicy.personAScenarios > 12);
 
 for (const result of [first, crush, flirting, oneUnknown, bothUnknown, boundaryResult]) {
   assert.ok(result.score >= 30 && result.score <= 100, "공개 점수는 모든 관계에서 동일하게 30~100 범위여야 합니다.");
+  assert.equal(
+    result.score,
+    Math.round(result.rawTotal),
+    "30~100 범위 안의 공개 점수는 결정론 원점수의 반올림값과 같아야 하며 숨은 상향 보정이 없어야 합니다.",
+  );
   for (const [dimension, score] of Object.entries(result.dimensions)) {
     assert.ok(Number.isFinite(score.normalizedScore), `${dimension} normalizedScore must be finite`);
     assert.ok(score.normalizedScore >= 0 && score.normalizedScore <= 100, `${dimension} normalizedScore out of range`);
