@@ -24,8 +24,10 @@
 - [x] 용신은 EVIDENCE_ONLY 경계 유지, 확정 판정 금지
 - [x] 신규 `test:soulmate-result` + Growth 계약 갱신
 - [x] **PR #65 / Core calculation validation #778 PASS** — 전체 contracts, lint, production build
-- [ ] PR #65 → `main` 병합
-- [ ] `main` 기준 Vercel Preview 배포 후 390px 레퍼런스와 pixel-level 대조
+- [x] PR #65 → `main` 병합 (`4740c240`)
+- [x] Vercel Preview 배포 — branch `preview/soulmate-result-v1`, deploy trigger `7f0b031c`, Vercel success
+- [x] Preview 배포 후 branch 자동배포 OFF 원복 (`4182eb52`)
+- [ ] Preview 390px 실화면을 승인 레퍼런스와 pixel-level 대조·보정
 
 ## Blocker / 운영 검증
 
@@ -50,11 +52,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 무료 천생연분 결정론 결과 엔진 + 승인 390px 결과 UI 구현
+- Task: 무료 천생연분 결정론 결과 엔진 + 승인 390px 결과 UI 구현 + Preview 배포
 - Status: complete
 - Validation: PR #65 / Core calculation validation #778 PASS — soulmate + 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS
-- Commit: PR #65 branch `gpt/soulmate-result-v1b`; main 병합 대기
-- Remaining: PR #65 main 병합 → 승인된 Preview 배포 → 390px 실화면 레퍼런스 대조 보정
+- Commit: main merge `4740c240`; Preview trigger `7f0b031c`; Preview auto-deploy OFF `4182eb52`; 상태문서 갱신이 최신 main
+- Remaining: Preview 390px 실화면을 승인 레퍼런스와 pixel-level 대조·보정 → 360/390/430 QA
 - Risk: 추천은 일간 생극·오행·음양·일지 관계 기반 heuristic이며 용신 확정/확률 표시는 하지 않음. 유료 backend 변경 없음
-- Deploy: Preview 승인됨, 아직 새 결과 버전 배포 전. Production 미수행. Git 자동배포 OFF 유지
+- Deploy: Preview Vercel success. Production 미수행. Git 자동배포 OFF 유지
 ```
