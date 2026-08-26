@@ -18,7 +18,7 @@ export type PersonBirthFormState = {
   birthDate: string;
   birthTimeKnown: boolean;
   birthTime: string;
-  meridiem: Meridiem;
+  meridiem?: Meridiem;
   isLeapMonth: boolean;
 };
 
@@ -30,7 +30,6 @@ export function createEmptyPersonBirthForm(): PersonBirthFormState {
     birthDate: "",
     birthTimeKnown: true,
     birthTime: "",
-    meridiem: "am",
     isLeapMonth: false,
   };
 }
@@ -44,16 +43,28 @@ function toIsoBirthDate(value: string) {
   return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
 }
 
-function toTwentyFourHourTime(value: string, meridiem: Meridiem) {
+function parseDirectTwentyFourHourTime(value: string) {
+  if (!/^\d{4}$/.test(value)) return null;
+  const hour = Number(value.slice(0, 2));
+  const minute = Number(value.slice(2, 4));
+  if (hour > 23 || minute > 59) return null;
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+function legacyTwelveHourToTwentyFour(value: string, meridiem: Meridiem) {
   if (!/^\d{4}$/.test(value)) return null;
   const hour = Number(value.slice(0, 2));
   const minute = Number(value.slice(2, 4));
   if (hour < 1 || hour > 12 || minute > 59) return null;
-
   const normalizedHour = meridiem === "am"
     ? hour === 12 ? 0 : hour
     : hour === 12 ? 12 : hour + 12;
   return `${String(normalizedHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+function displayBirthTime(person: PersonBirthFormState) {
+  if (!person.meridiem || !person.birthTime) return person.birthTime;
+  return legacyTwelveHourToTwentyFour(person.birthTime, person.meridiem)?.replace(":", "") ?? person.birthTime;
 }
 
 export function normalizePersonBirthForm(
@@ -67,10 +78,12 @@ export function normalizePersonBirthForm(
   }
 
   const birthTime = person.birthTimeKnown
-    ? toTwentyFourHourTime(person.birthTime, person.meridiem)
+    ? person.meridiem
+      ? legacyTwelveHourToTwentyFour(person.birthTime, person.meridiem)
+      : parseDirectTwentyFourHourTime(person.birthTime)
     : null;
   if (person.birthTimeKnown && !birthTime) {
-    errors[`${prefix}.birthTime`] = "오전/오후를 고르고 시간을 HHMM 형식으로 다시 입력해 주세요. (예: 오전 0930)";
+    errors[`${prefix}.birthTime`] = "출생시간을 24시간제 HHMM 4자리로 다시 입력해 주세요. (예: 1430)";
   }
 
   if (!birthDate || (person.birthTimeKnown && !birthTime)) return { person: null, errors };
@@ -110,6 +123,7 @@ export function PersonBirthFields({
   const birthTimeError = error("birthTime");
   const genderError = error("gender");
   const displayNameError = error("displayName");
+  const birthTimeValue = displayBirthTime(value);
 
   return (
     <fieldset className="person-panel">
@@ -208,39 +222,27 @@ export function PersonBirthFields({
       ) : null}
 
       <div className="field-stack">
-        <span id={id("birthTime", "label")}>출생시간</span>
-        <div className="time-input-row">
-          <div className="segmented-control" role="radiogroup" aria-label={`${title} 출생시간 오전 또는 오후`}>
-            {(["am", "pm"] as const).map((meridiem) => (
-              <label key={meridiem} className={value.meridiem === meridiem ? "selected" : ""}>
-                <input
-                  type="radio"
-                  name={`${prefix}-meridiem`}
-                  checked={value.meridiem === meridiem}
-                  disabled={!value.birthTimeKnown}
-                  onChange={() => onChange({ ...value, meridiem })}
-                />
-                {meridiem === "am" ? "오전" : "오후"}
-              </label>
-            ))}
-          </div>
-          <input
-            id={id("birthTime")}
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            enterKeyHint="next"
-            maxLength={4}
-            placeholder="예: 0930"
-            value={value.birthTime}
-            disabled={!value.birthTimeKnown}
-            aria-labelledby={id("birthTime", "label")}
-            aria-invalid={Boolean(birthTimeError)}
-            aria-describedby={ariaDescribedBy(id("birthTime", "hint"), birthTimeError && id("birthTime", "error"))}
-            onChange={(event) => onChange({ ...value, birthTime: numbersOnly(event.target.value, 4) })}
-          />
-        </div>
-        <small id={id("birthTime", "hint")} className="field-hint">오전/오후를 고른 뒤 HHMM 4자리로 입력해 주세요. 자정은 오전 1200입니다.</small>
+        <span id={id("birthTime", "label")}>출생시간 <small className="inline-hint">24시간제</small></span>
+        <input
+          id={id("birthTime")}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          enterKeyHint="done"
+          maxLength={4}
+          placeholder="예: 1430"
+          value={birthTimeValue}
+          disabled={!value.birthTimeKnown}
+          aria-labelledby={id("birthTime", "label")}
+          aria-invalid={Boolean(birthTimeError)}
+          aria-describedby={ariaDescribedBy(id("birthTime", "hint"), birthTimeError && id("birthTime", "error"))}
+          onChange={(event) => onChange({
+            ...value,
+            birthTime: numbersOnly(event.target.value, 4),
+            meridiem: undefined,
+          })}
+        />
+        <small id={id("birthTime", "hint")} className="field-hint">HHMM 4자리로 입력해 주세요. 예: 오전 9시 30분은 0930, 오후 2시 30분은 1430.</small>
         <label className="check-row">
           <input
             type="checkbox"
@@ -248,7 +250,8 @@ export function PersonBirthFields({
             onChange={(event) => onChange({
               ...value,
               birthTimeKnown: !event.target.checked,
-              birthTime: event.target.checked ? "" : value.birthTime,
+              birthTime: event.target.checked ? "" : birthTimeValue,
+              meridiem: undefined,
             })}
           />
           정확한 출생시간을 몰라요

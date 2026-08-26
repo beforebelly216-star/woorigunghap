@@ -77,14 +77,14 @@ export function FreeSelfAnalysis() {
   return (
     <div className={styles.shell}>
       <form className={styles.form} onSubmit={submit} noValidate>
-        <p className={styles.freeNote}>
-          <strong>결제 없이 바로 확인합니다.</strong>
-          한 사람의 만세력 계산 결과만 사용하며 유료 궁합 리포트는 만들지 않습니다.
-        </p>
+        <div className={styles.formIntro}>
+          <span>내 정보 입력</span>
+          <p>정확한 분석을 위해 아래 정보만 입력해 주세요.</p>
+        </div>
         {errors.form ? <p className={styles.formError} role="alert">{errors.form}</p> : null}
         <div className={styles.birthFields}>
           <PersonBirthFields
-            title="내 정보"
+            title="기본 정보"
             prefix="self"
             placeholder="예: 나 또는 별칭"
             value={person}
@@ -95,14 +95,19 @@ export function FreeSelfAnalysis() {
             }}
           />
         </div>
+        <p className={styles.privacyNote}>
+          <span aria-hidden="true">✓</span>
+          무료 분석을 만들기 위해 사용하며, 1:1 이어보기용 정보는 이 브라우저 세션에만 임시로 보관합니다.
+        </p>
         <button
           type="submit"
           className={styles.submit}
           disabled={isLoading}
           aria-busy={isLoading}
         >
-          {isLoading ? "내 관계 성향 찾는 중..." : "무료 결과 보기"}
+          {isLoading ? "내 관계 성향 찾는 중..." : "내 관계 성향 보기"}
         </button>
+        <p className={styles.submitNote}>무료 결과는 관계 성향 요약이며 결제 없이 확인합니다.</p>
       </form>
 
       {analysis ? (
