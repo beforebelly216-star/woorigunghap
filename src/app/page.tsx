@@ -75,8 +75,6 @@ export default function Home() {
         <ZootopiMark expression="smile" withBody />
       </aside>
 
-      <Link href="/free" className={styles.freeLink}>무료로 내 관계 성향 먼저 보기 <span>→</span></Link>
-
       <nav className={styles.bottomNav} aria-label="주요 메뉴">
         <Link href="/" className={styles.active}><span>⌂</span><b>홈</b></Link>
         <Link href="/account/reports"><span>▣</span><b>보관함</b></Link>
