@@ -72,14 +72,33 @@ assert.equal(parseOneToManyReportInput(malformed), null);
 assert.equal(parseOneToManyReportInput({ ...input(2), candidates: "not-an-array" }), null);
 
 const formSource = readFileSync("src/components/one-to-many-form.tsx", "utf8");
+const pageSource = readFileSync("src/app/one-to-many/page.tsx", "utf8");
+const cssSource = readFileSync("src/app/one-to-many/one-to-many-input-v3.css", "utf8");
 const homeSource = readFileSync("src/app/page.tsx", "utf8");
 const freeResultSource = readFileSync("src/components/free-self-analysis.tsx", "utf8");
+
 assert.match(formSource, /ONE_TO_MANY_MIN_CANDIDATES/);
 assert.match(formSource, /ONE_TO_MANY_MAX_CANDIDATES/);
 assert.match(formSource, /localStorage\.setItem/);
 assert.match(formSource, /localStorage\.getItem/);
+assert.match(formSource, /STEP_LABELS = \["기본 정보", "후보 정보", "확인"\]/);
+assert.match(formSource, /setCandidateCount/);
+assert.match(formSource, /candidate-tabs/);
+assert.match(formSource, /입력 정보 확인/);
+assert.match(formSource, /1:N 궁합 분석 시작하기 · 3,000원/);
+assert.match(formSource, /person\.birthTime\.replace\(":", ""\)/, "저장 draft 복원 시 24시간 HHMM을 그대로 사용해야 합니다.");
+assert.doesNotMatch(formSource, /twelveHour|hour > 12|meridiem = hour >= 12/, "1:N 복원 화면에서 12시간제로 되돌리면 안 됩니다.");
+assert.match(pageSource, /1:N 비교 궁합 · 3단계/);
+assert.match(pageSource, /24시간제 HHMM/);
+assert.match(pageSource, /one-to-many-input-v3\.css/);
+assert.match(cssSource, /\.step-progress-track/);
+assert.match(cssSource, /\.candidate-tabs/);
+assert.match(cssSource, /\.review-block/);
+assert.match(cssSource, /--zootopi-butter/);
+assert.doesNotMatch(cssSource, /gradient|box-shadow/i);
+
 assert.match(homeSource, /label: "1:N"/);
 assert.doesNotMatch(homeSource, /href="\/one-to-many"/, "free-first 홈은 1:N으로 바로 이동시키지 않아야 합니다.");
 assert.match(freeResultSource, /href="\/one-to-many"/, "무료 결과 이후에는 1:N 진입이 유지되어야 합니다.");
 
-console.log("Day 13 one-to-many input contract checks: PASS");
+console.log("Day 13 one-to-many input v3 contract checks: PASS");

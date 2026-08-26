@@ -51,7 +51,7 @@
   - [x] **Core calculation validation #732: 전체 contracts + lint + production build PASS**
   - [x] PR #58 → `main` 병합 (`0c8554c`)
   - [ ] 실제 390px 화면 확인
-- [ ] **3단계 입력 UX 재설계** — `/free` → 1:1 → 1:N 순서
+- [x] **3단계 입력 UX 재설계** — `/free` → 1:1 → 1:N 코드 구현 완료
   - [x] `/free` v3 입력 화면 구현: 단일 정보 카드, 주토피 guide, Black/Yellow CTA, 긴 설명 축소
   - [x] 공용 출생시간 입력을 **24시간제 HHMM**으로 변경하고 오전/오후 선택 제거
   - [x] 기존 12시간제 form state 복구 시 24시간제로 표시·정규화하는 호환 레이어 유지
@@ -67,7 +67,14 @@
     - [x] **PR #60 / Core calculation validation #742: 전체 contracts + lint + production build PASS**
     - [x] PR #60 → `main` 병합 (`b96562d`)
     - [ ] 실제 390px 화면 확인
-  - [ ] **1:N 입력 UX 재설계**
+  - [x] **1:N 입력 UX B안 구현** — `기본 정보 → 후보 정보 → 확인` 3단계
+    - [x] 후보 2~5명 선택 / 후보별 탭 편집 / 추가·삭제
+    - [x] 24시간 HHMM / 출생시간 모름 / 기존 draft 복원 유지
+    - [x] 확인 단계 관계·기준자·후보 전체 요약 + 수정 진입
+    - [x] localStorage draft / 주문 draft / 3,000원 결제 진입 계약 유지
+    - [x] **PR #61 / Core calculation validation #745: 전체 contracts + lint + production build PASS**
+    - [ ] PR #61 → `main` 병합 및 Production 배포
+    - [ ] 실제 390px 화면 확인
 - [ ] **4단계 결제·생성 UX 재설계** — 상품 요약/CTA/대기/복귀/실패·재시도, backend contract 유지
 - [ ] 후속: 1:1 결과 → 1:N 결과 → 보관함/공유/계정 → multi-viewport QA
 
@@ -97,11 +104,11 @@
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 사용자 승인 B안 기준 v3 1:1 입력 UX 3단계 재설계 및 main 병합
+- Task: 사용자 승인 B안 기준 v3 1:N 입력 UX 3단계 재설계 + Production 배포 준비
 - Status: partial
-- Validation: PR #60 / Core calculation validation #742 PASS — 전체 contracts, lint, production build PASS
-- Commit: `b96562d` PR #60 main 병합; 이후 본 HANDOFF 문서 갱신
-- Remaining: 1:1 실제 390px 실화면 QA → 1:N 입력 UX 시안/재설계
-- Risk: 관계 유형은 기능 보존을 위해 1단계 `내 정보` 안에 포함. backend 계산·결제·복구 계약 변경 없음
-- Deploy: 없음. Vercel Preview/Production은 사용자 승인 전 실행 금지
+- Validation: PR #61 / Core calculation validation #745 PASS — 전체 contracts, lint, production build PASS
+- Commit: PR #61 head에 1:N v3 form/page/CSS, 24시간 draft 복원, 관련 계약/상태 문서 반영
+- Remaining: PR #61 main 병합 → 해당 main SHA Vercel Production 배포 → 배포 상태 문서 최종 기록 → 390px 실기기 QA
+- Risk: backend 계산·AI·저장·결제 계약 변경 없음. Git 자동배포는 계속 비활성화 유지
+- Deploy: 사용자 명시 승인 있음. 이번 작업에서 Production 배포 수행
 ```
