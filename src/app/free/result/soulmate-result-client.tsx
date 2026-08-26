@@ -29,7 +29,7 @@ function ResultHeader() {
   return <header className={styles.topbar}>
     <Link href="/free" className={styles.iconButton} aria-label="천생연분 입력으로 돌아가기">‹</Link>
     <strong>내 천생연분 결과</strong>
-    <button className={styles.iconButton} type="button" aria-label="공유 기능 준비 중" onClick={() => { if (navigator.share) void navigator.share({ title: "내 천생연분 결과", url: window.location.href }).catch(() => undefined); }}>↗</button>
+    <button className={styles.iconButton} type="button" aria-label="공유하기" onClick={() => { if (navigator.share) void navigator.share({ title: "내 천생연분 결과", url: window.location.href }).catch(() => undefined); }}>↗</button>
   </header>;
 }
 
@@ -102,17 +102,19 @@ export default function SoulmateResultClient() {
   const [result, setResult] = useState<SoulmateResult | null | undefined>(undefined);
 
   useEffect(() => {
-    try {
-      const raw = window.sessionStorage.getItem(SOULMATE_RESULT_STORAGE_KEY);
-      setResult(raw ? parseSoulmateResult(JSON.parse(raw)) : null);
-    } catch {
-      setResult(null);
-    }
+    queueMicrotask(() => {
+      try {
+        const raw = window.sessionStorage.getItem(SOULMATE_RESULT_STORAGE_KEY);
+        setResult(raw ? parseSoulmateResult(JSON.parse(raw)) : null);
+      } catch {
+        setResult(null);
+      }
+    });
   }, []);
 
   const maxElementWeight = useMemo(() => result ? Math.max(...result.elementBalance.map((item) => item.weight), 1) : 1, [result]);
 
-  if (result === undefined) return <div className={styles.shell}><ResultHeader /><div className={styles.loading}>결과를 불러오고 있어요…</div></div>;
+  if (result === undefined) return <div className={styles.shell}><ResultHeader /><div className={styles.loading} role="status">결과를 불러오고 있어요…</div></div>;
   if (!result) return <MissingResult />;
 
   return <div className={styles.shell}>
