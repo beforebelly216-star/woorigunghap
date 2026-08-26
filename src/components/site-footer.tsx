@@ -1,7 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { OPERATOR_PUBLIC_INFO } from "@/lib/operating-policy";
 
 export function SiteFooter() {
+  const pathname = usePathname();
+  if (pathname === "/") return null;
+
   return <footer className="site-footer">
     <nav aria-label="운영 정책">
       <Link href="/terms">이용약관</Link>
