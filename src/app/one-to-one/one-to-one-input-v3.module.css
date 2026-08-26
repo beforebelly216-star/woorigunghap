@@ -7,6 +7,7 @@
 .appHeader a, .appHeader span { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: #2d2930; text-decoration: none; font-size: 1.55rem; }
 .appHeader span { justify-self: end; border: 1px solid #ded9d6; font-size: .8rem; font-weight: 900; }
 .appHeader strong { text-align: center; font-size: 1rem; font-weight: 950; letter-spacing: -.025em; }
+.visuallyHidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .trustLine { margin: 22px 0 0; color: #4d4950; font-size: .74rem; text-align: center; }
 
 .inputV3 :global(.v3-one-to-one-form) { display: grid; gap: 14px; padding-top: 20px; }
