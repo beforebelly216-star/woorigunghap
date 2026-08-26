@@ -10,6 +10,10 @@ button, input, select { font: inherit; }
 .site-header { width: min(calc(100% - 48px), 1120px); min-height: 68px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--saju-border, #E2E2DD); }
 .site-brand { color: inherit; font-family: var(--saju-font-heading, sans-serif); font-size: 1rem; font-weight: 850; letter-spacing: -.04em; text-decoration: none; }
 .site-header a { min-height: 44px; display: inline-flex; align-items: center; }
+.site-header-home-a99 { width: min(100%, 390px); min-height: 64px; padding: 0 17px; border-bottom: 0; background: #fff; }
+.site-header-home-a99 .site-brand { font-size: 1.22rem; letter-spacing: -.045em; }
+.home-notification-button { width: 40px; height: 40px; display: grid; place-items: center; border: 0; background: transparent; color: #202024; cursor: pointer; }
+.home-notification-button svg { width: 22px; height: 22px; }
 .auth-user { display: flex; align-items: center; gap: 8px; }
 .auth-library-link { color: var(--saju-ink-soft, #68686F); font-size: .78rem; font-weight: 750; text-decoration: none; }
 .auth-status, .auth-logout-button { min-height: 40px; border: 0; border-radius: var(--saju-radius-pill, 999px); font: inherit; font-size: .78rem; line-height: 1; }
@@ -24,5 +28,5 @@ button, input, select { font: inherit; }
 .site-footer p { margin: 2px 0; }
 .site-footer-note { color: var(--saju-ink-faint, #929298); }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--saju-ink, #222226); outline-offset: 3px; }
-@media (max-width: 640px) { .site-header, .site-footer { width: calc(100% - 32px); } .site-header { min-height: 60px; } .auth-library-link { display: none; } .site-footer { margin-top: 56px; padding-bottom: max(32px, env(safe-area-inset-bottom)); } }
+@media (max-width: 640px) { .site-header:not(.site-header-home-a99), .site-footer { width: calc(100% - 32px); } .site-header:not(.site-header-home-a99) { min-height: 60px; } .auth-library-link { display: none; } .site-footer { margin-top: 56px; padding-bottom: max(32px, env(safe-area-inset-bottom)); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
