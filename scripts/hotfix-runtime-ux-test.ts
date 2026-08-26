@@ -9,7 +9,12 @@ function source(path: string) {
 const layout = source("src/app/layout.tsx");
 const theme = source("src/app/report-theme.css");
 const unifiedTheme = source("src/app/theme-unification.css");
+const paidFlowV3 = source("src/app/paid-flow-v3.css");
 const home = source("src/app/page.tsx");
+const oneToOneCheckout = source("src/app/one-to-one/checkout/page.tsx");
+const oneToManyCheckout = source("src/app/one-to-many/checkout/page.tsx");
+const oneToOneResultStatus = source("src/app/one-to-one/result/result-status.css");
+const oneToManyPaidResult = source("src/app/one-to-many/result/one-to-many-paid-result.tsx");
 const accountLibrary = source("src/app/account/reports/page.tsx");
 const oneToOneRoute = source("src/app/api/compatibility/one-to-one/route.ts");
 const paymentVerify = source("src/app/api/payments/verify/route.ts");
@@ -22,6 +27,7 @@ const vercel = JSON.parse(source("vercel.json")) as { fluid?: boolean; git?: { d
 
 assert.ok(layout.includes('import "./report-theme.css";'), "root layout must load the shared theme tokens");
 assert.ok(layout.includes('import "./theme-unification.css";'), "root layout must load the final legacy-theme override");
+assert.ok(layout.includes('import "./paid-flow-v3.css";'), "root layout must load the v3 paid-flow presentation layer");
 assert.ok(
   layout.indexOf('import "./theme-unification.css";') > layout.indexOf('import "./score-library.css";'),
   "theme unification must be imported after legacy styles",
@@ -48,6 +54,32 @@ for (const removedCopy of [
 ]) {
   assert.ok(!home.includes(removedCopy), `home must not render removed implementation copy: ${removedCopy}`);
 }
+
+assert.ok(paidFlowV3.includes(".paid-flow-steps"), "v3 paid flow must show a compact input/payment/generation journey");
+assert.ok(paidFlowV3.includes(".checkout-v3-assurance"), "v3 paid flow must expose payment/storage/recovery assurances before purchase");
+assert.ok(paidFlowV3.includes(".checkout-sticky-cta"), "v3 paid flow must keep the paid CTA reachable on mobile");
+assert.ok(paidFlowV3.includes(".v2-page > .v2-state:has(.v2-kicker + h1 + p + p + p)"), "1:1 generation status must receive the v3 waiting-state hierarchy");
+assert.ok(paidFlowV3.includes(".one-to-many-result-page .comparison-empty-state"), "1:N generation/recovery/failure states must receive the v3 state surface");
+assert.ok(oneToOneResultStatus.includes("paid 1:1 loading / recovery / terminal states"), "existing 1:1 status contract must remain the base layer");
+
+for (const marker of [
+  "입력 완료",
+  "1:1 전체 리포트 보기 · 1,000원",
+  "중간 이탈 복구",
+  "같은 결과 링크로 다시 확인",
+]) {
+  assert.ok(oneToOneCheckout.includes(marker), `1:1 checkout must retain v3 paid-flow marker: ${marker}`);
+}
+for (const marker of [
+  "1:N 궁합 · 결제",
+  "후보 비교를 시작할 준비가 됐어요.",
+  "1:N 전체 비교 보기 · 3,000원",
+  "중복 생성 방지",
+]) {
+  assert.ok(oneToManyCheckout.includes(marker), `1:N checkout must retain v3 paid-flow marker: ${marker}`);
+}
+assert.ok(oneToManyPaidResult.includes("같은 결제로 다시 확인하기"), "1:N failed generation must preserve manual same-payment retry");
+assert.ok(oneToManyPaidResult.includes("REPORT_GENERATION_IN_PROGRESS"), "1:N generation must preserve single-flight in-progress recovery");
 
 assert.ok(
   oneToOneRoute.includes("paid-report-v7-concise-structured-quality-repair-20260826"),
@@ -84,4 +116,4 @@ assert.ok(oneToManyResult.includes("<OneToManyShareCard view={view} />"), "paid 
 assert.equal(vercel.fluid, true, "Fluid Compute must be pinned for long paid narrative functions");
 assert.equal(vercel.git?.deploymentEnabled, false, "automatic Vercel Git deployments must stay disabled until user approval");
 
-console.log("Hotfix runtime/UI contract passed: Design Foundation v2 theme, staged 1:1 generation, no nested 1:1 kickoff, visible failures, share path, and manual deploy policy.");
+console.log("Hotfix runtime/UI contract passed: v3 paid-flow checkout/generation surfaces, staged 1:1 generation, no nested kickoff, visible failures, share path, and manual deploy policy.");

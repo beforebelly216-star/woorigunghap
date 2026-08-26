@@ -86,7 +86,7 @@ assert.match(result, /visibleDimensions/);
 assert.match(components, /사주소년 용한/);
 assert.match(result, /v2-reading-progress/);
 assert.match(checkout, /checkout-sticky-cta/);
-assert.match(checkout, /속마음까지 다 보기 · 1,000원/);
+assert.match(checkout, /1:1 전체 리포트 보기 · 1,000원/);
 assert.match(checkout, /agreementAccepted=\{policyAccepted\}/);
 assert.match(payment, /buttonLabel\?: string/);
 assert.match(share, /document\.createElement\("canvas"\)/);
