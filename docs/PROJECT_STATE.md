@@ -63,7 +63,7 @@
 
 ## 검증 상태
 
-- PR #63: A안 390px 홈 완전 재구성, 과거 free-first UI 계약 폐기 및 관련 정적 계약 갱신. 최종 Core calculation validation 결과를 HANDOFF에 기록한다.
+- **PR #63 / Core calculation validation #759 PASS** — A안 390px 홈 전면 재구성, 1:1·1:N 직접 진입, 홈 전용 상단/하단 chrome, 기존 free-first 홈 계약 폐기 및 관련 1:N/Growth/report UI 계약 갱신. 전체 contracts, lint, production build 통과.
 - PR #62 / validation #752 PASS — 결제·생성 v3 + 전체 contracts/lint/build
 - PR #61 / validation #746 PASS — 1:N 입력 v3
 - PR #60 / validation #742 PASS — 1:1 입력 v3
