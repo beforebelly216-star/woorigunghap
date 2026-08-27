@@ -41,8 +41,8 @@
 - [x] 실제 생성 단계 문구 + animated progress visual
 - [x] 가짜 정밀 퍼센트 대신 단계 기반 진행 경험
 - [x] 390px 모바일 / reduced-motion 대응
-- [x] **PR #69 / Core calculation validation #806 PASS** — 전체 contracts + lint + production build PASS
-- [ ] PR #69 → `main` 병합
+- [x] **PR #69 / Core calculation validation #809 PASS** — 최종 문서 head 포함 전체 contracts + lint + production build PASS
+- [x] PR #69 → `main` 병합 (`4803fa7a`)
 
 ### P3 실화면 QA
 - [ ] 사용자 승인 후 1:1 layout v3 + narrative v8 + loading Preview 배포
@@ -74,9 +74,9 @@ HANDOFF
 - Worker: GPT
 - Task: 1:1 layout v3 전용 5천자 Sonnet 5 narrative v8 + 주토피 떡상 기원 생성 대기 UX
 - Status: complete
-- Validation: PR #69 / Core calculation validation #806 PASS — calculation/payment/AI/1:N/account/Growth contracts + lint + production build PASS
-- Commit: PR #69 branch latest; main 병합 대기
-- Remaining: PR #69 main 병합 → 사용자 승인 시 Preview 배포 → 실제 Sonnet 5 한 건으로 4,000~6,000자/390px 장문 QA
+- Validation: PR #69 / Core calculation validation #809 PASS — calculation/payment/AI/1:N/account/Growth contracts + lint + production build PASS
+- Commit: main merge `4803fa7a`; 이 HANDOFF 문서 커밋이 최신 main
+- Remaining: 사용자 승인 시 Preview 배포 → 실제 Sonnet 5 한 건으로 4,000~6,000자/390px 장문 QA
 - Risk: 프롬프트·품질 길이 계약은 구현/정적 검증 완료했으나 실제 Anthropic 호출 샘플의 최종 사용자 노출 글자수는 Preview 실생성에서 확인 필요. 기존 저장 구매 결과는 재생성/덮어쓰기 금지
 - Deploy: 없음. Production/Preview 자동배포 OFF 유지
 ```
