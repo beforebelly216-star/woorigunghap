@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import type { CompatibilityCalculationSnapshot } from "@/lib/compatibility/engine";
 import type { CompatibilityDimension } from "@/lib/compatibility/types";
@@ -105,7 +106,7 @@ export default function ReportLayoutV3({
 
   return <div className={styles.shell}>
     <header className={styles.topbar}>
-      <a href="/" aria-label="홈으로">‹</a>
+      <Link href="/" aria-label="홈으로">‹</Link>
       <strong>1:1 궁합 결과</strong>
       <a href="#share" aria-label="공유하기">↗</a>
     </header>
@@ -238,7 +239,7 @@ export default function ReportLayoutV3({
     </section>
 
     <section className={styles.ending}>
-      <div><small>JOOTOPI'S NOTE</small><h2>두 사람의 관계는 점수 하나보다, 반복되는 장면을 어떻게 다루는지가 더 중요해요.</h2><p>{content.strengthsAndRisks.warning}</p></div>
+      <div><small>JOOTOPI NOTE</small><h2>두 사람의 관계는 점수 하나보다, 반복되는 장면을 어떻게 다루는지가 더 중요해요.</h2><p>{content.strengthsAndRisks.warning}</p></div>
       <ZootopiCaption expression={score >= 80 ? "idea" : score >= 55 ? "smile" : "thinking"}>이 리포트에서 딱 한 가지만 기억한다면, 잘 맞는 부분은 반복하고 부딪히는 패턴은 빨리 끊어보세요.</ZootopiCaption>
     </section>
 
