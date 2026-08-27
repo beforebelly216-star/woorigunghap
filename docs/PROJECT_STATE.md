@@ -53,18 +53,25 @@
   - intro 목표 1,050~1,400자
   - dynamics 목표 1,450~1,900자
   - action 목표 1,800~2,400자
-- 분량은 새 화면에서 실제 사용하는 `총평/개인 성향/끌림·시너지/양방향 영향/갈등 3개/관계유형 심층 4개/장기 조건/사용설명서`에 집중한다.
+- 분량은 새 화면에서 실제 사용하는 핵심 필드에 집중한다.
 - 일상어 결론은 일간·일지·오행·천간/지지 상호작용 등 제공된 사주 근거와 같은 문단에서 연결한다.
 - Claude는 점수·순위·원국을 변경하지 않으며 내부 시스템 문구를 사용자 결과에 노출하지 않는다.
 - **생성 대기 화면 v4:** 주토피 `궁합 떡상 기원` 일러스트 + 단계 문구 + 진행 시각화.
-- **결제 직후 transient 복구 hotfix:** `UNEXPECTED_SERVER_ERROR`, `PORTONE_LOOKUP_FAILED`, `REPORT_SEGMENT_NOT_READY`처럼 결제/저장 상태 전파 중 발생할 수 있는 일시 오류는 즉시 fatal 화면으로 보내지 않고 서버에서 1회 재확인 후 `503 + retryable`로 전환해 기존 클라이언트가 자동 재시도한다. 영구적인 인증/권한/입력 오류는 fatal 유지.
-- **0/3 prepare 무한대기 후속 hotfix 완료:** 결제 확인 API에서 이미 PortOne 검증을 끝내고 서버 주문을 `paid`로 표시한 뒤에도 1:1 생성 각 단계가 PortOne을 다시 조회하던 구조를 제거했다. 생성 단계에서는 `payment_status='paid'` + 미삭제 + 상품/금액 + 저장 입력 해시 일치 조건을 모두 만족하는 서버 주문만 결제 영수증으로 재사용한다. 최초 결제 검증은 계속 PortOne 권위로 유지한다.
 - 로딩과 fatal/config 상태를 동일한 390px 주토피 카드 UI로 통일했다.
+
+### 1:1 결제/생성 blocker hotfix
+
+- 반복 PortOne 재검증을 제거하고, 이미 서버에서 검증된 `paid` 주문은 상품/금액/입력 해시/삭제 상태를 재검증한 뒤 생성 단계에서 재사용한다.
+- 결제 검증 API가 서버 DB의 `paid` 기록 실패를 무시하고 `verified: true`를 반환하던 결함을 수정했다. `paid` 기록이 확정되지 않으면 `PAYMENT_PAID_STORE_PENDING`으로 결제 확인 화면에서 자동 재시도한다.
+- 일반 생성 경로가 `prepare`에서 두 번 실패하면, 기존 서버 주문 + 복구 토큰을 다시 검증한 뒤 결정론 snapshot/facts를 재구성하는 fallback을 사용한다.
+- prepare 캐시 저장은 재계산 가능한 데이터이므로 저장 지연만으로 유료 고객을 0/3에 가두지 않도록 best-effort로 처리한다.
+- 반복 424/503을 브라우저에 무한 `retryable`로 반환하지 않고 `REPORT_STATE_RETRY_EXHAUSTED` terminal 진단으로 종료한다.
 
 ## 검증 상태
 
-- **PR #72 / Core calculation validation #821 PASS** — 0/3 prepare 무한대기 방지: server-verified paid order 재사용 + 입력 해시 재검증 + 전용 contract + 전체 contracts + lint + production build PASS.
-- **PR #70 / Core calculation validation #812 PASS** — transient paid-result recovery + loading/failure UI 통일 + 전체 contracts + lint + production build PASS.
+- **PR #73 / Core calculation validation #825 PASS** — 반복 prepare loop root hotfix + 전체 contracts + lint + production build PASS.
+- **PR #72 / Core calculation validation #821 PASS** — server-verified paid order 재사용 + 입력 해시 재검증.
+- **PR #70 / Core calculation validation #812 PASS** — loading/failure UI 통일.
 - PR #69 / validation #809 PASS — 1:1 narrative v8 4,000~6,000자 설계 + bullish Jootopi loading UX.
 - PR #68 / validation #799 PASS — 1:1 layout v3.
 - PR #67 / validation #791 PASS — scoring v1.6.
@@ -73,13 +80,13 @@
 ## 배포 상태
 
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
-- 1:1 v8 Preview: `preview/one-to-one-v8`, Vercel success. 현재 배포본에서는 기존 즉시 fatal은 사라졌지만 `0/3 · 결제와 궁합 점수 확인` 상태가 401초 이상 지속되는 무한대기가 재현됨. PR #72 수정은 아직 Preview에 배포하지 않음.
-- Production에는 이번 hotfix 포함 최신 변경을 아직 배포하지 않았다.
+- 1:1 v8 Preview: `preview/one-to-one-v8`. 기존 배포에서는 0/3 prepare가 700초 이상 반복됨. PR #73 hotfix 재배포 필요.
+- Production에는 최신 1:1 hotfix를 아직 배포하지 않았다.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. PR #72 병합 후 사용자 승인 하에 동일 `preview/one-to-one-v8` 재배포
+1. PR #73 `main` 병합 후 동일 `preview/one-to-one-v8` 재배포
 2. 기존 1,000원 결제로 새로고침 → prepare 통과 → 3개 segment → 결과 저장까지 실제 복구 확인
 3. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
 4. 360 / 390 / 430px overflow/spacing QA

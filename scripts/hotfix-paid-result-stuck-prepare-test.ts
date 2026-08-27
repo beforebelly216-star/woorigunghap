@@ -8,6 +8,7 @@ function source(path: string) {
 
 const verification = source("src/lib/payments/verification.ts");
 const resilientRoute = source("src/app/api/compatibility/one-to-one-resilient/route.ts");
+const paymentVerify = source("src/app/api/payments/verify/route.ts");
 const nextConfig = source("next.config.ts");
 
 assert.ok(
@@ -36,12 +37,32 @@ assert.ok(
   "already verified paid orders must not depend on a second PortOne lookup or API secret check",
 );
 assert.ok(
-  resilientRoute.includes('code: payload?.code ?? "REPORT_STATE_TRANSIENT"'),
-  "transient recovery must preserve the underlying failure code for diagnostics",
+  paymentVerify.includes("PAYMENT_PAID_STORE_PENDING"),
+  "checkout verification must not redirect to generation before the paid server receipt is persisted",
+);
+assert.ok(
+  paymentVerify.includes("if (!paidStored)"),
+  "a failed paid-state persistence must remain in verification instead of falsely reporting success",
+);
+assert.ok(
+  resilientRoute.includes("recoverPreparedPhase"),
+  "prepare must have a deterministic recovery path after repeated ordinary-route failures",
+);
+assert.ok(
+  resilientRoute.includes("prepare-cache-not-persisted"),
+  "prepare cache persistence must be best-effort instead of trapping paid users at zero segments",
+);
+assert.ok(
+  resilientRoute.includes('retryable: false'),
+  "repeated server failures must terminate instead of returning an endless 503 retry loop",
+);
+assert.ok(
+  resilientRoute.includes("REPORT_STATE_RETRY_EXHAUSTED"),
+  "bounded recovery must expose a stable diagnostic code",
 );
 assert.ok(
   nextConfig.includes("beforeFiles"),
   "the resilient paid-result route must continue to run before the concrete filesystem API route",
 );
 
-console.log("Paid-result stuck-prepare hotfix contract passed: server-verified receipt reuse + immutable input binding + resilient route precedence.");
+console.log("Paid-result loop hotfix contract passed: trusted paid receipt + deterministic prepare recovery + bounded retry policy.");

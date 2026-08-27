@@ -51,19 +51,20 @@
 - [x] 실패 화면을 주토피 떡상 로딩 화면과 동일한 390px UI로 통일
 - [x] **PR #70 / Core calculation validation #812 PASS** — 전체 contracts + lint + production build PASS
 - [x] resilient rewrite를 실제 filesystem API보다 먼저 적용하도록 `beforeFiles`로 수정 — PR #71 → `main` (`1766cf1e`)
-- [x] 동일 Preview 재배포 후 즉시 fatal이 사라지는 것 확인
 
-### Blocker hotfix — 0/3 prepare 무한대기
-- [x] 기존 Preview에서 `0/3개 해설 묶음 완료 · 401초 경과` 재현 확인
-- [x] 원인 코드 경로 확인: `/api/payments/verify`에서 이미 검증한 결제를 1:1 생성 `prepare/intro/dynamics/action` 단계마다 PortOne에 다시 조회
-- [x] PortOne 재조회 실패가 resilient 503으로 변환되면서 `prepare` 단계가 무한 재시도되는 구조 확인
-- [x] 생성 단계는 서버 주문이 `paid`이고 미삭제이며 상품/금액/입력 해시가 모두 일치할 때만 저장된 서버 결제 영수증 재사용
-- [x] 최초 결제 검증은 계속 PortOne 권위 유지
-- [x] 전용 `test:hotfix:paid-result-stuck-prepare` contract 추가 및 CI 연결
-- [x] **PR #72 / Core calculation validation #821 PASS** — 전용 contract + 전체 contracts + lint + production build PASS
-- [ ] PR #72 → `main` 병합
-- [ ] 사용자 승인 후 `preview/one-to-one-v8` 재배포
-- [ ] 기존 1,000원 결제로 새로고침 → prepare 통과 → 3개 segment → 결과 저장 확인
+### Blocker hotfix — 0/3 prepare 반복/무한대기
+- [x] Preview에서 `0/3개 해설 묶음 완료` 상태가 400초, 790초 이상 반복되는 것 재현 확인
+- [x] 생성 단계의 반복 PortOne 재검증 제거 — server-verified paid order 재사용, 입력 해시/상품/금액/삭제 상태 검증 유지
+- [x] 결제 검증 API가 DB `paid` 기록 실패를 무시하고 `verified: true`를 반환하던 결함 수정
+- [x] `paid` 서버 기록이 확정되지 않으면 결과 페이지로 이동하지 않고 `PAYMENT_PAID_STORE_PENDING`으로 같은 결제를 자동 재확인
+- [x] 일반 생성 경로가 prepare 단계에서 두 번 실패하면, 기존 서버 주문의 복구 토큰을 다시 검증한 뒤 결정론 snapshot/facts를 재구성하는 안전 fallback 추가
+- [x] prepare 캐시 저장 실패만으로 유료 사용자를 0/3에 가두지 않도록 best-effort 처리
+- [x] 동일 5xx/424 반복을 무한 503으로 되돌리지 않고 `REPORT_STATE_RETRY_EXHAUSTED` terminal 진단으로 종료
+- [x] `test:hotfix:paid-result-stuck-prepare` 회귀 계약 갱신
+- [x] **PR #73 / Core calculation validation #825 PASS** — 전체 contracts + lint + production build PASS
+- [ ] PR #73 → `main` 병합
+- [ ] 동일 `preview/one-to-one-v8` 재배포
+- [ ] 기존 1,000원 결제로 새로고침 → prepare 통과 → intro/dynamics/action → 결과 저장 확인
 
 ### P3 실화면 QA
 - [ ] 실제 Sonnet 5 생성 1건에서 사용자 노출 본문 4,000~6,000자 확인
@@ -92,11 +93,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 1:1 결제 완료 후 0/3 prepare 단계가 수백 초 무한대기하는 blocker hotfix
+- Task: 1:1 결제 완료 후 0/3 prepare 반복/무한대기 root hotfix
 - Status: complete
-- Validation: PR #72 / Core calculation validation #821 PASS — 전용 contract + 전체 contracts + lint + production build PASS
-- Commit: gpt/hotfix-paid-result-stuck-prepare latest (PR #72)
-- Remaining: PR #72 main 병합 → 사용자 승인 후 preview/one-to-one-v8 재배포 → 기존 1,000원 결제로 실제 생성 확인
-- Risk: Vercel runtime log connector가 해당 프로젝트를 직접 열지 못해 실제 하위 예외 텍스트는 미확인. 코드상 반복 PortOne 재검증 + resilient 503 무한루프는 제거함
-- Deploy: 아직 안 함. Git 자동배포 OFF 유지
+- Validation: PR #73 / Core calculation validation #825 PASS — 전체 contracts + lint + production build PASS
+- Commit: gpt/hotfix-paid-result-loop-root latest (PR #73)
+- Remaining: PR #73 main 병합 → 동일 preview/one-to-one-v8 재배포 → 기존 1,000원 결제로 실제 생성 확인
+- Risk: Vercel runtime-log connector가 프로젝트를 직접 열지 못해 예외 원문은 미확인. 대신 0/3을 무한 유지시키던 결제 paid-state 저장 누락 + prepare 503 무한반환 두 경로를 모두 제거함
+- Deploy: Preview 재배포 필요. Production은 건드리지 않음
 ```
