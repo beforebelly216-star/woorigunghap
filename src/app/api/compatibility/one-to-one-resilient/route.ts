@@ -41,9 +41,15 @@ function retryResponse(payload: Awaited<ReturnType<typeof readPayload>>) {
 }
 
 export async function POST(request: NextRequest) {
-  const firstRequest = request.clone();
+  const body = await request.text();
+  const makeRequest = () => new NextRequest(request.url, {
+    method: request.method,
+    headers: request.headers,
+    body,
+  });
+
   try {
-    const first = await runOneToOneReport(firstRequest);
+    const first = await runOneToOneReport(makeRequest());
     const firstPayload = await readPayload(first);
     if (!shouldRecover(first, firstPayload)) return first;
 
@@ -51,7 +57,7 @@ export async function POST(request: NextRequest) {
     // of a second. One immediate server-side retry removes that gap without asking
     // the customer to refresh or pay again.
     await wait(700);
-    const second = await runOneToOneReport(request);
+    const second = await runOneToOneReport(makeRequest());
     const secondPayload = await readPayload(second);
     if (!shouldRecover(second, secondPayload)) return second;
 
