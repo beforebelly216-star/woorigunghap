@@ -29,18 +29,12 @@ import {
   buildOneToOneResultUrl,
   isResultAccessToken,
 } from "@/lib/result-access-token";
-import { CandlestickScore, CompatibilityHeatmap, ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
-import { ZootopiCaption, type ZootopiExpression } from "@/components/zootopi-mark";
-import { getZootopiScoreCaption } from "@/lib/compatibility/stock-theme";
-import ReportChaptersA from "./report-v2-chapters-a";
-import ReportChaptersB from "./report-v2-chapters-b";
 import { CompatibilityShareCard } from "./compatibility-share-card";
 import { buildCompatibilityShareArchetype } from "@/lib/narrative/compatibility-share-card";
-import { getDayPillarCharacter } from "@/lib/narrative/day-pillar-characters";
 import { normalizeStoredPaidReportForDisplay } from "@/lib/narrative/stored-report-compat";
-import { DayPillarCharacterCard } from "./day-pillar-character-card";
-import { calibrateCompatibilityScore, COMPATIBILITY_SCORE_BANDS, getCompatibilityScoreBand } from "@/lib/compatibility/score-scale";
+import { calibrateCompatibilityScore, getCompatibilityScoreBand } from "@/lib/compatibility/score-scale";
 import { COMPATIBILITY_SCORING_VERSION } from "@/lib/compatibility/weights";
+import ReportLayoutV3 from "./report-layout-v3";
 
 const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
   dayMaster: "일간 상성", dayBranch: "일지 상성", usefulGodFit: "필요한 기운 보완",
@@ -48,19 +42,6 @@ const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
   earthlyBranchInteraction: "지지 형충파해", specialStars: "귀인 신호",
   spouseStarRealization: "관계 역할 맞물림", luckCycleAlignment: "관계 타이밍",
 };
-
-const DIMENSION_SHORT_LABELS: Record<CompatibilityDimension, string> = {
-  dayMaster: "일간", dayBranch: "일지", usefulGodFit: "용신",
-  elementComplementarity: "오행", heavenlyStemInteraction: "천간",
-  earthlyBranchInteraction: "지지", specialStars: "귀인",
-  spouseStarRealization: "역할", luckCycleAlignment: "타이밍",
-};
-
-function zootopiExpressionForScore(score: number): ZootopiExpression {
-  if (score >= 85) return "idea";
-  if (score >= 55) return "smile";
-  return "thinking";
-}
 
 const SEGMENTS: PaidReportSegmentName[] = ["intro", "dynamics", "action"];
 const STAGE_COPY: Record<"prepare" | PaidReportSegmentName, string> = {
@@ -438,6 +419,9 @@ export default function ResultV2() {
   const coworkerHierarchyLabel = relationshipType === "coworker" && order.inputSnapshot.coworkerHierarchy
     ? COWORKER_HIERARCHY_LABELS[order.inputSnapshot.coworkerHierarchy]
     : null;
+  const displayRelationshipLabel = coworkerHierarchyLabel
+    ? `${relationshipLabel} · ${coworkerHierarchyLabel}`
+    : relationshipLabel;
   const publicScore = calibrateCompatibilityScore(snapshot.rawTotal);
   const scoreBand = getCompatibilityScoreBand(publicScore);
   const publicUncertaintyRange = snapshot.scoringVersion === COMPATIBILITY_SCORING_VERSION
@@ -451,93 +435,44 @@ export default function ResultV2() {
     ? snapshot
     : { ...snapshot, score: publicScore, uncertaintyRange: publicUncertaintyRange };
   const shareArchetype = buildCompatibilityShareArchetype(displaySnapshot);
-  const personACharacter = getDayPillarCharacter(facts.A.pillars.day.korean);
-  const personBCharacter = getDayPillarCharacter(facts.B.pillars.day.korean);
   const displayContent = normalizeStoredPaidReportForDisplay(content, facts);
+
   return <main className="v2-page">
     <div className="v2-reading-progress" role="progressbar" aria-label="리포트 읽기 진행률" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readingProgress}>
       <span style={{ width: `${readingProgress}%` }} />
       <b style={{ left: `${readingProgress}%` }} aria-hidden="true">용</b>
     </div>
-    <div className="v2-shell">
-    <header className="v2-hero">
-      <p className="v2-kicker">{relationshipLabel}{coworkerHierarchyLabel ? ` · ${coworkerHierarchyLabel}` : ""} 궁합 리포트</p>
-      <h1>{personA.displayName} <span>×</span> {personB.displayName}</h1>
-      <h2>{displayContent.overview.headline}</h2>
-      <Paragraph>{displayContent.overview.detailedSummary}</Paragraph>
-      <div className="v2-pair-type">
-        <small>두 사람의 궁합 유형</small>
-        <strong>{shareArchetype.label}</strong>
-        <span>{shareArchetype.subtitle}</span>
-      </div>
-      <CandlestickScore score={publicScore} />
-      <ZootopiCaption expression={zootopiExpressionForScore(publicScore)}>{getZootopiScoreCaption(publicScore)}</ZootopiCaption>
-      <div className="v2-score-meaning" role="note">
-        <small>이 점수는 어느 정도?</small>
-        <strong>{scoreBand.label}</strong>
-        <p>{scoreBand.description}</p>
-        <details>
-          <summary>전체 점수 기준 보기</summary>
-          <div className="v2-score-band-grid">{COMPATIBILITY_SCORE_BANDS.map((band) => <span key={band.min}><b>{band.min}~{band.max}</b>{band.shortLabel}</span>)}</div>
-        </details>
-      </div>
-      {(!personA.birthTimeKnown || !personB.birthTimeKnown) && <p className="v2-uncertainty">출생시간 미상 시나리오 {snapshot.scenarioPolicy.pairScenarios.toLocaleString("ko-KR")}개를 함께 비교했어요. 현재 입력 기준 점수 범위는 {publicUncertaintyRange.min}~{publicUncertaintyRange.max}점입니다.</p>}
-      <nav className="v2-hero-actions" aria-label="다음 행동">
-        <a href="#v2-report-start">📖 전체 리포트 읽기</a>
-        <a href="#v2-share-card">📤 지금 공유하기</a>
-      </nav>
-    </header>
-
-    <div id="v2-share-card">
-      <CompatibilityShareCard
+    <ReportLayoutV3
+      personAName={personA.displayName}
+      personBName={personB.displayName}
+      relationshipLabel={displayRelationshipLabel}
+      score={publicScore}
+      scoreLabel={scoreBand.label}
+      scoreDescription={scoreBand.description}
+      archetypeLabel={shareArchetype.label}
+      archetypeSubtitle={shareArchetype.subtitle}
+      content={displayContent}
+      facts={facts}
+      snapshot={displaySnapshot}
+      visibleDimensions={visibleDimensions}
+      dimensionLabels={DIMENSION_LABELS}
+      threeYearTiming={snapshot.threeYearTiming}
+      shareNode={<CompatibilityShareCard
         selfName={personA.displayName}
         partnerName={personB.displayName}
         relationshipLabel={relationshipLabel}
         score={publicScore}
         archetype={shareArchetype}
-      />
-    </div>
-
-    <section className="v2-basic-facts">
-      <div className="v2-section-title"><small>FOUR PILLARS & FIVE ELEMENTS</small><h2>두 사람의 사주팔자와 오행</h2><p>어떤 명식을 바탕으로 계산했는지 먼저 보여드려요. 오행의 겉개수와 실제 세력 비중은 서로 다른 정보입니다.</p></div>
-      <div className="v2-facts-grid">
-        <article><div className="v2-person-title"><span>{personA.displayName}</span><strong>나의 사주</strong></div><PillarGrid facts={facts.A} /><ElementFacts facts={facts.A} /></article>
-        <article><div className="v2-person-title"><span>{personB.displayName}</span><strong>상대의 사주</strong></div><PillarGrid facts={facts.B} /><ElementFacts facts={facts.B} /></article>
-      </div>
-    </section>
-
-    <section className="v2-score-section">
-      <div className="v2-section-title"><small>COMPATIBILITY SCORE</small><h2>핵심 궁합 지표</h2><p>점수는 해설의 근거 강도를 보여주는 참고값입니다. 본문에서 실제 관계에서 어떤 의미인지 자세히 설명합니다.</p></div>
-      <CompatibilityHeatmap dimensions={visibleDimensions.map(([dimension, value]) => ({ label: DIMENSION_LABELS[dimension], shortLabel: DIMENSION_SHORT_LABELS[dimension], score: value.normalizedScore }))} />
-    </section>
-
-    {(personACharacter || personBCharacter) && <section className="day-pillar-character-section">
-      <div className="v2-section-title"><small>60 DAY-PILLAR CHARACTERS</small><h2>두 사람의 60일주 캐릭터</h2><p>일주는 각자의 기본 반응 결을 읽는 한 가지 렌즈예요. 실제 궁합 판단은 아래의 전체 계산과 관계 장면을 함께 봅니다.</p></div>
-      <div className="day-pillar-character-grid">
-        {personACharacter && <DayPillarCharacterCard label="나의 캐릭터" displayName={personA.displayName} character={personACharacter} />}
-        {personBCharacter && <DayPillarCharacterCard label="상대의 캐릭터" displayName={personB.displayName} character={personBCharacter} />}
-      </div>
-    </section>}
-
-
-    <div id="v2-report-start">
-      <ReportChaptersA content={displayContent} personAName={personA.displayName} personBName={personB.displayName} />
-    </div>
-    <ReportChaptersB
-      content={displayContent}
-      personAName={personA.displayName}
-      personBName={personB.displayName}
-      relationshipLabel={relationshipLabel}
-      threeYearTiming={snapshot.threeYearTiming}
+      />}
+      accountNode={<>
+        <ReportAccountLink
+          paymentId={order.paymentId}
+          accessToken={order.resultAccessToken ?? null}
+          alreadyClaimed={accountOwned}
+        />
+        <footer className="v2-footer"><Link href="/one-to-one">다른 사람과 다시 보기</Link><Link href="/">처음으로</Link></footer>
+      </>}
+      debugNode={debug ? <section className="v2-debug"><strong>QA debug</strong><pre>{JSON.stringify({ segmentMetas, scoringVersion: snapshot.scoringVersion, engineVersion: snapshot.engineVersion, threeYearTiming: snapshot.threeYearTiming }, null, 2)}</pre></section> : undefined}
     />
-
-    <ReportAccountLink
-      paymentId={order.paymentId}
-      accessToken={order.resultAccessToken ?? null}
-      alreadyClaimed={accountOwned}
-    />
-
-    {debug && <section className="v2-debug"><strong>QA debug</strong><pre>{JSON.stringify({ segmentMetas, scoringVersion: snapshot.scoringVersion, engineVersion: snapshot.engineVersion, threeYearTiming: snapshot.threeYearTiming }, null, 2)}</pre></section>}
-    <footer className="v2-footer"><Link href="/one-to-one">다른 사람과 다시 보기</Link><Link href="/">처음으로</Link></footer>
-  </div></main>;
+  </main>;
 }
