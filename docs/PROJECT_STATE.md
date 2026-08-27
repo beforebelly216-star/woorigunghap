@@ -10,20 +10,17 @@
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic
 - 상품: 1:1 1,000원 / 1:N 3,000원
 - 관계 유형: 짝사랑 / 썸 / 연인 / 친구 / 직장동료
-- Vercel Git 자동배포는 기본 OFF. Production 배포는 사용자 명시 승인 후 별도 실행.
+- Vercel Git 자동배포는 기본 OFF. Production/Preview 배포는 사용자 명시 승인 후 별도 실행.
 
 ## 핵심 기능
 
 - 서버 결정론적 만세력 + 9개 궁합 지표
-- 궁합 scoring **v1.6**: 5개 관계유형별 최종 가중치 + 실제 도달 가능한 공개 점수 30~100 절대 범위
-- 관계별 별도 ceiling 없음. 모든 관계가 동일 공개 30~100 척도를 사용하며 절대 최대 100은 유지
-- 세부 지표 raw 범위의 공통 교집합을 공개 30~100에 선형 정규화하므로 약한 결과를 재미 목적으로 끌어올리지 않음
+- 궁합 scoring **v1.6**: 관계유형별 가중치 + 실제 도달 가능한 공개 점수 30~100, 절대 최대 100
+- 관계별 별도 ceiling 없음. 약한 결과를 보기 좋게 끌어올리는 숨은 가점 없음
 - 무료 천생연분: 입력 → 결정론 사주 분석 → 결과 화면
 - 1:1 / 1:N 입력·결제·결과·저장·재열람
-- PortOne 결제 검증 / webhook 멱등 처리
 - 결제 검증 후에만 유료 AI 서술 생성
-- `claude-sonnet-5`, structured output 우선
-- 1:1 segment 저장 + single-flight/idempotency
+- 1:1: `claude-sonnet-5`, structured output, segment 저장 + single-flight/idempotency
 - 1:N 중복 생성 방지 + 저장 결과 재사용
 - 비회원 복구 / Kakao 로그인 / 계정 보관함
 - Shared View / Web Share / 1080×1920 공유 이미지
@@ -40,42 +37,47 @@
 
 ### 1:1 / 1:N 입력
 
-- 기존 desktop-like 입력 UI를 폐기하고 모바일 레퍼런스형으로 재구성 완료.
+- 기존 desktop-like 입력 UI 폐기, 모바일 레퍼런스형 재구성 완료.
 - 출생시간은 오전/오후 선택 없이 **24시간제 HHMM**.
 - 1:1: `내 정보 → 상대방 정보 → 확인` 3단계.
 - 1:N: `기본 정보 → 후보 정보 → 확인`, 후보 2~5명.
 
-### 1:1 결과 재설계
+### 1:1 결과
 
-- **390px 모바일 layout v3 구현 완료.** 기존 CH0~CH9 직접 렌더 조립 대신 아래 탑다운 구조로 재배치했다.
-  - `01 한눈에 보기 → 02 두 사람 사주 → 03 끌림 + 시너지 → 04 관계 구조 → 05 관계 성향 → 06 갈등 루프 → 07 관계 심층 → 08 장기 전망 → 09 관계 사용설명서 → 주토피 마무리`
-- 기존 계산·결제·복구·저장·single-flight·공유·보관함 귀속 로직은 변경하지 않았다.
-- 현재 layout v3는 **기존 v7 저장/생성 콘텐츠를 새 정보 구조에 재배치하는 1차 단계**다. Claude Sonnet 5 prompt/schema를 새 구조 전용으로 재설계하는 작업은 아직 남아 있다.
-- 사용자 화면의 핵심 인물 라벨은 입력 별칭을 그대로 사용하고 `나의 사주/상대의 사주`, `나의 캐릭터/상대의 캐릭터` 같은 고정 대체 호칭을 제거했다.
-- 360 / 390 / 430px responsive contract를 추가했다. 실브라우저 pixel-level QA는 별도 남아 있다.
-- 목표 본문 약 5,000자, 허용 약 4,000~6,000자.
-- 내부 시스템 지침은 결과 화면에 노출하지 않는다.
+- **390px 모바일 layout v3 구현 완료.**
+- 구조: `01 한눈에 보기 → 02 두 사람 사주 → 03 끌림 + 시너지 → 04 관계 구조 → 05 관계 성향 → 06 갈등 루프 → 07 관계 심층 → 08 장기 전망 → 09 관계 사용설명서 → 주토피 마무리`.
+- 기존 계산·결제·복구·저장·single-flight·공유·보관함 귀속은 유지.
+- 사용자 화면에서는 입력 별칭을 그대로 사용하고 `나/상대방/A/B`를 인물 호칭으로 쓰지 않는다.
+- **layout v3 전용 유료 narrative v8 구현 완료.** 기존 API/storage 호환을 위해 `intro/dynamics/action` 3-segment 계약은 유지한다.
+- 전체 유료 본문 목표는 **약 5,000자, 허용 4,000~6,000자**. 짧은 이미지 샘플 분량이 아니라 실제 생성 본문을 길게 작성하도록 세그먼트별 품질 하한과 필드별 목표 길이를 설정했다.
+  - intro 목표 1,050~1,400자
+  - dynamics 목표 1,450~1,900자
+  - action 목표 1,800~2,400자
+- 분량은 새 화면에서 실제 사용하는 `총평/개인 성향/끌림·시너지/양방향 영향/갈등 3개/관계유형 심층 4개/장기 조건/사용설명서`에 집중한다. 저장 호환용 보조 필드는 짧게 유지한다.
+- 일상어 결론은 일간·일지·오행·천간/지지 상호작용 등 제공된 사주 근거와 같은 문단에서 연결한다.
+- Claude는 점수·순위·원국을 변경하지 않으며 내부 시스템 문구를 사용자 결과에 노출하지 않는다.
+- **생성 대기 화면 v4 구현 완료:** 주토피가 빨간 상승 흐름을 두고 궁합 `떡상 기원`하는 전면 일러스트, 단계 문구, 애니메이션 진행 바, reduced-motion 대응. 가짜 정밀 퍼센트 대신 실제 생성 단계와 연결된 대기 경험을 사용한다.
+- 360 / 390 / 430px responsive contract가 있다. 실브라우저 pixel-level QA는 별도 남아 있다.
 
 ## 검증 상태
 
-- **PR #68 / Core calculation validation #799 PASS** — 1:1 layout v3 + 전체 calculation/payment/AI/1:N/account/Growth contracts + lint + production build PASS.
-- PR #67 / validation #791 PASS — scoring v1.6 full-range normalization, 5개 관계 가중치, 전체 contracts/lint/build PASS.
-- #791 샘플: 연인 72(raw 73.625), 짝사랑 74(raw 74.585), 썸 73(raw 74.022), 친구 시간미상 73(raw 73.975), 직장동료 양쪽 시간미상 72(raw 73.63).
-- 공통 raw 하단 → 공개 30, 공통 raw 상단 → 공개 100 계약 검증 완료.
+- **PR #69 / Core calculation validation #806 PASS** — 1:1 narrative v8 4,000~6,000자 설계 + bullish Jootopi loading UX + 전체 calculation/payment/AI/1:N/account/Growth contracts + lint + production build PASS.
+- PR #68 / validation #799 PASS — 1:1 layout v3.
+- PR #67 / validation #791 PASS — scoring v1.6.
 - PR #65 / validation #778 PASS — 무료 천생연분 결정론 결과.
 
 ## 배포 상태
 
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
-- **1:1 layout v3는 아직 Preview/Production 배포하지 않았다.**
+- **1:1 layout v3 + narrative v8 + 새 로딩 화면은 아직 Preview/Production 배포하지 않았다.**
 - Production에는 최신 무료 천생연분 및 scoring v1.6 변경도 아직 배포하지 않았다.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. **1:1 새 결과 구조 전용 Claude Sonnet 5 narrative schema/prompt 및 약 4,000~6,000자 콘텐츠 매핑**
-2. 1:1 layout v3 390px 실화면 pixel-level QA 및 360/430px overflow/spacing QA
-3. 천생연분 결과 390px 실화면 pixel-level QA
+1. 1:1 layout v3 + 5천자 narrative + 로딩 화면 Preview 배포 승인 후 390px 실제 생성 QA
+2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
+3. 360 / 390 / 430px overflow/spacing QA
 4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
 5. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
 
