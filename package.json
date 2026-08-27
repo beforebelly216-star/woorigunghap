@@ -51,7 +51,8 @@
     "test:growth:p6-share-cards": "tsx scripts/growth-p6-share-card-experiment-test.ts",
     "test:growth:free-acquisition": "tsx scripts/growth-free-acquisition-test.ts",
     "test:hotfix:runtime-ux": "tsx scripts/hotfix-runtime-ux-test.ts",
-    "test:hotfix:ai-generation": "tsx scripts/hotfix-ai-generation-test.ts"
+    "test:hotfix:ai-generation": "tsx scripts/hotfix-ai-generation-test.ts",
+    "test:hotfix:paid-result-stuck-prepare": "tsx scripts/hotfix-paid-result-stuck-prepare-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
@@ -65,8 +66,8 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "tailwindcss": "^4",
