@@ -6,6 +6,7 @@ import "../../report-p5-overrides.css";
 import "../../report-p5-mobile.css";
 import "./result-status.css";
 import "./report-foundation.css";
+import "./generation-loading-v4.css";
 import "../../../components/zootopi-mark.css";
 import "../../../components/candlestick-score.css";
 import ResultV2 from "./result-v2";
