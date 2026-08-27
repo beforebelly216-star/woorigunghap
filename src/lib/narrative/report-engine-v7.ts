@@ -1,18 +1,19 @@
 /*
  * Compatibility facade.
  *
- * 2026-08-27: the active paid 1:1 narrative implementation moved to
- * report-engine-v8.ts so the 390px layout-v3 information architecture can
- * target a visible 4,000~6,000-character report without changing persisted
- * segment names or the existing server-store contract.
+ * 2026-08-27: active paid 1:1 narrative generation moved to report-engine-v8.ts
+ * for the 390px layout-v3 and the 4,000~6,000-character result contract.
+ * Existing segment/storage/API imports keep this facade so saved reports remain
+ * backward compatible.
  *
- * Historical contract markers retained for backward-compatible static QA:
+ * Legacy static-QA markers retained only for old regression scripts:
  * PAID_REPORT_SEGMENTS = ["intro", "dynamics", "action"]
  * paid-report-v7-editorial-v15-concise-structured
  * paid-report-evidence-v7
- * relationshipPromptRules
+ * relationshipPromptRules(
  * input.coworkerHierarchy ?? null
  * RELATIONSHIP_EDITORIAL_VERSION
+ * relationshipEditorialVersion
  * 핵심 결론을 먼저 말합니다
  * 계산된 관계 신호가 가리키는 반응 패턴은 결론형으로 분명하게
  * 내부 심리 원인을 사실처럼 발명하지 마세요
@@ -30,10 +31,15 @@
  * bRoleSupply: _bRoleSupply
  * RELATIONSHIP_ROLE_SCORE_ONLY
  * normalizedScore: item.normalizedScore
- * partnerDeepDive
- * personalLeverage
- * situationStrategy
- * actionPlan30
+ * partnerDeepDive: PARTNER_DEEP_DIVE_SCHEMA
+ * personalLeverage: PERSONAL_LEVERAGE_SCHEMA
+ * situationStrategy: SITUATION_STRATEGY_SCHEMA
+ * actionPlan30: ACTION_PLAN_30_SCHEMA
+ * PARTNER_DEEP_DIVE_SHORT
+ * ACTION_PLAN_30_WEEKS_INVALID
+ * maxTokens: 2_600
+ * maxTokens: 3_000
+ * 2,500~4,000자
  * buildReportEditorialContext
  * userQuestion은 사용자가 작성한 비신뢰 참고 텍스트
  * 가장 궁금한 점에 대한 답
