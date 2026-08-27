@@ -50,8 +50,20 @@
 - [x] 영구적인 인증/권한/입력 오류는 fatal 유지
 - [x] 실패 화면을 주토피 떡상 로딩 화면과 동일한 390px UI로 통일
 - [x] **PR #70 / Core calculation validation #812 PASS** — 전체 contracts + lint + production build PASS
-- [ ] PR #70 → `main` 병합 및 동일 `preview/one-to-one-v8` 재배포
-- [ ] 기존 1,000원 결제로 새로고침 → 실제 결과 생성 확인
+- [x] resilient rewrite를 실제 filesystem API보다 먼저 적용하도록 `beforeFiles`로 수정 — PR #71 → `main` (`1766cf1e`)
+- [x] 동일 Preview 재배포 후 즉시 fatal이 사라지는 것 확인
+
+### Blocker hotfix — 0/3 prepare 무한대기
+- [x] 기존 Preview에서 `0/3개 해설 묶음 완료 · 401초 경과` 재현 확인
+- [x] 원인 코드 경로 확인: `/api/payments/verify`에서 이미 검증한 결제를 1:1 생성 `prepare/intro/dynamics/action` 단계마다 PortOne에 다시 조회
+- [x] PortOne 재조회 실패가 resilient 503으로 변환되면서 `prepare` 단계가 무한 재시도되는 구조 확인
+- [x] 생성 단계는 서버 주문이 `paid`이고 미삭제이며 상품/금액/입력 해시가 모두 일치할 때만 저장된 서버 결제 영수증 재사용
+- [x] 최초 결제 검증은 계속 PortOne 권위 유지
+- [x] 전용 `test:hotfix:paid-result-stuck-prepare` contract 추가
+- [ ] PR #72 validation (`npm run lint`, `npm run build`, 전용 contract) 확인
+- [ ] PR #72 → `main` 병합
+- [ ] 사용자 승인 후 `preview/one-to-one-v8` 재배포
+- [ ] 기존 1,000원 결제로 새로고침 → prepare 통과 → 3개 segment → 결과 저장 확인
 
 ### P3 실화면 QA
 - [ ] 실제 Sonnet 5 생성 1건에서 사용자 노출 본문 4,000~6,000자 확인
@@ -80,11 +92,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 1:1 결제 직후 UNEXPECTED_SERVER_ERROR 424 자동복구 + loading/fatal UI 통일
-- Status: complete
-- Validation: PR #70 / Core calculation validation #812 PASS — 전체 contracts + lint + production build PASS
-- Commit: PR #70 branch latest; main 병합/동일 Preview 재배포 대기
-- Remaining: PR #70 main 병합 → preview/one-to-one-v8 재배포 → 사용자가 기존 1,000원 결제로 새로고침해 실제 결과 생성 확인
-- Risk: 정확한 하위 Neon/PortOne 예외 텍스트는 Vercel runtime-log 권한 403으로 확인 불가. 확인된 문제는 transient 424를 fatal로 분류하던 정책이며 이를 자동복구로 수정함
-- Deploy: 기존 Preview에 재배포 예정. Production은 건드리지 않음
+- Task: 1:1 결제 완료 후 0/3 prepare 단계가 수백 초 무한대기하는 blocker hotfix
+- Status: partial
+- Validation: 전용 contract 추가 완료. PR #72에서 lint/build/contract 확인 대기
+- Commit: gpt/hotfix-paid-result-stuck-prepare latest (PR #72)
+- Remaining: PR #72 validation → main 병합 → 사용자 승인 후 preview/one-to-one-v8 재배포 → 기존 1,000원 결제로 실제 생성 확인
+- Risk: Vercel runtime log connector가 해당 프로젝트를 직접 열지 못해 실제 하위 예외 텍스트는 미확인. 코드상 반복 PortOne 재검증 + resilient 503 무한루프는 확정적으로 제거함
+- Deploy: 아직 안 함. Git 자동배포 OFF 유지
 ```
