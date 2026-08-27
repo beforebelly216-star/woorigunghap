@@ -38,10 +38,24 @@ export async function POST(request: NextRequest) {
 
   try {
     const verified = await verifyPaidPayment(paymentId);
+
+    // Do not move the browser to the paid-result generator until the authoritative
+    // server order has also recorded the successful payment. Previously this
+    // write was best-effort, so checkout could say verified while generation saw
+    // an unconfirmed order and retried forever at prepare/0-of-3.
+    let paidStored = false;
     try {
-      await markServerOrderPaid(paymentId);
+      paidStored = await markServerOrderPaid(paymentId);
     } catch (error) {
       console.error("[woorigunghap:payment-store-mark]", error);
+    }
+    if (!paidStored) {
+      return NextResponse.json({
+        verified: false,
+        error: "결제는 승인됐지만 결과 저장 상태를 아직 확정하지 못했습니다. 자동으로 다시 확인합니다.",
+        code: "PAYMENT_PAID_STORE_PENDING",
+        retryable: true,
+      }, { status: 503 });
     }
 
     const user = await loadAuthenticatedRequestUser(request).catch(() => null);
