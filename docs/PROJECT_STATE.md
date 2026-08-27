@@ -63,7 +63,7 @@
 
 ## 검증 상태
 
-- **PR #72 / Core calculation validation #818 PASS** — 0/3 prepare 무한대기 방지: server-verified paid order 재사용 + 입력 해시 재검증 + 전체 contracts + lint + production build PASS.
+- **PR #72 / Core calculation validation #821 PASS** — 0/3 prepare 무한대기 방지: server-verified paid order 재사용 + 입력 해시 재검증 + 전용 contract + 전체 contracts + lint + production build PASS.
 - **PR #70 / Core calculation validation #812 PASS** — transient paid-result recovery + loading/failure UI 통일 + 전체 contracts + lint + production build PASS.
 - PR #69 / validation #809 PASS — 1:1 narrative v8 4,000~6,000자 설계 + bullish Jootopi loading UX.
 - PR #68 / validation #799 PASS — 1:1 layout v3.
