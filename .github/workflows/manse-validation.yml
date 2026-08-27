@@ -67,6 +67,7 @@ jobs:
           npm run test:day9:schema-guard
           npm run test:day10:editorial
           npm run test:day11:server-store
+          npm run test:hotfix:paid-result-stuck-prepare
       - name: Run 1:N contracts
         run: |
           npm run test:day13:one-to-many-input
