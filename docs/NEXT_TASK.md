@@ -61,9 +61,9 @@
 - [x] prepare 캐시 저장 실패만으로 유료 사용자를 0/3에 가두지 않도록 best-effort 처리
 - [x] 동일 5xx/424 반복을 무한 503으로 되돌리지 않고 `REPORT_STATE_RETRY_EXHAUSTED` terminal 진단으로 종료
 - [x] `test:hotfix:paid-result-stuck-prepare` 회귀 계약 갱신
-- [x] **PR #73 / Core calculation validation #825 PASS** — 전체 contracts + lint + production build PASS
-- [ ] PR #73 → `main` 병합
-- [ ] 동일 `preview/one-to-one-v8` 재배포
+- [x] **PR #73 / Core calculation validation #827 PASS** — 전체 contracts + lint + production build PASS
+- [x] PR #73 → `main` (`a9b34313`)
+- [x] 동일 `preview/one-to-one-v8` 재배포 — Vercel success, trigger `8fc86aaa`, 자동배포 OFF 복구
 - [ ] 기존 1,000원 결제로 새로고침 → prepare 통과 → intro/dynamics/action → 결과 저장 확인
 
 ### P3 실화면 QA
@@ -93,11 +93,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 1:1 결제 완료 후 0/3 prepare 반복/무한대기 root hotfix
+- Task: 1:1 결제 완료 후 0/3 prepare 반복/무한대기 root hotfix + 동일 Preview 재배포
 - Status: complete
-- Validation: PR #73 / Core calculation validation #825 PASS — 전체 contracts + lint + production build PASS
-- Commit: gpt/hotfix-paid-result-loop-root latest (PR #73)
-- Remaining: PR #73 main 병합 → 동일 preview/one-to-one-v8 재배포 → 기존 1,000원 결제로 실제 생성 확인
-- Risk: Vercel runtime-log connector가 프로젝트를 직접 열지 못해 예외 원문은 미확인. 대신 0/3을 무한 유지시키던 결제 paid-state 저장 누락 + prepare 503 무한반환 두 경로를 모두 제거함
-- Deploy: Preview 재배포 필요. Production은 건드리지 않음
+- Validation: PR #73 / Core calculation validation #827 PASS — 전체 contracts + lint + production build PASS
+- Commit: main a9b34313; Preview trigger 8fc86aaa
+- Remaining: 사용자가 기존 1,000원 결제 결과를 새로고침해 prepare→intro→dynamics→action→저장 실동작 확인
+- Risk: Vercel runtime-log connector가 프로젝트를 직접 열지 못해 예외 원문은 미확인. 대신 paid-state 저장 누락, prepare 캐시 실패, 반복 503 무한반환 세 경로를 모두 차단함
+- Deploy: preview/one-to-one-v8 Vercel success. Git 자동배포 OFF 복구. Production 미배포
 ```
