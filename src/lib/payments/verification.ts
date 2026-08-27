@@ -1,4 +1,5 @@
 import { PaymentClient } from "@portone/server-sdk";
+import { neon } from "@neondatabase/serverless";
 import { PRODUCTS, type ProductKey } from "@/lib/catalog";
 import {
   LEGACY_ORDER_BINDING_VERSION,
@@ -54,20 +55,82 @@ function isTerminalPaymentStatus(status: unknown) {
   return status === "FAILED" || status === "CANCELLED" || status === "PARTIAL_CANCELLED";
 }
 
+type StoredPaidOrder = {
+  product?: unknown;
+  amount?: unknown;
+  inputSnapshot?: unknown;
+};
+
+async function hashInputForProduct(
+  product: ProductKey,
+  input: OneToOneReportInput | OneToManyReportInput,
+) {
+  return product === "oneToMany"
+    ? hashOneToManyInput(input as OneToManyReportInput, ORDER_BINDING_VERSION)
+    : hashOneToOneInput(input as OneToOneReportInput, ORDER_BINDING_VERSION);
+}
+
+async function loadTrustedServerPaidOrder(
+  paymentId: string,
+  product: ProductKey,
+  expectedInput: OneToOneReportInput | OneToManyReportInput | undefined,
+) {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString || !expectedInput) return null;
+
+  try {
+    const sql = neon(connectionString);
+    const rows = await sql`
+      SELECT order_json
+      FROM woorigunghap_order_records
+      WHERE payment_id = ${paymentId}
+        AND payment_status = 'paid'
+        AND generation_status <> 'deleted'
+      LIMIT 1
+    `;
+    const raw = rows[0]?.order_json;
+    if (typeof raw !== "string") return null;
+
+    const stored = JSON.parse(raw) as StoredPaidOrder;
+    if (
+      stored.product !== product
+      || stored.amount !== PRODUCTS[product].amount
+      || !stored.inputSnapshot
+    ) return null;
+
+    const [storedHash, requestedHash] = await Promise.all([
+      hashInputForProduct(product, stored.inputSnapshot as OneToOneReportInput | OneToManyReportInput),
+      hashInputForProduct(product, expectedInput),
+    ]);
+    if (storedHash !== requestedHash) {
+      throw new PaymentVerificationError(
+        "결제 당시 입력정보와 현재 요청한 입력정보가 일치하지 않습니다.",
+        409,
+        "PAYMENT_INPUT_MISMATCH",
+      );
+    }
+
+    return {
+      paymentId,
+      product,
+      amount: PRODUCTS[product].amount,
+      status: "PAID" as const,
+      inputBound: true,
+      source: "server-paid-order" as const,
+    };
+  } catch (error) {
+    if (error instanceof PaymentVerificationError) throw error;
+    // A server-store read problem must not weaken payment verification. Fall back
+    // to PortOne, which remains the authority for first-time payment validation.
+    return null;
+  }
+}
+
 export async function verifyPaidPayment(
   paymentId: string,
   expectedProduct?: ProductKey,
   expectedInput?: OneToOneReportInput | OneToManyReportInput,
 ) {
-  const secret = process.env.PORTONE_API_SECRET;
-  if (!secret) {
-    throw new PaymentVerificationError(
-      "결제 서버 설정이 완료되지 않았습니다.",
-      503,
-      "PAYMENT_SERVER_NOT_CONFIGURED",
-    );
-  }
-
   const product = productFromPaymentId(paymentId);
   if (!product) {
     throw new PaymentVerificationError(
@@ -82,6 +145,23 @@ export async function verifyPaidPayment(
       "결제 상품이 요청한 리포트와 일치하지 않습니다.",
       400,
       "PRODUCT_MISMATCH",
+    );
+  }
+
+  // Report-generation requests always carry the already-bound input. Once the
+  // server has previously verified the payment and marked the immutable order
+  // record paid, reuse that server-side receipt instead of querying PortOne on
+  // every long-running report segment. This prevents a paid report from being
+  // stuck forever when PortOne lookup is temporarily unavailable after checkout.
+  const trustedPaidOrder = await loadTrustedServerPaidOrder(paymentId, product, expectedInput);
+  if (trustedPaidOrder) return trustedPaidOrder;
+
+  const secret = process.env.PORTONE_API_SECRET;
+  if (!secret) {
+    throw new PaymentVerificationError(
+      "결제 서버 설정이 완료되지 않았습니다.",
+      503,
+      "PAYMENT_SERVER_NOT_CONFIGURED",
     );
   }
 
@@ -154,5 +234,6 @@ export async function verifyPaidPayment(
     amount: expected.amount,
     status: payment.status,
     inputBound,
+    source: "portone" as const,
   } as const;
 }
