@@ -69,7 +69,7 @@
 
 ## 검증 상태
 
-- **PR #73 / Core calculation validation #825 PASS** — 반복 prepare loop root hotfix + 전체 contracts + lint + production build PASS.
+- **PR #73 / Core calculation validation #827 PASS** — 반복 prepare loop root hotfix + 전체 contracts + lint + production build PASS.
 - **PR #72 / Core calculation validation #821 PASS** — server-verified paid order 재사용 + 입력 해시 재검증.
 - **PR #70 / Core calculation validation #812 PASS** — loading/failure UI 통일.
 - PR #69 / validation #809 PASS — 1:1 narrative v8 4,000~6,000자 설계 + bullish Jootopi loading UX.
@@ -80,18 +80,17 @@
 ## 배포 상태
 
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
-- 1:1 v8 Preview: `preview/one-to-one-v8`. 기존 배포에서는 0/3 prepare가 700초 이상 반복됨. PR #73 hotfix 재배포 필요.
+- 1:1 v8 Preview: `preview/one-to-one-v8`, PR #73 hotfix 반영 Vercel success. 배포 trigger `8fc86aaa`; 배포 후 Git 자동배포 OFF 복구.
 - Production에는 최신 1:1 hotfix를 아직 배포하지 않았다.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. PR #73 `main` 병합 후 동일 `preview/one-to-one-v8` 재배포
-2. 기존 1,000원 결제로 새로고침 → prepare 통과 → 3개 segment → 결과 저장까지 실제 복구 확인
-3. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
-4. 360 / 390 / 430px overflow/spacing QA
-5. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
-6. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
+1. 기존 1,000원 결제로 새로고침 → prepare 통과 → 3개 segment → 결과 저장까지 실제 복구 확인
+2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
+3. 360 / 390 / 430px overflow/spacing QA
+4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
+5. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
 
 ## 출시 blocker
 
