@@ -38,7 +38,7 @@
 - [x] 사용자 입력 별칭을 핵심 인물 라벨에 그대로 사용
 - [x] 360 / 390 / 430px responsive contract 추가
 - [x] **PR #68 / Core calculation validation #799 PASS** — 전체 contracts, lint, production build PASS
-- [ ] PR #68 → `main` 병합
+- [x] PR #68 → `main` 병합 (`27d47ebe`)
 
 ### P2 콘텐츠 / Narrative
 - [ ] 새 layout v3 정보 구조 전용 Sonnet 5 schema/prompt 설계
@@ -78,8 +78,8 @@ HANDOFF
 - Task: 1:1 유료 결과 390px 모바일 layout v3 1차 구현
 - Status: complete
 - Validation: PR #68 / Core calculation validation #799 PASS — 전체 calculation/payment/AI/1:N/account/Growth contracts + lint + production build PASS
-- Commit: PR #68 branch latest; main 병합 대기
-- Remaining: PR #68 main 병합 → 새 구조 전용 Sonnet 5 narrative schema/prompt 및 4,000~6,000자 콘텐츠 매핑
+- Commit: main merge `27d47ebe`; 이 HANDOFF 문서 커밋이 최신 main
+- Remaining: 새 구조 전용 Sonnet 5 narrative schema/prompt 및 4,000~6,000자 콘텐츠 매핑
 - Risk: 현재 화면은 기존 v7 생성 콘텐츠를 새 구조에 재배치한 단계. 저장된 기존 구매 결과 재생성/덮어쓰기 금지
 - Deploy: 없음. Production/Preview 자동배포 OFF 유지
 ```
