@@ -34,10 +34,12 @@ assert.ok(engine.includes("dayPillarCharacter"), "AI 편집 payload에 일주 �
 assert.ok(engine.includes("일주 캐릭터는 보조 편집 렌즈"), "캐릭터가 계산 근거를 덮어쓰지 못하는 규칙이 필요합니다.");
 
 const result = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
-assert.ok(result.includes("DayPillarCharacterCard"));
-assert.ok(result.includes("getDayPillarCharacter(facts.A.pillars.day.korean)"));
-assert.ok(result.includes("getDayPillarCharacter(facts.B.pillars.day.korean)"));
-assert.ok(result.includes("두 사람의 60일주 캐릭터"));
+const layout = readFileSync("src/app/one-to-one/result/report-layout-v3.tsx", "utf8");
+assert.ok(result.includes("ReportLayoutV3"), "완성 결과는 layout v3를 사용해야 합니다.");
+assert.ok(layout.includes("DayPillarCharacterCard"));
+assert.ok(layout.includes("getDayPillarCharacter(facts.A.pillars.day.korean)"));
+assert.ok(layout.includes("getDayPillarCharacter(facts.B.pillars.day.korean)"));
+assert.ok(layout.includes("두 사람의 관계 성향"));
 
 const css = readFileSync("src/app/report-extra.css", "utf8");
 assert.ok(css.includes(".day-pillar-character-grid"));

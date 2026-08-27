@@ -45,34 +45,37 @@
 - 1:1: `내 정보 → 상대방 정보 → 확인` 3단계.
 - 1:N: `기본 정보 → 후보 정보 → 확인`, 후보 2~5명.
 
-### 1:1 결과 재설계 진행 기준
+### 1:1 결과 재설계
 
-- 기존 결과 UI/UX는 새 390px 모바일 결과 디자인으로 전면 교체 예정.
+- **390px 모바일 layout v3 구현 완료.** 기존 CH0~CH9 직접 렌더 조립 대신 아래 탑다운 구조로 재배치했다.
+  - `01 한눈에 보기 → 02 두 사람 사주 → 03 끌림 + 시너지 → 04 관계 구조 → 05 관계 성향 → 06 갈등 루프 → 07 관계 심층 → 08 장기 전망 → 09 관계 사용설명서 → 주토피 마무리`
+- 기존 계산·결제·복구·저장·single-flight·공유·보관함 귀속 로직은 변경하지 않았다.
+- 현재 layout v3는 **기존 v7 저장/생성 콘텐츠를 새 정보 구조에 재배치하는 1차 단계**다. Claude Sonnet 5 prompt/schema를 새 구조 전용으로 재설계하는 작업은 아직 남아 있다.
+- 사용자 화면의 핵심 인물 라벨은 입력 별칭을 그대로 사용하고 `나의 사주/상대의 사주`, `나의 캐릭터/상대의 캐릭터` 같은 고정 대체 호칭을 제거했다.
+- 360 / 390 / 430px responsive contract를 추가했다. 실브라우저 pixel-level QA는 별도 남아 있다.
 - 목표 본문 약 5,000자, 허용 약 4,000~6,000자.
-- 결과 호칭은 사용자가 입력한 별칭을 그대로 사용하고 `나/상대방/A/B` 대체 호칭을 쓰지 않는다.
-- 일상언어 해석은 사주 계산 근거가 자연스럽게 읽히도록 구성한다.
 - 내부 시스템 지침은 결과 화면에 노출하지 않는다.
-- Claude Sonnet 5는 계산값을 바꾸지 않고 깊은 유료 서술에 사용한다.
 
 ## 검증 상태
 
-- **PR #67 / Core calculation validation #791 PASS** — scoring v1.6 full-range normalization, 5개 관계 가중치, 전체 calculation/payment/AI/1:N/account/Growth contracts, lint, production build PASS.
+- **PR #68 / Core calculation validation #799 PASS** — 1:1 layout v3 + 전체 calculation/payment/AI/1:N/account/Growth contracts + lint + production build PASS.
+- PR #67 / validation #791 PASS — scoring v1.6 full-range normalization, 5개 관계 가중치, 전체 contracts/lint/build PASS.
 - #791 샘플: 연인 72(raw 73.625), 짝사랑 74(raw 74.585), 썸 73(raw 74.022), 친구 시간미상 73(raw 73.975), 직장동료 양쪽 시간미상 72(raw 73.63).
-- 공통 raw 하단 → 공개 30, 공통 raw 상단 → 공개 100 계약 검증 완료. 낮은 raw 60은 공개점수에서 60보다 낮아져 임의 상향이 없음을 확인.
-- PR #66 / validation #787 PASS — 5개 관계 가중치 분리 및 과거 raw30→45 uplift 제거.
+- 공통 raw 하단 → 공개 30, 공통 raw 상단 → 공개 100 계약 검증 완료.
 - PR #65 / validation #778 PASS — 무료 천생연분 결정론 결과.
 
 ## 배포 상태
 
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
-- Production에는 최신 무료 천생연분 및 scoring v1.6 변경을 아직 배포하지 않았다.
+- **1:1 layout v3는 아직 Preview/Production 배포하지 않았다.**
+- Production에는 최신 무료 천생연분 및 scoring v1.6 변경도 아직 배포하지 않았다.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. **1:1 새 결과 리포트 구조·Claude Sonnet 5 narrative·390px UI 구현**
-2. 천생연분/1:1 새 결과 390px 실화면 pixel-level QA
-3. 360 / 390 / 430px 핵심 플로우 overflow/spacing QA
+1. **1:1 새 결과 구조 전용 Claude Sonnet 5 narrative schema/prompt 및 약 4,000~6,000자 콘텐츠 매핑**
+2. 1:1 layout v3 390px 실화면 pixel-level QA 및 360/430px overflow/spacing QA
+3. 천생연분 결과 390px 실화면 pixel-level QA
 4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
 5. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
 
