@@ -1,0 +1,29 @@
+<svg width="320" height="260" viewBox="0 0 320 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="30" y1="16" x2="286" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8DF"/><stop offset="1" stop-color="#F3ECFF"/>
+    </linearGradient>
+    <linearGradient id="robe" x1="115" y1="176" x2="205" y2="246" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B5CF6"/><stop offset="1" stop-color="#6D3FD1"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="304" height="244" rx="34" fill="url(#bg)"/>
+  <path d="M48 180L80 158L108 166L140 127L170 141L206 101L244 114L280 63" stroke="#FF5A67" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M262 60H282V80" stroke="#FF5A67" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="42" y="145" width="9" height="27" rx="4.5" fill="#FF5A67"/><rect x="65" y="130" width="9" height="42" rx="4.5" fill="#FF5A67"/>
+  <rect x="237" y="86" width="9" height="38" rx="4.5" fill="#FF5A67"/><rect x="260" y="69" width="9" height="38" rx="4.5" fill="#FF5A67"/>
+  <path d="M129 78C119 48 121 19 136 16C150 13 155 39 149 75" fill="#FFF0A8" stroke="#222226" stroke-width="4"/>
+  <path d="M175 76C182 42 178 17 164 16C151 15 148 42 154 76" fill="#FFF0A8" stroke="#222226" stroke-width="4"/>
+  <ellipse cx="152" cy="122" rx="55" ry="53" fill="#FFF0A8" stroke="#222226" stroke-width="4"/>
+  <circle cx="132" cy="116" r="15" stroke="#222226" stroke-width="4"/><circle cx="173" cy="116" r="15" stroke="#222226" stroke-width="4"/>
+  <path d="M147 116H158" stroke="#222226" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="132" cy="116" r="4" fill="#222226"/><circle cx="173" cy="116" r="4" fill="#222226"/>
+  <path d="M139 141C146 148 158 148 165 141" stroke="#222226" stroke-width="4" stroke-linecap="round"/>
+  <path d="M102 244C106 196 124 177 152 177C181 177 200 198 205 244" fill="url(#robe)" stroke="#222226" stroke-width="4"/>
+  <path d="M117 194C130 201 144 206 152 222C161 205 177 200 190 193" stroke="#FFF7D8" stroke-width="5" stroke-linecap="round"/>
+  <path d="M126 192C118 173 112 158 121 153C131 148 138 166 142 183" fill="#FFF0A8" stroke="#222226" stroke-width="4"/>
+  <path d="M177 188C181 168 187 151 197 154C207 158 199 177 190 193" fill="#FFF0A8" stroke="#222226" stroke-width="4"/>
+  <path d="M137 182L151 167L168 184L151 201L137 182Z" fill="#FF5A67" stroke="#222226" stroke-width="3"/>
+  <path d="M36 57L40 69L52 73L40 77L36 89L32 77L20 73L32 69L36 57Z" fill="#F5B900"/>
+  <path d="M278 147L282 159L294 163L282 167L278 179L274 167L262 163L274 159L278 147Z" fill="#8B5CF6"/>
+</svg>
