@@ -49,19 +49,21 @@
 - 기존 계산·결제·복구·저장·single-flight·공유·보관함 귀속은 유지.
 - 사용자 화면에서는 입력 별칭을 그대로 사용하고 `나/상대방/A/B`를 인물 호칭으로 쓰지 않는다.
 - **layout v3 전용 유료 narrative v8 구현 완료.** 기존 API/storage 호환을 위해 `intro/dynamics/action` 3-segment 계약은 유지한다.
-- 전체 유료 본문 목표는 **약 5,000자, 허용 4,000~6,000자**. 짧은 이미지 샘플 분량이 아니라 실제 생성 본문을 길게 작성하도록 세그먼트별 품질 하한과 필드별 목표 길이를 설정했다.
+- 전체 유료 본문 목표는 **약 5,000자, 허용 4,000~6,000자**.
   - intro 목표 1,050~1,400자
   - dynamics 목표 1,450~1,900자
   - action 목표 1,800~2,400자
-- 분량은 새 화면에서 실제 사용하는 `총평/개인 성향/끌림·시너지/양방향 영향/갈등 3개/관계유형 심층 4개/장기 조건/사용설명서`에 집중한다. 저장 호환용 보조 필드는 짧게 유지한다.
+- 분량은 새 화면에서 실제 사용하는 `총평/개인 성향/끌림·시너지/양방향 영향/갈등 3개/관계유형 심층 4개/장기 조건/사용설명서`에 집중한다.
 - 일상어 결론은 일간·일지·오행·천간/지지 상호작용 등 제공된 사주 근거와 같은 문단에서 연결한다.
 - Claude는 점수·순위·원국을 변경하지 않으며 내부 시스템 문구를 사용자 결과에 노출하지 않는다.
-- **생성 대기 화면 v4 구현 완료:** 주토피가 빨간 상승 흐름을 두고 궁합 `떡상 기원`하는 전면 일러스트, 단계 문구, 애니메이션 진행 바, reduced-motion 대응. 가짜 정밀 퍼센트 대신 실제 생성 단계와 연결된 대기 경험을 사용한다.
-- 360 / 390 / 430px responsive contract가 있다. 실브라우저 pixel-level QA는 별도 남아 있다.
+- **생성 대기 화면 v4:** 주토피 `궁합 떡상 기원` 일러스트 + 단계 문구 + 진행 시각화.
+- **결제 직후 transient 복구 hotfix:** `UNEXPECTED_SERVER_ERROR`, `PORTONE_LOOKUP_FAILED`, `REPORT_SEGMENT_NOT_READY`처럼 결제/저장 상태 전파 중 발생할 수 있는 일시 오류는 즉시 fatal 화면으로 보내지 않고 서버에서 1회 재확인 후 `503 + retryable`로 전환해 기존 클라이언트가 자동 재시도한다. 영구적인 인증/권한/입력 오류는 fatal 유지.
+- 로딩과 fatal/config 상태를 동일한 390px 주토피 카드 UI로 통일했다.
 
 ## 검증 상태
 
-- **PR #69 / Core calculation validation #806 PASS** — 1:1 narrative v8 4,000~6,000자 설계 + bullish Jootopi loading UX + 전체 calculation/payment/AI/1:N/account/Growth contracts + lint + production build PASS.
+- **PR #70 / Core calculation validation #812 PASS** — transient paid-result recovery + loading/failure UI 통일 + 전체 contracts + lint + production build PASS.
+- PR #69 / validation #809 PASS — 1:1 narrative v8 4,000~6,000자 설계 + bullish Jootopi loading UX.
 - PR #68 / validation #799 PASS — 1:1 layout v3.
 - PR #67 / validation #791 PASS — scoring v1.6.
 - PR #65 / validation #778 PASS — 무료 천생연분 결정론 결과.
@@ -69,13 +71,13 @@
 ## 배포 상태
 
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
-- **1:1 layout v3 + narrative v8 + 새 로딩 화면은 아직 Preview/Production 배포하지 않았다.**
-- Production에는 최신 무료 천생연분 및 scoring v1.6 변경도 아직 배포하지 않았다.
+- 1:1 v8 Preview: `preview/one-to-one-v8`, Vercel success. 실제 결제 직후 `UNEXPECTED_SERVER_ERROR` 424가 확인되어 hotfix 후 동일 Preview 브랜치 재배포 예정.
+- Production에는 이번 hotfix 포함 최신 변경을 아직 배포하지 않았다.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. 1:1 layout v3 + 5천자 narrative + 로딩 화면 Preview 배포 승인 후 390px 실제 생성 QA
+1. PR #70 hotfix를 동일 `preview/one-to-one-v8`에 재배포하고 기존 1,000원 결제로 결과 생성 복구 확인
 2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
 3. 360 / 390 / 430px overflow/spacing QA
 4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인

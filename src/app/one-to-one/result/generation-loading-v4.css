@@ -1,4 +1,4 @@
-.v2-state:has(> p:nth-of-type(4)) {
+.v2-page > .v2-state:has(> .v2-kicker) {
   width: min(calc(100% - 32px), 390px);
   min-height: 720px;
   margin: 18px auto 56px;
@@ -13,13 +13,66 @@
   overflow: hidden;
 }
 
-.v2-state:has(> p:nth-of-type(4))::before {
+.v2-page > .v2-state:has(> .v2-kicker)::before {
   content: "";
   display: block;
   width: min(290px, 86vw);
   aspect-ratio: 320 / 260;
   margin: 8px auto 18px;
   background: url('/zootopi-bullish-loading.svg') center / contain no-repeat;
+}
+
+.v2-page > .v2-state:has(> .v2-kicker) .v2-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: #f5efff;
+  color: #7b46d8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
+.v2-page > .v2-state:has(> .v2-kicker) h1 {
+  margin: 0 auto 12px;
+  max-width: 315px;
+  color: #222226;
+  font-size: clamp(25px, 7vw, 31px);
+  line-height: 1.2;
+  letter-spacing: -.035em;
+}
+
+.v2-page > .v2-state:has(> .v2-kicker) > p:not(.v2-kicker) {
+  margin: 8px auto 0;
+  max-width: 315px;
+  color: #68686f;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.v2-page > .v2-state:has(> .v2-kicker) a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  margin-top: 16px;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.v2-page > .v2-state:has(> .v2-kicker) .primary-link {
+  background: linear-gradient(90deg, #8056e8, #ff5b73);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(116, 76, 200, .18);
+}
+
+/* Loading state: kicker + stage + completed/time + helper = four paragraphs. */
+.v2-state:has(> p:nth-of-type(4))::before {
   animation: zootopiBullishFloat 2.2s ease-in-out infinite;
 }
 
@@ -35,37 +88,6 @@
   font-size: 13px;
   font-weight: 750;
   line-height: 1.55;
-}
-
-.v2-state:has(> p:nth-of-type(4)) .v2-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 0 8px;
-  padding: 7px 11px;
-  border-radius: 999px;
-  background: #f5efff;
-  color: #7b46d8;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .06em;
-}
-
-.v2-state:has(> p:nth-of-type(4)) h1 {
-  margin: 0 auto 12px;
-  max-width: 310px;
-  color: #222226;
-  font-size: clamp(25px, 7vw, 31px);
-  line-height: 1.2;
-  letter-spacing: -.035em;
-}
-
-.v2-state:has(> p:nth-of-type(4)) > p:not(.v2-kicker) {
-  margin: 8px auto 0;
-  max-width: 315px;
-  color: #68686f;
-  font-size: 13px;
-  line-height: 1.65;
 }
 
 .v2-state:has(> p:nth-of-type(4)) > p:nth-of-type(3) {
@@ -101,6 +123,21 @@
   animation: zootopiGenerationProgress 5.8s cubic-bezier(.2,.8,.2,1) infinite;
 }
 
+/* Fatal/config states keep the same visual world instead of falling back to the old text-only page. */
+.v2-page > .v2-state:has(> .v2-kicker):not(:has(> p:nth-of-type(4)))::after {
+  content: "결제는 보존되어 있어요 · 상태가 정리되면 같은 결제로 다시 이어볼 수 있어요";
+  display: block;
+  margin: 22px 0 0;
+  padding: 14px 16px;
+  border: 1px solid #f0e8fb;
+  border-radius: 18px;
+  background: #faf7ff;
+  color: #7257a6;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
 @keyframes zootopiBullishFloat {
   0%, 100% { transform: translateY(0) rotate(-.4deg); }
   50% { transform: translateY(-8px) rotate(.7deg); }
@@ -114,7 +151,7 @@
 }
 
 @media (max-width: 430px) {
-  .v2-state:has(> p:nth-of-type(4)) {
+  .v2-page > .v2-state:has(> .v2-kicker) {
     width: calc(100% - 24px);
     min-height: calc(100svh - 36px);
     margin: 12px auto 24px;

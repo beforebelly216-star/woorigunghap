@@ -41,11 +41,19 @@
 - [x] 실제 생성 단계 문구 + animated progress visual
 - [x] 가짜 정밀 퍼센트 대신 단계 기반 진행 경험
 - [x] 390px 모바일 / reduced-motion 대응
-- [x] **PR #69 / Core calculation validation #809 PASS** — 최종 문서 head 포함 전체 contracts + lint + production build PASS
-- [x] PR #69 → `main` 병합 (`4803fa7a`)
+- [x] PR #69 → `main` (`4803fa7a`), validation #809 PASS
+
+### Hotfix — 결제 직후 결과 생성 즉시 실패
+- [x] Preview 실결제에서 `UNEXPECTED_SERVER_ERROR` 424 즉시 fatal 재현 확인
+- [x] transient state 오류는 서버 1회 재확인 후 503 `retryable: true`로 변환
+- [x] 기존 클라이언트가 같은 결제로 자동 재시도하도록 연결
+- [x] 영구적인 인증/권한/입력 오류는 fatal 유지
+- [x] 실패 화면을 주토피 떡상 로딩 화면과 동일한 390px UI로 통일
+- [x] **PR #70 / Core calculation validation #812 PASS** — 전체 contracts + lint + production build PASS
+- [ ] PR #70 → `main` 병합 및 동일 `preview/one-to-one-v8` 재배포
+- [ ] 기존 1,000원 결제로 새로고침 → 실제 결과 생성 확인
 
 ### P3 실화면 QA
-- [ ] 사용자 승인 후 1:1 layout v3 + narrative v8 + loading Preview 배포
 - [ ] 실제 Sonnet 5 생성 1건에서 사용자 노출 본문 4,000~6,000자 확인
 - [ ] 390px pixel-level 대조 및 360/430px overflow/spacing/장문 카드 QA
 - [ ] 공유 카드·보관함 귀속 UI 실브라우저 확인
@@ -72,11 +80,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 1:1 layout v3 전용 5천자 Sonnet 5 narrative v8 + 주토피 떡상 기원 생성 대기 UX
+- Task: 1:1 결제 직후 UNEXPECTED_SERVER_ERROR 424 자동복구 + loading/fatal UI 통일
 - Status: complete
-- Validation: PR #69 / Core calculation validation #809 PASS — calculation/payment/AI/1:N/account/Growth contracts + lint + production build PASS
-- Commit: main merge `4803fa7a`; 이 HANDOFF 문서 커밋이 최신 main
-- Remaining: 사용자 승인 시 Preview 배포 → 실제 Sonnet 5 한 건으로 4,000~6,000자/390px 장문 QA
-- Risk: 프롬프트·품질 길이 계약은 구현/정적 검증 완료했으나 실제 Anthropic 호출 샘플의 최종 사용자 노출 글자수는 Preview 실생성에서 확인 필요. 기존 저장 구매 결과는 재생성/덮어쓰기 금지
-- Deploy: 없음. Production/Preview 자동배포 OFF 유지
+- Validation: PR #70 / Core calculation validation #812 PASS — 전체 contracts + lint + production build PASS
+- Commit: PR #70 branch latest; main 병합/동일 Preview 재배포 대기
+- Remaining: PR #70 main 병합 → preview/one-to-one-v8 재배포 → 사용자가 기존 1,000원 결제로 새로고침해 실제 결과 생성 확인
+- Risk: 정확한 하위 Neon/PortOne 예외 텍스트는 Vercel runtime-log 권한 403으로 확인 불가. 확인된 문제는 transient 424를 fatal로 분류하던 정책이며 이를 자동복구로 수정함
+- Deploy: 기존 Preview에 재배포 예정. Production은 건드리지 않음
 ```
