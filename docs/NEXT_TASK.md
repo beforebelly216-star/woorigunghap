@@ -60,7 +60,7 @@
 - [x] 생성 단계는 서버 주문이 `paid`이고 미삭제이며 상품/금액/입력 해시가 모두 일치할 때만 저장된 서버 결제 영수증 재사용
 - [x] 최초 결제 검증은 계속 PortOne 권위 유지
 - [x] 전용 `test:hotfix:paid-result-stuck-prepare` contract 추가
-- [ ] PR #72 validation (`npm run lint`, `npm run build`, 전용 contract) 확인
+- [x] **PR #72 / Core calculation validation #818 PASS** — 전체 contracts + lint + production build PASS
 - [ ] PR #72 → `main` 병합
 - [ ] 사용자 승인 후 `preview/one-to-one-v8` 재배포
 - [ ] 기존 1,000원 결제로 새로고침 → prepare 통과 → 3개 segment → 결과 저장 확인
@@ -93,10 +93,10 @@ Git 자동배포는 OFF 유지.
 HANDOFF
 - Worker: GPT
 - Task: 1:1 결제 완료 후 0/3 prepare 단계가 수백 초 무한대기하는 blocker hotfix
-- Status: partial
-- Validation: 전용 contract 추가 완료. PR #72에서 lint/build/contract 확인 대기
+- Status: complete
+- Validation: PR #72 / Core calculation validation #818 PASS — 전체 contracts + lint + production build PASS
 - Commit: gpt/hotfix-paid-result-stuck-prepare latest (PR #72)
-- Remaining: PR #72 validation → main 병합 → 사용자 승인 후 preview/one-to-one-v8 재배포 → 기존 1,000원 결제로 실제 생성 확인
-- Risk: Vercel runtime log connector가 해당 프로젝트를 직접 열지 못해 실제 하위 예외 텍스트는 미확인. 코드상 반복 PortOne 재검증 + resilient 503 무한루프는 확정적으로 제거함
+- Remaining: PR #72 main 병합 → 사용자 승인 후 preview/one-to-one-v8 재배포 → 기존 1,000원 결제로 실제 생성 확인
+- Risk: Vercel runtime log connector가 해당 프로젝트를 직접 열지 못해 실제 하위 예외 텍스트는 미확인. 코드상 반복 PortOne 재검증 + resilient 503 무한루프는 제거함
 - Deploy: 아직 안 함. Git 자동배포 OFF 유지
 ```
