@@ -59,9 +59,9 @@
 - [x] 결제 redirect 무한 `while` polling 제거 — 최대 7회 + 요청당 12초 timeout
 - [x] 서버 장애/저장 지연 시 재결제 CTA를 노출하지 않고 `같은 결제 다시 확인`만 제공
 - [x] Day 8 / paid-result hotfix 계약을 새 bounded 정책으로 갱신
-- [x] **PR #75 / Core calculation validation #830 PASS** — payment/narrative/1:N/account/Growth contracts + lint + production build PASS
-- [ ] PR #75 → `main` 병합
-- [ ] 동일 `preview/one-to-one-v8`에 최신 `main` 재배포
+- [x] **PR #75 / Core calculation validation #832 PASS** — payment/narrative/1:N/account/Growth contracts + lint + production build PASS
+- [x] PR #75 → `main` (`ab8a6006`)
+- [x] 동일 `preview/one-to-one-v8` 재배포 — trigger `8a8f903f`, Vercel SUCCESS, 자동배포 OFF 복구 (`a5fba970`)
 - [ ] 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 저장` 실동작 확인
 
 ### P3 실화면 QA
@@ -91,11 +91,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 결제→DB→1:1 생성 전체 경로 전수조사 및 반복 대기 구조 제거
+- Task: 결제→DB→1:1 생성 전체 경로 전수조사, 반복 대기 구조 제거, Preview 재배포
 - Status: complete
-- Validation: PR #75 / Core calculation validation #830 PASS — 전체 contracts + lint + production build PASS
-- Commit: gpt/hotfix-payment-generation-audit latest (PR #75)
-- Remaining: PR #75 main 병합 → 동일 preview/one-to-one-v8 재배포 → 기존 1,000원 결제 실복구 확인
-- Risk: Vercel connector에서 프로젝트 목록이 비어 runtime log 원문은 직접 조회 불가. 대신 코드상 false-success, unbound verify, duplicate route, infinite polling을 모두 제거함
-- Deploy: 아직 PR #75 미배포. Production은 건드리지 않음
+- Validation: PR #75 / Core calculation validation #832 PASS — 전체 contracts + lint + production build PASS
+- Commit: main ab8a6006; Preview trigger 8a8f903f
+- Remaining: 기존 1,000원 결제로 payment verify→prepare→intro→dynamics→action→저장 실동작 확인
+- Risk: Vercel connector에서 프로젝트 목록이 비어 runtime log 원문은 직접 조회 불가. 코드상 false-success, unbound verify, duplicate route, infinite payment polling은 제거됨
+- Deploy: preview/one-to-one-v8 Vercel SUCCESS. Git 자동배포 OFF 복구. Production 미배포
 ```
