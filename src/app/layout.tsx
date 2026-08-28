@@ -4,16 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 import "./report-theme.css";
-import "./report-extra.css";
-import "./timing-extra.css";
-import "./deep-report.css";
-import "./one-to-one-context.css";
-import "./day20-mobile.css";
-import "./day22-policy.css";
-import "./score-library.css";
-import "./theme-unification.css";
-import "./account-foundation.css";
-import "./paid-flow-v3.css";
+import "./app-theme-v4.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

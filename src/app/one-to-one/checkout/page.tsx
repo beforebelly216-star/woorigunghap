@@ -132,8 +132,8 @@ function CheckoutContent() {
 
 export default function OneToOneCheckoutPage() {
   return (
-    <main className={styles.checkoutPage}>
-      <div className={styles.checkoutShell}>
+    <main className={`${styles.checkoutPage} one-to-one-checkout-page`}>
+      <div className={`${styles.checkoutShell} app-themed-shell`}>
         <Suspense fallback={<p className="checkout-state" role="status">주문 정보를 불러오는 중이에요.</p>}>
           <CheckoutContent />
         </Suspense>

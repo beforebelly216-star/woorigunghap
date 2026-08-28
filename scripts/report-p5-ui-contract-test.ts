@@ -24,12 +24,12 @@ const shareCss = readFileSync("src/app/one-to-one/result/compatibility-share-car
 const home = readFileSync("src/app/page.tsx", "utf8");
 const homeCss = readFileSync("src/app/home-p5.module.css", "utf8");
 
-for (const token of ["#F7F7F4", "#FFFFFF", "#EFEFEB", "#222226", "#68686F", "#929298", "#E2E2DD", "#CBCBC4", "#E9E9E4", "#4D8B5F", "#D55A4A", "#C9973D", "#858E9E", "#3E78A8", "#2F7D4A", "#9A6A12", "#B74343", "#356F9C"]) {
-  assert.ok(theme.includes(token), `Design Foundation v2 token missing: ${token}`);
+for (const token of ["#FBFAF7", "#FFFFFF", "#F3EEFA", "#222026", "#6F6870", "#918991", "#EAE3DD", "#D8CEC7", "#EEE8F2", "#7652D8", "#4D8B5F", "#D55A4A", "#C9973D", "#858E9E", "#3E78A8", "#2F7D4A", "#9A6A12", "#B74343", "#356F9C"]) {
+  assert.ok(theme.includes(token), `mobile app theme token missing: ${token}`);
 }
 assert.doesNotMatch(theme, /prefers-color-scheme:\s*dark/);
 assert.match(theme, /Pretendard/);
-assert.match(theme, /--saju-width-report:\s*640px/);
+assert.match(theme, /--saju-width-report:\s*390px/);
 assert.match(page, /report-theme\.css/);
 assert.match(page, /report-p5-overrides\.css/);
 assert.match(page, /report-p5-mobile\.css/);

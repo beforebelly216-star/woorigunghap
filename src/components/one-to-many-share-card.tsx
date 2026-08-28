@@ -96,45 +96,45 @@ function drawTextLines(ctx: CanvasRenderingContext2D, text: string, x: number, y
 async function createShareImageBlob(input: { relationshipLabel: string; candidateCount: number; includeNames: boolean; purpose: GrowthSharePurpose; eyebrow: string; shareCopy: string; roles: RoleHighlight[]; sides: SideHighlight }) {
   const canvas = document.createElement("canvas"); canvas.width = 1080; canvas.height = 1920;
   const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("CANVAS_UNAVAILABLE");
-  ctx.fillStyle = "#F7F7F4"; ctx.fillRect(0, 0, 1080, 1920);
+  ctx.fillStyle = "#FBFAF7"; ctx.fillRect(0, 0, 1080, 1920);
   ctx.fillStyle = "#FFFFFF"; roundedRect(ctx, 90, 110, 900, 1700, 52);
-  ctx.fillStyle = "#222226"; roundedRect(ctx, 90, 110, 900, 16, 8);
-  ctx.fillStyle = "#222226"; ctx.font = "800 42px Pretendard, sans-serif"; ctx.fillText("우리사주", 160, 220);
+  ctx.fillStyle = "#7652D8"; roundedRect(ctx, 90, 110, 900, 16, 8);
+  ctx.fillStyle = "#222026"; ctx.font = "800 42px Pretendard, sans-serif"; ctx.fillText("우리사주", 160, 220);
   ctx.textAlign = "right"; ctx.fillText(`1:다 ${input.relationshipLabel}`, 920, 220); ctx.textAlign = "left";
-  ctx.fillStyle = "#929298"; ctx.font = "900 28px Pretendard, sans-serif"; ctx.fillText(input.eyebrow, 160, 350);
-  ctx.fillStyle = "#222226"; ctx.font = "900 62px Pretendard, sans-serif";
+  ctx.fillStyle = "#918991"; ctx.font = "900 28px Pretendard, sans-serif"; ctx.fillText(input.eyebrow, 160, 350);
+  ctx.fillStyle = "#222026"; ctx.font = "900 62px Pretendard, sans-serif";
   const copyLines = drawTextLines(ctx, input.shareCopy, 160, 455, 760, 78, 5); const detailTop = 455 + copyLines * 78 + 55;
 
   if (input.purpose === "receipt") {
     input.roles.slice(0, 3).forEach((role, index) => {
-      const y = detailTop + index * 170; ctx.fillStyle = index % 2 === 0 ? "#F7F7F4" : "#EFEFEB"; roundedRect(ctx, 150, y, 780, 140, 24);
-      ctx.fillStyle = "#68686F"; ctx.font = "800 27px Pretendard, sans-serif"; ctx.fillText(role.label, 200, y + 48);
-      ctx.fillStyle = "#222226"; ctx.font = "900 36px Pretendard, sans-serif"; ctx.fillText(input.includeNames ? `${role.displayName} · ${role.score}점` : `${role.score}점`, 200, y + 102);
+      const y = detailTop + index * 170; ctx.fillStyle = index % 2 === 0 ? "#F8F4FF" : "#FFF3FA"; roundedRect(ctx, 150, y, 780, 140, 24);
+      ctx.fillStyle = "#6F6870"; ctx.font = "800 27px Pretendard, sans-serif"; ctx.fillText(role.label, 200, y + 48);
+      ctx.fillStyle = "#222026"; ctx.font = "900 36px Pretendard, sans-serif"; ctx.fillText(input.includeNames ? `${role.displayName} · ${role.score}점` : `${role.score}점`, 200, y + 102);
     });
   } else if (input.purpose === "recap") {
     input.roles.slice(0, 3).forEach((role, index) => {
-      const y = detailTop + index * 150; ctx.fillStyle = index === 0 ? "#EFEFEB" : "#F7F7F4"; roundedRect(ctx, 150, y, 780, 122, 22);
-      ctx.fillStyle = "#68686F"; ctx.font = "800 25px Pretendard, sans-serif"; ctx.fillText(role.label, 200, y + 44);
-      ctx.fillStyle = "#222226"; ctx.font = "900 34px Pretendard, sans-serif"; ctx.fillText(input.includeNames ? role.displayName : "이름은 공유하지 않음", 200, y + 92);
+      const y = detailTop + index * 150; ctx.fillStyle = index === 0 ? "#FFF3FA" : "#F8F4FF"; roundedRect(ctx, 150, y, 780, 122, 22);
+      ctx.fillStyle = "#6F6870"; ctx.font = "800 25px Pretendard, sans-serif"; ctx.fillText(role.label, 200, y + 44);
+      ctx.fillStyle = "#222026"; ctx.font = "900 34px Pretendard, sans-serif"; ctx.fillText(input.includeNames ? role.displayName : "이름은 공유하지 않음", 200, y + 92);
     });
-    const recapBottom = detailTop + 470; ctx.fillStyle = "#EFEFEB"; roundedRect(ctx, 150, recapBottom, 780, 150, 22);
-    ctx.fillStyle = "#68686F"; ctx.font = "800 25px Pretendard, sans-serif"; ctx.fillText("강한 축 / 조율 축", 200, recapBottom + 50);
-    ctx.fillStyle = "#222226"; ctx.font = "900 32px Pretendard, sans-serif"; drawTextLines(ctx, `${input.sides.strength} · ${input.sides.tuning}`, 200, recapBottom + 104, 660, 42, 2);
+    const recapBottom = detailTop + 470; ctx.fillStyle = "#FFF3FA"; roundedRect(ctx, 150, recapBottom, 780, 150, 22);
+    ctx.fillStyle = "#6F6870"; ctx.font = "800 25px Pretendard, sans-serif"; ctx.fillText("강한 축 / 조율 축", 200, recapBottom + 50);
+    ctx.fillStyle = "#222026"; ctx.font = "900 32px Pretendard, sans-serif"; drawTextLines(ctx, `${input.sides.strength} · ${input.sides.tuning}`, 200, recapBottom + 104, 660, 42, 2);
   } else if (input.purpose === "two_sides") {
-    ctx.fillStyle = "#EFEFEB"; roundedRect(ctx, 150, detailTop, 780, 205, 24); ctx.fillStyle = "#68686F"; ctx.font = "900 28px Pretendard, sans-serif"; ctx.fillText("상대적으로 강한 축", 200, detailTop + 64);
-    ctx.fillStyle = "#222226"; ctx.font = "800 39px Pretendard, sans-serif"; drawTextLines(ctx, input.sides.strength, 200, detailTop + 130, 660, 50, 2);
-    ctx.fillStyle = "#F7F7F4"; roundedRect(ctx, 150, detailTop + 240, 780, 205, 24); ctx.fillStyle = "#68686F"; ctx.font = "900 28px Pretendard, sans-serif"; ctx.fillText("맞추면 더 좋아지는 축", 200, detailTop + 304);
-    ctx.fillStyle = "#222226"; ctx.font = "800 39px Pretendard, sans-serif"; drawTextLines(ctx, input.sides.tuning, 200, detailTop + 370, 660, 50, 2);
+    ctx.fillStyle = "#FFF3FA"; roundedRect(ctx, 150, detailTop, 780, 205, 24); ctx.fillStyle = "#6F6870"; ctx.font = "900 28px Pretendard, sans-serif"; ctx.fillText("상대적으로 강한 축", 200, detailTop + 64);
+    ctx.fillStyle = "#222026"; ctx.font = "800 39px Pretendard, sans-serif"; drawTextLines(ctx, input.sides.strength, 200, detailTop + 130, 660, 50, 2);
+    ctx.fillStyle = "#F8F4FF"; roundedRect(ctx, 150, detailTop + 240, 780, 205, 24); ctx.fillStyle = "#6F6870"; ctx.font = "900 28px Pretendard, sans-serif"; ctx.fillText("맞추면 더 좋아지는 축", 200, detailTop + 304);
+    ctx.fillStyle = "#222026"; ctx.font = "800 39px Pretendard, sans-serif"; drawTextLines(ctx, input.sides.tuning, 200, detailTop + 370, 660, 50, 2);
   } else {
     input.roles.slice(0, 3).forEach((role, index) => {
-      const y = detailTop + index * 180; ctx.fillStyle = index === 0 ? "#EFEFEB" : "#F7F7F4"; roundedRect(ctx, 150, y, 780, 150, 22);
-      ctx.fillStyle = "#68686F"; ctx.font = "800 27px Pretendard, sans-serif"; ctx.fillText(role.label, 200, y + 52);
-      ctx.fillStyle = "#222226"; ctx.font = "900 37px Pretendard, sans-serif"; ctx.fillText(input.includeNames ? role.displayName : "이름은 공유하지 않음", 200, y + 108);
+      const y = detailTop + index * 180; ctx.fillStyle = index === 0 ? "#FFF3FA" : "#F8F4FF"; roundedRect(ctx, 150, y, 780, 150, 22);
+      ctx.fillStyle = "#6F6870"; ctx.font = "800 27px Pretendard, sans-serif"; ctx.fillText(role.label, 200, y + 52);
+      ctx.fillStyle = "#222026"; ctx.font = "900 37px Pretendard, sans-serif"; ctx.fillText(input.includeNames ? role.displayName : "이름은 공유하지 않음", 200, y + 108);
     });
   }
 
-  ctx.fillStyle = "#222226"; roundedRect(ctx, 285, 1450, 510, 150, 75); ctx.fillStyle = "#FFFFFF"; ctx.textAlign = "center"; ctx.font = "900 34px Pretendard, sans-serif"; ctx.fillText(`후보 ${input.candidateCount}명 비교`, 540, 1542); ctx.textAlign = "left";
-  ctx.fillStyle = "#68686F"; ctx.font = "600 28px Pretendard, sans-serif"; ctx.fillText("생년월일시와 유료 본문은 포함되지 않아요", 160, 1730);
+  ctx.fillStyle = "#7652D8"; roundedRect(ctx, 285, 1450, 510, 150, 75); ctx.fillStyle = "#FFFFFF"; ctx.textAlign = "center"; ctx.font = "900 34px Pretendard, sans-serif"; ctx.fillText(`후보 ${input.candidateCount}명 비교`, 540, 1542); ctx.textAlign = "left";
+  ctx.fillStyle = "#6F6870"; ctx.font = "600 28px Pretendard, sans-serif"; ctx.fillText("생년월일시와 유료 본문은 포함되지 않아요", 160, 1730);
   return await new Promise<Blob>((resolve, reject) => { canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("IMAGE_EXPORT_FAILED")), "image/png"); });
 }
 

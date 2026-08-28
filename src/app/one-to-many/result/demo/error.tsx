@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function OneToManyDemoError({ reset }: { reset: () => void }) {
   return (
-    <main className="comparison-report-page">
+    <main className="comparison-report-page one-to-many-result-page">
       <div className="comparison-empty-state" role="alert">
         <p className="eyebrow">결과 불러오기 실패</p>
         <h1>비교 결과를 준비하지 못했어요.</h1>

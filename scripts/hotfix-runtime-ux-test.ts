@@ -8,8 +8,7 @@ function source(path: string) {
 
 const layout = source("src/app/layout.tsx");
 const theme = source("src/app/report-theme.css");
-const unifiedTheme = source("src/app/theme-unification.css");
-const paidFlowV3 = source("src/app/paid-flow-v3.css");
+const appThemeV4 = source("src/app/app-theme-v4.css");
 const home = source("src/app/page.tsx");
 const oneToOneCheckout = source("src/app/one-to-one/checkout/page.tsx");
 const oneToManyCheckout = source("src/app/one-to-many/checkout/page.tsx");
@@ -28,23 +27,22 @@ const oneToManyResult = source("src/components/one-to-many-result.tsx");
 const vercel = JSON.parse(source("vercel.json")) as { fluid?: boolean; git?: { deploymentEnabled?: boolean } };
 
 assert.ok(layout.includes('import "./report-theme.css";'), "root layout must load the shared theme tokens");
-assert.ok(layout.includes('import "./theme-unification.css";'), "root layout must load the final legacy-theme override");
-assert.ok(layout.includes('import "./paid-flow-v3.css";'), "root layout must load the v3 paid-flow presentation layer");
-assert.ok(
-  layout.indexOf('import "./theme-unification.css";') > layout.indexOf('import "./score-library.css";'),
-  "theme unification must be imported after legacy styles",
-);
-assert.ok(theme.includes("--saju-bg-base: #F7F7F4"), "light base must use the Design Foundation v2 neutral canvas");
+assert.ok(layout.includes('import "./app-theme-v4.css";'), "root layout must load the unified mobile app theme");
+for (const legacyImport of ["theme-unification.css", "account-foundation.css", "paid-flow-v3.css", "score-library.css", "day20-mobile.css"]) {
+  assert.ok(!layout.includes(legacyImport), `root layout must not load legacy design CSS: ${legacyImport}`);
+}
+assert.ok(theme.includes("--saju-bg-base: #FBFAF7"), "light base must match the mobile report canvas");
 assert.ok(theme.includes("--saju-bg-card: #FFFFFF"), "card surface must use the Design Foundation v2 card token");
-assert.ok(theme.includes("--saju-action: #222226"), "primary action must use the shared ink action token");
+assert.ok(theme.includes("--saju-action: #7652D8"), "primary action must use the shared purple action token");
+assert.ok(theme.includes("--saju-width-report: 390px"), "all report surfaces must use the 390px mobile shell");
 assert.ok(theme.includes("--saju-element-wood: #4D8B5F"), "functional five-element tokens must remain available");
 assert.ok(!theme.includes("prefers-color-scheme: dark"), "Design Foundation v2 must stay light-only");
-for (const selector of [".library-page", ".input-page", ".result-page", ".comparison-report-page", ".site-header"]) {
-  assert.ok(unifiedTheme.includes(selector), `theme override must cover ${selector}`);
+for (const selector of [".login-page", ".library-page", ".policy-page", ".one-to-many-result-page", ".site-header", ".shared-view-page"]) {
+  assert.ok(appThemeV4.includes(selector), `mobile app theme must cover ${selector}`);
 }
 for (const legacyColor of ["#fbf8f3", "#f8f4ee", "#fffdf9", "#f7e4bc"]) {
   assert.ok(!theme.toLowerCase().includes(legacyColor), `shared theme must not reintroduce ${legacyColor}`);
-  assert.ok(!unifiedTheme.toLowerCase().includes(legacyColor), `theme override must not reintroduce ${legacyColor}`);
+  assert.ok(!appThemeV4.toLowerCase().includes(legacyColor), `mobile app theme must not reintroduce ${legacyColor}`);
 }
 
 for (const removedCopy of [
@@ -57,11 +55,11 @@ for (const removedCopy of [
   assert.ok(!home.includes(removedCopy), `home must not render removed implementation copy: ${removedCopy}`);
 }
 
-assert.ok(paidFlowV3.includes(".paid-flow-steps"), "v3 paid flow must show a compact input/payment/generation journey");
-assert.ok(paidFlowV3.includes(".checkout-v3-assurance"), "v3 paid flow must expose payment/storage/recovery assurances before purchase");
-assert.ok(paidFlowV3.includes(".checkout-sticky-cta"), "v3 paid flow must keep the paid CTA reachable on mobile");
-assert.ok(paidFlowV3.includes(".v2-page > .v2-state:has(.v2-kicker + h1 + p + p + p)"), "1:1 generation status must receive the v3 waiting-state hierarchy");
-assert.ok(paidFlowV3.includes(".one-to-many-result-page .comparison-empty-state"), "1:N generation/recovery/failure states must receive the v3 state surface");
+assert.ok(appThemeV4.includes(".paid-flow-steps"), "v4 app theme must show a compact input/payment/generation journey");
+assert.ok(appThemeV4.includes(".checkout-v3-assurance"), "v4 app theme must expose payment/storage/recovery assurances before purchase");
+assert.ok(appThemeV4.includes(".checkout-sticky-cta"), "v4 app theme must keep the paid CTA reachable on mobile");
+assert.ok(appThemeV4.includes(".v2-page > .v2-state"), "1:1 generation status must receive the unified waiting-state card");
+assert.ok(appThemeV4.includes(".one-to-many-result-page .comparison-empty-state"), "1:N generation/recovery/failure states must receive the unified state surface");
 assert.ok(oneToOneResultStatus.includes("paid 1:1 loading / recovery / terminal states"), "existing 1:1 status contract must remain the base layer");
 
 for (const marker of [
@@ -128,4 +126,4 @@ assert.ok(oneToManyResult.includes("<OneToManyShareCard view={view} />"), "paid 
 assert.equal(vercel.fluid, true, "Fluid Compute must be pinned for long paid narrative functions");
 assert.equal(vercel.git?.deploymentEnabled, false, "automatic Vercel Git deployments must stay disabled until user approval");
 
-console.log("Hotfix runtime/UI contract passed: v3 paid-flow checkout/generation surfaces, staged 1:1 generation, no nested kickoff, visible failures, share path, and manual deploy policy.");
+console.log("Hotfix runtime/UI contract passed: unified mobile app theme, staged 1:1 generation, no nested kickoff, visible failures, share path, and manual deploy policy.");

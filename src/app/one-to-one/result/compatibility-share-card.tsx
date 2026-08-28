@@ -114,14 +114,14 @@ async function createShareImageBlob({
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("CANVAS_UNAVAILABLE");
 
-  ctx.fillStyle = "#F7F7F4";
+  ctx.fillStyle = "#FBFAF7";
   ctx.fillRect(0, 0, 1080, 1920);
   ctx.fillStyle = "#FFFFFF";
   roundedRect(ctx, 90, 110, 900, 1700, 52);
-  ctx.fillStyle = "#222226";
+  ctx.fillStyle = "#7652D8";
   roundedRect(ctx, 90, 110, 900, 16, 8);
 
-  ctx.fillStyle = "#222226";
+  ctx.fillStyle = "#222026";
   ctx.font = "800 42px Pretendard, sans-serif";
   ctx.fillText("우리사주", 160, 220);
   ctx.textAlign = "right";
@@ -129,22 +129,22 @@ async function createShareImageBlob({
   ctx.textAlign = "left";
 
   if (includeNames) {
-    ctx.fillStyle = "#68686F";
+    ctx.fillStyle = "#6F6870";
     ctx.font = "700 42px Pretendard, sans-serif";
     ctx.fillText(`${selfName}  ×  ${partnerName}`, 160, 330);
   }
 
   const contentTop = includeNames ? 430 : 350;
-  ctx.fillStyle = "#929298";
+  ctx.fillStyle = "#918991";
   ctx.font = "900 28px Pretendard, sans-serif";
   ctx.fillText(eyebrow, 160, contentTop);
 
-  ctx.fillStyle = "#222226";
+  ctx.fillStyle = "#222026";
   ctx.font = "900 62px Pretendard, sans-serif";
   const copyLines = drawTextLines(ctx, shareCopy, 160, contentTop + 105, 760, 78, 5);
 
   const archetypeY = contentTop + 105 + copyLines * 78 + 48;
-  ctx.fillStyle = "#68686F";
+  ctx.fillStyle = "#6F6870";
   ctx.font = "700 31px Pretendard, sans-serif";
   ctx.fillText(`궁합 유형 · ${archetype.label}`, 160, archetypeY);
 
@@ -158,12 +158,12 @@ async function createShareImageBlob({
     ] as const;
     rows.forEach(([label, value], index) => {
       const y = receiptTop + index * 126;
-      ctx.fillStyle = index % 2 === 0 ? "#F7F7F4" : "#EFEFEB";
+      ctx.fillStyle = index % 2 === 0 ? "#F8F4FF" : "#FFF3FA";
       roundedRect(ctx, 150, y, 780, 104, 22);
-      ctx.fillStyle = "#68686F";
+      ctx.fillStyle = "#6F6870";
       ctx.font = "800 25px Pretendard, sans-serif";
       ctx.fillText(label, 195, y + 40);
-      ctx.fillStyle = "#222226";
+      ctx.fillStyle = "#222026";
       ctx.font = "900 33px Pretendard, sans-serif";
       ctx.textAlign = "right";
       ctx.fillText(value, 885, y + 68);
@@ -171,58 +171,58 @@ async function createShareImageBlob({
     });
   } else if (purpose === "recap") {
     const recapTop = archetypeY + 62;
-    ctx.fillStyle = "#F7F7F4";
+    ctx.fillStyle = "#F8F4FF";
     roundedRect(ctx, 150, recapTop, 780, 210, 24);
-    ctx.fillStyle = "#222226";
+    ctx.fillStyle = "#222026";
     ctx.font = "700 32px Pretendard, sans-serif";
     drawTextLines(ctx, archetype.subtitle, 195, recapTop + 72, 690, 48, 3);
 
-    ctx.fillStyle = "#EFEFEB";
+    ctx.fillStyle = "#FFF3FA";
     roundedRect(ctx, 150, recapTop + 238, 780, 160, 22);
-    ctx.fillStyle = "#68686F";
+    ctx.fillStyle = "#6F6870";
     ctx.font = "800 25px Pretendard, sans-serif";
     ctx.fillText("잘 맞는 지점", 195, recapTop + 294);
-    ctx.fillStyle = "#222226";
+    ctx.fillStyle = "#222026";
     ctx.font = "900 34px Pretendard, sans-serif";
     ctx.fillText(sides.strength, 195, recapTop + 350);
 
-    ctx.fillStyle = "#F7F7F4";
+    ctx.fillStyle = "#F8F4FF";
     roundedRect(ctx, 150, recapTop + 426, 780, 160, 22);
-    ctx.fillStyle = "#68686F";
+    ctx.fillStyle = "#6F6870";
     ctx.font = "800 25px Pretendard, sans-serif";
     ctx.fillText("맞추면 더 좋은 지점", 195, recapTop + 482);
-    ctx.fillStyle = "#222226";
+    ctx.fillStyle = "#222026";
     ctx.font = "900 34px Pretendard, sans-serif";
     ctx.fillText(sides.tuning, 195, recapTop + 538);
   } else if (purpose === "two_sides") {
     const boxTop = archetypeY + 70;
-    ctx.fillStyle = "#EFEFEB";
+    ctx.fillStyle = "#FFF3FA";
     roundedRect(ctx, 150, boxTop, 780, 190, 24);
-    ctx.fillStyle = "#68686F";
+    ctx.fillStyle = "#6F6870";
     ctx.font = "900 27px Pretendard, sans-serif";
     ctx.fillText("잘 맞는 지점", 200, boxTop + 58);
-    ctx.fillStyle = "#222226";
+    ctx.fillStyle = "#222026";
     ctx.font = "800 37px Pretendard, sans-serif";
     drawTextLines(ctx, sides.strength, 200, boxTop + 118, 660, 48, 2);
 
-    ctx.fillStyle = "#F7F7F4";
+    ctx.fillStyle = "#F8F4FF";
     roundedRect(ctx, 150, boxTop + 220, 780, 190, 24);
-    ctx.fillStyle = "#68686F";
+    ctx.fillStyle = "#6F6870";
     ctx.font = "900 27px Pretendard, sans-serif";
     ctx.fillText("맞추면 더 좋은 지점", 200, boxTop + 278);
-    ctx.fillStyle = "#222226";
+    ctx.fillStyle = "#222026";
     ctx.font = "800 37px Pretendard, sans-serif";
     drawTextLines(ctx, sides.tuning, 200, boxTop + 338, 660, 48, 2);
   } else {
     const clueTop = archetypeY + 72;
-    ctx.fillStyle = "#F7F7F4";
+    ctx.fillStyle = "#F8F4FF";
     roundedRect(ctx, 150, clueTop, 780, 250, 24);
-    ctx.fillStyle = "#222226";
+    ctx.fillStyle = "#222026";
     ctx.font = "700 34px Pretendard, sans-serif";
     drawTextLines(ctx, archetype.subtitle, 200, clueTop + 78, 680, 50, 3);
   }
 
-  ctx.fillStyle = "#222226";
+  ctx.fillStyle = "#7652D8";
   roundedRect(ctx, 260, 1430, 560, 210, 105);
   ctx.fillStyle = "#FFFFFF";
   ctx.textAlign = "center";
@@ -234,7 +234,7 @@ async function createShareImageBlob({
   ctx.fillText("/ 100", 625, 1588);
   ctx.textAlign = "left";
 
-  ctx.fillStyle = "#68686F";
+  ctx.fillStyle = "#6F6870";
   ctx.font = "600 28px Pretendard, sans-serif";
   ctx.fillText("생년월일시와 유료 본문은 포함되지 않아요", 160, 1730);
 
