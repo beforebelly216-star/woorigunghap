@@ -10,7 +10,7 @@
 - 기술 스택: Next.js 16.3.0 / React 19.2.8 / TypeScript / Neon / PortOne V2 / Kakao OAuth / Anthropic
 - 상품: 1:1 1,000원 / 1:N 3,000원
 - 관계 유형: 짝사랑 / 썸 / 연인 / 친구 / 직장동료
-- Vercel Git 자동배포는 기본 OFF. Production/Preview 배포는 사용자 명시 승인 후 별도 실행.
+- Vercel Git 자동배포는 기본 OFF. Preview는 사용자 상시 승인에 따라 검증 후 자동 실행하며, Production은 사용자 명시 승인 후에만 실행한다.
 
 ## 핵심 기능
 
@@ -26,6 +26,15 @@
 - Shared View / Web Share / 1080×1920 공유 이미지
 
 ## UI / UX 현재 기준
+
+### 전 화면 mobile app theme v4 — 2026-08-29
+
+- 새 1:1 결과의 390px 보라–핑크 UI를 전 제품 공통 디자인 기준으로 확정했다.
+- 홈, 무료, 1:1/1:N 입력, 로그인, 보관함, 정책, 결제, 결제 상태, 1:1/1:N 결과, Shared View와 1080×1920 공유 이미지가 같은 캔버스·색상·카드·버튼 언어를 사용한다.
+- 공통 토큰은 `#FBFAF7` 캔버스, `#7652D8` 액션, `#8F70E9 → #B792EF → #F3B1DB` 히어로 그라데이션, 390px 셸이다.
+- 루트 레이아웃에서 Foundation v2/구버전 전역 CSS import를 제거하고 `report-theme.css` + `app-theme-v4.css`만 공통 렌더 경로로 유지한다.
+- 1:N 결과의 후행 route CSS보다 app theme가 우선하도록 선택자 계약을 고정했다.
+- 360/390/430px 홈·로그인·1:N 결과에서 가로 overflow 없음, 오류 overlay 없음, 모바일 카드 렌더를 실브라우저로 확인했다.
 
 ### 홈 / 무료
 
@@ -93,6 +102,7 @@
 
 ## 검증 상태
 
+- **mobile app theme v4 local validation PASS** — UI/runtime/account/report/shared-view/1:N/policy/system/beta contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build + 360/390/430px browser QA PASS.
 - **1:1 action 형식 오류 hotfix local validation PASS** — AI generation/runtime UX/paid-result/relationship editorial/quality gate + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **결제 전 저장소 preflight local validation PASS** — paid-result/day8/runtime UI/server-store/1:N paid E2E/1:1 form contracts + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **PR #75 / Core calculation validation #832 PASS** — 결제/DB/생성 경로 전수조사 hotfix + 전체 contracts + lint + production build PASS.
@@ -109,13 +119,13 @@
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
 - **1:1 v8 Preview:** `preview/one-to-one-v8`, PR #75 포함 최신 `main` (`ab8a6006`) 재배포 완료. trigger `8a8f903f`, Vercel SUCCESS, 이후 Git 자동배포 OFF (`a5fba970`).
 - Production에는 PR #75 hotfix를 아직 배포하지 않았다.
-- 결제 전 저장소 preflight hotfix는 아직 Preview/Production에 배포하지 않았다.
-- 1:1 action 형식 오류 hotfix는 아직 Preview/Production에 배포하지 않았다.
+- 결제 전 저장소 preflight hotfix는 Preview에 배포됐고 Production에는 아직 배포하지 않았다.
+- **1:1 action 형식 오류 hotfix Preview 배포 완료:** source `8051e2f`, trigger `a875c09`, Vercel SUCCESS (`6csk1Za5MNqsNVosYrN6aCU35b2A`). 이후 자동배포 OFF 복구 `07e3858`.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. action 형식 오류 hotfix Preview 배포 후 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
+1. Preview에서 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
 2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
 3. 360 / 390 / 430px overflow/spacing QA
 4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인

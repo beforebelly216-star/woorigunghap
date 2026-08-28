@@ -24,8 +24,8 @@ export default async function SharedViewPage({ params }: { params: Promise<{ tok
 
   if (share.product === "oneToOne") {
     const names = [share.participants.self, share.participants.partner].filter(Boolean).join(" × ");
-    return <main className={styles.page}>
-      <article className={styles.shell}>
+    return <main className={`${styles.page} shared-view-page`}>
+      <article className={`${styles.shell} shared-view-shell`}>
         <header className={styles.hero}>
           <Link href="/" className={styles.brand}>우리사주</Link>
           <p className={styles.eyebrow}>{share.relationshipLabel} · SHARED VIEW</p>
@@ -62,8 +62,8 @@ export default async function SharedViewPage({ params }: { params: Promise<{ tok
     </main>;
   }
 
-  return <main className={styles.page}>
-    <article className={styles.shell}>
+  return <main className={`${styles.page} shared-view-page`}>
+    <article className={`${styles.shell} shared-view-shell`}>
       <header className={styles.hero}>
         <Link href="/" className={styles.brand}>우리사주</Link>
         <p className={styles.eyebrow}>1:다 {share.relationshipLabel} · SHARED VIEW</p>

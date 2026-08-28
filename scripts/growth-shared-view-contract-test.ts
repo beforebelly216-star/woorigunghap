@@ -84,8 +84,9 @@ assert.ok(!sharedView.includes("accessToken"));
 assert.ok(!sharedView.includes("birthDate"));
 assert.match(sharedCss, /var\(--saju-bg-base\)/);
 assert.match(sharedCss, /var\(--saju-action\)/);
-assert.match(sharedCss, /width:\s*min\(100%,\s*720px\)/);
-assert.doesNotMatch(sharedCss, /radial-gradient|linear-gradient|#8b7bc7|#b8a9e8/i);
+assert.match(sharedCss, /width:\s*min\(100%,\s*390px\)/);
+assert.match(sharedCss, /linear-gradient\(145deg, #8f70e9/);
+assert.doesNotMatch(sharedCss, /radial-gradient|#8b7bc7|#b8a9e8/i);
 assert.doesNotMatch(sharedCss, /max-width:\s*99999px/);
 
 const client = source("src/lib/share/public-share-client.ts");
@@ -108,14 +109,16 @@ for (const [cardPath, cssPath] of shareFiles) {
   assert.match(card, /createPublicShareUrl/);
   assert.match(card, /canvas\.width = 1080/);
   assert.match(card, /canvas\.height = 1920/);
-  assert.match(card, /#F7F7F4/);
-  assert.match(card, /#222226/);
+  assert.match(card, /#FBFAF7/);
+  assert.match(card, /#7652D8/);
+  assert.match(card, /#222026/);
   assert.ok(!card.includes("const safeUrl = `${window.location.origin}/`"), `${cardPath} must no longer share the home URL`);
   assert.match(card, /Shared View/);
   assert.doesNotMatch(card, /#8B7BC7|#B8A9E8|createLinearGradient/);
   assert.match(css, /aspect-ratio:\s*9 \/ 16/);
   assert.match(css, /var\(--saju-action\)/);
-  assert.doesNotMatch(css, /linear-gradient|radial-gradient|var\(--saju-shadow\)|#8B7BC7|#B8A9E8/i);
+  assert.match(css, /linear-gradient/);
+  assert.doesNotMatch(css, /radial-gradient|#8B7BC7|#B8A9E8/i);
 }
 
-console.log("Growth P4 Shared View contract OK: privacy boundary, Foundation v2 Shared View, neutral 9:16 card export, CTA, and opaque public URL.");
+console.log("Growth P4 Shared View contract OK: privacy boundary, unified purple-pink 9:16 card export, CTA, and opaque public URL.");

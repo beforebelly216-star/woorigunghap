@@ -9,6 +9,17 @@
 4. post-beta 운영 QA
 5. improvement
 
+## 완료 — 전 화면 mobile app theme v4
+
+- [x] 새 1:1 결과의 390px 보라–핑크 UI를 전 제품 공통 기준으로 확정
+- [x] 홈·로그인·보관함·정책·결제·결제 상태·1:N 결과·Shared View 일괄 적용
+- [x] 1:1/1:N 1080×1920 공유 이미지 팔레트 통일
+- [x] 루트 레이아웃의 구버전 전역 CSS import 전면 제거
+- [x] 1:N 후행 route CSS 우선순위 보정 및 rounded mobile card 강제
+- [x] 관련 contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS
+- [x] 360/390/430px 홈·로그인·1:N 데모 실브라우저 QA — overflow/오류 overlay 없음
+- [ ] `main` 푸시 및 Preview 배포
+
 ## 완료 — 궁합 점수 v1.6
 
 - [x] 공개 종합점수 **30~100**, 절대 최대 100
@@ -86,7 +97,7 @@
 - [x] `AI_FORMAT` 같은 결제 자동 재시도 1회로 제한
 - [x] 재실패 시 새로고침 없는 `같은 결제로 다시 시도` 버튼 추가
 - [x] 관련 contracts + TypeScript + lint + production build PASS
-- [ ] 사용자 승인 후 Preview 배포
+- [x] Preview 배포 — source `8051e2f`, trigger `a875c09`, Vercel SUCCESS, 자동배포 OFF `07e3858`
 - [ ] 기존 결제에서 action 저장 및 즉시 결과 전환 실확인
 
 ## Blocker / 운영 검증
@@ -104,18 +115,18 @@
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
-Preview/Production 배포는 사용자 명시 승인 뒤 수행한다.
+Preview 배포는 사용자의 상시 승인을 따라 변경 검증 후 별도 재확인 없이 수행한다. Production 배포는 사용자 명시 승인 뒤 수행한다.
 Git 자동배포는 OFF 유지.
 
 ## Current HANDOFF
 ```text
 HANDOFF
 - Worker: Codex
-- Task: 1:1 action 2/3 AI 형식 오류 및 새로고침 의존 제거
-- Status: local implementation and validation complete; deployment pending
-- Validation: AI generation/runtime UX/paid-result/relationship editorial/quality gate + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS
-- Root cause: ACTION 필수 JSON 스키마가 화면 핵심 필드와 레거시 심층 필드를 한 번에 강제해 INVALID_JSON/SCHEMA_MISMATCH로 종료
-- Remaining: Preview 배포 승인 → 기존 1,000원 결제 action 저장/즉시 결과 전환 확인
-- Risk: 실제 Anthropic 유료 생성 성공 여부는 Preview 배포 후 같은 결제로 확인 필요
-- Deploy: not deployed; Git 자동배포 OFF 유지
+- Task: 전 화면 mobile app theme v4 통일 및 구버전 렌더 경로 제거
+- Status: 구현·로컬 검증 완료; main 푸시 및 Preview 배포 대기
+- Validation: UI/runtime/account/report/shared-view/1:N/policy/system/beta contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build + 360/390/430px browser QA PASS
+- Scope: 홈·인증·보관함·정책·결제·결제 상태·1:N 결과·공유 화면·공유 이미지
+- Remaining: main push → preview branch trigger → Vercel success 확인 → Git 자동배포 OFF 복원
+- Risk: 실제 결제/Anthropic 생성 성공 여부는 기존 별도 실결제 검증 과제로 유지
+- Deploy: pending
 ```

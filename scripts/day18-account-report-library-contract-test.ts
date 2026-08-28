@@ -11,7 +11,7 @@ const accountDeletion = readFileSync("src/components/account-deletion-panel.tsx"
 const libraryPage = readFileSync("src/app/account/reports/page.tsx", "utf8");
 const loginPage = readFileSync("src/app/login/page.tsx", "utf8");
 const layout = readFileSync("src/app/layout.tsx", "utf8");
-const accountCss = readFileSync("src/app/account-foundation.css", "utf8");
+const appTheme = readFileSync("src/app/app-theme-v4.css", "utf8");
 const mobileCss = readFileSync("src/app/day20-mobile.css", "utf8");
 const oneToOne = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
 const oneToMany = readFileSync("src/app/one-to-many/result/one-to-many-paid-result.tsx", "utf8");
@@ -75,15 +75,15 @@ assert.match(accountDeletion, /aria-controls="account-delete-details"/);
 assert.match(accountDeletion, /confirmation !== "탈퇴"/);
 assert.match(accountDeletion, /\/api\/account\/delete/);
 
-// Foundation v2 owns account surfaces after legacy CSS.
-assert.match(layout, /account-foundation\.css/);
-assert.match(accountCss, /var\(--saju-width-compact\)/);
-assert.match(accountCss, /width: min\(100%, 760px\)/);
-assert.match(accountCss, /\.account-save-panel/);
-assert.match(accountCss, /\.account-delete-box/);
-assert.match(accountCss, /box-shadow: none/);
-assert.match(accountCss, /@media \(max-width: 640px\)/);
-assert.doesNotMatch(accountCss, /linear-gradient|radial-gradient|99999px/);
+// App theme v4 owns account surfaces; legacy account CSS is no longer in the render path.
+assert.match(layout, /app-theme-v4\.css/);
+assert.doesNotMatch(layout, /account-foundation\.css/);
+assert.match(appTheme, /\.library-page/);
+assert.match(appTheme, /\.account-save-panel/);
+assert.match(appTheme, /\.account-delete-box/);
+assert.match(appTheme, /width: min\(100%, 390px\)/);
+assert.match(appTheme, /linear-gradient\(155deg, #f7f1ff/);
+assert.doesNotMatch(appTheme, /99999px/);
 assert.doesNotMatch(mobileCss, /library-notification-panel|library-notification-form|library-notification-enabled/);
 const broadMobile = mobileCss.slice(mobileCss.indexOf("@media (max-width: 99999px)"));
 assert.doesNotMatch(broadMobile, /\.library-page\s*\{/);

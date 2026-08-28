@@ -7,8 +7,8 @@
 .typeButton, .typeButtonActive { min-height: 42px; border: 0; border-radius: 0; padding: 8px 6px; cursor: pointer; font-size: .73rem; font-weight: 850; line-height: 1.25; }
 .typeButton { background: var(--saju-bg-card); color: var(--saju-ink-soft); }
 .typeButtonActive { background: var(--saju-action); color: var(--saju-ink-inverse); }
-.card { position: relative; overflow: hidden; width: min(100%, 390px); aspect-ratio: 9 / 16; margin: 0 auto; border: 1px solid var(--saju-border-strong); border-radius: 24px; padding: 28px 24px; background: var(--saju-bg-card); box-shadow: none; color: var(--saju-ink); display: flex; flex-direction: column; }
-.card::before { content: ""; position: absolute; inset: 0 0 auto; height: 7px; background: var(--saju-action); }
+.card { position: relative; overflow: hidden; width: min(100%, 390px); aspect-ratio: 9 / 16; margin: 0 auto; border: 1px solid #e2d6f3; border-radius: 24px; padding: 28px 24px; background: linear-gradient(155deg, #f7f1ff 0%, #fff 52%, #fff3fa 100%); box-shadow: 0 10px 28px rgba(88,62,137,.08); color: var(--saju-ink); display: flex; flex-direction: column; }
+.card::before { content: ""; position: absolute; inset: 0 0 auto; height: 7px; background: linear-gradient(90deg,#7652d8,#f3b1db); }
 .topline { display: flex; justify-content: space-between; gap: 12px; padding-top: 4px; color: var(--saju-ink-soft); font-size: .72rem; font-weight: 850; letter-spacing: .05em; }
 .mystery { margin-top: 38px; color: var(--saju-ink-faint); font-size: .66rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
 .tone { align-self: flex-start; margin-top: 9px; border: 1px solid var(--saju-border); border-radius: var(--saju-radius-pill); padding: 5px 9px; background: var(--saju-bg-soft); color: var(--saju-ink-soft); font-size: .62rem; font-weight: 850; text-transform: uppercase; }
@@ -18,7 +18,7 @@
 .roleBox small, .sideBox small { display: block; margin-bottom: 5px; color: var(--saju-ink-soft); font-size: .67rem; font-weight: 850; }
 .roleBox strong, .sideBox strong { display: block; color: var(--saju-ink); font-size: .86rem; line-height: 1.4; overflow-wrap: anywhere; }
 .sideBoxWarm { background: transparent; }
-.candidateCount { margin-top: auto; align-self: center; border: 1px solid var(--saju-ink); border-radius: var(--saju-radius-pill); padding: 12px 20px; background: var(--saju-action); color: var(--saju-ink-inverse); font-family: var(--saju-font-data); font-size: .88rem; font-weight: 850; }
+.candidateCount { margin-top: auto; align-self: center; border: 0; border-radius: var(--saju-radius-pill); padding: 12px 20px; background: linear-gradient(135deg,#7652d8,#9165e8); color: var(--saju-ink-inverse); box-shadow: 0 8px 20px rgba(104,75,167,.16); font-family: var(--saju-font-data); font-size: .88rem; font-weight: 850; }
 .footer { margin-top: 14px; color: var(--saju-ink-faint); font-size: .68rem; text-align: center; }
 .nameToggle { width: min(100%, 390px); margin: 14px auto 0; display: flex; align-items: center; gap: 8px; color: var(--saju-ink-soft); font-size: .82rem; font-weight: 700; }
 .nameToggle input { width: 18px; height: 18px; accent-color: var(--saju-action); }

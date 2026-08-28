@@ -204,7 +204,7 @@ export default function PaymentRedirectPage() {
   return (
     <Suspense
       fallback={
-        <main className="result-page" aria-live="polite" aria-busy="true">
+        <main className="result-page payment-result-page" aria-live="polite" aria-busy="true">
           <p>결제 정보를 불러오는 중이에요.</p>
         </main>
       }

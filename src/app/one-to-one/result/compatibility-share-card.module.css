@@ -7,8 +7,8 @@
 .typeButton, .typeButtonActive { min-height: 42px; border: 0; border-radius: 0; padding: 8px 6px; cursor: pointer; font-size: .73rem; font-weight: 850; line-height: 1.25; }
 .typeButton { background: var(--saju-bg-card); color: var(--saju-ink-soft); }
 .typeButtonActive { background: var(--saju-action); color: var(--saju-ink-inverse); box-shadow: none; }
-.card { position: relative; overflow: hidden; width: min(100%, 390px); aspect-ratio: 9 / 16; margin: 0 auto; border: 1px solid var(--saju-border-strong); border-radius: 24px; padding: 28px 24px; background: var(--saju-bg-card); box-shadow: none; color: var(--saju-ink); display: flex; flex-direction: column; }
-.card::before { content: ""; position: absolute; inset: 0 0 auto; height: 7px; background: var(--saju-action); }
+.card { position: relative; overflow: hidden; width: min(100%, 390px); aspect-ratio: 9 / 16; margin: 0 auto; border: 1px solid #e2d6f3; border-radius: 24px; padding: 28px 24px; background: linear-gradient(155deg, #f7f1ff 0%, #fff 52%, #fff3fa 100%); box-shadow: 0 10px 28px rgba(88,62,137,.08); color: var(--saju-ink); display: flex; flex-direction: column; }
+.card::before { content: ""; position: absolute; inset: 0 0 auto; height: 7px; background: linear-gradient(90deg,#7652d8,#f3b1db); }
 .topline { display: flex; justify-content: space-between; gap: 12px; padding-top: 4px; color: var(--saju-ink-soft); font-size: .72rem; font-weight: 850; letter-spacing: .05em; }
 .names { margin-top: 28px; color: var(--saju-ink-soft); font-size: .94rem; font-weight: 750; }
 .names span { color: var(--saju-ink); }
@@ -23,7 +23,7 @@
 .sideBoxWarm { background: transparent; }
 .sideBox small { display: block; margin-bottom: 5px; color: var(--saju-ink-soft); font-size: .67rem; font-weight: 850; }
 .sideBox strong { display: block; color: var(--saju-ink); font-size: .88rem; line-height: 1.4; }
-.score { width: 136px; aspect-ratio: 1; margin-top: auto; align-self: center; border: 1px solid var(--saju-ink); border-radius: 50%; display: grid; grid-template-columns: auto auto; place-content: center; align-items: baseline; column-gap: 4px; background: var(--saju-action); color: var(--saju-ink-inverse); }
+.score { width: 136px; aspect-ratio: 1; margin-top: auto; align-self: center; border: 0; border-radius: 50%; display: grid; grid-template-columns: auto auto; place-content: center; align-items: baseline; column-gap: 4px; background: linear-gradient(145deg,#7652d8,#b792ef); color: var(--saju-ink-inverse); box-shadow: 0 10px 26px rgba(104,75,167,.2); }
 .score span { grid-column: 1 / -1; justify-self: center; font-size: .66rem; font-weight: 850; }
 .score strong { font-family: var(--saju-font-data); font-size: 2.35rem; font-variant-numeric: tabular-nums; }
 .score small { font-size: .64rem; font-weight: 800; }

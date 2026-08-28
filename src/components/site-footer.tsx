@@ -6,7 +6,16 @@ import { OPERATOR_PUBLIC_INFO } from "@/lib/operating-policy";
 
 export function SiteFooter() {
   const pathname = usePathname();
-  if (pathname === "/" || pathname === "/free/result") return null;
+  if (
+    pathname === "/"
+    || pathname === "/free"
+    || pathname === "/free/result"
+    || pathname === "/one-to-one"
+    || pathname === "/one-to-one/result"
+    || pathname === "/one-to-many"
+    || pathname.startsWith("/one-to-many/result")
+    || pathname.startsWith("/share/")
+  ) return null;
 
   return <footer className="site-footer">
     <nav aria-label="운영 정책">
