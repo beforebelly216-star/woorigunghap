@@ -18,7 +18,7 @@
 - [x] 1:N 후행 route CSS 우선순위 보정 및 rounded mobile card 강제
 - [x] 관련 contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS
 - [x] 360/390/430px 홈·로그인·1:N 데모 실브라우저 QA — overflow/오류 overlay 없음
-- [ ] `main` 푸시 및 Preview 배포
+- [x] `main` 푸시 및 Preview 배포 — source `3b09c34`, trigger `69388ee`, Vercel SUCCESS, 자동배포 OFF `4208ec1`
 
 ## 완료 — 궁합 점수 v1.6
 
@@ -123,10 +123,10 @@ Git 자동배포는 OFF 유지.
 HANDOFF
 - Worker: Codex
 - Task: 전 화면 mobile app theme v4 통일 및 구버전 렌더 경로 제거
-- Status: 구현·로컬 검증 완료; main 푸시 및 Preview 배포 대기
+- Status: 구현·검증·main 푸시·Preview 배포 완료
 - Validation: UI/runtime/account/report/shared-view/1:N/policy/system/beta contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build + 360/390/430px browser QA PASS
 - Scope: 홈·인증·보관함·정책·결제·결제 상태·1:N 결과·공유 화면·공유 이미지
-- Remaining: main push → preview branch trigger → Vercel success 확인 → Git 자동배포 OFF 복원
+- Remaining: Preview에서 사용자 주요 플로우 육안 확인; 실제 결제/AI 생성 검증은 기존 별도 과제
 - Risk: 실제 결제/Anthropic 생성 성공 여부는 기존 별도 실결제 검증 과제로 유지
-- Deploy: pending
+- Deploy: Preview SUCCESS — source `3b09c34`, trigger `69388ee`, Vercel `EGPxrFmHorhKoa9kCEwWNfW1rsiK`, 자동배포 OFF `4208ec1`
 ```

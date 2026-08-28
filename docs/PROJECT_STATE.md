@@ -121,6 +121,7 @@
 - Production에는 PR #75 hotfix를 아직 배포하지 않았다.
 - 결제 전 저장소 preflight hotfix는 Preview에 배포됐고 Production에는 아직 배포하지 않았다.
 - **1:1 action 형식 오류 hotfix Preview 배포 완료:** source `8051e2f`, trigger `a875c09`, Vercel SUCCESS (`6csk1Za5MNqsNVosYrN6aCU35b2A`). 이후 자동배포 OFF 복구 `07e3858`.
+- **mobile app theme v4 Preview 배포 완료:** source `3b09c34`, trigger `69388ee`, Vercel SUCCESS (`EGPxrFmHorhKoa9kCEwWNfW1rsiK`). 고정 Preview alias 실브라우저 확인 완료, 자동배포 OFF 복구 `4208ec1`.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
