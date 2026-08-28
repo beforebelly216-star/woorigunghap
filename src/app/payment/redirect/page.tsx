@@ -27,6 +27,10 @@ const RETRYABLE_PAYMENT_CODES = new Set([
   "PAYMENT_ORDER_MISSING",
   "PAYMENT_VERIFY_UNEXPECTED",
 ]);
+const RECHECK_ONLY_PAYMENT_CODES = new Set([
+  "PAYMENT_STORE_NOT_CONFIGURED",
+  "PAYMENT_SERVER_NOT_CONFIGURED",
+]);
 
 function wait(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -94,6 +98,12 @@ function PaymentResult() {
           }
 
           lastMessage = payload?.error ?? lastMessage;
+          if (RECHECK_ONLY_PAYMENT_CODES.has(payload?.code ?? "")) {
+            setFatalMessage(`${lastMessage} 결제는 다시 하지 말고 서버 설정 복구 후 같은 결제를 다시 확인해 주세요.`);
+            setSafeRecheckOnly(true);
+            setState("failed");
+            return;
+          }
           const retryable = payload?.retryable === true
             || RETRYABLE_PAYMENT_CODES.has(payload?.code ?? "")
             || response.status === 429

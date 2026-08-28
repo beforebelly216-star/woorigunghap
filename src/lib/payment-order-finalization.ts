@@ -117,7 +117,7 @@ export async function finalizeVerifiedPaidOrder(options: FinalizePaidOrderOption
       "결제 결과 저장소 설정을 확인해야 합니다.",
       503,
       "PAYMENT_STORE_NOT_CONFIGURED",
-      true,
+      false,
     );
   }
 
