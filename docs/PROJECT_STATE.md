@@ -109,13 +109,13 @@
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
 - **1:1 v8 Preview:** `preview/one-to-one-v8`, PR #75 포함 최신 `main` (`ab8a6006`) 재배포 완료. trigger `8a8f903f`, Vercel SUCCESS, 이후 Git 자동배포 OFF (`a5fba970`).
 - Production에는 PR #75 hotfix를 아직 배포하지 않았다.
-- 결제 전 저장소 preflight hotfix는 아직 Preview/Production에 배포하지 않았다.
-- 1:1 action 형식 오류 hotfix는 아직 Preview/Production에 배포하지 않았다.
+- 결제 전 저장소 preflight hotfix는 Preview에 배포됐고 Production에는 아직 배포하지 않았다.
+- **1:1 action 형식 오류 hotfix Preview 배포 완료:** source `8051e2f`, trigger `a875c09`, Vercel SUCCESS (`6csk1Za5MNqsNVosYrN6aCU35b2A`). 이후 자동배포 OFF 복구 `07e3858`.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. action 형식 오류 hotfix Preview 배포 후 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
+1. Preview에서 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
 2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
 3. 360 / 390 / 430px overflow/spacing QA
 4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인

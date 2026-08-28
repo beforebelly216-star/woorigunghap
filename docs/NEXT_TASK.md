@@ -86,7 +86,7 @@
 - [x] `AI_FORMAT` 같은 결제 자동 재시도 1회로 제한
 - [x] 재실패 시 새로고침 없는 `같은 결제로 다시 시도` 버튼 추가
 - [x] 관련 contracts + TypeScript + lint + production build PASS
-- [ ] 사용자 승인 후 Preview 배포
+- [x] Preview 배포 — source `8051e2f`, trigger `a875c09`, Vercel SUCCESS, 자동배포 OFF `07e3858`
 - [ ] 기존 결제에서 action 저장 및 즉시 결과 전환 실확인
 
 ## Blocker / 운영 검증
@@ -104,7 +104,7 @@
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
-Preview/Production 배포는 사용자 명시 승인 뒤 수행한다.
+Preview 배포는 사용자의 상시 승인을 따라 변경 검증 후 별도 재확인 없이 수행한다. Production 배포는 사용자 명시 승인 뒤 수행한다.
 Git 자동배포는 OFF 유지.
 
 ## Current HANDOFF
@@ -112,10 +112,10 @@ Git 자동배포는 OFF 유지.
 HANDOFF
 - Worker: Codex
 - Task: 1:1 action 2/3 AI 형식 오류 및 새로고침 의존 제거
-- Status: local implementation and validation complete; deployment pending
+- Status: Preview deployment complete; live same-payment verification pending
 - Validation: AI generation/runtime UX/paid-result/relationship editorial/quality gate + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS
 - Root cause: ACTION 필수 JSON 스키마가 화면 핵심 필드와 레거시 심층 필드를 한 번에 강제해 INVALID_JSON/SCHEMA_MISMATCH로 종료
-- Remaining: Preview 배포 승인 → 기존 1,000원 결제 action 저장/즉시 결과 전환 확인
+- Remaining: 기존 1,000원 결제 action 저장/즉시 결과 전환 확인
 - Risk: 실제 Anthropic 유료 생성 성공 여부는 Preview 배포 후 같은 결제로 확인 필요
-- Deploy: not deployed; Git 자동배포 OFF 유지
+- Deploy: Preview SUCCESS (`a875c09`, Vercel `6csk1Za5MNqsNVosYrN6aCU35b2A`); Git 자동배포 OFF `07e3858`
 ```
