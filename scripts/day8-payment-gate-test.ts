@@ -23,6 +23,8 @@ assert.match(verification, /PREVIOUS_ORDER_BINDING_VERSION/);
 assert.match(verification, /OLDER_ORDER_BINDING_VERSION/);
 assert.match(verification, /LEGACY_ORDER_BINDING_VERSION/);
 assert.match(verification, /isBindingVersion\(bindingVersion\)/);
+assert.match(verification, /PAYMENT_LOOKUP_TIMEOUT_MS/);
+assert.match(verification, /SERVER_RECEIPT_TIMEOUT_MS/);
 assert.match(verification, /PAYMENT_TERMINAL/);
 assert.match(verification, /status === "FAILED"/);
 assert.match(verification, /status === "CANCELLED"/);
@@ -47,18 +49,26 @@ assert.match(paymentButton, /inputHash/);
 assert.match(paymentButton, /hashOneToOneInput\(inputSnapshot as OneToOneReportInput\)/);
 assert.match(paymentButton, /bindingVersion: ORDER_BINDING_VERSION/);
 
+const paymentVerify = readFileSync("src/app/api/payments/verify/route.ts", "utf8");
+assert.match(paymentVerify, /verifyPaidPayment\(paymentId, product, input\)/);
+assert.match(paymentVerify, /finalizeVerifiedPaidOrder/);
+
 const resultPage = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
 assert.match(resultPage, /paymentId: draft\.paymentId/);
 assert.match(resultPage, /input: draft\.inputSnapshot/);
 assert.match(resultPage, /phase,/);
 
 const redirectPage = readFileSync("src/app/payment/redirect/page.tsx", "utf8");
-assert.match(redirectPage, /while \(!cancelled\)/);
+assert.doesNotMatch(redirectPage, /while \(!cancelled\)/);
+assert.match(redirectPage, /MAX_VERIFY_ATTEMPTS/);
+assert.match(redirectPage, /VERIFY_REQUEST_TIMEOUT_MS/);
 assert.match(redirectPage, /PORTONE_LOOKUP_FAILED/);
 assert.match(redirectPage, /PAYMENT_NOT_PAID/);
+assert.match(redirectPage, /PAYMENT_PAID_STORE_PENDING/);
+assert.match(redirectPage, /같은 결제 다시 확인/);
 
 const demoRoute = readFileSync("src/app/api/compatibility/one-to-one/demo/route.ts", "utf8");
 assert.doesNotMatch(demoRoute, /request\.json\(/);
 assert.match(demoRoute, /const DEMO_INPUT/);
 
-console.log("Day 8 payment gate v4 + v3/v2/v1 backward compatibility regression checks passed");
+console.log("Day 8 payment gate v5 + bounded recovery + v4/v3/v2/v1 backward compatibility regression checks passed");
