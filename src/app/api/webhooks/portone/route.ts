@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Webhook } from "@portone/server-sdk";
+import { markExistingServerOrderPaid } from "@/lib/payment-order-finalization";
 import { verifyPaidPayment } from "@/lib/payments/verification";
-import { claimPaymentWebhook, completePaymentWebhook, failPaymentWebhook, markServerOrderPaid } from "@/lib/server-report-store";
+import { claimPaymentWebhook, completePaymentWebhook, failPaymentWebhook } from "@/lib/server-report-store";
 
 export const runtime = "nodejs";
+export const maxDuration = 30;
 
 export async function POST(request: NextRequest) {
   const secret = process.env.PORTONE_WEBHOOK_SECRET;
@@ -38,8 +40,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Webhook store is unavailable." }, { status: 503 });
     }
     claimedWebhookId = webhookId;
+
     await verifyPaidPayment(webhook.data.paymentId);
-    await markServerOrderPaid(webhook.data.paymentId);
+    const paidStored = await markExistingServerOrderPaid(webhook.data.paymentId);
+    if (!paidStored) {
+      throw new Error("PAID_ORDER_ROW_NOT_FOUND");
+    }
+
     await completePaymentWebhook(webhookId);
     return NextResponse.json({ received: true, type: webhook.type });
   } catch (error) {
