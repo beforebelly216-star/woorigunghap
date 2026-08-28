@@ -13,11 +13,19 @@ type VerifyPayload = {
   verified?: boolean;
   error?: string;
   code?: string;
+  retryable?: boolean;
 };
 
+const MAX_VERIFY_ATTEMPTS = 7;
+const VERIFY_REQUEST_TIMEOUT_MS = 12_000;
 const RETRYABLE_PAYMENT_CODES = new Set([
   "PORTONE_LOOKUP_FAILED",
   "PAYMENT_NOT_PAID",
+  "PAYMENT_PAID_STORE_PENDING",
+  "PAYMENT_STORE_UNAVAILABLE",
+  "PAYMENT_STORE_RECOVERY_FAILED",
+  "PAYMENT_ORDER_MISSING",
+  "PAYMENT_VERIFY_UNEXPECTED",
 ]);
 
 function wait(ms: number) {
@@ -25,7 +33,30 @@ function wait(ms: number) {
 }
 
 function retryDelay(attempt: number) {
-  return Math.min(10_000, 1_000 * 2 ** Math.min(4, Math.max(0, attempt - 1)));
+  return Math.min(8_000, 1_000 * 2 ** Math.min(3, Math.max(0, attempt - 1)));
+}
+
+async function verifyPaymentRequest(paymentId: string) {
+  const order = loadOrderDraft(paymentId);
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), VERIFY_REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch("/api/payments/verify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        paymentId,
+        accessToken: order?.resultAccessToken,
+        input: order?.inputSnapshot,
+      }),
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    const payload = await response.json().catch(() => null) as VerifyPayload | null;
+    return { response, payload, order };
+  } finally {
+    window.clearTimeout(timeout);
+  }
 }
 
 function PaymentResult() {
@@ -36,6 +67,7 @@ function PaymentResult() {
   const [state, setState] = useState<State>(code ? "cancelled" : "checking");
   const [attempt, setAttempt] = useState(1);
   const [fatalMessage, setFatalMessage] = useState<string | null>(null);
+  const [safeRecheckOnly, setSafeRecheckOnly] = useState(false);
 
   useEffect(() => {
     if (!paymentId || code) return;
@@ -43,24 +75,13 @@ function PaymentResult() {
     let cancelled = false;
 
     async function verifyUntilReady() {
-      let currentAttempt = 0;
-      while (!cancelled) {
-        currentAttempt += 1;
+      let lastMessage = "결제 상태를 아직 확정하지 못했습니다.";
+
+      for (let currentAttempt = 1; currentAttempt <= MAX_VERIFY_ATTEMPTS && !cancelled; currentAttempt += 1) {
         setAttempt(currentAttempt);
 
         try {
-          const order = loadOrderDraft(verifiedPaymentId);
-          const response = await fetch("/api/payments/verify", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              paymentId: verifiedPaymentId,
-              accessToken: order?.resultAccessToken,
-              input: order?.inputSnapshot,
-            }),
-            cache: "no-store",
-          });
-          const payload = await response.json().catch(() => null) as VerifyPayload | null;
+          const { response, payload, order } = await verifyPaymentRequest(verifiedPaymentId);
           if (cancelled) return;
 
           if (response.ok && payload?.verified) {
@@ -72,22 +93,31 @@ function PaymentResult() {
             return;
           }
 
-          const retryable = !payload
-            || RETRYABLE_PAYMENT_CODES.has(payload.code ?? "")
+          lastMessage = payload?.error ?? lastMessage;
+          const retryable = payload?.retryable === true
+            || RETRYABLE_PAYMENT_CODES.has(payload?.code ?? "")
             || response.status === 429
             || response.status >= 500;
 
           if (!retryable) {
-            setFatalMessage(payload?.error ?? "결제 상품 또는 금액을 확인해야 합니다.");
+            setFatalMessage(lastMessage);
+            setSafeRecheckOnly(false);
             setState("failed");
             return;
           }
         } catch {
-          // Browser/network interruptions are transient; keep checking the same payment.
+          lastMessage = "결제 확인 서버 응답이 지연되고 있습니다.";
         }
 
-        await wait(retryDelay(currentAttempt));
+        if (currentAttempt < MAX_VERIFY_ATTEMPTS) {
+          await wait(retryDelay(currentAttempt));
+        }
       }
+
+      if (cancelled) return;
+      setSafeRecheckOnly(true);
+      setFatalMessage(`${lastMessage} 결제는 다시 하지 말고 같은 결제를 다시 확인해 주세요.`);
+      setState("failed");
     }
 
     void verifyUntilReady();
@@ -100,11 +130,14 @@ function PaymentResult() {
     checking: [
       "결제를 확인하고 있어요",
       attempt > 1
-        ? "결제 반영이 늦어 자동으로 다시 확인하고 있어요. 추가 결제는 하지 않습니다."
+        ? `서버에 결제 상태를 다시 확인하고 있어요. ${attempt}/${MAX_VERIFY_ATTEMPTS} · 추가 결제는 하지 않습니다.`
         : "확인되면 결과 생성을 시작하고 궁합 결과로 이동해요.",
     ],
     success: ["결제가 확인됐어요", "결과 생성을 시작했어요. 보관함으로 이동해도 계속 진행됩니다."],
-    failed: ["결제 정보를 확인해야 해요", fatalMessage ?? "결제 상품 또는 금액을 다시 확인해 주세요."],
+    failed: [
+      safeRecheckOnly ? "같은 결제를 다시 확인해 주세요" : "결제 정보를 확인해야 해요",
+      fatalMessage ?? "결제 상품 또는 금액을 다시 확인해 주세요.",
+    ],
     cancelled: [
       "결제가 완료되지 않았어요",
       params.get("message") ?? "결제는 승인되지 않았습니다. 입력 내용은 그대로 두고 다시 시도할 수 있어요.",
@@ -121,6 +154,9 @@ function PaymentResult() {
       <p className="eyebrow">우리사주</p>
       <h1>{copy[0]}</h1>
       <p>{copy[1]}</p>
+      {state === "checking" ? (
+        <p className="result-note">확인이 끝나지 않아도 새 결제를 만들지 않습니다.</p>
+      ) : null}
       {state === "success" && paymentId ? (
         <div className="recovery-actions">
           <Link
@@ -133,9 +169,20 @@ function PaymentResult() {
           </Link>
           <Link href="/account/reports" className="back-link">보관함에서 생성 상태 보기</Link>
         </div>
-      ) : state === "failed" || state === "cancelled" ? (
+      ) : state === "failed" && safeRecheckOnly ? (
         <div className="recovery-actions">
-          {retryHref ? <Link href={retryHref} className="primary-link">같은 주문으로 결제 다시 시도</Link> : null}
+          <button type="button" className="primary-link" onClick={() => window.location.reload()}>
+            같은 결제 다시 확인
+          </button>
+          <Link href="/" className="back-link">처음으로 돌아가기</Link>
+        </div>
+      ) : state === "cancelled" ? (
+        <div className="recovery-actions">
+          {retryHref ? <Link href={retryHref} className="primary-link">결제 화면으로 돌아가기</Link> : null}
+          <Link href="/" className="back-link">처음으로 돌아가기</Link>
+        </div>
+      ) : state === "failed" ? (
+        <div className="recovery-actions">
           <Link href="/" className="back-link">처음으로 돌아가기</Link>
         </div>
       ) : null}

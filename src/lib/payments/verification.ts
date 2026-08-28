@@ -12,6 +12,9 @@ import {
 } from "@/lib/order-binding";
 import type { OneToManyReportInput, OneToOneReportInput } from "@/lib/report-input";
 
+const PAYMENT_LOOKUP_TIMEOUT_MS = 10_000;
+const SERVER_RECEIPT_TIMEOUT_MS = 6_000;
+
 export class PaymentVerificationError extends Error {
   constructor(
     message: string,
@@ -55,6 +58,20 @@ function isTerminalPaymentStatus(status: unknown) {
   return status === "FAILED" || status === "CANCELLED" || status === "PARTIAL_CANCELLED";
 }
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, code: string) {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(code)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 type StoredPaidOrder = {
   product?: unknown;
   amount?: unknown;
@@ -80,14 +97,14 @@ async function loadTrustedServerPaidOrder(
 
   try {
     const sql = neon(connectionString);
-    const rows = await sql`
+    const rows = await withTimeout(sql`
       SELECT order_json
       FROM woorigunghap_order_records
       WHERE payment_id = ${paymentId}
         AND payment_status = 'paid'
         AND generation_status <> 'deleted'
       LIMIT 1
-    `;
+    `, SERVER_RECEIPT_TIMEOUT_MS, "SERVER_RECEIPT_TIMEOUT");
     const raw = rows[0]?.order_json;
     if (typeof raw !== "string") return null;
 
@@ -148,11 +165,6 @@ export async function verifyPaidPayment(
     );
   }
 
-  // Report-generation requests always carry the already-bound input. Once the
-  // server has previously verified the payment and marked the immutable order
-  // record paid, reuse that server-side receipt instead of querying PortOne on
-  // every long-running report segment. This prevents a paid report from being
-  // stuck forever when PortOne lookup is temporarily unavailable after checkout.
   const trustedPaidOrder = await loadTrustedServerPaidOrder(paymentId, product, expectedInput);
   if (trustedPaidOrder) return trustedPaidOrder;
 
@@ -167,7 +179,11 @@ export async function verifyPaidPayment(
 
   let payment;
   try {
-    payment = await PaymentClient({ secret }).getPayment({ paymentId });
+    payment = await withTimeout(
+      PaymentClient({ secret }).getPayment({ paymentId }),
+      PAYMENT_LOOKUP_TIMEOUT_MS,
+      "PORTONE_LOOKUP_TIMEOUT",
+    );
   } catch {
     throw new PaymentVerificationError(
       "PortOne 결제 정보를 확인하지 못했습니다.",
@@ -214,7 +230,7 @@ export async function verifyPaidPayment(
     const bindingVersion = customData?.bindingVersion;
     const paidInputHash = customData?.inputHash;
     if (isBindingVersion(bindingVersion) && typeof paidInputHash === "string") {
-      const expectedInputHash = expectedProduct === "oneToMany"
+      const expectedInputHash = product === "oneToMany"
         ? await hashOneToManyInput(expectedInput as OneToManyReportInput, bindingVersion)
         : await hashOneToOneInput(expectedInput as OneToOneReportInput, bindingVersion);
       if (paidInputHash !== expectedInputHash) {

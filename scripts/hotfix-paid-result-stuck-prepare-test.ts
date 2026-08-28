@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 function source(path: string) {
@@ -7,13 +7,24 @@ function source(path: string) {
 }
 
 const verification = source("src/lib/payments/verification.ts");
-const resilientRoute = source("src/app/api/compatibility/one-to-one-resilient/route.ts");
+const finalization = source("src/lib/payment-order-finalization.ts");
 const paymentVerify = source("src/app/api/payments/verify/route.ts");
+const paymentRedirect = source("src/app/payment/redirect/page.tsx");
+const webhook = source("src/app/api/webhooks/portone/route.ts");
 const nextConfig = source("next.config.ts");
+const resilientPath = resolve(process.cwd(), "src/app/api/compatibility/one-to-one-resilient/route.ts");
 
 assert.ok(
   verification.includes("loadTrustedServerPaidOrder"),
   "paid report generation must reuse the previously server-verified paid order",
+);
+assert.ok(
+  verification.includes("PAYMENT_LOOKUP_TIMEOUT_MS"),
+  "PortOne lookup must have a hard timeout",
+);
+assert.ok(
+  verification.includes("SERVER_RECEIPT_TIMEOUT_MS"),
+  "trusted server receipt lookup must have a hard timeout",
 );
 assert.ok(
   verification.includes("payment_status = 'paid'"),
@@ -24,45 +35,61 @@ assert.ok(
   "deleted orders must never be trusted for report generation",
 );
 assert.ok(
-  verification.includes("storedHash !== requestedHash"),
-  "trusted server payment reuse must still bind the immutable paid input",
+  paymentVerify.includes("verifyPaidPayment(paymentId, product, input)"),
+  "checkout verification must bind PortOne verification to the exact product and input",
 );
 assert.ok(
-  verification.includes('source: "server-paid-order"'),
-  "trusted server payment reuse must be distinguishable from a fresh PortOne lookup",
+  paymentVerify.includes("finalizeVerifiedPaidOrder"),
+  "verified payments must be finalized through the authoritative paid-order writer",
 );
 assert.ok(
-  verification.indexOf("loadTrustedServerPaidOrder(paymentId, product, expectedInput)")
-    < verification.indexOf("const secret = process.env.PORTONE_API_SECRET"),
-  "already verified paid orders must not depend on a second PortOne lookup or API secret check",
+  finalization.includes("RETURNING payment_id"),
+  "paid-state finalization must confirm that exactly one authoritative order row was updated",
 );
 assert.ok(
-  paymentVerify.includes("PAYMENT_PAID_STORE_PENDING"),
-  "checkout verification must not redirect to generation before the paid server receipt is persisted",
+  finalization.includes("updated.length !== 1"),
+  "zero-row paid updates must never be reported as success",
 );
 assert.ok(
-  paymentVerify.includes("if (!paidStored)"),
-  "a failed paid-state persistence must remain in verification instead of falsely reporting success",
+  finalization.includes("PAYMENT_INPUT_MISMATCH"),
+  "server order recovery must keep immutable input binding",
 );
 assert.ok(
-  resilientRoute.includes("recoverPreparedPhase"),
-  "prepare must have a deterministic recovery path after repeated ordinary-route failures",
+  finalization.includes("inputBoundByPayment"),
+  "missing server orders may only be recovered from a PortOne-bound input",
 );
 assert.ok(
-  resilientRoute.includes("prepare-cache-not-persisted"),
-  "prepare cache persistence must be best-effort instead of trapping paid users at zero segments",
+  webhook.includes("const paidStored = await markExistingServerOrderPaid"),
+  "PortOne webhook must check whether the authoritative paid state was actually persisted",
 );
 assert.ok(
-  resilientRoute.includes('retryable: false'),
-  "repeated server failures must terminate instead of returning an endless 503 retry loop",
+  webhook.includes("if (!paidStored)"),
+  "webhook processing must fail and retry instead of acknowledging a missing paid order row",
 );
 assert.ok(
-  resilientRoute.includes("REPORT_STATE_RETRY_EXHAUSTED"),
-  "bounded recovery must expose a stable diagnostic code",
+  paymentRedirect.includes("MAX_VERIFY_ATTEMPTS"),
+  "payment confirmation polling must be bounded",
 );
 assert.ok(
-  nextConfig.includes("beforeFiles"),
-  "the resilient paid-result route must continue to run before the concrete filesystem API route",
+  paymentRedirect.includes("VERIFY_REQUEST_TIMEOUT_MS"),
+  "each payment confirmation request must be abortable",
+);
+assert.ok(
+  paymentRedirect.includes("same payment") === false,
+  "user-facing Korean payment recovery should not accidentally expose internal English copy",
+);
+assert.ok(
+  paymentRedirect.includes("같은 결제 다시 확인"),
+  "retry exhaustion must offer a same-payment recheck rather than another charge",
+);
+assert.equal(
+  existsSync(resilientPath),
+  false,
+  "the duplicate one-to-one resilient API wrapper must be removed",
+);
+assert.ok(
+  !nextConfig.includes("one-to-one-resilient") && !nextConfig.includes("beforeFiles"),
+  "one-to-one requests must go directly to the single authoritative API route",
 );
 
-console.log("Paid-result loop hotfix contract passed: trusted paid receipt + deterministic prepare recovery + bounded retry policy.");
+console.log("Paid-result audit contract passed: bound verification + strict paid persistence + bounded client retries + single report route.");
