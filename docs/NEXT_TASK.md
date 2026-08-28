@@ -43,28 +43,26 @@
 - [x] 390px 모바일 / reduced-motion 대응
 - [x] PR #69 → `main` (`4803fa7a`), validation #809 PASS
 
-### Hotfix — 결제 직후 결과 생성 즉시 실패
-- [x] Preview 실결제에서 `UNEXPECTED_SERVER_ERROR` 424 즉시 fatal 재현 확인
-- [x] transient state 오류는 서버 1회 재확인 후 503 `retryable: true`로 변환
-- [x] 기존 클라이언트가 같은 결제로 자동 재시도하도록 연결
-- [x] 영구적인 인증/권한/입력 오류는 fatal 유지
-- [x] 실패 화면을 주토피 떡상 로딩 화면과 동일한 390px UI로 통일
-- [x] **PR #70 / Core calculation validation #812 PASS** — 전체 contracts + lint + production build PASS
-- [x] resilient rewrite를 실제 filesystem API보다 먼저 적용하도록 `beforeFiles`로 수정 — PR #71 → `main` (`1766cf1e`)
+### BLOCKER — 결제 확인 / 0-of-3 무한대기 전수조사
 
-### Blocker hotfix — 0/3 prepare 반복/무한대기
-- [x] Preview에서 `0/3개 해설 묶음 완료` 상태가 400초, 790초 이상 반복되는 것 재현 확인
-- [x] 생성 단계의 반복 PortOne 재검증 제거 — server-verified paid order 재사용, 입력 해시/상품/금액/삭제 상태 검증 유지
-- [x] 결제 검증 API가 DB `paid` 기록 실패를 무시하고 `verified: true`를 반환하던 결함 수정
-- [x] `paid` 서버 기록이 확정되지 않으면 결과 페이지로 이동하지 않고 `PAYMENT_PAID_STORE_PENDING`으로 같은 결제를 자동 재확인
-- [x] 일반 생성 경로가 prepare 단계에서 두 번 실패하면, 기존 서버 주문의 복구 토큰을 다시 검증한 뒤 결정론 snapshot/facts를 재구성하는 안전 fallback 추가
-- [x] prepare 캐시 저장 실패만으로 유료 사용자를 0/3에 가두지 않도록 best-effort 처리
-- [x] 동일 5xx/424 반복을 무한 503으로 되돌리지 않고 `REPORT_STATE_RETRY_EXHAUSTED` terminal 진단으로 종료
-- [x] `test:hotfix:paid-result-stuck-prepare` 회귀 계약 갱신
-- [x] **PR #73 / Core calculation validation #827 PASS** — 전체 contracts + lint + production build PASS
-- [x] PR #73 → `main` (`a9b34313`)
-- [x] 동일 `preview/one-to-one-v8` 재배포 — Vercel success, trigger `8fc86aaa`, 자동배포 OFF 복구
-- [ ] 기존 1,000원 결제로 새로고침 → prepare 통과 → intro/dynamics/action → 결과 저장 확인
+이전 PR #70~#73은 각각 일부 오류 경로를 막았으나 실기기 Preview에서 `0/3` 장기대기와 이후 `결제를 확인하고 있어요` 반복이 재현되어 **완전 해결 판정은 취소**한다.
+
+- [x] 결제 → PortOne 조회 → Neon 주문 → 결과 prepare → AI segment → 저장 → 브라우저 retry 관련 코드 일괄 전수조사
+- [x] `markServerOrderPaid()` 계열에서 실제 UPDATE 0건도 성공으로 취급될 수 있던 결함 확인
+- [x] `/api/payments/verify`가 입력값을 사용하지 않은 채 PortOne 결제를 확인하던 경로 제거
+- [x] 결제 검증은 `product + exact input`을 함께 검증하고, PortOne input binding 유지
+- [x] PortOne에서 검증된 결제만 authoritative server order를 `UPDATE ... RETURNING`으로 paid 확정
+- [x] 서버 주문 행이 유실된 경우에도 PortOne customData가 정확한 입력을 bind한 주문만 동일 paymentId/accessToken으로 복구
+- [x] PortOne 조회 10초 / trusted server receipt 조회 6초 timeout 추가
+- [x] webhook도 paid UPDATE 결과 1건을 확인하지 못하면 성공 ACK하지 않고 재시도 가능하게 변경
+- [x] 1:1 API를 두 번 호출하던 `one-to-one-resilient` wrapper와 `beforeFiles` rewrite 전면 제거 — filesystem `/api/compatibility/one-to-one` 단일 권위 경로
+- [x] 결제 redirect 무한 `while` polling 제거 — 최대 7회 + 요청당 12초 timeout
+- [x] 서버 장애/저장 지연 시 재결제 CTA를 노출하지 않고 `같은 결제 다시 확인`만 제공
+- [x] Day 8 / paid-result hotfix 계약을 새 bounded 정책으로 갱신
+- [x] **PR #75 / Core calculation validation #830 PASS** — payment/narrative/1:N/account/Growth contracts + lint + production build PASS
+- [ ] PR #75 → `main` 병합
+- [ ] 동일 `preview/one-to-one-v8`에 최신 `main` 재배포
+- [ ] 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 저장` 실동작 확인
 
 ### P3 실화면 QA
 - [ ] 실제 Sonnet 5 생성 1건에서 사용자 노출 본문 4,000~6,000자 확인
@@ -93,11 +91,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: GPT
-- Task: 1:1 결제 완료 후 0/3 prepare 반복/무한대기 root hotfix + 동일 Preview 재배포
+- Task: 결제→DB→1:1 생성 전체 경로 전수조사 및 반복 대기 구조 제거
 - Status: complete
-- Validation: PR #73 / Core calculation validation #827 PASS — 전체 contracts + lint + production build PASS
-- Commit: main a9b34313; Preview trigger 8fc86aaa
-- Remaining: 사용자가 기존 1,000원 결제 결과를 새로고침해 prepare→intro→dynamics→action→저장 실동작 확인
-- Risk: Vercel runtime-log connector가 프로젝트를 직접 열지 못해 예외 원문은 미확인. 대신 paid-state 저장 누락, prepare 캐시 실패, 반복 503 무한반환 세 경로를 모두 차단함
-- Deploy: preview/one-to-one-v8 Vercel success. Git 자동배포 OFF 복구. Production 미배포
+- Validation: PR #75 / Core calculation validation #830 PASS — 전체 contracts + lint + production build PASS
+- Commit: gpt/hotfix-payment-generation-audit latest (PR #75)
+- Remaining: PR #75 main 병합 → 동일 preview/one-to-one-v8 재배포 → 기존 1,000원 결제 실복구 확인
+- Risk: Vercel connector에서 프로젝트 목록이 비어 runtime log 원문은 직접 조회 불가. 대신 코드상 false-success, unbound verify, duplicate route, infinite polling을 모두 제거함
+- Deploy: 아직 PR #75 미배포. Production은 건드리지 않음
 ```
