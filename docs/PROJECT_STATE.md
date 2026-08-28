@@ -82,8 +82,18 @@
 - 결제 preflight/verify는 비밀값·입력 원문 없이 payment hash reference와 오류 code, 환경변수 존재 여부를 구조화 로그로 남긴다.
 - 코드 hotfix만으로 기존 결제가 복구되지는 않는다. 실패한 Preview 환경에 `DATABASE_URL`을 연결하고 이 hotfix를 배포한 뒤 같은 결제로 재확인해야 한다.
 
+### 1:1 action 생성 형식 오류 hotfix — 2026-08-29
+
+- Preview 런타임 로그에서 결제·DB가 아니라 `action` 세그먼트의 `ANTHROPIC_SEGMENT_ACTION_INVALID_JSON` 및 `ANTHROPIC_SEGMENT_ACTION_SCHEMA_MISMATCH`가 422 종료의 직접 원인임을 확인했다.
+- 새 화면의 핵심 본문에 쓰지 않는 `situationStrategy`, `actionPlan30`을 Anthropic의 필수 ACTION JSON 스키마에서 제거했다.
+- 두 호환 필드는 생성된 핵심 관계 해설에서 서버가 결정론적으로 조립해 기존 저장 형식과 UI 호환을 유지한다.
+- JSON 스키마 실패 로그에는 원문 대신 누락/추가 키와 타입의 안전한 경로만 기록하고, 두 번째 모델 시도에 해당 경로를 전달한다.
+- `AI_FORMAT`은 같은 결제로 한 번만 자동 재시도한다. 재실패 시 무한 호출하지 않고 화면 안의 `같은 결제로 다시 시도` 버튼을 제공한다.
+- 런타임 버전: `paid-report-v8-action-core-bounded-retry-20260828`.
+
 ## 검증 상태
 
+- **1:1 action 형식 오류 hotfix local validation PASS** — AI generation/runtime UX/paid-result/relationship editorial/quality gate + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **결제 전 저장소 preflight local validation PASS** — paid-result/day8/runtime UI/server-store/1:N paid E2E/1:1 form contracts + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **PR #75 / Core calculation validation #832 PASS** — 결제/DB/생성 경로 전수조사 hotfix + 전체 contracts + lint + production build PASS.
 - PR #73 / validation #827 PASS — 부분 prepare-loop hotfix였으나 실기기에서 이후 결제 확인 반복이 재현되어 최종 해결로 보지 않는다.
@@ -100,11 +110,12 @@
 - **1:1 v8 Preview:** `preview/one-to-one-v8`, PR #75 포함 최신 `main` (`ab8a6006`) 재배포 완료. trigger `8a8f903f`, Vercel SUCCESS, 이후 Git 자동배포 OFF (`a5fba970`).
 - Production에는 PR #75 hotfix를 아직 배포하지 않았다.
 - 결제 전 저장소 preflight hotfix는 아직 Preview/Production에 배포하지 않았다.
+- 1:1 action 형식 오류 hotfix는 아직 Preview/Production에 배포하지 않았다.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
+1. action 형식 오류 hotfix Preview 배포 후 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
 2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
 3. 360 / 390 / 430px overflow/spacing QA
 4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인

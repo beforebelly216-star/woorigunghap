@@ -123,24 +123,6 @@ const DYNAMICS_SCHEMA = objectSchema({
   keyTakeaways: objectSchema({ ch2: STRING_ARRAY, ch3: STRING_ARRAY }),
 });
 
-const SITUATION_STRATEGY_SCHEMA = objectSchema({
-  priority: { type: "string" },
-  stepByStep: {
-    type: "array",
-    items: objectSchema({ step: { type: "string" }, action: { type: "string" }, watchFor: { type: "string" } }),
-  },
-  progressSignals: STRING_ARRAY,
-  stopSignals: STRING_ARRAY,
-});
-
-const ACTION_PLAN_30_SCHEMA = objectSchema({
-  weeks: {
-    type: "array",
-    items: objectSchema({ week: { type: "number" }, goal: { type: "string" }, action: { type: "string" }, check: { type: "string" } }),
-  },
-  monthlyDont: STRING_ARRAY,
-});
-
 const ACTION_SCHEMA = objectSchema({
   relationshipFlow: objectSchema({
     overview: { type: "string" },
@@ -171,8 +153,6 @@ const ACTION_SCHEMA = objectSchema({
     conflictProtocol: STRING_ARRAY,
     recommendedActivities: STRING_ARRAY,
   }),
-  situationStrategy: SITUATION_STRATEGY_SCHEMA,
-  actionPlan30: ACTION_PLAN_30_SCHEMA,
   keyTakeaways: objectSchema({
     ch4: STRING_ARRAY, ch5: STRING_ARRAY, ch6: STRING_ARRAY,
     ch7: STRING_ARRAY, ch8: STRING_ARRAY, ch9: STRING_ARRAY,
@@ -188,10 +168,12 @@ export type DynamicsSegment = Pick<DetailedReportContent, "chemistry" | "bondAnd
   personalLeverage: PersonalLeverage;
   keyTakeaways: { ch2: string[]; ch3: string[] };
 };
-export type ActionSegment = Pick<DetailedReportContent, "relationshipFlow" | "relationshipSpecific" | "strengthsAndRisks" | "practicalManual"> & {
+type CoreActionSegment = Pick<DetailedReportContent, "relationshipFlow" | "relationshipSpecific" | "strengthsAndRisks" | "practicalManual"> & {
+  keyTakeaways: { ch4: string[]; ch5: string[]; ch6: string[]; ch7: string[]; ch8: string[]; ch9: string[] };
+};
+export type ActionSegment = CoreActionSegment & {
   situationStrategy: SituationStrategy;
   actionPlan30: ActionPlan30;
-  keyTakeaways: { ch4: string[]; ch5: string[]; ch6: string[]; ch7: string[]; ch8: string[]; ch9: string[] };
 };
 export type PaidReportSegmentContent = IntroSegment | DynamicsSegment | ActionSegment;
 
@@ -259,7 +241,7 @@ function validDynamics(value: unknown): value is DynamicsSegment {
     && isObject(value.partnerDeepDive) && isObject(value.partnerInnerMindHero) && isObject(value.personalLeverage)
     && validKeyTakeaways(value.keyTakeaways, ["ch2", "ch3"]);
 }
-function validAction(value: unknown): value is ActionSegment {
+function validCoreAction(value: unknown): value is CoreActionSegment {
   if (!isObject(value)) return false;
   return ["overview", "roles", "initiative", "intimacy"].every((key) => hasString(value.relationshipFlow, key))
     && hasArray(value.relationshipFlow, "conflictScenarios")
@@ -267,7 +249,6 @@ function validAction(value: unknown): value is ActionSegment {
     && hasArray(value.strengthsAndRisks, "strengths") && hasArray(value.strengthsAndRisks, "repeatedFrictions")
     && hasString(value.strengthsAndRisks, "redFlag") && hasString(value.strengthsAndRisks, "warning")
     && hasArray(value.practicalManual, "do") && hasArray(value.practicalManual, "dont") && hasArray(value.practicalManual, "conflictProtocol")
-    && isObject(value.situationStrategy) && isObject(value.actionPlan30)
     && validKeyTakeaways(value.keyTakeaways, ["ch4", "ch5", "ch6", "ch7", "ch8", "ch9"]);
 }
 
@@ -290,7 +271,7 @@ function dynamicsIssues(value: DynamicsSegment) {
   if (compactLength(value.directionalImpact) < 420) issues.push("DIRECTIONAL_SHORT");
   return issues;
 }
-function actionIssues(value: ActionSegment) {
+function actionIssues(value: CoreActionSegment) {
   const length = compactLength(value);
   const issues: string[] = [];
   if (length < 1_800) issues.push("ACTION_SHORT");
@@ -299,6 +280,41 @@ function actionIssues(value: ActionSegment) {
   if (!isObject(value.relationshipSpecific) || !Array.isArray(value.relationshipSpecific.points) || value.relationshipSpecific.points.length < 4) issues.push("RELATION_SPECIFIC_SHORT");
   if (!isObject(value.practicalManual) || !Array.isArray(value.practicalManual.do) || value.practicalManual.do.length < 4) issues.push("MANUAL_SHORT");
   return issues;
+}
+
+function buildActionCompatibilityExtensions(value: CoreActionSegment): Pick<ActionSegment, "situationStrategy" | "actionPlan30"> {
+  const points = value.relationshipSpecific.points;
+  const conflictSteps = value.practicalManual.conflictProtocol;
+  const actions = value.practicalManual.do;
+  const cautions = value.practicalManual.dont;
+  const weekSource = [
+    points[0]?.detail ?? actions[0] ?? value.relationshipFlow.initiative,
+    points[1]?.detail ?? actions[1] ?? value.relationshipFlow.intimacy,
+    points[2]?.detail ?? actions[2] ?? value.relationshipFlow.roles,
+    points[3]?.detail ?? actions[3] ?? value.relationshipSpecific.overview,
+  ];
+
+  return {
+    situationStrategy: {
+      priority: value.relationshipSpecific.overview,
+      stepByStep: weekSource.slice(0, 3).map((action, index) => ({
+        step: `${index + 1}단계`,
+        action,
+        watchFor: conflictSteps[index] ?? cautions[index] ?? value.strengthsAndRisks.warning,
+      })),
+      progressSignals: value.strengthsAndRisks.strengths,
+      stopSignals: value.strengthsAndRisks.repeatedFrictions,
+    },
+    actionPlan30: {
+      weeks: weekSource.map((action, index) => ({
+        week: index + 1,
+        goal: points[index]?.title ?? `${index + 1}주차 관계 점검`,
+        action,
+        check: conflictSteps[index] ?? value.strengthsAndRisks.warning,
+      })),
+      monthlyDont: cautions,
+    },
+  };
 }
 
 const BASE_RULES = [
@@ -405,13 +421,21 @@ async function generateDynamics(apiKey: string, model: string, payloadText: stri
 }
 
 async function generateAction(apiKey: string, model: string, payloadText: string, relationshipRules: string) {
-  return requestStructuredSegment<ActionSegment>({
+  const generated = await requestStructuredSegment<CoreActionSegment>({
     apiKey, model, schema: ACTION_SCHEMA,
     maxTokens: 5_200, retryMaxTokens: 6_200, timeoutMs: 125_000,
-    preferStructured: true, label: "ACTION", validate: validAction, qualityIssues: actionIssues,
+    preferStructured: true, label: "ACTION", validate: validCoreAction, qualityIssues: actionIssues,
     system: `${BASE_RULES}\n\n${relationshipRules}\n\n[LAYOUT V3 · 관계 성향 + 갈등 + 관계유형 심층 + 장기 전망 + 사용설명서]\n- 이 세그먼트는 공백 제외 1,800~2,400자를 목표로 합니다.\n- relationshipFlow.overview/roles/initiative/intimacy는 각각 100~160자로 관계 성향을 설명하되 다른 장과 중복하지 마세요.\n- conflictScenarios는 정확히 3개. 각 항목은 situation 40~80자, likelyPattern 140~220자, response 140~220자로 작성해 '갈등 시작→두 사람 반응→악순환→끊는 법'이 읽히게 하세요.\n- relationshipSpecific.overview는 220~320자, points는 정확히 4개이며 각 detail은 150~230자. 짝사랑/썸/연인/친구/직장동료에 따라 질문 자체가 달라져야 합니다. 사용자의 mostCurious가 있으면 마지막 point에서 계산 근거 범위 안에서 직접 답하세요.\n- strengthsAndRisks.strengths와 repeatedFrictions는 각각 3개, 각 60~100자. 장기적으로 좋아지는 조건과 소모되는 조건에 사용할 수 있게 작성하세요.\n- practicalManual.do 4개, dont 3개, conflictProtocol 4단계. 각 항목은 60~100자의 실행 문장으로 작성하세요. recommendedActivities는 저장 호환용으로 2개만 짧게 씁니다.\n- situationStrategy와 actionPlan30은 기존 저장 호환을 위해 유지하되 새 화면의 본문 분량을 빼앗지 않도록 짧게 작성하세요.\n- 미래 사건을 예언하지 말고 장기 전망은 현재의 사주 관계 구조가 오래 반복될 때 좋아지는 조건과 소모되는 조건으로 설명하세요.\n- keyTakeaways.ch4~ch9는 각각 정확히 2개, 32자 이내.`,
     user: `다음 비식별 사주 계산 근거만 사용해 관계 성향, 갈등 루프, 관계유형별 심층 해석, 장기 전망과 사용설명서를 작성하세요.\n${payloadText}`,
   });
+  const core = generated.best.value;
+  return {
+    ...generated,
+    best: {
+      ...generated.best,
+      value: { ...core, ...buildActionCompatibilityExtensions(core) },
+    },
+  };
 }
 
 export async function generatePaidReportSegmentV7(

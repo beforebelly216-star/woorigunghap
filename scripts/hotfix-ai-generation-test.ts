@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { requestStructuredSegment } from "../src/lib/narrative/report-engine-v6-request";
+import {
+  describeJsonSchemaMismatch,
+  requestStructuredSegment,
+} from "../src/lib/narrative/report-engine-v6-request";
 
 const schema = {
   type: "object",
@@ -30,6 +33,12 @@ const originalFetch = globalThis.fetch;
 
 async function main() {
 try {
+  assert.deepEqual(
+    describeJsonSchemaMismatch({ summary: 1, extra: "x" }, schema),
+    ["$.extra:unexpected", "$.summary:expected_string"],
+    "schema diagnostics must report only safe paths and type labels",
+  );
+
   const truncationBodies: Array<Record<string, unknown>> = [];
   let truncationCall = 0;
   globalThis.fetch = async (_input, init) => {
@@ -145,16 +154,16 @@ try {
 }
 
 const requestSource = readFileSync("src/lib/narrative/report-engine-v6-request.ts", "utf8");
-const engineSource = readFileSync("src/lib/narrative/report-engine-v7.ts", "utf8");
+const engineSource = readFileSync("src/lib/narrative/report-engine-v8.ts", "utf8");
 const reportModelSource = readFileSync("src/lib/narrative/report-engine.ts", "utf8");
 const oneToManySource = readFileSync("src/lib/narrative/one-to-many-report-engine.ts", "utf8");
 const envExample = readFileSync(".env.example", "utf8");
 
 assert.doesNotMatch(requestSource, /Math\.max\(args\.maxTokens,\s*(?:5_000|9_000|8_000)\)/, "hidden legacy token inflation must stay removed");
-assert.match(engineSource, /2,500~4,000자/, "the paid 1:1 prompt must state the concise whole-report target");
-assert.match(engineSource, /maxTokens: 1_800/);
-assert.match(engineSource, /maxTokens: 2_600/);
+assert.match(engineSource, /4,000~6,000자/, "the active paid 1:1 prompt must state the layout-v3 whole-report target");
 assert.match(engineSource, /maxTokens: 3_000/);
+assert.match(engineSource, /maxTokens: 4_000/);
+assert.match(engineSource, /maxTokens: 5_200/);
 assert.match(engineSource, /preferStructured: true/g);
 assert.match(reportModelSource, /DEFAULT_REPORT_MODEL = "claude-sonnet-5"/);
 assert.match(reportModelSource, /model === "claude-haiku-4-5-20251001"/);

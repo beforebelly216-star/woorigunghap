@@ -17,6 +17,8 @@ const oneToOneResultStatus = source("src/app/one-to-one/result/result-status.css
 const oneToManyPaidResult = source("src/app/one-to-many/result/one-to-many-paid-result.tsx");
 const accountLibrary = source("src/app/account/reports/page.tsx");
 const oneToOneRoute = source("src/app/api/compatibility/one-to-one/route.ts");
+const oneToOneResult = source("src/app/one-to-one/result/result-v2.tsx");
+const oneToOneEngineV8 = source("src/lib/narrative/report-engine-v8.ts");
 const paymentVerify = source("src/app/api/payments/verify/route.ts");
 const backgroundKickoff = source("src/lib/background-report-kickoff.ts");
 const segmentLock = source("src/lib/report-generation-lock.ts");
@@ -82,8 +84,8 @@ assert.ok(oneToManyPaidResult.includes("같은 결제로 다시 확인하기"), 
 assert.ok(oneToManyPaidResult.includes("REPORT_GENERATION_IN_PROGRESS"), "1:N generation must preserve single-flight in-progress recovery");
 
 assert.ok(
-  oneToOneRoute.includes("paid-report-v7-concise-structured-quality-repair-20260826"),
-  "1:1 route must expose the concise structured generation runtime version",
+  oneToOneRoute.includes("paid-report-v8-action-core-bounded-retry-20260828"),
+  "1:1 route must expose the action-core bounded-retry runtime version",
 );
 assert.ok(oneToOneRoute.includes("export const maxDuration = 300"), "1:1 route must use the Hobby Fluid Compute duration ceiling");
 assert.ok(oneToOneRoute.includes('requestedSegment === "dynamics" ? ["dynamics", "action"] : [requestedSegment]'), "intro must run alone and only the two long segments may overlap");
@@ -95,7 +97,17 @@ assert.ok(!oneToOneRoute.includes("const results = await Promise.all(plans.map")
 assert.ok(oneToOneRoute.includes("claimReportSegmentGeneration(paymentId, segment)"), "generation must retain per-segment single-flight claims");
 assert.ok(oneToOneRoute.includes("reclaimCompletedReportSegmentGeneration"), "a complete lock with no stored output must be repairable");
 assert.ok(oneToOneRoute.includes('code: "REPORT_GENERATION_STOPPED"'), "exhausted AI failures must stop hidden infinite retry");
-assert.ok(oneToOneRoute.includes("retryable: false"), "hard generation failures must be visible instead of retrying forever");
+assert.ok(oneToOneRoute.includes('reason === "REPORT_GENERATION_IN_PROGRESS" || reason === "AI_FORMAT"'), "only in-progress and format recovery may be retried by this route");
+assert.ok(oneToOneRoute.includes("retryable: retryableReportReason(reason)"), "format recovery must be declared to the result client");
+assert.ok(oneToOneResult.includes("MAX_AUTOMATIC_FORMAT_ATTEMPTS = 2"), "format recovery must be bounded to one automatic same-payment retry");
+assert.ok(oneToOneResult.includes("같은 결제로 다시 시도"), "exhausted generation must provide an in-page same-payment retry");
+const actionSchemaSource = oneToOneEngineV8.slice(
+  oneToOneEngineV8.indexOf("const ACTION_SCHEMA"),
+  oneToOneEngineV8.indexOf("export type IntroSegment"),
+);
+assert.ok(!actionSchemaSource.includes("situationStrategy"), "legacy situation strategy must not expand the model action schema");
+assert.ok(!actionSchemaSource.includes("actionPlan30"), "legacy 30-day plan must not expand the model action schema");
+assert.ok(oneToOneEngineV8.includes("buildActionCompatibilityExtensions"), "legacy display extensions must be assembled deterministically from core action content");
 assert.ok(segmentLock.includes("INTERVAL '5 minutes'"), "stale 1:1 segment claims must retain the five-minute duplicate-cost safety window");
 assert.ok(segmentLock.includes("status = 'complete'"), "segment lock recovery must detect completed claims");
 assert.ok(segmentLock.includes("reclaimCompletedReportSegmentGeneration"), "completed-without-output claims must have a reconciliation path");
