@@ -3,8 +3,6 @@
   "regions": ["icn1"],
   "fluid": true,
   "git": {
-    "deploymentEnabled": {
-      "preview/one-to-one-v8": true
-    }
+    "deploymentEnabled": false
   }
 }
