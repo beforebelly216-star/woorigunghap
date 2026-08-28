@@ -73,7 +73,7 @@
 
 ## 검증 상태
 
-- **PR #75 / Core calculation validation #830 PASS** — 결제/DB/생성 경로 전수조사 hotfix + 전체 contracts + lint + production build PASS.
+- **PR #75 / Core calculation validation #832 PASS** — 결제/DB/생성 경로 전수조사 hotfix + 전체 contracts + lint + production build PASS.
 - PR #73 / validation #827 PASS — 부분 prepare-loop hotfix였으나 실기기에서 이후 결제 확인 반복이 재현되어 최종 해결로 보지 않는다.
 - PR #72 / validation #821 PASS — server-verified paid order 재사용.
 - PR #70 / validation #812 PASS — loading/failure UI 통일.
@@ -85,19 +85,17 @@
 ## 배포 상태
 
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
-- 1:1 v8 Preview: `preview/one-to-one-v8`; 현재 배포본은 PR #75 이전 코드이며 실기기에서 결제 확인 반복 blocker가 재현된 상태다.
-- PR #75는 validation #830 PASS, 아직 Preview/Production 미배포.
-- Production에는 최신 1:1 hotfix를 배포하지 않았다.
+- **1:1 v8 Preview:** `preview/one-to-one-v8`, PR #75 포함 최신 `main` (`ab8a6006`) 재배포 완료. trigger `8a8f903f`, Vercel SUCCESS, 이후 Git 자동배포 OFF (`a5fba970`).
+- Production에는 PR #75 hotfix를 아직 배포하지 않았다.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. PR #75 `main` 병합 후 동일 `preview/one-to-one-v8` 재배포
-2. 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
-3. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
-4. 360 / 390 / 430px overflow/spacing QA
-5. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
-6. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
+1. 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
+2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
+3. 360 / 390 / 430px overflow/spacing QA
+4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
+5. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
 
 ## 출시 blocker
 
