@@ -28,7 +28,6 @@ import {
   parseFreeSelfPerson,
 } from "@/lib/free-self-analysis-contract";
 import {
-  createOneToOneOrderDraft,
   createRecoveredOneToOneOrderDraft,
   type OneToOneOrderDraft,
 } from "@/lib/orders";
@@ -255,11 +254,15 @@ export function OneToOneFormV3() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ input }),
       });
-      const payload = await response.json().catch(() => null) as { order?: OneToOneOrderDraft } | null;
-      if (!response.ok || !payload?.order) throw new Error("ORDER_DRAFT_UNAVAILABLE");
+      const payload = await response.json().catch(() => null) as { order?: OneToOneOrderDraft; error?: string } | null;
+      if (!response.ok || !payload?.order) throw new Error(payload?.error ?? "ORDER_DRAFT_UNAVAILABLE");
       order = payload.order;
-    } catch {
-      order = createOneToOneOrderDraft(input);
+    } catch (error) {
+      setErrors({ form: error instanceof Error && !error.message.includes("ORDER_DRAFT")
+        ? error.message
+        : "안전한 주문 저장소를 확인하지 못했어요. 결제를 시작하지 않았습니다. 잠시 후 다시 시도해 주세요." });
+      setIsContinuing(false);
+      return;
     }
 
     saveOrderDraft(order);

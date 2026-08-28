@@ -29,13 +29,20 @@ export async function POST(request: NextRequest) {
   try {
     const persisted = await saveServerOrderDraft(order);
     if (!persisted) {
-      return NextResponse.json({ error: "1:다 결과 저장소가 아직 연결되지 않았습니다." }, { status: 503 });
+      console.error("[woorigunghap:one-to-many-order-store-not-configured]", {
+        databaseConfigured: isServerReportStoreConfigured(),
+      });
+      return NextResponse.json({
+        error: "1:다 결과 저장소가 아직 연결되지 않아 결제를 시작할 수 없습니다.",
+        code: "PAYMENT_STORE_NOT_CONFIGURED",
+      }, { status: 503 });
     }
     return NextResponse.json({ order, persisted });
   } catch (error) {
     console.error("[woorigunghap:one-to-many-order-store]", error);
     return NextResponse.json({
       error: "1:다 주문을 안전하게 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      code: "PAYMENT_STORE_UNAVAILABLE",
       serverStorageConfigured: isServerReportStoreConfigured(),
     }, { status: 503 });
   }

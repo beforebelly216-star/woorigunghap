@@ -71,8 +71,20 @@
 - 1:1 API를 두 번 연속 실행하던 `one-to-one-resilient` wrapper와 `beforeFiles` rewrite를 제거했다. `/api/compatibility/one-to-one` 한 경로만 권위 API다.
 - 결제 redirect의 무한 polling을 제거하고 최대 7회, 요청당 12초로 제한했다. 소진 시 재결제 버튼이 아니라 `같은 결제 다시 확인`만 노출한다.
 
+### 결제 전 저장소 preflight hotfix — 2026-08-28
+
+- 실기기 화면의 `결제 결과 저장소 설정을 확인해야 합니다` 문구는 현재 코드상 `PAYMENT_STORE_NOT_CONFIGURED`, 즉 해당 배포 런타임의 `DATABASE_URL` 부재에서만 발생한다.
+- 1:1 입력 화면이 서버 주문 저장 API 실패를 브라우저 전용 주문으로 대체해, DB 저장소가 없는 배포에서도 결제 화면과 PortOne까지 진행할 수 있던 직접 결함을 확인했다.
+- 1:1의 브라우저 전용 주문 fallback을 제거했다. 서버 주문 행 저장에 실패하면 결제 화면으로 이동하지 않는다.
+- 1:1/1:N 결제 버튼은 PortOne을 열기 전에 `/api/orders/payment-ready`에서 서버 주문 행, access-token hash, 상품/금액, 입력 hash, 삭제/기결제 상태를 확인한다.
+- 이미 paid인 주문은 새 결제를 열지 않고 기존 결과로 이동한다.
+- `PAYMENT_STORE_NOT_CONFIGURED`와 `PAYMENT_SERVER_NOT_CONFIGURED`는 자동 7회 재시도하지 않고 즉시 같은 결제 수동 재확인 상태로 종료한다.
+- 결제 preflight/verify는 비밀값·입력 원문 없이 payment hash reference와 오류 code, 환경변수 존재 여부를 구조화 로그로 남긴다.
+- 코드 hotfix만으로 기존 결제가 복구되지는 않는다. 실패한 Preview 환경에 `DATABASE_URL`을 연결하고 이 hotfix를 배포한 뒤 같은 결제로 재확인해야 한다.
+
 ## 검증 상태
 
+- **결제 전 저장소 preflight local validation PASS** — paid-result/day8/runtime UI/server-store/1:N paid E2E/1:1 form contracts + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **PR #75 / Core calculation validation #832 PASS** — 결제/DB/생성 경로 전수조사 hotfix + 전체 contracts + lint + production build PASS.
 - PR #73 / validation #827 PASS — 부분 prepare-loop hotfix였으나 실기기에서 이후 결제 확인 반복이 재현되어 최종 해결로 보지 않는다.
 - PR #72 / validation #821 PASS — server-verified paid order 재사용.
@@ -87,6 +99,7 @@
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
 - **1:1 v8 Preview:** `preview/one-to-one-v8`, PR #75 포함 최신 `main` (`ab8a6006`) 재배포 완료. trigger `8a8f903f`, Vercel SUCCESS, 이후 Git 자동배포 OFF (`a5fba970`).
 - Production에는 PR #75 hotfix를 아직 배포하지 않았다.
+- 결제 전 저장소 preflight hotfix는 아직 Preview/Production에 배포하지 않았다.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크

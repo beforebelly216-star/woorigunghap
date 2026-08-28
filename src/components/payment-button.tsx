@@ -5,17 +5,26 @@ import { useState } from "react";
 import { PRODUCTS, type ProductKey } from "@/lib/catalog";
 import { ORDER_BINDING_VERSION, hashOneToManyInput, hashOneToOneInput } from "@/lib/order-binding";
 import type { OneToManyReportInput, OneToOneReportInput } from "@/lib/report-input";
+import { buildOneToManyResultUrl, buildOneToOneResultUrl } from "@/lib/result-access-token";
+
+type PaymentReadyPayload = {
+  ready?: boolean;
+  alreadyPaid?: boolean;
+  error?: string;
+};
 
 export function PaymentButton({
   product,
   paymentId,
   inputSnapshot,
+  resultAccessToken,
   agreementAccepted = true,
   buttonLabel,
 }: {
   product: ProductKey;
-  paymentId?: string;
-  inputSnapshot?: OneToOneReportInput | OneToManyReportInput;
+  paymentId: string;
+  inputSnapshot: OneToOneReportInput | OneToManyReportInput;
+  resultAccessToken: string;
   agreementAccepted?: boolean;
   buttonLabel?: string;
 }) {
@@ -39,30 +48,52 @@ export function PaymentButton({
     setMessage(null);
 
     try {
-      const resolvedPaymentId = paymentId ?? `woori-${product}-${crypto.randomUUID()}`;
-      const inputHash = inputSnapshot
-        ? product === "oneToMany"
-          ? await hashOneToManyInput(inputSnapshot as OneToManyReportInput)
-          : await hashOneToOneInput(inputSnapshot as OneToOneReportInput)
-        : null;
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 10_000);
+      let paymentReadyResponse: Response;
+      try {
+        paymentReadyResponse = await fetch("/api/orders/payment-ready", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ paymentId, accessToken: resultAccessToken, input: inputSnapshot }),
+          cache: "no-store",
+          signal: controller.signal,
+        });
+      } finally {
+        window.clearTimeout(timeout);
+      }
+      const paymentReady = await paymentReadyResponse.json().catch(() => null) as PaymentReadyPayload | null;
+      if (!paymentReadyResponse.ok || !paymentReady?.ready) {
+        setMessage(paymentReady?.error ?? "안전한 주문 저장 상태를 확인하지 못해 결제를 시작하지 않았습니다.");
+        setIsLoading(false);
+        return;
+      }
+      if (paymentReady.alreadyPaid) {
+        window.location.assign(product === "oneToMany"
+          ? buildOneToManyResultUrl(paymentId, resultAccessToken)
+          : buildOneToOneResultUrl(paymentId, resultAccessToken));
+        return;
+      }
+
+      const inputHash = product === "oneToMany"
+        ? await hashOneToManyInput(inputSnapshot as OneToManyReportInput)
+        : await hashOneToOneInput(inputSnapshot as OneToOneReportInput);
 
       const response = await PortOne.requestPayment({
         storeId,
         channelKey,
-        paymentId: resolvedPaymentId,
+        paymentId,
         orderName: item.orderName,
         totalAmount: item.amount,
         currency: "CURRENCY_KRW",
         payMethod: "CARD",
         redirectUrl: `${window.location.origin}/payment/redirect`,
         forceRedirect: true,
-        customData: inputHash
-          ? {
-              product,
-              bindingVersion: ORDER_BINDING_VERSION,
-              inputHash,
-            }
-          : { product },
+        customData: {
+          product,
+          bindingVersion: ORDER_BINDING_VERSION,
+          inputHash,
+        },
       });
 
       if (response?.code) {
@@ -70,7 +101,7 @@ export function PaymentButton({
         setIsLoading(false);
       }
     } catch {
-      setMessage("결제창을 여는 과정에서 문제가 생겼어요. 잠시 후 다시 시도해 주세요.");
+      setMessage("안전한 주문 상태를 확인하지 못해 결제를 시작하지 않았습니다. 잠시 후 다시 시도해 주세요.");
       setIsLoading(false);
     }
   }

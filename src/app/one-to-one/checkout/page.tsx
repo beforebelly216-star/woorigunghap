@@ -122,7 +122,7 @@ function CheckoutContent() {
 
       <PurchasePolicyConsent checked={policyAccepted} onChange={setPolicyAccepted} />
       <div className="checkout-sticky-cta">
-        <PaymentButton product="oneToOne" paymentId={order.paymentId} inputSnapshot={order.inputSnapshot} agreementAccepted={policyAccepted} buttonLabel="1:1 전체 리포트 보기 · 1,000원" />
+        <PaymentButton product="oneToOne" paymentId={order.paymentId} inputSnapshot={order.inputSnapshot} resultAccessToken={order.resultAccessToken} agreementAccepted={policyAccepted} buttonLabel="1:1 전체 리포트 보기 · 1,000원" />
       </div>
       <Link href="/one-to-one" className="back-link checkout-back">입력 수정하기</Link>
       <p className="checkout-note">결제 승인 뒤 바로 생성이 시작됩니다. 생성 중 화면을 이동해도 같은 결과 링크로 다시 확인할 수 있고, 완성된 결과는 복구키 또는 로그인 계정 보관함에서 재열람할 수 있습니다.</p>

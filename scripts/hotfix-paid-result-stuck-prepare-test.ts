@@ -11,6 +11,9 @@ const finalization = source("src/lib/payment-order-finalization.ts");
 const paymentVerify = source("src/app/api/payments/verify/route.ts");
 const paymentRedirect = source("src/app/payment/redirect/page.tsx");
 const webhook = source("src/app/api/webhooks/portone/route.ts");
+const paymentReady = source("src/app/api/orders/payment-ready/route.ts");
+const paymentButton = source("src/components/payment-button.tsx");
+const oneToOneForm = source("src/components/one-to-one-form-v3.tsx");
 const nextConfig = source("next.config.ts");
 const resilientPath = resolve(process.cwd(), "src/app/api/compatibility/one-to-one-resilient/route.ts");
 
@@ -81,6 +84,39 @@ assert.ok(
 assert.ok(
   paymentRedirect.includes("같은 결제 다시 확인"),
   "retry exhaustion must offer a same-payment recheck rather than another charge",
+);
+assert.ok(
+  paymentRedirect.includes("RECHECK_ONLY_PAYMENT_CODES")
+    && paymentRedirect.includes("PAYMENT_STORE_NOT_CONFIGURED"),
+  "missing server configuration must stop automatic retries while preserving same-payment recovery",
+);
+assert.ok(
+  paymentReady.includes("isServerReportStoreConfigured")
+    && paymentReady.includes("loadServerOrderPaymentState")
+    && paymentReady.includes("PAYMENT_STORE_NOT_CONFIGURED"),
+  "the payment preflight must reject checkout when the authoritative store is unavailable",
+);
+assert.ok(
+  paymentReady.includes("storedHash !== requestedHash")
+    && paymentReady.includes("PAYMENT_INPUT_MISMATCH"),
+  "the payment preflight must bind the browser input to the authoritative server order",
+);
+assert.ok(
+  paymentReady.includes('record.paymentStatus === "paid"')
+    && paymentReady.includes('record.paymentStatus !== "draft"'),
+  "the payment preflight must resume paid orders and reject unsupported payment states",
+);
+assert.ok(
+  paymentButton.indexOf("/api/orders/payment-ready") < paymentButton.indexOf("PortOne.requestPayment"),
+  "PortOne must never open before the authoritative server order preflight succeeds",
+);
+assert.ok(
+  paymentButton.includes("alreadyPaid") && paymentButton.includes("resultAccessToken"),
+  "an already-paid order must resume its existing result instead of opening another payment",
+);
+assert.ok(
+  !oneToOneForm.includes("createOneToOneOrderDraft"),
+  "1:1 checkout must not fall back to a browser-only order when server persistence fails",
 );
 assert.equal(
   existsSync(resilientPath),

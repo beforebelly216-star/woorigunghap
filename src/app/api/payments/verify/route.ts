@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { after, NextRequest, NextResponse } from "next/server";
 import { claimAccountReport } from "@/lib/account-report-store";
 import { loadAuthenticatedRequestUser } from "@/lib/auth-request";
@@ -23,6 +24,10 @@ import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
+
+function paymentReference(paymentId: string) {
+  return createHash("sha256").update(paymentId).digest("hex").slice(0, 12);
+}
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -113,6 +118,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ verified: true, ...verified, generationQueued });
   } catch (error) {
     if (error instanceof PaidOrderFinalizationError) {
+      console.error("[woorigunghap:payment-verify-finalization]", {
+        paymentRef: paymentReference(paymentId),
+        product,
+        code: error.code,
+        retryable: error.retryable,
+        databaseConfigured: Boolean(process.env.DATABASE_URL),
+      });
       return NextResponse.json(
         {
           verified: false,
@@ -124,6 +136,12 @@ export async function POST(request: NextRequest) {
       );
     }
     if (error instanceof PaymentVerificationError) {
+      console.warn("[woorigunghap:payment-verify-provider]", {
+        paymentRef: paymentReference(paymentId),
+        product,
+        code: error.code,
+        portoneConfigured: Boolean(process.env.PORTONE_API_SECRET),
+      });
       return NextResponse.json(
         {
           verified: false,

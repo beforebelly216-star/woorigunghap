@@ -62,6 +62,14 @@
 - [x] **PR #75 / Core calculation validation #832 PASS** — payment/narrative/1:N/account/Growth contracts + lint + production build PASS
 - [x] PR #75 → `main` (`ab8a6006`)
 - [x] 동일 `preview/one-to-one-v8` 재배포 — trigger `8a8f903f`, Vercel SUCCESS, 자동배포 OFF 복구 (`a5fba970`)
+- [x] 첨부 실기기 오류 문구가 `PAYMENT_STORE_NOT_CONFIGURED`이며 해당 배포 런타임의 `DATABASE_URL` 부재를 뜻하는 것을 코드로 재확인
+- [x] 1:1 서버 주문 저장 실패 시 브라우저 전용 주문으로 결제까지 진행하던 fallback 제거
+- [x] PortOne 호출 전 서버 주문/access token/상품·금액/입력 hash/삭제·기결제 상태 preflight 추가
+- [x] 이미 paid인 주문은 PortOne을 다시 열지 않고 기존 결과로 이동
+- [x] 서버 설정 누락은 7회 자동 재시도하지 않고 즉시 같은 결제 수동 재확인 상태로 종료
+- [x] 결제 preflight/verify 구조화 오류 로그 추가
+- [x] local validation — paid-result/day8/runtime UI/server-store/1:N paid E2E/1:1 form contracts + lint + production build PASS
+- [ ] 실패한 Preview 대상에 `DATABASE_URL` 연결 여부 확인 및 hotfix 배포 (사용자 승인 필요)
 - [ ] 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 저장` 실동작 확인
 
 ### P3 실화면 QA
@@ -90,12 +98,12 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker: GPT
-- Task: 결제→DB→1:1 생성 전체 경로 전수조사, 반복 대기 구조 제거, Preview 재배포
-- Status: complete
-- Validation: PR #75 / Core calculation validation #832 PASS — 전체 contracts + lint + production build PASS
-- Commit: main ab8a6006; Preview trigger 8a8f903f
-- Remaining: 기존 1,000원 결제로 payment verify→prepare→intro→dynamics→action→저장 실동작 확인
-- Risk: Vercel connector에서 프로젝트 목록이 비어 runtime log 원문은 직접 조회 불가. 코드상 false-success, unbound verify, duplicate route, infinite payment polling은 제거됨
-- Deploy: preview/one-to-one-v8 Vercel SUCCESS. Git 자동배포 OFF 복구. Production 미배포
+- Worker: Codex
+- Task: 결제 전 저장소 preflight 및 1:1 브라우저 주문 fallback 제거
+- Status: local implementation and validation complete; deployment pending
+- Validation: 6 payment/store/form contracts + lint(0 errors) + production build PASS
+- Root cause: Preview `DATABASE_URL` 부재를 1:1 client-only order fallback이 결제 전 숨김
+- Remaining: Preview DB env 연결 → hotfix 배포 승인 → 기존 1,000원 결제 전체 복구 확인
+- Risk: Vercel connector 프로젝트 목록이 비어 env/runtime log 원문을 직접 수정·조회하지 못함
+- Deploy: not deployed; Git 자동배포 OFF 유지
 ```

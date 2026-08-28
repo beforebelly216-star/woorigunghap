@@ -238,7 +238,7 @@ export async function hasServerOrderAccess(
   return Boolean(await loadServerOrderForAccess(paymentId, accessToken, product));
 }
 
-export async function loadServerOrderForAccess(
+async function loadServerOrderRecordForAccess(
   paymentId: string,
   accessToken: string,
   product?: OrderDraft["product"],
@@ -247,7 +247,7 @@ export async function loadServerOrderForAccess(
   const sql = getQuery();
   if (!sql) return null;
   const rows = await sql`
-    SELECT order_json, access_token_hash
+    SELECT order_json, access_token_hash, payment_status, generation_status
     FROM woorigunghap_order_records
     WHERE payment_id = ${paymentId}
     LIMIT 1
@@ -261,7 +261,28 @@ export async function loadServerOrderForAccess(
   ) return null;
   const order = parseStoredOrder(row?.order_json);
   if (!order || order.paymentId !== paymentId || (product && order.product !== product)) return null;
-  return { ...order, resultAccessToken: accessToken } as OrderDraft;
+  return {
+    order: { ...order, resultAccessToken: accessToken } as OrderDraft,
+    paymentStatus: typeof row?.payment_status === "string" ? row.payment_status : "unknown",
+    generationStatus: typeof row?.generation_status === "string" ? row.generation_status : "unknown",
+  };
+}
+
+export async function loadServerOrderForAccess(
+  paymentId: string,
+  accessToken: string,
+  product?: OrderDraft["product"],
+) {
+  const record = await loadServerOrderRecordForAccess(paymentId, accessToken, product);
+  return record?.order ?? null;
+}
+
+export async function loadServerOrderPaymentState(
+  paymentId: string,
+  accessToken: string,
+  product?: OrderDraft["product"],
+) {
+  return loadServerOrderRecordForAccess(paymentId, accessToken, product);
 }
 
 export async function loadServerReportForAccess(paymentId: string, accessToken: string) {
