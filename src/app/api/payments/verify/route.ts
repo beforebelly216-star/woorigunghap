@@ -16,6 +16,8 @@ import {
   parseOneToOneReportInput,
   validateOneToManyReportInput,
   validateOneToOneReportInput,
+  type OneToManyReportInput,
+  type OneToOneReportInput,
 } from "@/lib/report-input";
 import { isResultAccessToken } from "@/lib/result-access-token";
 
@@ -51,24 +53,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const input = product === "oneToMany"
-    ? parseOneToManyReportInput(candidate?.input)
-    : parseOneToOneReportInput(candidate?.input);
-  if (!input) {
-    return NextResponse.json(
-      { verified: false, error: "결제 당시 입력정보를 확인할 수 없습니다.", code: "PAYMENT_INPUT_REQUIRED" },
-      { status: 400 },
-    );
-  }
-
-  const validation = product === "oneToMany"
-    ? validateOneToManyReportInput(input as ReturnType<typeof parseOneToManyReportInput> & {})
-    : validateOneToOneReportInput(input as ReturnType<typeof parseOneToOneReportInput> & {});
-  if (!validation.valid) {
-    return NextResponse.json(
-      { verified: false, error: "결제 당시 입력정보가 올바르지 않습니다.", code: "PAYMENT_INPUT_INVALID" },
-      { status: 400 },
-    );
+  let input: OneToOneReportInput | OneToManyReportInput;
+  if (product === "oneToMany") {
+    const parsed = parseOneToManyReportInput(candidate?.input);
+    if (!parsed || !validateOneToManyReportInput(parsed).valid) {
+      return NextResponse.json(
+        { verified: false, error: "결제 당시 입력정보가 올바르지 않습니다.", code: "PAYMENT_INPUT_INVALID" },
+        { status: 400 },
+      );
+    }
+    input = parsed;
+  } else {
+    const parsed = parseOneToOneReportInput(candidate?.input);
+    if (!parsed || !validateOneToOneReportInput(parsed).valid) {
+      return NextResponse.json(
+        { verified: false, error: "결제 당시 입력정보가 올바르지 않습니다.", code: "PAYMENT_INPUT_INVALID" },
+        { status: 400 },
+      );
+    }
+    input = parsed;
   }
 
   try {
