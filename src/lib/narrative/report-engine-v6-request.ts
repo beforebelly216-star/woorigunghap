@@ -337,6 +337,55 @@ export function matchesJsonSchema(value: unknown, schema: unknown): boolean {
   return false;
 }
 
+export function describeJsonSchemaMismatch(value: unknown, schema: unknown, path = "$", limit = 8): string[] {
+  const issues: string[] = [];
+  const visit = (candidate: unknown, candidateSchema: unknown, candidatePath: string) => {
+    if (issues.length >= limit || !isPlainObject(candidateSchema)) return;
+    const shape = candidateSchema as JsonSchemaShape;
+    if (shape.type === "string") {
+      if (typeof candidate !== "string") issues.push(`${candidatePath}:expected_string`);
+      return;
+    }
+    if (shape.type === "number") {
+      if (typeof candidate !== "number" || !Number.isFinite(candidate)) issues.push(`${candidatePath}:expected_number`);
+      return;
+    }
+    if (shape.type === "array") {
+      if (!Array.isArray(candidate)) {
+        issues.push(`${candidatePath}:expected_array`);
+        return;
+      }
+      candidate.forEach((item, index) => visit(item, shape.items, `${candidatePath}[${index}]`));
+      return;
+    }
+    if (shape.type !== "object") return;
+    if (!isPlainObject(candidate) || !isPlainObject(shape.properties)) {
+      issues.push(`${candidatePath}:expected_object`);
+      return;
+    }
+    const required = Array.isArray(shape.required)
+      ? shape.required.filter((key): key is string => typeof key === "string")
+      : [];
+    for (const key of required) {
+      if (!Object.prototype.hasOwnProperty.call(candidate, key)) issues.push(`${candidatePath}.${key}:missing`);
+      if (issues.length >= limit) return;
+    }
+    if (shape.additionalProperties === false) {
+      const allowed = new Set(Object.keys(shape.properties));
+      for (const key of Object.keys(candidate)) {
+        if (!allowed.has(key)) issues.push(`${candidatePath}.${key}:unexpected`);
+        if (issues.length >= limit) return;
+      }
+    }
+    for (const [key, childSchema] of Object.entries(shape.properties)) {
+      if (Object.prototype.hasOwnProperty.call(candidate, key)) visit(candidate[key], childSchema, `${candidatePath}.${key}`);
+      if (issues.length >= limit) return;
+    }
+  };
+  visit(value, schema, path);
+  return issues;
+}
+
 function collectCharacters(value: unknown): number {
   if (typeof value === "string") return value.replace(/\s/g, "").length;
   if (Array.isArray(value)) return value.reduce<number>((sum, item) => sum + collectCharacters(item), 0);
@@ -604,6 +653,7 @@ export async function requestStructuredSegment<T>(args: {
   let lastFailure = "UNKNOWN";
   let lastQualityIssues: string[] = [];
   let lastDuplicateSamples: string[] = [];
+  let lastSchemaIssues: string[] = [];
   const autoStructuredHaiku45 = args.preferStructured === false
     && args.model.startsWith("claude-haiku-4-5");
   let structuredRejected = args.preferStructured !== true && !autoStructuredHaiku45;
@@ -644,7 +694,9 @@ export async function requestStructuredSegment<T>(args: {
         : "";
       const retryReason = lastFailure === "QUALITY_SHORTFALL"
         ? `직전 응답은 다음 출시 차단 이슈를 포함했습니다: ${lastQualityIssues.join(", ")}.${duplicateDetail} JSON 구조를 유지하면서 해당 이슈를 제거하세요.`
-        : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고 완결된 객체를 출력하세요.";
+        : lastFailure === "SCHEMA_MISMATCH" && lastSchemaIssues.length
+          ? `직전 응답의 JSON 구조가 다음 위치에서 달랐습니다: ${lastSchemaIssues.join(", ")}. 스키마에 정의된 키와 타입만 사용하세요.`
+          : "직전 응답을 사용할 수 없었습니다. JSON 구조를 정확히 지키고 완결된 객체를 출력하세요.";
       const expandedSystem = attempt === 1 ? baseSystem : `${baseSystem}\n\n[재시도 지시] ${retryReason}`;
       const retryMaxTokens = Math.max(args.maxTokens, args.retryMaxTokens ?? args.maxTokens);
       const attemptMaxTokens = attempt > 1 && lastFailure === "MAX_TOKENS"
@@ -752,11 +804,15 @@ export async function requestStructuredSegment<T>(args: {
         }));
         continue;
       }
-      if (!matchesJsonSchema(parsed, args.schema) || !args.validate(parsed)) {
+      const schemaIssues = describeJsonSchemaMismatch(parsed, args.schema);
+      const customValid = args.validate(parsed);
+      if (schemaIssues.length > 0 || !customValid) {
         lastFailure = "SCHEMA_MISMATCH";
+        lastSchemaIssues = schemaIssues.length > 0 ? schemaIssues : ["$:custom_validator_rejected"];
         console.warn("[woorigunghap:v6-segment-schema]", JSON.stringify({
           label: args.label,
           attempt,
+          schemaIssues: lastSchemaIssues,
           responseCharacters: text.length,
           outputTokens: body?.usage?.output_tokens ?? null,
           requestId,

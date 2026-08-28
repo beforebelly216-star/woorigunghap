@@ -40,7 +40,7 @@ import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
-const REPORT_RUNTIME_VERSION = "paid-report-v7-concise-structured-quality-repair-20260826";
+const REPORT_RUNTIME_VERSION = "paid-report-v8-action-core-bounded-retry-20260828";
 const PHASES = ["prepare", ...PAID_REPORT_SEGMENTS] as const;
 type ReportPhase = (typeof PHASES)[number];
 
@@ -88,7 +88,7 @@ function classifyReportFailure(message: string) {
 }
 
 function retryableReportReason(reason: string) {
-  return reason === "REPORT_GENERATION_IN_PROGRESS";
+  return reason === "REPORT_GENERATION_IN_PROGRESS" || reason === "AI_FORMAT";
 }
 
 function failureMessage(reason: string) {
@@ -106,7 +106,7 @@ function failureMessage(reason: string) {
     case "API_TIMEOUT": return "AI 응답이 제한 시간 안에 끝나지 않아 자동 대기를 중단했습니다. 새로고침하면 같은 결제로 다시 시도할 수 있습니다.";
     case "API_NETWORK": return "AI 서버 연결이 반복해서 완료되지 않아 자동 대기를 중단했습니다. 잠시 후 새로고침해 주세요.";
     case "AI_OUTPUT_TRUNCATED": return "AI 응답이 끝까지 완성되지 않았습니다. 새로고침하면 같은 결제로 다시 시도할 수 있습니다.";
-    case "AI_FORMAT": return "AI 응답을 완성된 리포트 형식으로 확정하지 못했습니다. 새로고침하면 같은 결제로 다시 시도할 수 있습니다.";
+    case "AI_FORMAT": return "AI 응답을 완성된 리포트 형식으로 확정하지 못했습니다. 같은 결제로 다시 시도할 수 있습니다.";
     case "AI_QUALITY": return "AI 응답에 계산 근거와 맞지 않는 부분이 남아 자동 대기를 중단했습니다. 새로고침하면 같은 결제로 다시 시도할 수 있습니다.";
     case "AI_REFUSAL": return "AI가 이 요청의 서술 생성을 완료하지 않았습니다. 같은 결제로 다시 시도할 수 있습니다.";
     case "AI_STOPPED": return "AI 응답이 정상 종료되지 않아 이번 생성을 중단했습니다. 같은 결제로 다시 시도할 수 있습니다.";
@@ -454,7 +454,7 @@ export async function POST(request: NextRequest) {
           error: failureMessage(reason),
           code: "REPORT_GENERATION_STOPPED",
           reason,
-          retryable: false,
+          retryable: retryableReportReason(reason),
           reportRuntimeVersion: REPORT_RUNTIME_VERSION,
         },
         { status: 422 },

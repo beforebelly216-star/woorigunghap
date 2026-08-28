@@ -44,6 +44,7 @@ const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
 };
 
 const SEGMENTS: PaidReportSegmentName[] = ["intro", "dynamics", "action"];
+const MAX_AUTOMATIC_FORMAT_ATTEMPTS = 2;
 const STAGE_COPY: Record<"prepare" | PaidReportSegmentName, string> = {
   prepare: "결제와 궁합 점수를 확인하고 있어요.",
   intro: "1~3장 · 두 사람의 사주와 관계 성향을 풀어 쓰고 있어요.",
@@ -144,6 +145,7 @@ export default function ResultV2() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [accountOwned, setAccountOwned] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
+  const [generationRun, setGenerationRun] = useState(0);
 
   useEffect(() => {
     if (status !== "ready") return;
@@ -205,9 +207,12 @@ export default function ResultV2() {
 
           if (response.ok && payload) return payload;
 
-          const transient = payload?.retryable === true
+          const reason = payload?.reason ?? payload?.code ?? null;
+          const exhaustedFormatRetry = reason === "AI_FORMAT"
+            && attempt >= MAX_AUTOMATIC_FORMAT_ATTEMPTS;
+          const transient = !exhaustedFormatRetry && (payload?.retryable === true
             || response.status === 429
-            || response.status >= 500;
+            || response.status >= 500);
 
           if (!transient) {
             throw new FatalGenerationError(
@@ -392,7 +397,17 @@ export default function ResultV2() {
     return () => {
       cancelled = true;
     };
-  }, [accountSource, paymentId]);
+  }, [accountSource, generationRun, paymentId]);
+
+  function retrySamePayment() {
+    setFatalMessage(null);
+    setFatalReason(null);
+    setStage("prepare");
+    setStageAttempt(1);
+    setElapsedSeconds(0);
+    setStatus("loading");
+    setGenerationRun((current) => current + 1);
+  }
 
   const visibleDimensions = useMemo(() => {
     if (!snapshot) return [];
@@ -412,7 +427,7 @@ export default function ResultV2() {
     <Link href="/account/reports">보관함으로 돌아가기</Link>
   </div></main>;
 
-  if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리사주</p><h1>{fatalGenerationTitle(fatalReason)}</h1><p>{fatalMessage ?? "결제 또는 API 상태를 확인해 주세요."}</p><p>결제는 다시 하지 않아도 됩니다.</p></div></main>;
+  if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리사주</p><h1>{fatalGenerationTitle(fatalReason)}</h1><p>{fatalMessage ?? "결제 또는 API 상태를 확인해 주세요."}</p><p>결제는 다시 하지 않아도 됩니다.</p>{paymentId ? <button type="button" className="primary-link" onClick={retrySamePayment}>같은 결제로 다시 시도</button> : null}</div></main>;
 
   const { personA, personB, relationshipType } = order.inputSnapshot;
   const relationshipLabel = RELATIONSHIP_LABELS[relationshipType];
