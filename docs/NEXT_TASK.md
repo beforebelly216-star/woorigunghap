@@ -112,6 +112,14 @@
 - [ ] 실제 1:1·1:N Web Share / 이미지 저장 / Shared View 링크
 - [ ] 비회원 결과 → Kakao 로그인 → 귀속 → 보관함
 
+## 완료 — 최신 Preview 기준 Production 배포
+
+- [x] 최신 `main` 및 Preview source 상태 확인
+- [x] Production one-time Git deploy trigger `d8186ab`
+- [x] Vercel Production SUCCESS — deployment `E9hgx8qjpxdCBv9jAk4YXRYfZuGN`
+- [x] Git 자동배포 OFF 복구 — commit `8051554`
+- [x] 복구 상태 Core calculation validation #838 PASS
+
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
@@ -121,12 +129,12 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker: Codex
-- Task: 전 화면 mobile app theme v4 통일 및 구버전 렌더 경로 제거
-- Status: 구현·검증·main 푸시·Preview 배포 완료
-- Validation: UI/runtime/account/report/shared-view/1:N/policy/system/beta contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build + 360/390/430px browser QA PASS
-- Scope: 홈·인증·보관함·정책·결제·결제 상태·1:N 결과·공유 화면·공유 이미지
-- Remaining: Preview에서 사용자 주요 플로우 육안 확인; 실제 결제/AI 생성 검증은 기존 별도 과제
-- Risk: 실제 결제/Anthropic 생성 성공 여부는 기존 별도 실결제 검증 과제로 유지
-- Deploy: Preview SUCCESS — source `3b09c34`, trigger `69388ee`, Vercel `EGPxrFmHorhKoa9kCEwWNfW1rsiK`, 자동배포 OFF `4208ec1`
+- Worker: GPT
+- Task: 가장 최신 Preview 기준 Production 배포
+- Status: complete
+- Validation: Vercel Production SUCCESS; Git 자동배포 OFF 복구 후 Core calculation validation #838 PASS
+- Commit: Production trigger d8186ab; auto-deploy OFF 8051554; docs update follows
+- Remaining: Production에서 기존/신규 1:1 결제 → AI 3-segment → 저장 → 재열람 실동작 검증
+- Risk: 실제 결제/Anthropic 생성 성공 여부는 여전히 운영 blocker로 미검증
+- Deploy: Production SUCCESS — Vercel E9hgx8qjpxdCBv9jAk4YXRYfZuGN
 ```
