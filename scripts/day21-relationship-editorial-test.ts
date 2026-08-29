@@ -203,13 +203,11 @@ assert.match(chaptersB, /stepByStep\.map/);
 assert.match(chaptersB, /progressSignals/);
 assert.match(chaptersB, /stopSignals/);
 assert.match(chaptersB, /content\.actionPlan30/);
-assert.match(chaptersB, /RELATIONSHIP FLOW & 3-YEAR TIMING/);
-assert.match(chaptersB, /threeYearTiming\.years\.map/);
-assert.match(chaptersB, /TIMING_PHASE_LABEL/);
-assert.match(chaptersB, /특정 월·날짜 예측은 아직 포함하지 않습니다/);
+assert.match(chaptersB, /RELATIONSHIP FLOW/);
+assert.doesNotMatch(chaptersB, /threeYearTiming|TIMING_PHASE_LABEL|대운·세운/);
 
 const resultV2 = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
-assert.match(resultV2, /threeYearTiming=\{snapshot\.threeYearTiming\}/);
-assert.doesNotMatch(resultV2, /dimension !== "luckCycleAlignment"/);
+assert.doesNotMatch(resultV2, /threeYearTiming=\{snapshot\.threeYearTiming\}/);
+assert.match(resultV2, /dimension !== "luckCycleAlignment"/);
 
 console.log("Day 21 relationship editorial + reduced AI facts + user context + v4 binding checks: PASS");

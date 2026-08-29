@@ -34,8 +34,7 @@ import {
 import { saveOrderDraft } from "@/lib/order-storage";
 import { buildOneToOneResultUrl } from "@/lib/result-access-token";
 import {
-  PARTNER_INFORMATION_LEVEL_COPY,
-  partnerInformationLevelFromPerson,
+  birthTimeNoticeFromPerson,
 } from "@/lib/partner-information-level";
 
 type FormState = {
@@ -118,8 +117,7 @@ export function OneToOneForm() {
   const [freePrefilled, setFreePrefilled] = useState(false);
   const [step, setStep] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
-  const partnerInformationLevel = partnerInformationLevelFromPerson(form.personB);
-  const partnerInformationCopy = PARTNER_INFORMATION_LEVEL_COPY[partnerInformationLevel];
+  const partnerBirthTimeNotice = birthTimeNoticeFromPerson(form.personB);
 
   useEffect(() => {
     let active = true;
@@ -417,10 +415,10 @@ export function OneToOneForm() {
         </label>
       </section>
 
-      {step === 3 ? (
+      {step === 3 && partnerBirthTimeNotice ? (
         <div className="form-success" role="status" aria-live="polite">
-          <strong>상대 정보 수준 {partnerInformationLevel}</strong>
-          <p>{partnerInformationCopy.short}. {partnerInformationCopy.detail}</p>
+          <strong>출생시간 미입력 안내</strong>
+          <p>{partnerBirthTimeNotice}</p>
         </div>
       ) : null}
 

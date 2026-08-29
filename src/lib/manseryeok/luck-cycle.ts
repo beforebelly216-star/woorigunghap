@@ -1,7 +1,6 @@
 import { calculateFourPillars } from "manseryeok";
 import type { PersonBirthInput } from "@/lib/report-input";
 import { MANSE_POLICY } from "@/lib/manseryeok/policy";
-import { partnerInformationLevelFromPerson } from "@/lib/partner-information-level";
 
 export const UNKNOWN_TIME_LUCK_SCENARIOS = [
   "00:30", "02:30", "04:30", "06:30", "08:30", "10:30",
@@ -100,7 +99,7 @@ function samePillarSequence(a: LuckCycleScenarioEvidence, b: LuckCycleScenarioEv
 }
 
 export function calculateLuckCycleEvidence(person: PersonBirthInput): LuckCycleEvidence {
-  const informationLevel = partnerInformationLevelFromPerson(person);
+  const informationLevel = person.birthTimeKnown ? "A" : "B";
   const times = person.birthTimeKnown
     ? [person.birthTime ?? ""]
     : [...UNKNOWN_TIME_LUCK_SCENARIOS];

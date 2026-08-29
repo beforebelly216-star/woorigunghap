@@ -4,7 +4,6 @@ import type { CompatibilityCalculationSnapshot } from "@/lib/compatibility/engin
 import type { CompatibilityDimension } from "@/lib/compatibility/types";
 import type { PaidReportFacts } from "@/lib/narrative/report-engine-v5";
 import type { EnhancedDetailedReportContent } from "@/lib/narrative/report-deep-content";
-import type { ThreeYearTimingAssessment } from "@/lib/compatibility/timing-alignment";
 import { ZootopiCaption } from "@/components/zootopi-mark";
 import { CompatibilityHeatmap, ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
 import styles from "./report-layout-v3.module.css";
@@ -20,12 +19,6 @@ const SECTION_NAV = [
   ["08", "장기 전망", "future"],
   ["09", "사용설명서", "manual"],
 ] as const;
-
-const TIMING_PHASE_LABEL = {
-  rising: "상승",
-  adjusting: "조율",
-  caution: "주의",
-} as const;
 
 function take(items: string[] | undefined, count = 3) {
   return (items ?? []).filter(Boolean).slice(0, count);
@@ -73,7 +66,7 @@ export default function ReportLayoutV3({
   snapshot,
   visibleDimensions,
   dimensionLabels,
-  threeYearTiming,
+  dimensionEvidence,
   shareNode,
   accountNode,
   debugNode,
@@ -91,7 +84,7 @@ export default function ReportLayoutV3({
   snapshot: CompatibilityCalculationSnapshot;
   visibleDimensions: Array<[CompatibilityDimension, CompatibilityCalculationSnapshot["dimensions"][CompatibilityDimension]]>;
   dimensionLabels: Record<CompatibilityDimension, string>;
-  threeYearTiming?: ThreeYearTimingAssessment;
+  dimensionEvidence: Partial<Record<CompatibilityDimension, string>>;
   shareNode: ReactNode;
   accountNode: ReactNode;
   debugNode?: ReactNode;
@@ -134,7 +127,12 @@ export default function ReportLayoutV3({
         <div><small>궁합 점수</small><strong>{score}<em>/100</em></strong></div>
         <p>{scoreDescription}</p>
       </div>
-      <CompatibilityHeatmap dimensions={visibleDimensions.map(([dimension, value]) => ({ label: dimensionLabels[dimension], shortLabel: dimensionLabels[dimension].replace(" 상성", "").replace("관계 ", ""), score: value.normalizedScore }))} />
+      <CompatibilityHeatmap dimensions={visibleDimensions.map(([dimension, value]) => ({
+        label: dimensionLabels[dimension],
+        shortLabel: dimensionLabels[dimension].replace(" 상성", "").replace("관계 ", ""),
+        score: value.normalizedScore,
+        evidence: dimensionEvidence[dimension] ?? "두 사람의 원국에서 확인 가능한 계산 근거만 반영했습니다.",
+      }))} />
       <div className={styles.twoCol}>
         <ListCard title="이 관계를 살리는 힘" items={strengths} tone="good" />
         <ListCard title="반복 주의 지점" items={frictions} tone="caution" />
@@ -207,15 +205,11 @@ export default function ReportLayoutV3({
     </section>
 
     <section id="future" className={styles.section}>
-      <SectionHeading number="08" eyebrow="LONG-TERM OUTLOOK" title="장기 전망" description="좋아지는 조건과 소모되는 조건, 그리고 계산 가능한 3년 흐름을 함께 봅니다." />
+      <SectionHeading number="08" eyebrow="LONG-TERM OUTLOOK" title="장기 전망" description="좋아지는 조건과 소모되는 조건을 함께 봅니다." />
       <div className={styles.twoCol}>
         <ListCard title="더 좋아지는 조건" items={strengths} tone="good" />
         <ListCard title="소모되기 쉬운 조건" items={frictions} tone="caution" />
       </div>
-      {threeYearTiming ? <div className={styles.timeline}>
-        <div className={styles.timelineSummary}><small>3년 흐름</small><strong>{Math.round(threeYearTiming.normalizedScore)}점</strong><p>{threeYearTiming.baseYear}년부터 3개 연도의 대운·세운 신호를 함께 본 참고 흐름입니다.</p></div>
-        {threeYearTiming.years.map((year) => <article key={year.year}><span>{year.year}</span><strong>{TIMING_PHASE_LABEL[year.phase]}</strong><b>{Math.round(year.score)}점</b><p>{year.signals[0]}</p></article>)}
-      </div> : null}
     </section>
 
     <section id="manual" className={styles.section}>

@@ -7,7 +7,7 @@
   .v2-page .v2-shell,
   .v2-page .v2-facts-grid > article,
   .v2-page .v2-heatmap-layout,
-  .v2-page .v2-heatmap-list > div,
+  .v2-page .v2-heatmap-list details,
   .v2-page .day19-chapter,
   .v2-page .day19-chapter-body,
   .v2-page .day-pillar-character-card {
@@ -32,15 +32,7 @@
     padding-inline: 14px;
   }
 
-  .v2-page .v2-heatmap-list {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .v2-page .v2-heatmap-list > div {
-    align-items: flex-start;
-  }
-
-  .v2-page .v2-heatmap-list span {
+  .v2-page .v2-heatmap-list summary span {
     overflow-wrap: anywhere;
   }
 

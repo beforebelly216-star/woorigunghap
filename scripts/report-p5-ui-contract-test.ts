@@ -22,7 +22,9 @@ const payment = readFileSync("src/components/payment-button.tsx", "utf8");
 const share = readFileSync("src/app/one-to-one/result/compatibility-share-card.tsx", "utf8");
 const shareCss = readFileSync("src/app/one-to-one/result/compatibility-share-card.module.css", "utf8");
 const home = readFileSync("src/app/page.tsx", "utf8");
+const homeRecent = readFileSync("src/app/home-recent-reports.tsx", "utf8");
 const homeCss = readFileSync("src/app/home-p5.module.css", "utf8");
+const siteHeader = readFileSync("src/components/site-header.tsx", "utf8");
 
 for (const token of ["#FBFAF7", "#FFFFFF", "#F3EEFA", "#222026", "#6F6870", "#918991", "#EAE3DD", "#D8CEC7", "#EEE8F2", "#7652D8", "#4D8B5F", "#D55A4A", "#C9973D", "#858E9E", "#3E78A8", "#2F7D4A", "#9A6A12", "#B74343", "#356F9C"]) {
   assert.ok(theme.includes(token), `mobile app theme token missing: ${token}`);
@@ -44,7 +46,12 @@ assert.match(overrides, /deep-strategy-steps/);
 
 assert.match(home, /home-p5\.module\.css/);
 assert.match(home, /무료 천생연분/);
-assert.match(home, /오늘의 궁합 TOP 3/);
+assert.match(home, /HomeRecentReports/);
+assert.match(homeRecent, /\/api\/account\/reports/);
+assert.match(homeRecent, /\.slice\(0, 3\)/);
+assert.match(homeRecent, /profileLabel/);
+assert.match(homeRecent, /1:다/);
+assert.match(siteHeader, /site-header-home-a99[\s\S]*<AuthStatus/);
 assert.match(homeCss, /width:\s*min\(100%,\s*390px\)/);
 assert.match(homeCss, /grid-template-columns:\s*repeat\(3/);
 assert.match(homeCss, /\.bottomNav/);
@@ -84,7 +91,9 @@ assert.match(narrativeV8, /사주 원국과 궁합 계산 근거에서 출발/);
 assert.match(narrativeV8, /시스템 구현 문구를 결과에 노출하지 마세요/);
 
 assert.match(components, /CompatibilityHeatmap/);
-assert.match(components, /9개 핵심 궁합 지표 히트맵/);
+assert.match(components, /핵심 궁합 지표 히트맵/);
+assert.match(components, /<details/);
+assert.match(components, /근거 보기/);
 assert.match(result, /<ReportLayoutV3/);
 assert.match(resultLayout, /<CompatibilityHeatmap/);
 assert.match(resultLayout, /한눈에 보기/);
@@ -97,6 +106,8 @@ assert.doesNotMatch(components, /v2-day-character-note/);
 assert.match(resultLayout, /갈등 루프/);
 assert.match(resultLayout, /관계 심층 분석/);
 assert.match(resultLayout, /장기 전망/);
+assert.doesNotMatch(resultLayout, /threeYearTiming|대운·세운|3년 흐름/);
+assert.match(result, /dimension !== "luckCycleAlignment"/);
 assert.match(resultLayout, /관계 사용설명서/);
 assert.match(resultLayoutCss, /width:min\(100%,390px\)/);
 assert.match(resultLayoutCss, /@media\(max-width:360px\)/);
