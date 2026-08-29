@@ -106,6 +106,7 @@
 - **1:1 action 형식 오류 hotfix local validation PASS** — AI generation/runtime UX/paid-result/relationship editorial/quality gate + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **결제 전 저장소 preflight local validation PASS** — paid-result/day8/runtime UI/server-store/1:N paid E2E/1:1 form contracts + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **PR #75 / Core calculation validation #832 PASS** — 결제/DB/생성 경로 전수조사 hotfix + 전체 contracts + lint + production build PASS.
+- **Production deploy 후 Git 자동배포 OFF 복구 validation #838 PASS** — latest `main` 기준 전체 Core calculation validation 성공.
 - PR #73 / validation #827 PASS — 부분 prepare-loop hotfix였으나 실기기에서 이후 결제 확인 반복이 재현되어 최종 해결로 보지 않는다.
 - PR #72 / validation #821 PASS — server-verified paid order 재사용.
 - PR #70 / validation #812 PASS — loading/failure UI 통일.
@@ -118,15 +119,14 @@
 
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
 - **1:1 v8 Preview:** `preview/one-to-one-v8`, PR #75 포함 최신 `main` (`ab8a6006`) 재배포 완료. trigger `8a8f903f`, Vercel SUCCESS, 이후 Git 자동배포 OFF (`a5fba970`).
-- Production에는 PR #75 hotfix를 아직 배포하지 않았다.
-- 결제 전 저장소 preflight hotfix는 Preview에 배포됐고 Production에는 아직 배포하지 않았다.
 - **1:1 action 형식 오류 hotfix Preview 배포 완료:** source `8051e2f`, trigger `a875c09`, Vercel SUCCESS (`6csk1Za5MNqsNVosYrN6aCU35b2A`). 이후 자동배포 OFF 복구 `07e3858`.
 - **mobile app theme v4 Preview 배포 완료:** source `3b09c34`, trigger `69388ee`, Vercel SUCCESS (`EGPxrFmHorhKoa9kCEwWNfW1rsiK`). 고정 Preview alias 실브라우저 확인 완료, 자동배포 OFF 복구 `4208ec1`.
+- **Production 최신 Preview 기준 배포 완료 — 2026-08-29:** trigger `d8186ab`, Vercel SUCCESS (`E9hgx8qjpxdCBv9jAk4YXRYfZuGN`). 이후 Git 자동배포 OFF 복구 commit `8051554`, validation #838 PASS.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. Preview에서 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
+1. Production에서 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
 2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
 3. 360 / 390 / 430px overflow/spacing QA
 4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
