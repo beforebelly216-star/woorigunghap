@@ -123,6 +123,7 @@
 - **1:1 v8 Preview:** `preview/one-to-one-v8`, PR #75 포함 최신 `main` (`ab8a6006`) 재배포 완료. trigger `8a8f903f`, Vercel SUCCESS, 이후 Git 자동배포 OFF (`a5fba970`).
 - **1:1 action 형식 오류 hotfix Preview 배포 완료:** source `8051e2f`, trigger `a875c09`, Vercel SUCCESS (`6csk1Za5MNqsNVosYrN6aCU35b2A`). 이후 자동배포 OFF 복구 `07e3858`.
 - **mobile app theme v4 Preview 배포 완료:** source `3b09c34`, trigger `69388ee`, Vercel SUCCESS (`EGPxrFmHorhKoa9kCEwWNfW1rsiK`). 고정 Preview alias 실브라우저 확인 완료, 자동배포 OFF 복구 `4208ec1`.
+- **주토피 원본 캐릭터 자산 Preview 배포 완료:** source PR #78, trigger `7cb538b`, Vercel SUCCESS (`Gjv1vd6wMAn74cvxFTPQFJH4es6s`). 이후 자동배포 OFF 복구 `7d37dd8`.
 - **Production 최신 Preview 기준 배포 완료 — 2026-08-29:** trigger `d8186ab`, Vercel SUCCESS (`E9hgx8qjpxdCBv9jAk4YXRYfZuGN`). 이후 Git 자동배포 OFF 복구 commit `8051554`, validation #838 PASS.
 - `main` Git 자동배포 OFF 유지.
 
