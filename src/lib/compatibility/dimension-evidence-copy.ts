@@ -9,11 +9,11 @@ const DAY_MASTER_RELATION = {
 } as const;
 
 const DAY_BRANCH_RELATION = {
-  SIX_HARMONY: "육합",
-  NEUTRAL: "뚜렷한 합·충이 없는 중립",
-  HARM: "해",
-  PUNISHMENT: "형",
-  CLASH: "충",
+  SIX_HARMONY: "육합 관계",
+  NEUTRAL: "뚜렷한 합·충이 없는 중립 관계",
+  HARM: "해 관계",
+  PUNISHMENT: "형 관계",
+  CLASH: "충 관계",
 } as const;
 
 function record(value: unknown): EvidenceRecord {

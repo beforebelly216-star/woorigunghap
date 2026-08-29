@@ -20,4 +20,12 @@ for (const [dimension, evidence] of samples) {
   assert.match(copy, /77점/);
 }
 
+const neutralDayBranchCopy = buildDimensionEvidenceCopy(
+  "dayBranch",
+  70,
+  { branchA: "해", branchB: "자", primaryRelation: "NEUTRAL" },
+);
+assert.match(neutralDayBranchCopy, /중립 관계를/);
+assert.doesNotMatch(neutralDayBranchCopy, /중립를/);
+
 console.log("Per-dimension score evidence copy checks: PASS");
