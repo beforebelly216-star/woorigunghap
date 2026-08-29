@@ -29,7 +29,7 @@ export function ZootopiMark({
       aria-hidden="true"
       data-expression={expression}
     >
-      <img src="/jootopi-smile.svg" alt="" draggable={false} />
+      <span className="zt-mark__art" />
     </div>
   );
 }
