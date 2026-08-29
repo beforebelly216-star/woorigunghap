@@ -47,7 +47,7 @@ assert.match(editorialContext, /untrusted-reference-text/);
 assert.match(editorialContext, /\[이메일 제거\]/);
 assert.match(editorialContext, /\[전화번호 제거\]/);
 assert.match(editorialContext, /\[날짜 제거\]/);
-assert.match(editorial, /relationship-editorial-v3-name-tokens/);
+assert.match(editorial, /relationship-editorial-v4-direct-labels/);
 assert.match(editorial, /COWORKER_HIERARCHY_RULES/);
 assert.match(editorial, /지시 명확화, 위임 범위/);
 assert.match(editorial, /\{\{SELF\}\}/);
