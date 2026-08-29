@@ -35,14 +35,15 @@ assert.ok(engine.includes("일주 캐릭터는 보조 편집 렌즈"), "캐릭�
 
 const result = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
 const layout = readFileSync("src/app/one-to-one/result/report-layout-v3.tsx", "utf8");
+const components = readFileSync("src/app/one-to-one/result/report-v2-components.tsx", "utf8");
 assert.ok(result.includes("ReportLayoutV3"), "완성 결과는 layout v3를 사용해야 합니다.");
-assert.ok(layout.includes("DayPillarCharacterCard"));
-assert.ok(layout.includes("getDayPillarCharacter(facts.A.pillars.day.korean)"));
-assert.ok(layout.includes("getDayPillarCharacter(facts.B.pillars.day.korean)"));
+assert.ok(!layout.includes("DayPillarCharacterCard"), "구형 60일주 캐릭터 카드는 결과에서 제거해야 합니다.");
+assert.ok(!layout.includes("getDayPillarCharacter"), "시적 한줄평을 결과 레이아웃에서 조립하지 않아야 합니다.");
+assert.ok(!components.includes("v2-day-character-note"), "사주 원국 아래 시적 한줄평을 렌더링하지 않아야 합니다.");
 assert.ok(layout.includes("두 사람의 관계 성향"));
 
 const css = readFileSync("src/app/report-extra.css", "utf8");
-assert.ok(css.includes(".day-pillar-character-grid"));
-assert.ok(css.includes(".day-pillar-character-card"));
+assert.ok(!css.includes(".day-pillar-character-grid"));
+assert.ok(!css.includes(".day-pillar-character-card"));
 
-console.log("paid 1:1 60-day-pillar character contract: PASS");
+console.log("paid 1:1 day-pillar narrative data + hidden legacy character UI contract: PASS");

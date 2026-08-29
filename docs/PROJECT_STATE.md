@@ -35,6 +35,8 @@
 - 루트 레이아웃에서 Foundation v2/구버전 전역 CSS import를 제거하고 `report-theme.css` + `app-theme-v4.css`만 공통 렌더 경로로 유지한다.
 - 1:N 결과의 후행 route CSS보다 app theme가 우선하도록 선택자 계약을 고정했다.
 - 360/390/430px 홈·로그인·1:N 결과에서 가로 overflow 없음, 오류 overlay 없음, 모바일 카드 렌더를 실브라우저로 확인했다.
+- 주토피 공통 마스코트와 생성 대기 일러스트는 사용자 승인 캐릭터 시트에서 추출한 실제 픽셀 자산으로 교체했다. 기존 코드 생성/손그림 토끼 SVG는 사용자 화면에서 사용하지 않는다.
+- 1:1/1:N 공용 히트맵은 낮은 점수 빨강 → 중간 노랑 → 높은 점수 녹색의 주가형 5단계 팔레트를 사용한다. 숫자와 지표 라벨은 항상 함께 표시한다.
 
 ### 홈 / 무료
 
@@ -67,11 +69,13 @@
 - Claude는 점수·순위·원국을 변경하지 않으며 내부 시스템 문구를 사용자 결과에 노출하지 않는다.
 - **생성 대기 화면 v4:** 주토피 `궁합 떡상 기원` 일러스트 + 단계 문구 + 진행 시각화.
 - 로딩과 fatal/config 상태를 동일한 390px 주토피 카드 UI로 통일했다.
+- 구형 `60일주 캐릭터` 카드와 원국 아래의 `달빛 항구`, `정원의 설계자` 같은 시적 한줄평은 1:1 결과 렌더 경로에서 제거했다.
+- 마지막 공유 영역은 선택 탭 없이 개인정보를 제외한 `한 장 요약` 카드 하나만 제공한다.
 
 ### 1:1 결제/생성 blocker — 2026-08-28 전수조사
 
 - PR #70~#73의 부분 hotfix 후에도 실기기 Preview에서 `0/3` 장기대기와 `결제를 확인하고 있어요` 반복이 재현되어 이전 완전 해결 판정은 취소했다.
-- 결제 → PortOne → Neon 주문 → 1:1 prepare → AI segment → 저장 → 브라우저 retry 경로를 한 번에 재검토했다.
+- 결제 → PortOne 조회 → Neon 주문 → 결과 prepare → AI segment → 저장 → 브라우저 retry 관련 코드 일괄 전수조사
 - `/api/payments/verify`는 이제 `paymentId + product + exact input + access token`을 함께 검증하고 PortOne input binding을 유지한다.
 - PortOne에서 검증된 결제를 DB에 반영할 때 `UPDATE ... RETURNING` 결과가 정확히 1건이어야 성공한다. 0건 업데이트를 성공으로 취급하지 않는다.
 - 서버 주문 행이 유실된 경우 PortOne customData가 해당 입력을 bind한 주문에 한해서만 같은 paymentId/accessToken으로 authoritative row를 복구한다.
@@ -102,10 +106,13 @@
 
 ## 검증 상태
 
+- **1:1 결과 UI 정리 local validation PASS** — 히트맵/구형 캐릭터 UI/단일 공유카드 contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS.
+- **PR #78 / Core calculation validation #850 PASS** — 승인 주토피 원본 자산 교체 + 현재 relationship editorial v4 계약 정합화 + 전체 contracts + lint + production build PASS.
 - **mobile app theme v4 local validation PASS** — UI/runtime/account/report/shared-view/1:N/policy/system/beta contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build + 360/390/430px browser QA PASS.
 - **1:1 action 형식 오류 hotfix local validation PASS** — AI generation/runtime UX/paid-result/relationship editorial/quality gate + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **결제 전 저장소 preflight local validation PASS** — paid-result/day8/runtime UI/server-store/1:N paid E2E/1:1 form contracts + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **PR #75 / Core calculation validation #832 PASS** — 결제/DB/생성 경로 전수조사 hotfix + 전체 contracts + lint + production build PASS.
+- **Production deploy 후 Git 자동배포 OFF 복구 validation #838 PASS** — latest `main` 기준 전체 Core calculation validation 성공.
 - PR #73 / validation #827 PASS — 부분 prepare-loop hotfix였으나 실기기에서 이후 결제 확인 반복이 재현되어 최종 해결로 보지 않는다.
 - PR #72 / validation #821 PASS — server-verified paid order 재사용.
 - PR #70 / validation #812 PASS — loading/failure UI 통일.
@@ -118,14 +125,15 @@
 
 - 천생연분 결과 Preview: `preview/soulmate-result-v1`, Vercel success.
 - **1:1 v8 Preview:** `preview/one-to-one-v8`, PR #75 포함 최신 `main` (`ab8a6006`) 재배포 완료. trigger `8a8f903f`, Vercel SUCCESS, 이후 Git 자동배포 OFF (`a5fba970`).
-- Production에는 PR #75 hotfix를 아직 배포하지 않았다.
-- 결제 전 저장소 preflight hotfix는 Preview에 배포됐고 Production에는 아직 배포하지 않았다.
 - **1:1 action 형식 오류 hotfix Preview 배포 완료:** source `8051e2f`, trigger `a875c09`, Vercel SUCCESS (`6csk1Za5MNqsNVosYrN6aCU35b2A`). 이후 자동배포 OFF 복구 `07e3858`.
+- **mobile app theme v4 Preview 배포 완료:** source `3b09c34`, trigger `69388ee`, Vercel SUCCESS (`EGPxrFmHorhKoa9kCEwWNfW1rsiK`). 고정 Preview alias 실브라우저 확인 완료, 자동배포 OFF 복구 `4208ec1`.
+- **주토피 원본 캐릭터 자산 Preview 배포 완료:** source PR #78, trigger `7cb538b`, Vercel SUCCESS (`Gjv1vd6wMAn74cvxFTPQFJH4es6s`). 이후 자동배포 OFF 복구 `7d37dd8`.
+- **Production 최신 Preview 기준 배포 완료 — 2026-08-29:** trigger `d8186ab`, Vercel SUCCESS (`E9hgx8qjpxdCBv9jAk4YXRYfZuGN`). 이후 Git 자동배포 OFF 복구 commit `8051554`, validation #838 PASS.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. Preview에서 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
+1. Production에서 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
 2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
 3. 360 / 390 / 430px overflow/spacing QA
 4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인

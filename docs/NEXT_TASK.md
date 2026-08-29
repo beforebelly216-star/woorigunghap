@@ -18,7 +18,7 @@
 - [x] 1:N 후행 route CSS 우선순위 보정 및 rounded mobile card 강제
 - [x] 관련 contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS
 - [x] 360/390/430px 홈·로그인·1:N 데모 실브라우저 QA — overflow/오류 overlay 없음
-- [ ] `main` 푸시 및 Preview 배포
+- [x] `main` 푸시 및 Preview 배포 — source `3b09c34`, trigger `69388ee`, Vercel SUCCESS, 자동배포 OFF `4208ec1`
 
 ## 완료 — 궁합 점수 v1.6
 
@@ -112,6 +112,32 @@
 - [ ] 실제 1:1·1:N Web Share / 이미지 저장 / Shared View 링크
 - [ ] 비회원 결과 → Kakao 로그인 → 귀속 → 보관함
 
+## 완료 — 최신 Preview 기준 Production 배포
+
+- [x] 최신 `main` 및 Preview source 상태 확인
+- [x] Production one-time Git deploy trigger `d8186ab`
+- [x] Vercel Production SUCCESS — deployment `E9hgx8qjpxdCBv9jAk4YXRYfZuGN`
+- [x] Git 자동배포 OFF 복구 — commit `8051554`
+- [x] 복구 상태 Core calculation validation #838 PASS
+
+## 완료 — 주토피 원본 캐릭터 자산 교체
+
+- [x] 사용자 승인 캐릭터 시트의 실제 픽셀 자산을 공통 캐릭터 원본으로 적용
+- [x] 공통 `ZootopiMark`의 코드 생성 토끼 SVG 제거 및 승인 주토피 자산 적용
+- [x] 생성 대기 `궁합 떡상 기원`을 승인 상승 포즈 자산으로 교체
+- [x] 최신 `relationship-editorial-v4-direct-labels`에 뒤처진 Day 10/21 테스트 버전 기대값 정합화
+- [x] PR #78 / Core calculation validation #850 — 전체 contracts + lint + production build PASS
+- [x] Preview one-time deploy trigger `7cb538b` — Vercel SUCCESS (`Gjv1vd6wMAn74cvxFTPQFJH4es6s`), 자동배포 OFF 복구 `7d37dd8`
+- [x] PR #78 → `main` (`9d04101`), Git 자동배포 OFF 유지
+
+## 완료 — 1:1 결과 UI 정리
+
+- [x] 1:1/1:N 공용 히트맵을 낮음=빨강, 중간=노랑, 높음=녹색의 주가형 5단계 팔레트로 교체
+- [x] 1:1 결과에 혼입된 구형 `60일주 캐릭터` 카드와 관련 렌더 파일·스타일 제거
+- [x] 원국 아래 `달빛 항구`, `정원의 설계자` 같은 시적 한줄평 렌더 제거
+- [x] 1:1 공유 영역을 선택 탭 없는 `한 장 요약` 카드 하나로 고정하고 공유 CTA 개선
+- [x] 관련 contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS
+
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
@@ -122,11 +148,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: Codex
-- Task: 전 화면 mobile app theme v4 통일 및 구버전 렌더 경로 제거
-- Status: 구현·로컬 검증 완료; main 푸시 및 Preview 배포 대기
-- Validation: UI/runtime/account/report/shared-view/1:N/policy/system/beta contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build + 360/390/430px browser QA PASS
-- Scope: 홈·인증·보관함·정책·결제·결제 상태·1:N 결과·공유 화면·공유 이미지
-- Remaining: main push → preview branch trigger → Vercel success 확인 → Git 자동배포 OFF 복원
-- Risk: 실제 결제/Anthropic 생성 성공 여부는 기존 별도 실결제 검증 과제로 유지
-- Deploy: pending
+- Task: 1:1 결과 히트맵·구형 캐릭터 UI·공유카드 정리
+- Status: 구현 및 local validation 완료, main/Preview 배포 진행
+- Validation: UI/share/day-pillar contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS
+- Scope: 빨강→노랑→녹색 히트맵, 60일주/시적 한줄평 제거, 1:1 단일 recap 공유카드
+- Remaining: Production에서 기존/신규 1:1 결제 → AI 3-segment → 저장 → 재열람 실동작 검증
+- Risk: 실제 결제/Anthropic 생성 성공 여부는 기존 운영 blocker로 미검증
+- Deploy: 사용자 승인 Preview 배포 진행; Production 미배포
 ```

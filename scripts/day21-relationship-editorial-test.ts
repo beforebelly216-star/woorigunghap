@@ -20,7 +20,7 @@ import {
   relationshipPromptRules,
 } from "../src/lib/relationship-editorial";
 
-assert.equal(RELATIONSHIP_EDITORIAL_VERSION, "relationship-editorial-v3-name-tokens");
+assert.equal(RELATIONSHIP_EDITORIAL_VERSION, "relationship-editorial-v4-direct-labels");
 assert.deepEqual(Object.keys(RELATIONSHIP_EDITORIAL).sort(), ["coworker", "crush", "flirting", "friend", "lover"].sort());
 assert.deepEqual(COWORKER_HIERARCHIES, ["boss", "peer", "subordinate"]);
 assert.equal(COWORKER_HIERARCHY_LABELS.boss, "상대가 내 상사");

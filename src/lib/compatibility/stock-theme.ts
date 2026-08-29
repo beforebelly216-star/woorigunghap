@@ -63,7 +63,7 @@ export function getCandleTier(score: number): CandleTier {
   return { shapeLabel: "조정 국면", bodyRatio: .06, wickRatio: .4, tone: "flat", isDoji: true };
 }
 
-/** §12.1 히트맵 5단계 순차 램프에서 점수(0~100)에 대응하는 CSS 변수를 고른다. */
+/** §12.1 주가형 히트맵 5단계 램프에서 점수(0~100)에 대응하는 CSS 변수를 고른다. */
 export function getHeatToken(score: number): string {
   const clamped = Math.min(100, Math.max(0, score));
   if (clamped >= 85) return "var(--zootopi-heat-5)";

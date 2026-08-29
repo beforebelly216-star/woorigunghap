@@ -30,6 +30,9 @@ for (const token of ["#FBFAF7", "#FFFFFF", "#F3EEFA", "#222026", "#6F6870", "#91
 assert.doesNotMatch(theme, /prefers-color-scheme:\s*dark/);
 assert.match(theme, /Pretendard/);
 assert.match(theme, /--saju-width-report:\s*390px/);
+for (const color of ["#E45756", "#EF8A62", "#F3C969", "#86C67C", "#2E9F6B"]) {
+  assert.ok(theme.includes(color), `stock-style red-to-green heatmap token missing: ${color}`);
+}
 assert.match(page, /report-theme\.css/);
 assert.match(page, /report-p5-overrides\.css/);
 assert.match(page, /report-p5-mobile\.css/);
@@ -89,6 +92,8 @@ assert.match(resultLayout, /두 사람의 사주 원국/);
 assert.match(resultLayout, /끌림 \+ 시너지/);
 assert.match(resultLayout, /관계 구조/);
 assert.match(resultLayout, /두 사람의 관계 성향/);
+assert.doesNotMatch(resultLayout, /DayPillarCharacterCard|getDayPillarCharacter/);
+assert.doesNotMatch(components, /v2-day-character-note/);
 assert.match(resultLayout, /갈등 루프/);
 assert.match(resultLayout, /관계 심층 분석/);
 assert.match(resultLayout, /장기 전망/);
@@ -106,6 +111,8 @@ assert.match(payment, /buttonLabel\?: string/);
 assert.match(share, /document\.createElement\("canvas"\)/);
 assert.match(share, /new File\(\[blob\]/);
 assert.match(share, /createPublicShareUrl\(buildOneToOnePublicShare/);
+assert.match(share, /SHARE_OPTION = \{ purpose: "recap"/);
+assert.doesNotMatch(share, /typeTabs|setPurpose|purpose ===/);
 assert.doesNotMatch(share, /accessToken/);
 assert.match(shareCss, /aspect-ratio:\s*9 \/ 16/);
 assert.match(mobile, /overflow-x:\s*clip/);

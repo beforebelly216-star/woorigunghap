@@ -35,15 +35,6 @@ assert.equal(isP6SharePurpose("two_sides"), false);
 const oneToOne = source("src/app/one-to-one/result/compatibility-share-card.tsx");
 const oneToMany = source("src/components/one-to-many-share-card.tsx");
 for (const shareCard of [oneToOne, oneToMany]) {
-  assert.match(shareCard, /관계 영수증/);
-  assert.match(shareCard, /한 장 요약/);
-  assert.match(shareCard, /purpose === \"receipt\"/);
-  assert.match(shareCard, /purpose === \"recap\"/);
-  assert.match(shareCard, /assignP6ShareCardExperiment/);
-  assert.match(shareCard, /initialP6SharePurpose/);
-  assert.match(shareCard, /orderedShareCardPurposes/);
-  assert.match(shareCard, /copyPurposeForShareCard/);
-  assert.match(shareCard, /experimentArm/);
   assert.match(shareCard, /canvas\.width = 1080/);
   assert.match(shareCard, /canvas\.height = 1920/);
   assert.match(shareCard, /useState\(false\)/, "display names must remain opt-in");
@@ -52,6 +43,21 @@ for (const shareCard of [oneToOne, oneToMany]) {
   assert.ok(!shareCard.includes("paymentId"));
   assert.ok(!shareCard.includes("accessToken"));
 }
+
+assert.match(oneToOne, /SHARE_OPTION = \{ purpose: \"recap\"/);
+assert.doesNotMatch(oneToOne, /initialP6SharePurpose/);
+assert.doesNotMatch(oneToOne, /orderedShareCardPurposes/);
+assert.doesNotMatch(oneToOne, /copyPurposeForShareCard/);
+assert.doesNotMatch(oneToOne, /typeTabs/);
+assert.match(oneToMany, /관계 영수증/);
+assert.match(oneToMany, /한 장 요약/);
+assert.match(oneToMany, /purpose === \"receipt\"/);
+assert.match(oneToMany, /purpose === \"recap\"/);
+assert.match(oneToMany, /assignP6ShareCardExperiment/);
+assert.match(oneToMany, /initialP6SharePurpose/);
+assert.match(oneToMany, /orderedShareCardPurposes/);
+assert.match(oneToMany, /copyPurposeForShareCard/);
+assert.match(oneToMany, /experimentArm/);
 
 assert.match(oneToOne, /buildOneToOnePublicShare/);
 assert.match(oneToMany, /buildOneToManyPublicShare/);
@@ -62,4 +68,4 @@ const publicContract = source("src/lib/share/public-share-contract.ts");
 assert.ok(!publicContract.includes("experimentArm"), "P6 experiment metadata must stay analytics-only and not expand the public DTO");
 assert.ok(!publicContract.includes("sharePurpose"), "card selection must not expand the Shared View payload");
 
-console.log("Growth P6 share-card experiment: PASS — deterministic Receipt/Recap A/B, P2 copy reuse, 9:16 output, and unchanged public privacy boundary.");
+console.log("Growth share-card contract: PASS — fixed 1:1 recap, 1:N P6 experiment, 9:16 output, and unchanged public privacy boundary.");

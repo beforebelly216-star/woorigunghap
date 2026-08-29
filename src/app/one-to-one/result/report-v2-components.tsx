@@ -1,6 +1,5 @@
 import type { FiveElement } from "@/lib/compatibility/types";
 import type { BasicPersonFacts } from "@/lib/narrative/report-engine-v5";
-import { getDayPillarCharacter } from "@/lib/narrative/day-pillar-characters";
 import {
   PARTNER_INFORMATION_LEVEL_COPY,
   partnerInformationLevelFromFacts,
@@ -40,8 +39,6 @@ export function PillarGrid({ facts }: { facts: BasicPersonFacts }) {
   const entries = [
     ["년", facts.pillars.year], ["월", facts.pillars.month], ["일", facts.pillars.day], ["시", facts.pillars.hour],
   ] as const;
-  const character = getDayPillarCharacter(facts.pillars.day.korean);
-
   return <div className="v2-saju-board">
     <div className="v2-pillar-grid">{entries.map(([label, pillar]) => {
       const hanjaChars = pillar ? [...pillar.hanja] : [];
@@ -57,14 +54,13 @@ export function PillarGrid({ facts }: { facts: BasicPersonFacts }) {
         </>}
       </div>;
     })}</div>
-    {character ? <div className="v2-day-character-note"><span>✦ 오늘의 핵심 타일 · {facts.pillars.day.korean}</span><strong>{character.title}</strong><p>{character.tagline}</p></div> : null}
   </div>;
 }
 
 /**
  * 궁합 히트맵 — 레이더 차트 대체(docs/zootopi-stock-theme-work-order-v1.md §12.1).
  * 데이터는 기존과 동일한 9개 지표 점수를 그대로 재사용하고 새 계산은 하지 않는다.
- * 색은 보조 채널이며 숫자·라벨을 항상 함께 표기한다(diverging/무지개 배색 대신 단일 색조 sequential 램프).
+ * 색은 보조 채널이며 숫자·라벨을 항상 함께 표기한다. 낮음=빨강, 높음=녹색의 주가형 램프를 쓴다.
  */
 export function CompatibilityHeatmap({ dimensions }: { dimensions: Array<{ label: string; shortLabel?: string; score: number }> }) {
   return <div className="v2-heatmap-layout">

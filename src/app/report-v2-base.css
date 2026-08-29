@@ -164,11 +164,6 @@
 .v2-saju-char.is-metal { background: var(--saju-element-metal); }
 .v2-saju-char.is-water { background: var(--saju-element-water); }
 .v2-saju-char.is-unknown { border: 1px dashed var(--saju-ink-soft); background: var(--saju-unknown); color: var(--saju-ink-soft); }
-.v2-day-character-note { border-radius: 18px; padding: 16px 18px; background: color-mix(in srgb, var(--saju-primary) 18%, var(--saju-bg-card)); }
-.v2-day-character-note span, .v2-day-character-note strong { display: block; }
-.v2-day-character-note span { color: var(--saju-primary-deep); font-size: .72rem; font-weight: 900; }
-.v2-day-character-note strong { margin-top: 5px; color: var(--saju-ink); font-size: 1rem; }
-.v2-day-character-note p { margin: 5px 0 0; color: var(--saju-ink-soft); font-size: .86rem; line-height: 1.55; }
 .v2-pair-type { max-width: 520px; margin: 24px auto 14px; border: 1px solid var(--saju-border); border-radius: 24px; padding: 19px 20px; background: var(--saju-bg-card); box-shadow: var(--saju-shadow); }
 .v2-pair-type small, .v2-pair-type strong, .v2-pair-type span { display: block; }
 .v2-pair-type small { color: var(--saju-primary-deep); font-size: .72rem; font-weight: 900; letter-spacing: .08em; }
