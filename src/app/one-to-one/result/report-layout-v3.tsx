@@ -7,8 +7,6 @@ import type { EnhancedDetailedReportContent } from "@/lib/narrative/report-deep-
 import type { ThreeYearTimingAssessment } from "@/lib/compatibility/timing-alignment";
 import { ZootopiCaption } from "@/components/zootopi-mark";
 import { CompatibilityHeatmap, ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
-import { DayPillarCharacterCard } from "./day-pillar-character-card";
-import { getDayPillarCharacter } from "@/lib/narrative/day-pillar-characters";
 import styles from "./report-layout-v3.module.css";
 
 const SECTION_NAV = [
@@ -98,8 +96,6 @@ export default function ReportLayoutV3({
   accountNode: ReactNode;
   debugNode?: ReactNode;
 }) {
-  const personACharacter = getDayPillarCharacter(facts.A.pillars.day.korean);
-  const personBCharacter = getDayPillarCharacter(facts.B.pillars.day.korean);
   const strengths = take(content.strengthsAndRisks.strengths, 3);
   const frictions = take(content.strengthsAndRisks.repeatedFrictions, 3);
   const conflictScenarios = content.relationshipFlow.conflictScenarios.slice(0, 3);
@@ -189,10 +185,6 @@ export default function ReportLayoutV3({
         <article><small>{personAName}</small><h3>{content.personA.relationshipNeeds}</h3><Paragraph>{content.personA.overallProfile}</Paragraph></article>
         <article><small>{personBName}</small><h3>{content.personB.relationshipNeeds}</h3><Paragraph>{content.personB.overallProfile}</Paragraph></article>
       </div>
-      {(personACharacter || personBCharacter) ? <div className={styles.characterStack}>
-        {personACharacter ? <DayPillarCharacterCard label={personAName} displayName={personAName} character={personACharacter} /> : null}
-        {personBCharacter ? <DayPillarCharacterCard label={personBName} displayName={personBName} character={personBCharacter} /> : null}
-      </div> : null}
     </section>
 
     <section id="conflict" className={styles.section}>

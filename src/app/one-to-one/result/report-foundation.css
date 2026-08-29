@@ -180,12 +180,10 @@
 .reference-year-timing-grid > article,
 .reference-future-split > article,
 .reference-30day-grid > article,
-.v2-scenarios > article,
-.day-pillar-character-card {
+.v2-scenarios > article {
   box-shadow: none !important;
 }
-.v2-facts-grid > article,
-.day-pillar-character-card {
+.v2-facts-grid > article {
   border-radius: var(--saju-radius-card);
 }
 .reference-focus-box,

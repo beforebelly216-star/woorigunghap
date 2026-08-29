@@ -102,10 +102,10 @@
   --zootopi-stock-down-soft: #EAF1FD;
   --zootopi-stock-flat: var(--saju-ink-soft); /* 보합/중립 */
 
-  /* 히트맵 전용 순차(sequential) 램프 — 지표 점수는 단일 축 데이터이므로 diverging/무지개 배색 금지 */
-  --zootopi-heat-1: #FCEFD2;
-  --zootopi-heat-2: #F8DCA0;
-  --zootopi-heat-3: #F3C466;
-  --zootopi-heat-4: #D99A2E;
-  --zootopi-heat-5: #A66F12;
+  /* 주가형 히트맵 — 낮은 점수는 빨강, 중간은 노랑, 높은 점수는 녹색 */
+  --zootopi-heat-1: #E45756;
+  --zootopi-heat-2: #EF8A62;
+  --zootopi-heat-3: #F3C969;
+  --zootopi-heat-4: #86C67C;
+  --zootopi-heat-5: #2E9F6B;
 }

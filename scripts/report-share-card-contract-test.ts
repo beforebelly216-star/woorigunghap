@@ -32,7 +32,7 @@ const comparisonComponent = readFileSync("src/components/one-to-many-share-card.
 const comparisonCss = readFileSync("src/components/one-to-many-share-card.module.css", "utf8");
 const comparisonResult = readFileSync("src/components/one-to-many-result.tsx", "utf8");
 
-assert.match(component, /생년월일시와 유료 본문은 카드에 담지 않습니다/);
+assert.match(component, /생년월일시와 유료 본문은 카드에 포함하지 않습니다/);
 assert.match(component, /createPublicShareUrl/);
 assert.match(component, /buildOneToOnePublicShare/);
 assert.doesNotMatch(component, /const safeUrl = `\$\{window\.location\.origin\}\/`/);
@@ -40,10 +40,11 @@ assert.doesNotMatch(component, /window\.location\.href/);
 assert.doesNotMatch(component, /accessToken/);
 assert.match(component, /navigator\.share/);
 assert.match(component, /selectRelationshipShareCopyForArchetype/);
-assert.match(component, /maskCuriosityAnswer/);
-assert.match(component, /relationship_label/);
-assert.match(component, /two_sides/);
-assert.match(component, /send_this/);
+assert.match(component, /SHARE_OPTION = \{ purpose: "recap"/);
+assert.doesNotMatch(component, /typeTabs/);
+assert.doesNotMatch(component, /setPurpose/);
+assert.doesNotMatch(component, /purpose ===/);
+assert.match(component, /친구에게 궁합 카드 보내기/);
 assert.match(component, /canvas\.width = 1080/);
 assert.match(component, /canvas\.height = 1920/);
 assert.match(css, /aspect-ratio: 9 \/ 16/);

@@ -36,6 +36,7 @@
 - 1:N 결과의 후행 route CSS보다 app theme가 우선하도록 선택자 계약을 고정했다.
 - 360/390/430px 홈·로그인·1:N 결과에서 가로 overflow 없음, 오류 overlay 없음, 모바일 카드 렌더를 실브라우저로 확인했다.
 - 주토피 공통 마스코트와 생성 대기 일러스트는 사용자 승인 캐릭터 시트에서 추출한 실제 픽셀 자산으로 교체했다. 기존 코드 생성/손그림 토끼 SVG는 사용자 화면에서 사용하지 않는다.
+- 1:1/1:N 공용 히트맵은 낮은 점수 빨강 → 중간 노랑 → 높은 점수 녹색의 주가형 5단계 팔레트를 사용한다. 숫자와 지표 라벨은 항상 함께 표시한다.
 
 ### 홈 / 무료
 
@@ -68,6 +69,8 @@
 - Claude는 점수·순위·원국을 변경하지 않으며 내부 시스템 문구를 사용자 결과에 노출하지 않는다.
 - **생성 대기 화면 v4:** 주토피 `궁합 떡상 기원` 일러스트 + 단계 문구 + 진행 시각화.
 - 로딩과 fatal/config 상태를 동일한 390px 주토피 카드 UI로 통일했다.
+- 구형 `60일주 캐릭터` 카드와 원국 아래의 `달빛 항구`, `정원의 설계자` 같은 시적 한줄평은 1:1 결과 렌더 경로에서 제거했다.
+- 마지막 공유 영역은 선택 탭 없이 개인정보를 제외한 `한 장 요약` 카드 하나만 제공한다.
 
 ### 1:1 결제/생성 blocker — 2026-08-28 전수조사
 
@@ -103,6 +106,7 @@
 
 ## 검증 상태
 
+- **1:1 결과 UI 정리 local validation PASS** — 히트맵/구형 캐릭터 UI/단일 공유카드 contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **PR #78 / Core calculation validation #850 PASS** — 승인 주토피 원본 자산 교체 + 현재 relationship editorial v4 계약 정합화 + 전체 contracts + lint + production build PASS.
 - **mobile app theme v4 local validation PASS** — UI/runtime/account/report/shared-view/1:N/policy/system/beta contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build + 360/390/430px browser QA PASS.
 - **1:1 action 형식 오류 hotfix local validation PASS** — AI generation/runtime UX/paid-result/relationship editorial/quality gate + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS.
