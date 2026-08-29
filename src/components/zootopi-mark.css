@@ -5,14 +5,11 @@
   height: 100%;
 }
 
-.zt-mark img {
+.zt-mark__art {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center;
-  user-select: none;
-  -webkit-user-drag: none;
+  background: url('/jootopi-smile.svg') center / contain no-repeat;
 }
 
 .zt-caption {
