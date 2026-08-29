@@ -128,6 +128,7 @@
 - [x] 최신 `relationship-editorial-v4-direct-labels`에 뒤처진 Day 10/21 테스트 버전 기대값 정합화
 - [x] PR #78 / Core calculation validation #850 — 전체 contracts + lint + production build PASS
 - [x] Preview one-time deploy trigger `7cb538b` — Vercel SUCCESS (`Gjv1vd6wMAn74cvxFTPQFJH4es6s`), 자동배포 OFF 복구 `7d37dd8`
+- [x] PR #78 → `main` (`9d04101`), Git 자동배포 OFF 유지
 
 ## 기본 검증
 
@@ -142,7 +143,7 @@ HANDOFF
 - Task: 사용자 승인 주토피 원본 캐릭터 자산 교체
 - Status: complete
 - Validation: Core calculation validation #850 PASS — 전체 contracts + lint + production build; Preview Vercel SUCCESS
-- Commit: PR #78 head; Preview trigger 7cb538b; auto-deploy OFF 7d37dd8; main merge follows
+- Commit: main 9d04101; Preview trigger 7cb538b; auto-deploy OFF 7d37dd8
 - Remaining: Production에서 기존/신규 1:1 결제 → AI 3-segment → 저장 → 재열람 실동작 검증
 - Risk: 캐릭터 교체와 무관하게 실제 결제/Anthropic 생성 성공 여부는 운영 blocker로 미검증
 - Deploy: Preview SUCCESS — Vercel Gjv1vd6wMAn74cvxFTPQFJH4es6s; Production 미배포
