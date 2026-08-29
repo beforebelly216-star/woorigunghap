@@ -138,6 +138,16 @@
 - [x] 1:1 공유 영역을 선택 탭 없는 `한 장 요약` 카드 하나로 고정하고 공유 CTA 개선
 - [x] 관련 contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS
 
+## 완료 — 홈 최근 보관함 및 점수 근거 정리
+
+- [x] 홈의 고정 TOP 3 샘플을 로그인 계정 보관함 최신 3개로 교체
+- [x] 1:1 상대 이름 앞 3글자 프로필·이름·관계·점수 표시, 1:N은 `1:다`·관계·최고점만 표시
+- [x] 홈 우측 상단 카카오 로그인/로그아웃 활성화
+- [x] 1:1 핵심 점수별 계산 근거를 3문장 이내 접이식 토글로 제공
+- [x] 1:1 관계 타이밍 지표와 대운·세운 3년 흐름 UI 전면 제거
+- [x] `정보 수준 A/B` 제거, 출생시간 미입력 시 시주 제외 안내만 표시
+- [x] source `fcdb9eb` + 관련 contracts + TypeScript + lint + production build PASS
+
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
@@ -148,10 +158,10 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: Codex
-- Task: 1:1 결과 히트맵·구형 캐릭터 UI·공유카드 정리
+- Task: 홈 최근 보관함·점수 근거 토글·1:1 표시 범위 정리
 - Status: 구현 및 local validation 완료, main/Preview 배포 진행
-- Validation: UI/share/day-pillar contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS
-- Scope: 빨강→노랑→녹색 히트맵, 60일주/시적 한줄평 제거, 1:1 단일 recap 공유카드
+- Validation: account/info/evidence/UI/editorial/privacy contracts + TypeScript + lint + production build PASS
+- Scope: 최근 3개, 홈 인증, 항목별 근거, 대운·세운 UI 제거, 시간 미입력 안내
 - Remaining: Production에서 기존/신규 1:1 결제 → AI 3-segment → 저장 → 재열람 실동작 검증
 - Risk: 실제 결제/Anthropic 생성 성공 여부는 기존 운영 blocker로 미검증
 - Deploy: 사용자 승인 Preview 배포 진행; Production 미배포
