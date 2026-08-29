@@ -13,11 +13,11 @@ export type ZootopiExpression = "smile" | "analyzing" | "idea" | "thinking" | "s
  * 소형 아이콘부터 카드 히어로까지 공통으로 쓰는 주토피 마크.
  * 현재 승인 원본의 기본 미소 포즈를 모든 소형 마크에 사용하고,
  * 생성 대기 전용 포즈는 /zootopi-bullish-loading.svg에서 별도로 사용한다.
+ * `withBody`는 기존 호출부 호환성을 위해 prop 계약에 남겨 둔다.
  */
 export function ZootopiMark({
   expression = "smile",
   className,
-  withBody: _withBody = false,
 }: {
   expression?: ZootopiExpression;
   className?: string;
