@@ -1,22 +1,16 @@
-/* 주토피 마스코트 공통 스타일. 캐릭터 일러스트 전용 팔레트(--zootopi-char-*)만 사용한다. */
-.zt-mark { display: inline-block; width: 100%; height: 100%; }
-.zt-mark svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.zt-face { fill: var(--zootopi-char-cream); stroke: var(--zootopi-char-ink); stroke-width: 1.4; }
-.zt-ear-outer { fill: var(--zootopi-char-cream); stroke: var(--zootopi-char-ink); stroke-width: 1.4; }
-.zt-ear-inner { fill: var(--zootopi-char-tan); }
-.zt-glass { fill: var(--zootopi-char-paper); stroke: var(--zootopi-char-ink); stroke-width: 2.4; }
-.zt-bridge { stroke: var(--zootopi-char-ink); stroke-width: 2; stroke-linecap: round; }
-.zt-pupil { fill: var(--zootopi-char-ink); }
-.zt-pupil-big { fill: var(--zootopi-char-ink); }
-.zt-eye-line { fill: none; stroke: var(--zootopi-char-ink); stroke-width: 2.2; stroke-linecap: round; }
-.zt-mouth { fill: none; stroke: var(--zootopi-char-ink); stroke-width: 2.2; stroke-linecap: round; }
-.zt-mouth-open { fill: var(--zootopi-char-accent-red); opacity: .55; }
-.zt-chin-dot { fill: var(--zootopi-char-ink); opacity: .5; }
-.zt-magnifier { fill: none; stroke: var(--zootopi-char-ink); stroke-width: 2.2; }
-.zt-magnifier-handle { stroke: var(--zootopi-char-ink); stroke-width: 2.6; stroke-linecap: round; }
-.zt-sparkle path { fill: var(--zootopi-char-accent-red); }
-.zt-exclaim rect { fill: var(--zootopi-char-accent-red); }
-.zt-hoodie { fill: var(--zootopi-char-purple); }
+/* 주토피 마스코트 공통 스타일. 승인된 캐릭터 시트 추출 자산을 그대로 렌더한다. */
+.zt-mark {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+}
+
+.zt-mark__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: url('/jootopi-smile.svg') center / contain no-repeat;
+}
 
 .zt-caption {
   display: flex;
@@ -27,7 +21,13 @@
   border-radius: var(--saju-radius-card);
   background: var(--saju-bg-card);
 }
-.zt-caption-mark { flex: none; width: 40px; height: 40px; }
+
+.zt-caption-mark {
+  flex: none;
+  width: 40px;
+  height: 48px;
+}
+
 .zt-caption small {
   display: block;
   margin-bottom: 4px;
@@ -36,8 +36,10 @@
   font-weight: 850;
   letter-spacing: .04em;
 }
-.zt-caption p { margin: 0; color: var(--saju-ink); font-size: .95rem; line-height: 1.55; }
 
-@media (prefers-reduced-motion: no-preference) {
-  .zt-sparkle { transform-origin: 70px 26px; }
+.zt-caption p {
+  margin: 0;
+  color: var(--saju-ink);
+  font-size: .95rem;
+  line-height: 1.55;
 }
