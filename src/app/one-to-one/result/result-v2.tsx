@@ -34,6 +34,7 @@ import { buildCompatibilityShareArchetype } from "@/lib/narrative/compatibility-
 import { normalizeStoredPaidReportForDisplay } from "@/lib/narrative/stored-report-compat";
 import { calibrateCompatibilityScore, getCompatibilityScoreBand } from "@/lib/compatibility/score-scale";
 import { COMPATIBILITY_SCORING_VERSION } from "@/lib/compatibility/weights";
+import { buildDimensionEvidenceCopy } from "@/lib/compatibility/dimension-evidence-copy";
 import ReportLayoutV3 from "./report-layout-v3";
 
 const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
@@ -412,7 +413,7 @@ export default function ResultV2() {
   const visibleDimensions = useMemo(() => {
     if (!snapshot) return [];
     return (Object.entries(snapshot.dimensions) as Array<[CompatibilityDimension, CompatibilityCalculationSnapshot["dimensions"][CompatibilityDimension]]>)
-      .filter(([, value]) => value.maxPoints > 0);
+      .filter(([dimension, value]) => dimension !== "luckCycleAlignment" && value.maxPoints > 0);
   }, [snapshot]);
 
   if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 불러올 입력정보가 없어요.</h1><p>결제 자체는 사라지지 않았어요. 같은 브라우저의 원래 결제 탭이 있으면 그 탭을 다시 열어 주세요. 없으면 아래에서 두 사람의 정보만 다시 입력해 기존 결제로 결과를 복구할 수 있어요.</p>{paymentId ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력정보 다시 넣기</Link> : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}</div></main>;
@@ -471,7 +472,6 @@ export default function ResultV2() {
       snapshot={displaySnapshot}
       visibleDimensions={visibleDimensions}
       dimensionLabels={DIMENSION_LABELS}
-      threeYearTiming={snapshot.threeYearTiming}
       shareNode={<CompatibilityShareCard
         selfName={personA.displayName}
         partnerName={personB.displayName}
@@ -487,7 +487,11 @@ export default function ResultV2() {
         />
         <footer className="v2-footer"><Link href="/one-to-one">다른 사람과 다시 보기</Link><Link href="/">처음으로</Link></footer>
       </>}
-      debugNode={debug ? <section className="v2-debug"><strong>QA debug</strong><pre>{JSON.stringify({ segmentMetas, scoringVersion: snapshot.scoringVersion, engineVersion: snapshot.engineVersion, threeYearTiming: snapshot.threeYearTiming }, null, 2)}</pre></section> : undefined}
+      dimensionEvidence={Object.fromEntries(visibleDimensions.map(([dimension, value]) => [
+        dimension,
+        buildDimensionEvidenceCopy(dimension, value.normalizedScore, snapshot.representativeEvidence[dimension]),
+      ])) as Partial<Record<CompatibilityDimension, string>>}
+      debugNode={debug ? <section className="v2-debug"><strong>QA debug</strong><pre>{JSON.stringify({ segmentMetas, scoringVersion: snapshot.scoringVersion, engineVersion: snapshot.engineVersion }, null, 2)}</pre></section> : undefined}
     />
   </main>;
 }

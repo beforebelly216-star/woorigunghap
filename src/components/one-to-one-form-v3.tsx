@@ -34,8 +34,7 @@ import {
 import { saveOrderDraft } from "@/lib/order-storage";
 import { buildOneToOneResultUrl } from "@/lib/result-access-token";
 import {
-  PARTNER_INFORMATION_LEVEL_COPY,
-  partnerInformationLevelFromPerson,
+  birthTimeNoticeFromPerson,
 } from "@/lib/partner-information-level";
 import { ZootopiMark } from "@/components/zootopi-mark";
 
@@ -139,8 +138,7 @@ export function OneToOneFormV3() {
   const [freePrefilled, setFreePrefilled] = useState(false);
   const [step, setStep] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
-  const partnerInformationLevel = partnerInformationLevelFromPerson(form.personB);
-  const partnerInformationCopy = PARTNER_INFORMATION_LEVEL_COPY[partnerInformationLevel];
+  const partnerBirthTimeNotice = birthTimeNoticeFromPerson(form.personB);
 
   useEffect(() => {
     let active = true;
@@ -478,10 +476,10 @@ export function OneToOneFormV3() {
             </label>
           </section>
 
-          <div className="form-success v3-info-level" role="status" aria-live="polite">
-            <strong>상대 정보 수준 {partnerInformationLevel}</strong>
-            <p>{partnerInformationCopy.short}. {partnerInformationCopy.detail}</p>
-          </div>
+          {partnerBirthTimeNotice ? <div className="form-success v3-info-level" role="status" aria-live="polite">
+            <strong>출생시간 미입력 안내</strong>
+            <p>{partnerBirthTimeNotice}</p>
+          </div> : null}
 
           <div className="step-nav v3-step-nav">
             <button type="button" className="secondary-action" onClick={goBack}>이전</button>

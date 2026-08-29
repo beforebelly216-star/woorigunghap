@@ -12,8 +12,10 @@ button, input, select { font: inherit; }
 .site-header a { min-height: 44px; display: inline-flex; align-items: center; }
 .site-header-home-a99 { width: min(100%, 390px); min-height: 64px; padding: 0 17px; border-bottom: 0; background: #fff; }
 .site-header-home-a99 .site-brand { font-size: 1.22rem; letter-spacing: -.045em; }
-.home-notification-button { width: 40px; height: 40px; display: grid; place-items: center; border: 0; background: transparent; color: #202024; cursor: pointer; }
-.home-notification-button svg { width: 22px; height: 22px; }
+.site-header-home-a99 .auth-user { gap: 5px; }
+.site-header-home-a99 .auth-status,
+.site-header-home-a99 .auth-logout-button { min-height: 36px; padding: 8px 9px; font-size: .68rem; }
+.site-header-home-a99 .auth-library-link { font-size: .68rem; }
 .auth-user { display: flex; align-items: center; gap: 8px; }
 .auth-library-link { color: var(--saju-ink-soft, #6F6870); font-size: .78rem; font-weight: 750; text-decoration: none; }
 .auth-status, .auth-logout-button { min-height: 40px; border: 0; border-radius: var(--saju-radius-pill, 999px); font: inherit; font-size: .78rem; line-height: 1; }

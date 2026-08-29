@@ -10,6 +10,7 @@ import {
   type StoredOrderDraft,
 } from "@/lib/server-report-store";
 import { ensurePublicShareStoreSchema } from "@/lib/share/public-share-store";
+import { calibrateCompatibilityScore } from "@/lib/compatibility/score-scale";
 
 export type AccountReportSummary = {
   paymentId: string;
@@ -17,6 +18,8 @@ export type AccountReportSummary = {
   productLabel: string;
   relationshipLabel: string;
   title: string;
+  subjectName: string;
+  score: number | null;
   createdAt: string;
   claimedAt: string;
   status: "generating" | "ready";
@@ -85,27 +88,39 @@ function parseStoredOrder(raw: unknown): StoredOrderDraft | null {
 function summarizeOrder(
   order: StoredOrderDraft,
   claimedAt: string,
-  status: AccountReportSummary["status"],
+  completed: CompletedAccountReport | null,
 ): AccountReportSummary {
   const relationshipLabel = RELATIONSHIP_LABELS[order.inputSnapshot.relationshipType];
+  const status = completed ? "ready" : "generating";
   if (order.product === "oneToOne") {
+    const score = completed?.product === "oneToOne" && completed.progress.snapshot
+      ? calibrateCompatibilityScore(completed.progress.snapshot.rawTotal)
+      : null;
     return {
       paymentId: order.paymentId,
       product: order.product,
       productLabel: "1:1 궁합",
       relationshipLabel,
       title: `${order.inputSnapshot.personA.displayName} × ${order.inputSnapshot.personB.displayName}`,
+      subjectName: order.inputSnapshot.personB.displayName,
+      score,
       createdAt: order.createdAt,
       claimedAt,
       status,
     };
   }
+  const leadingCandidate = completed?.product === "oneToMany" ? completed.report.snapshot.candidates[0] : null;
+  const score = leadingCandidate
+    ? calibrateCompatibilityScore(leadingCandidate.calculationSnapshot.rawTotal)
+    : null;
   return {
     paymentId: order.paymentId,
     product: order.product,
     productLabel: "1:다 비교",
     relationshipLabel,
     title: `${order.inputSnapshot.referencePerson.displayName} 외 ${order.inputSnapshot.candidates.length}명 비교`,
+    subjectName: "1:다",
+    score,
     createdAt: order.createdAt,
     claimedAt,
     status,
@@ -156,7 +171,7 @@ export async function listAccountReports(userId: string): Promise<AccountReportS
       : typeof row.claimed_at === "string" ? row.claimed_at : null;
     if (!order || !claimedAt) return null;
     const completed = await loadCompletedServerReport(order.paymentId);
-    return summarizeOrder(order, claimedAt, completed ? "ready" : "generating");
+    return summarizeOrder(order, claimedAt, completed);
   }));
   return reports.filter((report): report is AccountReportSummary => Boolean(report));
 }

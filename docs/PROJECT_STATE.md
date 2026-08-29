@@ -42,6 +42,8 @@
 
 - 사용자 승인 390px 모바일 레퍼런스가 UI 최우선 기준이다.
 - 홈 진입 순서: **무료 천생연분 → 1:1 궁합 → 1:N 궁합**.
+- 홈 우측 상단에서 로그인 상태를 확인하고 카카오 로그인 또는 로그아웃을 바로 실행한다.
+- 홈의 최근 결과 영역은 고정 샘플이 아니라 로그인 계정 보관함의 최신 3개를 표시한다. 1:1은 상대 이름·관계·점수와 이름 앞 3글자 프로필을, 1:N은 `1:다`·관계·최고점을 표시한다.
 - 기존 `/free` 관계 성향 분석은 폐기·삭제 완료.
 - `/api/free/soulmate`가 기존 만세력 원국으로 무료 결정론 결과를 생성한다.
 - `/free/result`: 원국 → 4개 요약 → 추천 일간 TOP 2~3 → 잘 맞는 사주 구성 → 주토피 해설 → 1:1 CTA.
@@ -71,6 +73,9 @@
 - 로딩과 fatal/config 상태를 동일한 390px 주토피 카드 UI로 통일했다.
 - 구형 `60일주 캐릭터` 카드와 원국 아래의 `달빛 항구`, `정원의 설계자` 같은 시적 한줄평은 1:1 결과 렌더 경로에서 제거했다.
 - 마지막 공유 영역은 선택 탭 없이 개인정보를 제외한 `한 장 요약` 카드 하나만 제공한다.
+- 히트맵 아래 각 점수는 접이식 `근거 보기`로 계산 근거를 3문장 이내에서 확인한다.
+- 1:1 결과의 관계 타이밍 지표와 대운·세운 기반 3년 흐름 섹션은 사용자 화면에서 제거했다. 내부 계산·기존 저장 호환은 유지한다.
+- `정보 수준 A/B`는 사용자 화면에서 사용하지 않는다. 출생시간이 없을 때만 시주를 제외하고 년·월·일 기준으로 해석한다는 안내를 표시한다.
 
 ### 1:1 결제/생성 blocker — 2026-08-28 전수조사
 
@@ -106,6 +111,7 @@
 
 ## 검증 상태
 
+- **홈 최근 보관함/점수 근거 UI local validation PASS** — source `fcdb9eb`, 보관함·정보안내·결과 UI·editorial/privacy contracts + TypeScript + lint + production build PASS.
 - **1:1 결과 UI 정리 local validation PASS** — 히트맵/구형 캐릭터 UI/단일 공유카드 contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **PR #78 / Core calculation validation #850 PASS** — 승인 주토피 원본 자산 교체 + 현재 relationship editorial v4 계약 정합화 + 전체 contracts + lint + production build PASS.
 - **mobile app theme v4 local validation PASS** — UI/runtime/account/report/shared-view/1:N/policy/system/beta contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build + 360/390/430px browser QA PASS.

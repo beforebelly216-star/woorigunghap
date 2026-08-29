@@ -3,6 +3,7 @@ import "./report-theme.css";
 import "../components/zootopi-mark.css";
 import styles from "./home-p5.module.css";
 import { ZootopiMark } from "@/components/zootopi-mark";
+import { HomeRecentReports } from "./home-recent-reports";
 
 function HeartIcon() {
   return <svg viewBox="0 0 64 54" aria-hidden="true"><path d="M32 49C23 40 6 31 6 17 6 8 12 3 20 3c6 0 10 3 12 8 2-5 6-8 12-8 8 0 14 5 14 14 0 14-17 23-26 32Z" fill="#ff6f89" stroke="#202024" strokeWidth="2.2"/><path d="M43 39c4-2 8 1 8 5 0 5-6 8-9 11-3-3-9-6-9-11 0-4 4-7 8-5l1 2 1-2Z" fill="#ff8aa0" stroke="#202024" strokeWidth="1.7"/></svg>;
@@ -17,12 +18,6 @@ function TrendChart() {
     <circle cx="292" cy="12" r="8" fill="#fff" stroke="#ff6f89" strokeWidth="3"/><path d="M287 10c2-4 7-3 7 1 0 4-5 6-7 8-2-2-7-4-7-8 0-4 5-5 7-1Z" fill="#ff6f89"/>
   </svg>;
 }
-const ranking = [
-  { name: "썸 타는 그 사람", score: 93, type: "rabbit", badge: "hot" },
-  { name: "오래된 친구", score: 89, type: "rabbit", badge: "cool" },
-  { name: "새로운 인연", score: 87, type: "tiger", badge: "new" },
-] as const;
-
 export default function Home() {
   return (
     <main className={`${styles.page} home-mobile-page`}>
@@ -39,14 +34,7 @@ export default function Home() {
         <Link href="/one-to-many" className={`${styles.quickCard} ${styles.oneToMany}`}><strong>1:N 궁합</strong><span>여러 사람 비교</span><PeopleIcon /></Link>
       </section>
 
-      <section className={styles.rankSection}>
-        <div className={styles.sectionTitle}><h2>오늘의 궁합 TOP 3</h2><Link href="/account/reports">전체보기 ›</Link></div>
-        <div className={styles.rankGrid}>{ranking.map((item, index) => <article key={item.name} className={styles.rankItem}>
-          <span className={`${styles.crown} ${index === 0 ? styles.gold : index === 1 ? styles.silver : styles.bronze}`}>♛</span>
-          <div className={`${styles.avatar} ${item.type === "tiger" ? styles.tiger : ""}`}>{item.type === "rabbit" ? <ZootopiMark expression={index === 0 ? "idea" : "smile"} /> : <span>🐯</span>}<i className={`${styles.miniBadge} ${styles[item.badge]}`}>{index === 0 ? "♥" : index === 1 ? "●" : "★"}</i></div>
-          <strong>{item.score}점</strong><p>{item.name}</p>
-        </article>)}</div>
-      </section>
+      <HomeRecentReports />
 
       <section className={styles.flowCard}><div className={styles.flowHeader}><h2>관계 흐름 한눈에 보기</h2><button type="button">주간⌄</button></div><TrendChart /><div className={styles.chartLabels}><span>7/10</span><span>7/11</span><span>7/12</span><span>7/13</span><span>오늘</span></div></section>
       <aside className={styles.tipCard}><div><strong>주토피의 오늘의 한마디 💛</strong><p>인연은 기다리는 사람이 아니라,<br/>준비된 사람이 알아보는 거예요!</p></div><ZootopiMark expression="smile" withBody /></aside>

@@ -1,4 +1,3 @@
-import type { ThreeYearTimingAssessment, TimingConfidence, TimingPhase } from "@/lib/compatibility/timing-alignment";
 import type { EnhancedDetailedReportContent } from "@/lib/narrative/report-deep-content";
 import { getRelationshipEditorialProfileByLabel } from "@/lib/relationship-editorial";
 import { BulletList, Chapter, EvidenceBoundary, Paragraph } from "./report-v2-components";
@@ -11,30 +10,16 @@ function chapterSummary(content: EnhancedDetailedReportContent, key: "ch4" | "ch
   return content.keyTakeaways?.[key] ?? [];
 }
 
-const TIMING_PHASE_LABEL: Record<TimingPhase, string> = {
-  rising: "상승",
-  adjusting: "조율",
-  caution: "주의",
-};
-
-const TIMING_CONFIDENCE_LABEL: Record<TimingConfidence, string> = {
-  high: "높은 신뢰도",
-  medium: "범위 해석",
-  low: "넓은 범위 해석",
-};
-
 export default function ReportChaptersB({
   content,
   personAName,
   personBName,
   relationshipLabel,
-  threeYearTiming,
 }: {
   content: EnhancedDetailedReportContent;
   personAName: string;
   personBName: string;
   relationshipLabel: string;
-  threeYearTiming?: ThreeYearTimingAssessment;
 }) {
   const editorial = getRelationshipEditorialProfileByLabel(relationshipLabel);
   const thirtyDayPlan = content.actionPlan30?.weeks.length
@@ -118,11 +103,9 @@ export default function ReportChaptersB({
 
     <Chapter
       index={5}
-      eyebrow="RELATIONSHIP FLOW & 3-YEAR TIMING"
+      eyebrow="RELATIONSHIP FLOW"
       title={editorial.ui.flowTitle}
-      intro={threeYearTiming
-        ? `${threeYearTiming.baseYear}년부터 3개 연도의 세운과 두 사람의 대운 후보를 함께 계산해 관계 흐름을 봅니다. 출생시간 미상은 단일 날짜를 확정하지 않고 범위로 표시합니다.`
-        : "현재 계산으로 확인할 수 있는 관계 역할·주도권·친밀도와 반복 갈등을 중심으로 봅니다. 저장된 구버전 결과에는 3년 타이밍 계산이 없을 수 있습니다."}
+      intro="현재 계산으로 확인할 수 있는 관계 역할·주도권·친밀도와 반복 갈등을 중심으로 봅니다."
       summary={chapterSummary(content, "ch5")}
     >
       <Paragraph>{content.relationshipFlow.overview}</Paragraph>
@@ -131,33 +114,6 @@ export default function ReportChaptersB({
         <article><small>INITIATIVE</small><h3>주도권</h3><p>{content.relationshipFlow.initiative}</p></article>
         <article><small>CLOSENESS</small><h3>가까워질수록</h3><p>{content.relationshipFlow.intimacy}</p></article>
       </div>
-
-      {threeYearTiming ? <>
-        <div className="reference-timing-summary">
-          <small>3-YEAR TIMING SCORE</small>
-          <strong>{Math.round(threeYearTiming.normalizedScore)}점</strong>
-          <p>
-            세 해의 대운·세운 신호 평균입니다. 전체 범위는 {Math.round(threeYearTiming.scoreRange.min)}~{Math.round(threeYearTiming.scoreRange.max)}점 · {TIMING_CONFIDENCE_LABEL[threeYearTiming.confidence]}입니다.
-          </p>
-        </div>
-        <div className="reference-year-timing-grid">
-          {threeYearTiming.years.map((year) => <article key={year.year} className={`timing-${year.phase}`}>
-            <div className="reference-year-timing-head">
-              <span>{year.year}년 · {year.annualPillar}</span>
-              <strong>{TIMING_PHASE_LABEL[year.phase]}</strong>
-            </div>
-            <div className="reference-year-score">
-              <b>{Math.round(year.score)}</b><small>점</small>
-              {year.scoreRange.min !== year.scoreRange.max
-                ? <em>{Math.round(year.scoreRange.min)}~{Math.round(year.scoreRange.max)}</em>
-                : null}
-            </div>
-            <ul>{year.signals.map((signal, index) => <li key={`${year.year}-${index}`}>{signal}</li>)}</ul>
-            <p className="reference-year-confidence">{TIMING_CONFIDENCE_LABEL[year.confidence]}</p>
-          </article>)}
-        </div>
-        <EvidenceBoundary>연도별 점수는 대운·세운의 오행 보완 관계와 일지 합·충·해·형 신호를 규칙 기반으로 합산한 참고 지표입니다. ‘상승’은 사건 발생을 약속하는 표현이 아니라 관계에 에너지를 쓰기 상대적으로 수월한 구간을 뜻합니다. 특정 월·날짜 예측은 아직 포함하지 않습니다.</EvidenceBoundary>
-      </> : <EvidenceBoundary>이 결과는 3년 타이밍 계산 도입 이전에 저장된 버전일 수 있습니다. 현재 새 계산에서는 대운·세운 근거가 있는 연도 단위 흐름을 추가로 제공합니다.</EvidenceBoundary>}
 
       <h3>현실에서 반복되기 쉬운 갈등 장면</h3>
       <div className="v2-scenarios">{content.relationshipFlow.conflictScenarios.map((scenario, index) => <article key={`${index}-${scenario.situation}`}>

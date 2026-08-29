@@ -1,8 +1,7 @@
 import type { FiveElement } from "@/lib/compatibility/types";
 import type { BasicPersonFacts } from "@/lib/narrative/report-engine-v5";
 import {
-  PARTNER_INFORMATION_LEVEL_COPY,
-  partnerInformationLevelFromFacts,
+  birthTimeNoticeFromFacts,
 } from "@/lib/partner-information-level";
 import { getHeatToken } from "@/lib/compatibility/stock-theme";
 import { ZootopiMark, type ZootopiExpression } from "@/components/zootopi-mark";
@@ -59,12 +58,12 @@ export function PillarGrid({ facts }: { facts: BasicPersonFacts }) {
 
 /**
  * 궁합 히트맵 — 레이더 차트 대체(docs/zootopi-stock-theme-work-order-v1.md §12.1).
- * 데이터는 기존과 동일한 9개 지표 점수를 그대로 재사용하고 새 계산은 하지 않는다.
+ * 데이터는 기존 결정론 지표 점수를 그대로 재사용하고 새 계산은 하지 않는다.
  * 색은 보조 채널이며 숫자·라벨을 항상 함께 표기한다. 낮음=빨강, 높음=녹색의 주가형 램프를 쓴다.
  */
-export function CompatibilityHeatmap({ dimensions }: { dimensions: Array<{ label: string; shortLabel?: string; score: number }> }) {
+export function CompatibilityHeatmap({ dimensions }: { dimensions: Array<{ label: string; shortLabel?: string; score: number; evidence: string }> }) {
   return <div className="v2-heatmap-layout">
-    <div className="v2-heatmap-grid" role="img" aria-label="9개 핵심 궁합 지표 히트맵">
+    <div className="v2-heatmap-grid" role="img" aria-label="핵심 궁합 지표 히트맵">
       {dimensions.map((dimension) => {
         const score = Math.round(dimension.score);
         return <div
@@ -78,7 +77,10 @@ export function CompatibilityHeatmap({ dimensions }: { dimensions: Array<{ label
       })}
     </div>
     <HeatLegendRamp />
-    <div className="v2-heatmap-list">{dimensions.map((dimension) => <div key={dimension.label}><span>{dimension.label}</span><strong>{Math.round(dimension.score)}</strong></div>)}</div>
+    <div className="v2-heatmap-list">{dimensions.map((dimension) => <details key={dimension.label}>
+      <summary><span>{dimension.label}</span><strong>{Math.round(dimension.score)}</strong><em>근거 보기</em></summary>
+      <p>{dimension.evidence}</p>
+    </details>)}</div>
   </div>;
 }
 
@@ -95,11 +97,10 @@ function ChapterZootopiMark({ chapter }: { chapter: number }) {
 }
 
 export function ElementFacts({ facts }: { facts: BasicPersonFacts }) {
-  const informationLevel = partnerInformationLevelFromFacts(facts);
-  const informationCopy = PARTNER_INFORMATION_LEVEL_COPY[informationLevel];
+  const birthTimeNotice = birthTimeNoticeFromFacts(facts);
 
   return <div className="v2-elements">
-    <p className="v2-note"><strong>정보 수준 {informationLevel}</strong> · {informationCopy.short}. {informationCopy.detail}</p>
+    {birthTimeNotice ? <p className="v2-note"><strong>출생시간 미입력</strong> · {birthTimeNotice}</p> : null}
     <div className="v2-element-counts">{ELEMENT_ORDER.map((element) => (
       <div key={element}><span>{ELEMENT_LABELS[element]}</span><strong>{facts.visibleElementCounts[element]}</strong><small>개</small></div>
     ))}</div>
