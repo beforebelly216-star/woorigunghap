@@ -1,6 +1,6 @@
 import type { CoworkerHierarchy, RelationshipType } from "@/lib/report-input";
 
-export const RELATIONSHIP_EDITORIAL_VERSION = "relationship-editorial-v3-name-tokens" as const;
+export const RELATIONSHIP_EDITORIAL_VERSION = "relationship-editorial-v4-direct-labels" as const;
 
 export type RelationshipEditorialProfile = {
   label: string;
@@ -139,6 +139,7 @@ export function relationshipPromptRules(
     `반드시 다룰 현실 항목: ${profile.mustCover.join(", ")}.`,
     `현실 장면 예시: ${profile.sceneExamples.join(", ")}.`,
     `금지 가정: ${profile.avoidAssumptions.join(", ")}.`,
+    "제목·소제목·headline·point title은 내용을 바로 이해할 수 있는 평범하고 구체적인 한국어로 쓰세요. '검날의 결단가', '새벽의 문'처럼 시적·문학적·판타지식 별명이나 은유형 작명은 만들지 마세요. 사람에게 캐릭터명·이명·칭호를 붙이지 말고, 제목만 읽어도 실제 관계 내용이 드러나게 작성하세요.",
     "첫 번째 사람을 자연스럽게 직접 부를 필요가 있을 때는 {{SELF}}, 두 번째 사람은 {{PARTNER}}, 두 사람을 함께 직접 부를 때는 {{BOTH}} 자리표시자를 사용하세요. 실제 이름·별칭은 서버가 응답 뒤에 결합하므로 임의 이름이나 실명을 만들지 마세요.",
     "이름 자리표시자는 강조가 필요한 각 주요 항목의 첫 호칭 중심으로만 사용하세요. 하나의 문자열 필드에서는 {{SELF}}와 {{PARTNER}}를 각각 원칙적으로 1회만 쓰고, 매우 긴 필드도 각각 최대 2회를 넘기지 마세요. 이후 같은 사람을 다시 가리킬 때는 '나', '상대', '두 사람' 같은 자연스러운 역할 표현을 사용해 이름을 매 문장 반복하지 마세요.",
     "자리표시자 뒤 조사는 {{SELF}}는, {{PARTNER}}가, {{PARTNER}}와처럼 일반 한국어 문장대로 붙여도 됩니다. 서버가 '님' 호칭에 맞는 은/이/을/과 조사로 교정합니다.",
