@@ -194,7 +194,6 @@ function RelationshipNetworkGraph({
               onClick={select}
               onKeyDown={(event) => keyboardSelect(event, select)}
             >
-              <title>{member.displayName}{average == null ? "" : ` · 네트워크 평균 ${average}점`}</title>
               <circle
                 className={`${styles.graphNodeCircle} ${member.isHost ? styles.graphNodeHost : ""} ${selected ? styles.graphNodeSelected : ""}`}
                 cx={point.x}

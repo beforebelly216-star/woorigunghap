@@ -132,6 +132,11 @@ assert.match(
   /<main className=\{`\$\{styles\.page\}[^`]*reference-input-screen/,
   "초대 링크 참여 화면은 공용 생년정보 입력 스타일 범위 안에서 렌더되어야 합니다.",
 );
+assert.equal(
+  experienceSource.includes("<title>{member.displayName}"),
+  false,
+  "SVG 노드의 접근 가능한 이름은 aria-label만 사용해 서버·클라이언트 하이드레이션을 일치시켜야 합니다.",
+);
 
 const cronSource = readFileSync(join(process.cwd(), "src/app/api/cron/relationship-networks/route.ts"), "utf8");
 assert.ok(cronSource.includes("CRON_SECRET"));
