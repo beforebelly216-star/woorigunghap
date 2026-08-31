@@ -42,6 +42,8 @@
 
 - 사용자 승인 390px 모바일 레퍼런스가 UI 최우선 기준이다.
 - 홈 진입 순서: **무료 천생연분 → 1:1 궁합 → 1:N 궁합**.
+- 기능이 없는 `이벤트` 하단 메뉴와 샘플 `관계 흐름 한눈에 보기` 섹션은 제거했다. 하단 메뉴는 홈·보관함·마이페이지 3개만 유지한다.
+- `주토피의 오늘의 한마디`는 기존 단일 문구에서 중복 없는 365개 문구로 확장했다. 서울 날짜의 월·일에 맞춰 하루 한 문구를 표시하며 윤일은 2월 28일 문구를 재사용한다.
 - 홈 우측 상단에서 로그인 상태를 확인하고 카카오 로그인 또는 로그아웃을 바로 실행한다.
 - 홈의 최근 결과 영역은 고정 샘플이 아니라 로그인 계정 보관함의 최신 3개를 표시한다. 1:1은 상대 이름·관계·점수와 이름 앞 3글자 프로필을, 1:N은 `1:다`·관계·최고점을 표시한다.
 - 기존 `/free` 관계 성향 분석은 폐기·삭제 완료.
@@ -111,6 +113,7 @@
 
 ## 검증 상태
 
+- **홈 섹션 정리/365일 한마디 local validation PASS** — 365개·중복 없음·서울 날짜/윤일 매핑·제거 UI contract + lint(0 errors, 기존 warnings 5) + production build + local 200 응답 PASS.
 - **홈 최근 보관함/점수 근거 UI local validation PASS** — source `fcdb9eb`, 보관함·정보안내·결과 UI·editorial/privacy contracts + TypeScript + lint + production build PASS.
 - **1:1 결과 UI 정리 local validation PASS** — 히트맵/구형 캐릭터 UI/단일 공유카드 contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS.
 - **PR #78 / Core calculation validation #850 PASS** — 승인 주토피 원본 자산 교체 + 현재 relationship editorial v4 계약 정합화 + 전체 contracts + lint + production build PASS.

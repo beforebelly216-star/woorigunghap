@@ -27,9 +27,9 @@
 .soulmateIcon { width: 48px; height: 44px; margin-top: 7px; }
 .soulmateIcon :global(.zt-mark) { width: 46px; height: 48px; }
 .rankSection { margin-top: 18px; }
-.sectionTitle,.flowHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.sectionTitle h2,.flowHeader h2 { margin: 0; font-size: 1rem; line-height: 1.25; letter-spacing: -.025em; }
-.sectionTitle a,.flowHeader button { border: 0; background: transparent; color: #77777d; font-size: .72rem; text-decoration: none; }
+.sectionTitle { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sectionTitle h2 { margin: 0; font-size: 1rem; line-height: 1.25; letter-spacing: -.025em; }
+.sectionTitle a { border: 0; background: transparent; color: #77777d; font-size: .72rem; text-decoration: none; }
 .rankGrid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 14px; }
 .rankItem { min-width: 0; min-height: 150px; display: flex; flex-direction: column; align-items: center; padding: 12px 6px 11px; border: 1px solid #e9e1ec; border-radius: 16px; background: #fff; color: #222026; text-align: center; text-decoration: none; box-shadow: 0 6px 18px rgba(43,34,29,.035); }
 .avatar { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: linear-gradient(145deg,#efe6ff,#f7eafb); color: #6745c2; font-size: .76rem; font-weight: 900; letter-spacing: -.04em; overflow: hidden; }
@@ -40,13 +40,10 @@
 .recentState { margin-top: 12px; padding: 15px 14px; border: 1px solid #e9e1ec; border-radius: 15px; background: #fff; color: #716a72; font-size: .72rem; line-height: 1.55; text-align: center; }
 .recentState p { margin: 0; }
 .recentState a { display: inline-flex; margin-top: 8px; color: #6847c3; font-weight: 850; text-decoration: none; }
-.flowCard { margin-top:19px; padding:16px 14px 12px; border:1px solid #eae3dd; border-radius:16px; background:#fff; box-shadow:0 6px 18px rgba(43,34,29,.035); }
-.flowHeader button { cursor:default; } .chartSvg { width:100%; height:auto; margin-top:10px; display:block; }
-.chartLabels { display:flex; justify-content:space-between; margin-top:-1px; color:#918991; font-size:.62rem; }
 .tipCard { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:16px; padding:15px 16px; border:1px solid #dfd1f2; border-radius:16px; background:linear-gradient(135deg,#f7f1ff,#fff4fa); }
 .tipCard strong { font-size:.82rem; } .tipCard p { margin:7px 0 0; color:#6f54b6; font-size:.72rem; line-height:1.55; font-weight:700; }
 .tipCard :global(.zt-mark) { width:58px; height:62px; flex:0 0 auto; }
-.bottomNav { position:fixed; left:50%; bottom:0; z-index:20; width:min(100%,390px); transform:translateX(-50%); display:grid; grid-template-columns:repeat(4,1fr); padding:8px 10px max(8px,env(safe-area-inset-bottom)); border-top:1px solid #eae3dd; background:rgba(251,250,247,.97); backdrop-filter:blur(12px); }
+.bottomNav { position:fixed; left:50%; bottom:0; z-index:20; width:min(100%,390px); transform:translateX(-50%); display:grid; grid-template-columns:repeat(3,1fr); padding:8px 10px max(8px,env(safe-area-inset-bottom)); border-top:1px solid #eae3dd; background:rgba(251,250,247,.97); backdrop-filter:blur(12px); }
 .bottomNav a { min-height:52px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#6d6d72; text-decoration:none; }
 .bottomNav span { font-size:1.25rem; line-height:1; } .bottomNav b { font-size:.62rem; font-weight:700; } .bottomNav .active { color:#7652d8; }
 @media (min-width:391px) { .page { margin-top:10px; border-left:1px solid #f0f0f0; border-right:1px solid #f0f0f0; } }

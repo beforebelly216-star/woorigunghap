@@ -148,6 +148,14 @@
 - [x] `정보 수준 A/B` 제거, 출생시간 미입력 시 시주 제외 안내만 표시
 - [x] source `fcdb9eb` + 관련 contracts + TypeScript + lint + production build PASS
 
+## 완료 — 홈 미지원 섹션 정리 및 오늘의 한마디 365일화
+
+- [x] 기능이 없는 하단 `이벤트` 메뉴 제거 및 홈·보관함·마이페이지 3열 재배치
+- [x] 샘플 차트인 `관계 흐름 한눈에 보기` 섹션과 관련 렌더·스타일 제거
+- [x] 기존 한 문구를 포함한 중복 없는 365개 `주토피의 오늘의 한마디` 구성
+- [x] 서울 날짜 기준 일별 선택, 윤일은 2월 28일 문구 재사용
+- [x] 홈 전용 contract + lint(0 errors, 기존 warnings 5) + production build + local 200 응답 PASS
+
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
@@ -158,11 +166,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: Codex
-- Task: 홈 최근 보관함·점수 근거 토글·1:1 표시 범위 정리
-- Status: 구현 및 local validation 완료, main/Preview 배포 진행
-- Validation: account/info/evidence/UI/editorial/privacy contracts + TypeScript + lint + production build PASS
-- Scope: 최근 3개, 홈 인증, 항목별 근거, 대운·세운 UI 제거, 시간 미입력 안내
+- Task: 홈 이벤트/관계 흐름 제거 및 주토피 한마디 365일화
+- Status: 구현 및 local validation 완료
+- Validation: home daily quote contract + lint(0 errors, 기존 warnings 5) + production build + local 200 PASS
+- Scope: 하단 메뉴 3개, 샘플 차트 제거, 365개 중복 없는 서울 날짜별 문구
 - Remaining: Production에서 기존/신규 1:1 결제 → AI 3-segment → 저장 → 재열람 실동작 검증
 - Risk: 실제 결제/Anthropic 생성 성공 여부는 기존 운영 blocker로 미검증
-- Deploy: 사용자 승인 Preview 배포 진행; Production 미배포
+- Deploy: 미배포; Git 자동배포 OFF 유지
 ```

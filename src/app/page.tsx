@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import "./report-theme.css";
 import "../components/zootopi-mark.css";
 import styles from "./home-p5.module.css";
 import { ZootopiMark } from "@/components/zootopi-mark";
+import { getDailyQuote } from "@/lib/daily-quotes";
 import { HomeRecentReports } from "./home-recent-reports";
 
 function HeartIcon() {
@@ -11,12 +13,16 @@ function HeartIcon() {
 function PeopleIcon() {
   return <svg viewBox="0 0 72 56" aria-hidden="true"><circle cx="20" cy="18" r="9" fill="#f3eaff" stroke="#202024" strokeWidth="2"/><circle cx="36" cy="13" r="10" fill="#eadcff" stroke="#202024" strokeWidth="2"/><circle cx="52" cy="18" r="9" fill="#f8eafa" stroke="#202024" strokeWidth="2"/><path d="M7 48c1-11 7-17 13-17s12 6 13 17M23 48c1-14 7-21 13-21s12 7 13 21M39 48c1-11 7-17 13-17s12 6 13 17" fill="#fff" stroke="#202024" strokeWidth="2" strokeLinecap="round"/></svg>;
 }
-function TrendChart() {
-  return <svg className={styles.chartSvg} viewBox="0 0 300 95" role="img" aria-label="관계 흐름 예시 차트">
-    <path d="M8 72 C30 60,42 48,62 52 S96 47,112 42 S145 36,166 40 S202 50,220 35 S254 30,292 12" fill="none" stroke="#7652d8" strokeWidth="3" strokeLinecap="round"/>
-    {[8,62,112,166,220,292].map((x, i) => <circle key={x} cx={x} cy={[72,52,42,40,35,12][i]} r="4.5" fill="#b792ef" />)}
-    <circle cx="292" cy="12" r="8" fill="#fff" stroke="#ff6f89" strokeWidth="3"/><path d="M287 10c2-4 7-3 7 1 0 4-5 6-7 8-2-2-7-4-7-8 0-4 5-5 7-1Z" fill="#ff6f89"/>
-  </svg>;
+async function TodayQuote() {
+  await connection();
+  const quote = getDailyQuote(new Date());
+
+  return (
+    <aside className={styles.tipCard}>
+      <div><strong>주토피의 오늘의 한마디 💛</strong><p>{quote}</p></div>
+      <ZootopiMark expression="smile" withBody />
+    </aside>
+  );
 }
 export default function Home() {
   return (
@@ -36,9 +42,8 @@ export default function Home() {
 
       <HomeRecentReports />
 
-      <section className={styles.flowCard}><div className={styles.flowHeader}><h2>관계 흐름 한눈에 보기</h2><button type="button">주간⌄</button></div><TrendChart /><div className={styles.chartLabels}><span>7/10</span><span>7/11</span><span>7/12</span><span>7/13</span><span>오늘</span></div></section>
-      <aside className={styles.tipCard}><div><strong>주토피의 오늘의 한마디 💛</strong><p>인연은 기다리는 사람이 아니라,<br/>준비된 사람이 알아보는 거예요!</p></div><ZootopiMark expression="smile" withBody /></aside>
-      <nav className={styles.bottomNav} aria-label="주요 메뉴"><Link href="/" className={styles.active}><span>⌂</span><b>홈</b></Link><Link href="/account/reports"><span>▣</span><b>보관함</b></Link><Link href="/"><span>☆</span><b>이벤트</b></Link><Link href="/login"><span>♙</span><b>마이페이지</b></Link></nav>
+      <TodayQuote />
+      <nav className={styles.bottomNav} aria-label="주요 메뉴"><Link href="/" className={styles.active}><span>⌂</span><b>홈</b></Link><Link href="/account/reports"><span>▣</span><b>보관함</b></Link><Link href="/login"><span>♙</span><b>마이페이지</b></Link></nav>
     </main>
   );
 }
