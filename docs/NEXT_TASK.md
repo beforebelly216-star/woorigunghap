@@ -174,6 +174,8 @@
 - [x] 생년정보 암호화, 권한 token 분리·해시 저장, keyed HMAC rate limit/idempotency 적용
 - [x] 신규 유료 1:N 주문 410 및 무료 화면 redirect, 기존 구매 결과·복구 호환 유지
 - [x] 실제 엔진 S=91/E=43 fixture + 관련 회귀 테스트 + TypeScript + lint PASS
+- [x] Production source `c8e642d` 배포·운영 승격 — `dpl_H8A6Fkkjq9MpfvMc2aK2QNLpDNcA`
+- [x] 공개 운영 스모크 — 홈 200, 신규 유료 주문 410, 생성/참여 201, S=91/E=43, PII 비노출, ETag 304, 삭제 200
 
 ## 기본 검증
 
@@ -186,10 +188,10 @@ Git 자동배포는 OFF 유지.
 HANDOFF
 - Worker: Codex
 - Task: 무료 링크형 1:N 인연 네트워크 전면 개편
-- Status: 구현·local contract/TypeScript/lint/HTTP 검증 완료, production build·배포 진행 중
-- Validation: network/Day13/15/16/22/growth/hotfix PASS, TypeScript PASS, lint 0 errors
+- Status: 구현·Production 배포·공개 운영 스모크 완료
+- Validation: Core #33437750277, Vercel build, 4명·6관계선, S=91/E=43, PII/ETag/삭제 PASS
 - Scope: 최대 12명 모든 쌍, E~S, network UI, 4초 갱신, 암호화·삭제·30일 retention
 - Remaining: Production에서 기존/신규 1:1 결제 → AI 3-segment → 저장 → 재열람 실동작 검증
 - Risk: 실제 결제/Anthropic 생성 성공 여부는 기존 운영 blocker로 미검증
-- Deploy: 이번 변경 Production 배포 전; Git 자동배포 OFF 유지
+- Deploy: source c8e642d / dpl_H8A6Fkkjq9MpfvMc2aK2QNLpDNcA / Git 자동배포 OFF
 ```

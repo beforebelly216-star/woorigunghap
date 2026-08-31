@@ -126,3 +126,4 @@
 - Vercel Git 자동배포는 기본 비활성화한다.
 - Preview 배포는 사용자가 상시 승인했다. 변경 검증이 끝나면 별도 재확인 없이 배포하되 Git 자동배포는 다시 OFF로 복구한다.
 - Production 배포는 사용자 명시 승인 후 수행한다.
+- Vercel Authentication은 안정적인 Production 별칭을 공개하고 Preview와 개별 Production 배포 URL을 보호하는 `prod_deployment_urls_and_all_previews` 범위를 사용한다.
