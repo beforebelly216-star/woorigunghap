@@ -43,9 +43,12 @@ const store = readFileSync("src/lib/server-report-store.ts", "utf8");
 const paymentButton = readFileSync("src/components/payment-button.tsx", "utf8");
 const resultClient = readFileSync("src/app/one-to-many/result/one-to-many-paid-result.tsx", "utf8");
 const webhook = readFileSync("src/app/api/webhooks/portone/route.ts", "utf8");
+const checkout = readFileSync("src/app/one-to-many/checkout/page.tsx", "utf8");
 
-assert.match(orderRoute, /saveServerOrderDraft/);
-assert.match(orderRoute, /status: 503/);
+assert.match(orderRoute, /ONE_TO_MANY_NOW_FREE/);
+assert.match(orderRoute, /status: 410/);
+assert.doesNotMatch(orderRoute, /saveServerOrderDraft|createOneToManyOrderDraft/);
+assert.match(checkout, /redirect\("\/one-to-many"\)/);
 assert.match(paymentButton, /hashOneToManyInput/);
 assert.match(paymentButton, /bindingVersion: ORDER_BINDING_VERSION/);
 assert.match(reportRoute, /loadServerOrderForAccess/);

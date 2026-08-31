@@ -2,14 +2,15 @@ import { PolicyPage, PolicySection } from "@/components/policy-page";
 import { OPERATING_POLICY, OPERATOR_PUBLIC_INFO } from "@/lib/operating-policy";
 
 export default function TermsPage() {
-  return <PolicyPage title="이용약관" updatedAt="2026-08-21">
+  return <PolicyPage title="이용약관" updatedAt="2026-08-31">
     <PolicySection title="1. 서비스와 상품">
-      <p>우리사주는 사용자가 입력한 생년월일시와 관계 유형을 바탕으로 1:1 궁합 리포트와 1:다 비교 리포트를 제공하는 디지털 콘텐츠 서비스입니다.</p>
-      <p>1:1 상품은 1,000원, 1:다 상품은 3,000원이며 결제 승인과 서버 검증이 완료된 뒤 계산과 리포트 생성이 시작됩니다.</p>
+      <p>우리사주는 사용자가 입력한 생년월일시를 바탕으로 이상형 찾기, 링크형 1:N 인연 네트워크와 1:1 궁합 리포트를 제공하는 디지털 콘텐츠 서비스입니다.</p>
+      <p>이상형 찾기와 1:N 인연 네트워크는 무료이며, 1:1 상품은 1,000원입니다. 유료 리포트는 결제 승인과 서버 검증이 완료된 뒤 생성됩니다.</p>
     </PolicySection>
     <PolicySection title="2. 이용 조건과 책임 범위">
       <p>{OPERATING_POLICY.disclaimer}</p><p>{OPERATING_POLICY.aiBoundary}</p>
-      <p>사용자는 타인의 정보를 입력할 때 해당 정보를 서비스에 입력·처리할 정당한 권한 또는 동의를 확보해야 합니다.</p>
+      <p>무료 인연 네트워크에서는 각 참여자가 자신의 정보만 직접 입력해야 합니다. 참여자는 만 14세 이상이어야 하며, 별칭과 현재·이후 참여자 모두와의 점수·등급이 링크를 가진 사람에게 공개되는 범위를 확인하고 동의해야 합니다.</p>
+      <p>유료 1:1 등 타인의 정보를 직접 입력하는 기능을 이용할 때에는 해당 정보를 입력·처리할 정당한 권한 또는 동의를 확보해야 합니다.</p>
     </PolicySection>
     <PolicySection title="3. 결제·공급·재열람">
       <p>결제는 PortOne을 통해 연결된 전자결제수단으로 진행되며, 서버에서 상품·금액·승인 상태를 재검증합니다.</p>

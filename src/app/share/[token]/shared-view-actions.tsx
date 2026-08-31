@@ -69,8 +69,8 @@ export function SharedViewActions({ token, product, relationshipType, disclosure
   const secondaryTarget: GrowthCtaTarget = product === "oneToOne" ? "oneToMany" : "oneToOne";
   const primaryHref = primaryTarget === "oneToOne" ? "/one-to-one" : "/one-to-many";
   const secondaryHref = secondaryTarget === "oneToOne" ? "/one-to-one" : "/one-to-many";
-  const primaryLabel = primaryTarget === "oneToOne" ? "나도 1:1 궁합 보기" : "나도 1:다 비교해보기";
-  const secondaryLabel = secondaryTarget === "oneToOne" ? "1:1 궁합 보기" : "여러 사람 비교해보기";
+  const primaryLabel = primaryTarget === "oneToOne" ? "나도 1:1 궁합 보기" : "나도 인연 네트워크 만들기";
+  const secondaryLabel = secondaryTarget === "oneToOne" ? "1:1 궁합 보기" : "무료 인연 네트워크 만들기";
 
   return <>
     <section className={styles.reactionCard} aria-labelledby="shared-view-reaction-title">

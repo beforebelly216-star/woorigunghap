@@ -14,7 +14,7 @@ assert.match(policy, /5년/);
 assert.match(policy, /3년/);
 assert.match(payment, /agreementAccepted/);
 assert.match(oneToOne, /PurchasePolicyConsent/);
-assert.match(oneToMany, /PurchasePolicyConsent/);
+assert.match(oneToMany, /redirect\("\/one-to-many"\)/);
 assert.match(deleteRoute, /isSameOriginPost/);
 assert.match(deleteRoute, /confirmation !== "탈퇴"/);
 assert.match(accountStore, /legal-retention-v1/);
@@ -26,5 +26,8 @@ assert.match(privacy, /“OOO님”처럼 표시/);
 assert.match(privacy, /Anthropic API/);
 assert.match(privacy, /30일 이내 삭제/);
 assert.match(privacy, /국외 이전 고지 항목을 다시 확인/);
+assert.match(privacy, /무료 인연 네트워크/);
+assert.match(privacy, /생년정보는 서버에서 암호화/);
+assert.match(privacy, /30일이 지나면 즉시 조회를 차단/);
 
 console.log("Day 22 operating policy + AI privacy transfer contract checks: PASS");

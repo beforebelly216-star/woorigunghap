@@ -164,6 +164,17 @@
 - [x] 결정론 점수·순위, 결제, 저장, 복구, single-flight 로직 무변경
 - [x] Day 15 UI/Day 16 paid E2E/runtime/share contracts + lint + production build + demo local 200 응답 PASS
 
+## 완료 — 무료 1:N 인연 네트워크 전면 개편
+
+- [x] 홈 카드 순서를 이상형 찾기 → 1:N → 1:1로 변경
+- [x] 방장 자기정보 생성 → 링크 공유 → 참여자 자기정보 입력 흐름 구현
+- [x] 최대 12명의 모든 쌍을 기존 결정론 엔진 친구·지인 기준으로 계산
+- [x] SVG 인물 네트워크, 노드/관계선 선택, 총점·E~S 등급·순위·관계 축 구현
+- [x] 4초 polling + ETag, 방장 관리, 참여자 자기삭제, 30일 만료·일일 정리 구현
+- [x] 생년정보 암호화, 권한 token 분리·해시 저장, keyed HMAC rate limit/idempotency 적용
+- [x] 신규 유료 1:N 주문 410 및 무료 화면 redirect, 기존 구매 결과·복구 호환 유지
+- [x] 실제 엔진 S=91/E=43 fixture + 관련 회귀 테스트 + TypeScript + lint PASS
+
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
@@ -174,11 +185,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: Codex
-- Task: 1:N 결과를 종합 순위 전용 화면으로 정리
-- Status: 구현 및 local validation 완료
-- Validation: Day 15 UI/Day 16 paid E2E/runtime/share contracts + lint + production build + demo local 200 PASS
-- Scope: 순위 카드만 렌더, 나머지 결과·공유·계정 귀속 UI 제거, 계산/결제/저장/복구 유지
+- Task: 무료 링크형 1:N 인연 네트워크 전면 개편
+- Status: 구현·local contract/TypeScript/lint/HTTP 검증 완료, production build·배포 진행 중
+- Validation: network/Day13/15/16/22/growth/hotfix PASS, TypeScript PASS, lint 0 errors
+- Scope: 최대 12명 모든 쌍, E~S, network UI, 4초 갱신, 암호화·삭제·30일 retention
 - Remaining: Production에서 기존/신규 1:1 결제 → AI 3-segment → 저장 → 재열람 실동작 검증
 - Risk: 실제 결제/Anthropic 생성 성공 여부는 기존 운영 blocker로 미검증
-- Deploy: 미배포; Git 자동배포 OFF 유지
+- Deploy: 이번 변경 Production 배포 전; Git 자동배포 OFF 유지
 ```

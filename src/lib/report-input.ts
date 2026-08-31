@@ -86,7 +86,7 @@ export type OneToManyReportInput = {
   candidates: PersonBirthInput[];
 };
 
-function parsePersonBirthInput(person: unknown): PersonBirthInput | null {
+export function parsePersonBirthInput(person: unknown): PersonBirthInput | null {
   if (!person || typeof person !== "object" || Array.isArray(person)) return null;
   const item = person as Record<string, unknown>;
   if (
@@ -192,7 +192,7 @@ function isValidLunarDateShape(value: string) {
   return parts.month >= 1 && parts.month <= 12 && parts.day >= 1 && parts.day <= 30;
 }
 
-function validatePerson(person: PersonBirthInput, prefix: string) {
+export function validatePersonBirthInput(person: PersonBirthInput, prefix: string) {
   const errors: InputFieldErrors = {};
   const name = person.displayName.trim();
 
@@ -280,8 +280,8 @@ export function validateOneToOneReportInput(
     errors.mostCurious = `가장 궁금한 점은 ${MAX_MOST_CURIOUS_LENGTH}자 이하로 입력해 주세요.`;
   }
 
-  Object.assign(errors, validatePerson(input.personA, "personA"));
-  Object.assign(errors, validatePerson(input.personB, "personB"));
+  Object.assign(errors, validatePersonBirthInput(input.personA, "personA"));
+  Object.assign(errors, validatePersonBirthInput(input.personB, "personB"));
 
   return {
     valid: Object.keys(errors).length === 0,
@@ -303,9 +303,9 @@ export function validateOneToManyReportInput(input: OneToManyReportInput) {
     errors.candidates = `비교 대상은 ${ONE_TO_MANY_MIN_CANDIDATES}명부터 ${ONE_TO_MANY_MAX_CANDIDATES}명까지 입력해 주세요.`;
   }
 
-  Object.assign(errors, validatePerson(input.referencePerson, "referencePerson"));
+  Object.assign(errors, validatePersonBirthInput(input.referencePerson, "referencePerson"));
   input.candidates.forEach((person, index) => {
-    Object.assign(errors, validatePerson(person, `candidates.${index}`));
+    Object.assign(errors, validatePersonBirthInput(person, `candidates.${index}`));
   });
 
   return {

@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 const homeSource = readFileSync("src/app/page.tsx", "utf8");
 const homeCss = readFileSync("src/app/home-p5.module.css", "utf8");
 assert.match(homeSource, /href="\/free"/);
-assert.match(homeSource, /무료 천생연분/);
+assert.match(homeSource, /이상형 찾기/);
 assert.match(homeSource, /href="\/one-to-one"/);
 assert.match(homeSource, /href="\/one-to-many"/);
 assert.match(homeCss, /grid-template-columns:\s*repeat\(3/);
@@ -60,8 +60,9 @@ assert.match(oneToOneCss, /one-to-one-reference-page/);
 
 const oneToManyPage = readFileSync("src/app/one-to-many/page.tsx", "utf8");
 const oneToManyCss = readFileSync("src/app/one-to-many/one-to-many-input-v3.css", "utf8");
-assert.match(oneToManyPage, /1:N 궁합 입력/);
+assert.match(oneToManyPage, /1:N 인연 네트워크/);
 assert.match(oneToManyPage, /reference-input-screen/);
+assert.match(oneToManyPage, /RelationshipNetworkCreateForm/);
 assert.match(oneToManyCss, /#7b46d8/i);
 assert.match(oneToManyCss, /one-to-many-reference-page/);
 

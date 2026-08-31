@@ -14,6 +14,7 @@ on:
       - "scripts/report-*.ts"
       - "scripts/growth-*.ts"
       - "scripts/hotfix-*.ts"
+      - "scripts/relationship-network-*.ts"
       - "package.json"
       - "package-lock.json"
       - "vercel.json"
@@ -29,6 +30,7 @@ on:
       - "scripts/report-*.ts"
       - "scripts/growth-*.ts"
       - "scripts/hotfix-*.ts"
+      - "scripts/relationship-network-*.ts"
       - "package.json"
       - "package-lock.json"
       - "vercel.json"
@@ -75,6 +77,7 @@ jobs:
           npm run test:day15:one-to-many-narrative
           npm run test:day15:one-to-many-result-ui
           npm run test:day16:one-to-many-paid-e2e
+          npm run test:relationship-network
       - name: Run account, editorial, policy, growth and system QA contracts
         run: |
           npm run test:day17:kakao-auth

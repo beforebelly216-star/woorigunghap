@@ -1,15 +1,15 @@
 # 우리사주
 
-생년월일시와 관계 유형을 바탕으로 1:1·1:N 관계 궁합 리포트를 제공하는 Next.js 서비스입니다.
+생년월일시를 바탕으로 무료 링크형 인연 네트워크와 유료 1:1 관계 궁합 리포트를 제공하는 Next.js 서비스입니다.
 
 > 공식 프로젝트명/서비스명은 **우리사주**입니다. 저장소명 `woorigunghap`, 기존 Vercel 도메인, DB 테이블의 `woorigunghap_*` prefix는 기존 데이터·배포 호환을 위한 레거시 내부 식별자이며 사용자 노출 브랜드명이 아닙니다.
 
 ## 상품
 
 - 1:1 관계 궁합: 1,000원
-- 1:N 비교 궁합: 3,000원
+- 1:N 인연 네트워크: 무료, 최대 12명
 - 관계 유형: 짝사랑 / 썸 / 연인 / 친구 / 직장동료
-- 1:N: 기준자 1명 + 후보 2~5명
+- 1:N: 방장과 링크 참여자가 각자 자기 정보만 입력, 모든 참여자 쌍 계산
 
 ## 핵심 구조
 
@@ -27,7 +27,7 @@
 - `manseryeok 2.0.0` 기반 만세력 계산 및 경계 검증
 - 9개 궁합 지표와 관계 유형별 배점
 - 1:1 CH0~CH9 장문 리포트
-- 1:N 후보 비교·순위·공동 추천
+- 무료 1:N 인물 네트워크·모든 쌍 점수·E~S 등급·실시간 갱신
 - PortOne V2 결제 검증 및 webhook 멱등 처리
 - Neon 주문/결제/결과 저장 및 복구
 - 카카오 로그인, 계정 귀속, 보관함, 회원탈퇴/데이터 삭제
@@ -49,6 +49,8 @@ PORTONE_API_SECRET=
 PORTONE_WEBHOOK_SECRET=
 ANTHROPIC_API_KEY=
 DATABASE_URL=
+NETWORK_PII_ENCRYPTION_KEY=
+CRON_SECRET=
 KAKAO_REST_API_KEY=
 KAKAO_CLIENT_SECRET=
 KAKAO_ADMIN_KEY=
@@ -89,15 +91,15 @@ NEXT_PUBLIC_APP_URL=
 
 ```text
 홈
-→ 기준자 + 후보 2~5명 입력
-→ 서버 주문 저장
-→ 3,000원 결제
-→ 결제·입력 해시 검증
-→ 후보별 동일 계산 엔진
-→ 서버 랭킹
-→ 통합 AI 해설 1회
-→ 저장/복구
+→ 방장이 자기 정보만 입력
+→ 불투명 초대 링크 공유
+→ 방문자가 자기 정보와 공개 범위 동의 입력
+→ 기존 1:1 결정론 엔진으로 모든 참여자 쌍 계산
+→ 인물 네트워크에서 노드·관계선·E~S 등급 탐색
+→ 정밀한 관계 해설이 필요하면 유료 1:1로 이동
 ```
+
+기존 3,000원 1:N 구매 결과·복구·공유 코드는 과거 구매 호환을 위해 유지하지만 신규 주문은 받지 않습니다.
 
 ## 주요 문서
 
@@ -136,6 +138,7 @@ npm run test:day18:account-report-library
 npm run test:day22:operating-policy
 npm run test:day24:beta-freeze
 npm run test:one-to-one:quality-gate
+npm run test:relationship-network
 ```
 
 ## 개발/배포 원칙

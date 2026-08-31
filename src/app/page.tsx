@@ -28,16 +28,16 @@ export default function Home() {
   return (
     <main className={`${styles.page} home-mobile-page`}>
       <section className={styles.heroCard}>
-        <div className={styles.heroText}><h1>당신의 궁합,<br/>지금 확인해보세요</h1><p>우리의 인연을 명확하게</p><span>1:1 1,000원 <b>|</b> 1:N 3,000원</span></div>
+        <div className={styles.heroText}><h1>당신의 궁합,<br/>지금 확인해보세요</h1><p>우리의 인연을 명확하게</p><span>1:N 무료 <b>|</b> 1:1 1,000원</span></div>
         <div className={styles.heroArt}><span className={styles.sparkleOne}>✦</span><span className={styles.sparkleTwo}>✦</span><ZootopiMark expression="idea" withBody /></div>
       </section>
 
       <section className={styles.quickGrid} aria-label="궁합 상품 선택">
         <Link href="/free" className={`${styles.quickCard} ${styles.soulmate}`}>
-          <strong>무료 천생연분</strong><span>내 짝의 사주 보기</span><div className={styles.soulmateIcon}><ZootopiMark expression="smile" /></div>
+          <strong>이상형 찾기</strong><span>내 짝의 사주 보기</span><div className={styles.soulmateIcon}><ZootopiMark expression="smile" /></div>
         </Link>
-        <Link href="/one-to-one" className={`${styles.quickCard} ${styles.oneToOne}`}><strong>1:1 궁합</strong><span>둘의 궁합 보기</span><HeartIcon /></Link>
-        <Link href="/one-to-many" className={`${styles.quickCard} ${styles.oneToMany}`}><strong>1:N 궁합</strong><span>여러 사람 비교</span><PeopleIcon /></Link>
+        <Link href="/one-to-many" className={`${styles.quickCard} ${styles.oneToMany}`}><strong>1:N 궁합 보기</strong><span>친구와 관계망 만들기</span><PeopleIcon /></Link>
+        <Link href="/one-to-one" className={`${styles.quickCard} ${styles.oneToOne}`}><strong>1:1 궁합 보기</strong><span>둘의 정밀궁합 보기</span><HeartIcon /></Link>
       </section>
 
       <HomeRecentReports />

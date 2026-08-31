@@ -70,14 +70,8 @@ for (const marker of [
 ]) {
   assert.ok(oneToOneCheckout.includes(marker), `1:1 checkout must retain v3 paid-flow marker: ${marker}`);
 }
-for (const marker of [
-  "1:N 궁합 · 결제",
-  "후보 비교를 시작할 준비가 됐어요.",
-  "1:N 전체 비교 보기 · 3,000원",
-  "중복 생성 방지",
-]) {
-  assert.ok(oneToManyCheckout.includes(marker), `1:N checkout must retain v3 paid-flow marker: ${marker}`);
-}
+assert.ok(oneToManyCheckout.includes('redirect("/one-to-many")'), "retired paid 1:N checkout must redirect to the free network");
+assert.ok(!oneToManyCheckout.includes("PaymentButton"), "retired paid 1:N checkout must not open a new payment");
 assert.ok(oneToManyPaidResult.includes("같은 결제로 다시 확인하기"), "1:N failed generation must preserve manual same-payment retry");
 assert.ok(oneToManyPaidResult.includes("REPORT_GENERATION_IN_PROGRESS"), "1:N generation must preserve single-flight in-progress recovery");
 

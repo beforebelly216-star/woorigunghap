@@ -1,49 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createOneToManyOrderDraft } from "@/lib/orders";
-import { parseOneToManyReportInput, validateOneToManyReportInput } from "@/lib/report-input";
-import { isServerReportStoreConfigured, saveServerOrderDraft } from "@/lib/server-report-store";
+import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-export async function POST(request: NextRequest) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "JSON 요청 형식이 올바르지 않습니다." }, { status: 400 });
-  }
-
-  const input = parseOneToManyReportInput(
-    body && typeof body === "object" && !Array.isArray(body)
-      ? (body as { input?: unknown }).input
-      : null,
-  );
-  if (!input) return NextResponse.json({ error: "1:다 입력값 형식이 올바르지 않습니다." }, { status: 400 });
-
-  const validation = validateOneToManyReportInput(input);
-  if (!validation.valid) {
-    return NextResponse.json({ error: "비교 입력값을 다시 확인해 주세요.", fieldErrors: validation.errors }, { status: 400 });
-  }
-
-  const order = createOneToManyOrderDraft(input);
-  try {
-    const persisted = await saveServerOrderDraft(order);
-    if (!persisted) {
-      console.error("[woorigunghap:one-to-many-order-store-not-configured]", {
-        databaseConfigured: isServerReportStoreConfigured(),
-      });
-      return NextResponse.json({
-        error: "1:다 결과 저장소가 아직 연결되지 않아 결제를 시작할 수 없습니다.",
-        code: "PAYMENT_STORE_NOT_CONFIGURED",
-      }, { status: 503 });
-    }
-    return NextResponse.json({ order, persisted });
-  } catch (error) {
-    console.error("[woorigunghap:one-to-many-order-store]", error);
-    return NextResponse.json({
-      error: "1:다 주문을 안전하게 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      code: "PAYMENT_STORE_UNAVAILABLE",
-      serverStorageConfigured: isServerReportStoreConfigured(),
-    }, { status: 503 });
-  }
+/**
+ * 신규 1:N은 무료 인연 네트워크로 전환했다. 과거 3,000원 주문의
+ * 검증·결과·복구 경로는 유지하되 새 유료 주문은 더 만들지 않는다.
+ */
+export async function POST() {
+  return NextResponse.json({
+    error: "1:N 궁합은 무료 인연 네트워크로 바뀌었습니다.",
+    code: "ONE_TO_MANY_NOW_FREE",
+    url: "/one-to-many",
+  }, {
+    status: 410,
+    headers: {
+      "cache-control": "private, no-store, max-age=0",
+      "referrer-policy": "no-referrer",
+    },
+  });
 }

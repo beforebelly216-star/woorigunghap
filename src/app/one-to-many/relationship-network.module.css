@@ -1,0 +1,911 @@
+.page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 0 14px 64px;
+  background:
+    radial-gradient(circle at 50% -80px, rgba(183, 146, 239, .2), transparent 290px),
+    #fbfaf7;
+  color: #222026;
+  font-family: var(--saju-font-sans);
+}
+
+.shell {
+  width: min(100%, 390px);
+  margin: 0 auto;
+}
+
+.appHeader {
+  min-height: 58px;
+  border-bottom-color: rgba(112, 87, 151, .12);
+}
+
+.appHeader > span {
+  width: auto;
+  height: 28px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 999px;
+  background: #eee6ff;
+  color: #6f46c4;
+  font-size: .68rem;
+}
+
+.createHero,
+.networkHero {
+  position: relative;
+  overflow: hidden;
+  margin-top: 16px;
+  padding: 24px 20px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #8060df 0%, #a581e9 55%, #efabd7 100%);
+  color: #fff;
+  box-shadow: 0 16px 36px rgba(108, 77, 174, .2);
+}
+
+.createHero {
+  min-height: 208px;
+  display: grid;
+  grid-template-columns: 1fr 92px;
+  gap: 10px;
+  align-items: center;
+}
+
+.eyebrow {
+  display: inline-flex;
+  margin-bottom: 10px;
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  opacity: .82;
+}
+
+.createHero h1,
+.networkHero h1 {
+  margin: 0;
+  font-size: 1.48rem;
+  line-height: 1.23;
+  letter-spacing: -.045em;
+}
+
+.createHero h1 em {
+  color: #fff3a8;
+  font-style: normal;
+}
+
+.createHero p,
+.networkHero p {
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, .9);
+  font-size: .75rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.heroMascot {
+  position: relative;
+  align-self: end;
+  width: 96px;
+  height: 126px;
+}
+
+.heroMascot > span {
+  position: absolute;
+  top: 2px;
+  right: 5px;
+  z-index: 2;
+  color: #fff7be;
+  font-size: 1.2rem;
+}
+
+.heroMascot :global(.zt-mark) {
+  position: absolute;
+  right: -8px;
+  bottom: -15px;
+  width: 100px;
+  height: 118px;
+}
+
+.featureStrip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.featureStrip div {
+  min-width: 0;
+  min-height: 78px;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  padding: 10px 8px;
+  border: 1px solid #e8e0f2;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .92);
+  text-align: center;
+  box-shadow: 0 7px 18px rgba(53, 39, 74, .04);
+}
+
+.featureStrip strong {
+  color: #7652d8;
+  font-family: var(--saju-font-data);
+  font-size: .65rem;
+}
+
+.featureStrip span {
+  color: #5f5964;
+  font-size: .68rem;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.createForm {
+  display: grid;
+  gap: 12px;
+  padding-top: 18px;
+}
+
+.formCard,
+.joinCard,
+.graphCard,
+.relationshipCard,
+.rankingCard,
+.manageCard,
+.emptyCard {
+  border: 1px solid #e8e1e7;
+  border-radius: 19px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(47, 36, 54, .045);
+}
+
+.formCard,
+.joinCard {
+  padding: 18px 16px;
+}
+
+.formHeading {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eee8ed;
+}
+
+.formHeading > span {
+  color: #7652d8;
+  font-family: var(--saju-font-data);
+  font-size: .65rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.formHeading h2 {
+  margin: 6px 0 4px;
+  font-size: 1rem;
+  letter-spacing: -.03em;
+}
+
+.formHeading p {
+  margin: 0;
+  color: #777078;
+  font-size: .7rem;
+  line-height: 1.5;
+}
+
+.formCard :global(.person-panel),
+.joinCard :global(.person-panel) {
+  padding: 0;
+}
+
+.consentCard {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 15px;
+  border: 1px solid #dfd3f0;
+  border-radius: 15px;
+  background: #f9f5ff;
+  cursor: pointer;
+}
+
+.consentCard input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: #7652d8;
+}
+
+.consentCard span {
+  display: grid;
+  gap: 5px;
+}
+
+.consentCard strong {
+  font-size: .78rem;
+}
+
+.consentCard small {
+  color: #655e69;
+  font-size: .68rem;
+  line-height: 1.55;
+}
+
+.policyLinks {
+  margin: -4px 2px 0;
+  color: #6d6571;
+  font-size: .67rem;
+  line-height: 1.5;
+}
+
+.policyLinks a {
+  color: #6245b2;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.basisNote {
+  margin: 10px 0 0;
+  color: #716a76;
+  font-size: .67rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.privacyNote {
+  padding: 14px 15px;
+  border: 1px solid #eadfc9;
+  border-radius: 14px;
+  background: #fffaf0;
+}
+
+.privacyNote strong {
+  font-size: .73rem;
+}
+
+.privacyNote p {
+  margin: 6px 0 0;
+  color: #716a63;
+  font-size: .67rem;
+  line-height: 1.55;
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton,
+.shareButton,
+.modeButton,
+.connectionButton,
+.memberChip {
+  font: inherit;
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton,
+.shareButton {
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  font-size: .8rem;
+  font-weight: 900;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primaryButton {
+  width: 100%;
+  border: 0;
+  background: linear-gradient(135deg, #7046cc, #8c5de2);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(112, 70, 204, .2);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.shareButton:disabled {
+  cursor: wait;
+  opacity: .62;
+}
+
+.formFootnote {
+  margin: -2px 0 0;
+  color: #817a82;
+  font-size: .66rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.networkMain {
+  display: grid;
+  gap: 14px;
+  padding-top: 0;
+}
+
+.networkHero {
+  min-height: 174px;
+}
+
+.networkHero::after {
+  content: "";
+  position: absolute;
+  right: -32px;
+  bottom: -56px;
+  width: 170px;
+  height: 170px;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: 50%;
+  box-shadow: 0 0 0 28px rgba(255, 255, 255, .06), 0 0 0 58px rgba(255, 255, 255, .04);
+}
+
+.heroTopline,
+.sectionHeader,
+.graphHeader,
+.relationshipHeader,
+.manageRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.heroTopline {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 22px;
+}
+
+.liveBadge,
+.closedBadge,
+.countBadge,
+.gradeBadge,
+.hostBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.liveBadge,
+.closedBadge {
+  padding: 6px 9px;
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+  font-size: .65rem;
+  backdrop-filter: blur(6px);
+}
+
+.liveBadge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: #bff4cf;
+  box-shadow: 0 0 0 4px rgba(191, 244, 207, .18);
+}
+
+.closedBadge {
+  background: rgba(38, 31, 45, .25);
+}
+
+.shareButton {
+  position: relative;
+  z-index: 1;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, .48);
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+  font-size: .68rem;
+}
+
+.networkHero h1,
+.networkHero p {
+  position: relative;
+  z-index: 1;
+  max-width: 285px;
+}
+
+.networkHero h1 strong {
+  color: #fff4ad;
+}
+
+.networkStatus {
+  min-height: 20px;
+  margin: 0;
+  color: #6d52af;
+  font-size: .7rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.joinCard {
+  display: grid;
+  gap: 14px;
+  border-color: #dfd3f0;
+  background: linear-gradient(180deg, #fff, #fcf9ff);
+}
+
+.joinIntro h2,
+.sectionHeader h2,
+.graphHeader h2,
+.relationshipHeader h2 {
+  margin: 0;
+  font-size: .95rem;
+  letter-spacing: -.025em;
+}
+
+.joinIntro p,
+.sectionHeader p,
+.graphHeader p {
+  margin: 5px 0 0;
+  color: #766f78;
+  font-size: .68rem;
+  line-height: 1.5;
+}
+
+.graphCard,
+.relationshipCard,
+.rankingCard,
+.manageCard,
+.emptyCard {
+  padding: 17px 15px;
+}
+
+.countBadge {
+  min-width: 44px;
+  padding: 6px 9px;
+  background: #f1ebfb;
+  color: #6e4cb6;
+  font-family: var(--saju-font-data);
+  font-size: .7rem;
+}
+
+.modeTabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-top: 13px;
+  padding: 4px;
+  border-radius: 11px;
+  background: #f4f1f5;
+}
+
+.modeButton {
+  min-height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #777078;
+  font-size: .67rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.modeButtonActive {
+  background: #fff;
+  color: #6942bd;
+  box-shadow: 0 3px 10px rgba(59, 45, 68, .08);
+}
+
+.graphStage {
+  position: relative;
+  overflow: hidden;
+  margin-top: 10px;
+  border: 1px solid #eee8f1;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at center, rgba(135, 92, 221, .09), transparent 32%),
+    radial-gradient(circle, #e8e1ec 1px, transparent 1px),
+    #fdfcfe;
+  background-size: auto, 16px 16px, auto;
+}
+
+.networkSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.graphEdge {
+  stroke-linecap: round;
+  transition: opacity .25s ease, stroke-width .25s ease;
+}
+
+.graphEdgeHit {
+  stroke: transparent;
+  stroke-width: 16;
+  cursor: pointer;
+}
+
+.graphEdgeSelected {
+  filter: drop-shadow(0 2px 3px rgba(65, 47, 75, .2));
+}
+
+.graphNode {
+  cursor: pointer;
+  outline: none;
+}
+
+.graphNodeCircle {
+  fill: #fff;
+  stroke: #cfc4d6;
+  stroke-width: 2;
+  filter: drop-shadow(0 4px 7px rgba(49, 37, 57, .13));
+  transition: transform .2s ease, stroke-width .2s ease;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.graphNodeHost {
+  fill: #7b53d6;
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.graphNodeSelected {
+  stroke: #ffca5c;
+  stroke-width: 4;
+  transform: scale(1.08);
+}
+
+.graphNodeText {
+  fill: #332e36;
+  font-size: 10px;
+  font-weight: 900;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.graphNodeTextHost {
+  fill: #fff;
+}
+
+.graphNodeRole {
+  fill: #7e7581;
+  font-size: 7px;
+  font-weight: 800;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.graphScoreBubble {
+  fill: #252129;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.graphScoreText {
+  fill: #fff;
+  font-family: var(--saju-font-data);
+  font-size: 8px;
+  font-weight: 900;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.memberChips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-top: 10px;
+  padding: 1px 0 4px;
+  scrollbar-width: thin;
+}
+
+.memberChip {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #e2dce5;
+  border-radius: 999px;
+  background: #fff;
+  color: #625b65;
+  font-size: .66rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.memberChipActive {
+  border-color: #8d67db;
+  background: #f1eaff;
+  color: #603caf;
+}
+
+.gradeLegend {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.gradeLegend span {
+  display: grid;
+  place-items: center;
+  min-height: 26px;
+  border-radius: 8px;
+  color: #fff;
+  font-family: var(--saju-font-data);
+  font-size: .64rem;
+  font-weight: 900;
+}
+
+.relationshipHeader {
+  align-items: flex-start;
+}
+
+.relationshipNames {
+  display: grid;
+  gap: 4px;
+}
+
+.relationshipNames small {
+  color: #7a737b;
+  font-size: .65rem;
+}
+
+.gradeBadge {
+  min-width: 42px;
+  height: 42px;
+  color: #fff;
+  font-family: var(--saju-font-data);
+  font-size: 1.05rem;
+}
+
+.scoreLine {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.scoreLine strong {
+  font-family: var(--saju-font-data);
+  font-size: 2.75rem;
+  line-height: 1;
+  letter-spacing: -.05em;
+}
+
+.scoreLine span {
+  color: #777078;
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.relationshipLabel {
+  margin: 10px 0 0;
+  font-size: .83rem;
+  font-weight: 900;
+}
+
+.relationshipDescription,
+.rangeNote {
+  margin: 5px 0 0;
+  color: #716a73;
+  font-size: .69rem;
+  line-height: 1.55;
+}
+
+.rangeNote {
+  color: #8064b5;
+}
+
+.insightGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.insightGrid > div {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8f5fa;
+}
+
+.insightGrid small {
+  display: block;
+  margin-bottom: 7px;
+  color: #776f79;
+  font-size: .63rem;
+  font-weight: 850;
+}
+
+.insightGrid p {
+  margin: 0;
+  font-size: .7rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.ctaButton {
+  margin-top: 14px;
+}
+
+.connectionList,
+.rankingList {
+  display: grid;
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.connectionButton,
+.rankingRow {
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 11px;
+  border: 1px solid #ece6ed;
+  border-radius: 12px;
+  background: #fff;
+  color: #302c32;
+}
+
+.connectionButton {
+  text-align: left;
+  cursor: pointer;
+}
+
+.connectionButton:hover,
+.connectionButtonActive {
+  border-color: #cbb8ea;
+  background: #fbf8ff;
+}
+
+.connectionButton strong,
+.rankingRow strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: .73rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connectionButton span,
+.rankingRow span {
+  font-family: var(--saju-font-data);
+  font-size: .73rem;
+  font-weight: 900;
+}
+
+.connectionButton b,
+.rankingRow b {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  font-family: var(--saju-font-data);
+  font-size: .67rem;
+}
+
+.rankingRow {
+  grid-template-columns: 25px 1fr auto auto;
+}
+
+.rankingRow > em {
+  color: #8b838d;
+  font-family: var(--saju-font-data);
+  font-size: .68rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.emptyCard {
+  color: #777078;
+  font-size: .72rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.manageCard {
+  display: grid;
+  gap: 10px;
+}
+
+.manageCard summary {
+  cursor: pointer;
+  font-size: .74rem;
+  font-weight: 900;
+}
+
+.manageBody {
+  display: grid;
+  gap: 9px;
+  padding-top: 8px;
+}
+
+.manageRow {
+  padding: 10px 0;
+  border-top: 1px solid #eee8ed;
+}
+
+.manageRow div {
+  display: grid;
+  gap: 3px;
+}
+
+.manageRow strong {
+  font-size: .71rem;
+}
+
+.manageRow small {
+  color: #7c747d;
+  font-size: .63rem;
+}
+
+.secondaryButton,
+.dangerButton {
+  min-height: 36px;
+  padding: 0 11px;
+  font-size: .66rem;
+}
+
+.secondaryButton {
+  border: 1px solid #cbbbe1;
+  background: #fff;
+  color: #6744b0;
+}
+
+.dangerButton {
+  border: 1px solid #e8bbc2;
+  background: #fff7f8;
+  color: #bb4959;
+}
+
+.hostBadge {
+  padding: 3px 6px;
+  background: #efe8fb;
+  color: #6743b3;
+  font-size: .58rem;
+}
+
+.deletedState {
+  min-height: 70vh;
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.deletedState h1 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.deletedState p {
+  margin: 0;
+  color: #746d76;
+  font-size: .75rem;
+}
+
+.deletedState a {
+  color: #7048c5;
+  font-size: .76rem;
+  font-weight: 900;
+}
+
+@media (max-width: 360px) {
+  .page { padding-inline: 10px; }
+  .createHero { grid-template-columns: 1fr 76px; padding-inline: 17px; }
+  .createHero h1, .networkHero h1 { font-size: 1.35rem; }
+  .heroMascot { width: 80px; }
+  .heroMascot :global(.zt-mark) { right: -14px; width: 92px; }
+  .graphCard, .relationshipCard, .rankingCard, .manageCard { padding-inline: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graphEdge,
+  .graphNodeCircle {
+    transition: none;
+  }
+}

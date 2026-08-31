@@ -52,6 +52,7 @@
     "test:growth:p6-share-cards": "tsx scripts/growth-p6-share-card-experiment-test.ts",
     "test:growth:free-acquisition": "tsx scripts/growth-free-acquisition-test.ts",
     "test:home:daily-quote": "node --experimental-strip-types scripts/home-daily-quote-contract-test.mjs",
+    "test:relationship-network": "tsx scripts/relationship-network-contract-test.ts",
     "test:hotfix:runtime-ux": "tsx scripts/hotfix-runtime-ux-test.ts",
     "test:hotfix:ai-generation": "tsx scripts/hotfix-ai-generation-test.ts",
     "test:hotfix:paid-result-stuck-prepare": "tsx scripts/hotfix-paid-result-stuck-prepare-test.ts"
