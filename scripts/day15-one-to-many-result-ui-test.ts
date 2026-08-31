@@ -82,22 +82,26 @@ const errorSource = readFileSync("src/app/one-to-many/result/demo/error.tsx", "u
 const formSource = readFileSync("src/components/one-to-many-form.tsx", "utf8");
 
 assert.match(resultSource, /한눈에 보는 순위/);
-assert.match(resultSource, /후보 역할/);
-assert.match(resultSource, /공통 지표 비교/);
-assert.match(resultSource, /후보별 강점과 주의/);
-assert.match(resultSource, /관계 9개 기준 상세 점수/);
-assert.match(resultSource, /관계 9개 기준 비교표/);
-assert.match(resultSource, /공동 추천/);
-assert.match(resultSource, /<details/);
-assert.match(resultSource, /<table/);
-assert.match(resultSource, /candidate.insightTitle/);
+assert.equal((resultSource.match(/<section/g) ?? []).length, 1, "1:다 결과에는 종합 순위 섹션 하나만 남아야 합니다.");
+for (const removedResultContent of [
+  "후보 역할",
+  "공통 지표 비교",
+  "상황별 추천",
+  "후보별 강점과 주의",
+  "관계 9개 기준 상세 점수",
+  "마무리 안내",
+  "OneToManyShareCard",
+  "comparison-method-note",
+  "comparison-actions",
+]) {
+  assert.doesNotMatch(resultSource, new RegExp(removedResultContent), `순위 외 결과 콘텐츠가 남으면 안 됩니다: ${removedResultContent}`);
+}
+assert.doesNotMatch(resultSource, /view\.(candidateInsights|summaryMetrics|recommendations|detailedDimensions|finalSummary|headline|summary|closenessNotice)/);
 assert.doesNotMatch(resultSource, /candidate.rank}위<\/b>/);
-assert.ok(resultSource.indexOf("후보 역할") < resultSource.indexOf("공통 지표 비교"), "candidate role must precede common metrics");
-assert.ok(resultSource.indexOf("공통 지표 비교") < resultSource.indexOf("후보별 강점과 주의"), "common metrics must precede candidate detail");
-assert.ok(resultSource.indexOf("final-summary-title") < resultSource.indexOf("<OneToManyShareCard"), "sharing should come after the comparison decision flow");
 assert.match(paidPageSource, /one-to-many-foundation\.css/);
 assert.match(paidPageSource, /OneToManyPaidResult/);
-assert.match(paidClientSource, /one-to-many-result-wrap/);
+assert.match(paidClientSource, /<OneToManyResult view=\{view\} \/>/);
+assert.doesNotMatch(paidClientSource, /ReportAccountLink|one-to-many-result-wrap/);
 assert.match(inputPageSource, /one-to-many-foundation\.css/);
 assert.match(inputPageSource, /className="one-to-many-page reference-input-screen one-to-many-reference-page"/);
 assert.doesNotMatch(inputPageSource, /className="input-page"|className="input-shell"/);
@@ -109,7 +113,7 @@ assert.match(foundationCss, /var\(--saju-width-compare\)/);
 assert.match(foundationCss, /@media \(max-width:\s*720px\)/);
 assert.match(foundationCss, /@media \(max-width:\s*480px\)/);
 assert.doesNotMatch(foundationCss, /max-width:\s*99999px|linear-gradient|radial-gradient|box-shadow:\s*0\s+\d/i);
-assert.match(demoSource, /demo/);
+assert.match(demoSource, /<OneToManyResult view=\{view\} \/>/);
 assert.match(errorSource, /reset/);
 assert.match(formSource, /1:N 궁합 분석 시작하기 · 3,000원/);
 

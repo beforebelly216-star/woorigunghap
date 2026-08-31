@@ -156,6 +156,14 @@
 - [x] 서울 날짜 기준 일별 선택, 윤일은 2월 28일 문구 재사용
 - [x] 홈 전용 contract + lint(0 errors, 기존 warnings 5) + production build + local 200 응답 PASS
 
+## 완료 — 1:N 결과 순위 전용 화면 정리
+
+- [x] `종합 결과 → 한눈에 보는 순위`와 후보별 순위·종합점수 카드만 유지
+- [x] 총평·역할·공통 지표·상황별 추천·후보별 상세·9개 점수·마무리·공유·결과 하단 UI 제거
+- [x] 결과 화면의 계정 귀속 패널 제거
+- [x] 결정론 점수·순위, 결제, 저장, 복구, single-flight 로직 무변경
+- [x] Day 15 UI/Day 16 paid E2E/runtime/share contracts + lint + production build + demo local 200 응답 PASS
+
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
@@ -166,10 +174,10 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker: Codex
-- Task: 홈 이벤트/관계 흐름 제거 및 주토피 한마디 365일화
+- Task: 1:N 결과를 종합 순위 전용 화면으로 정리
 - Status: 구현 및 local validation 완료
-- Validation: home daily quote contract + lint(0 errors, 기존 warnings 5) + production build + local 200 PASS
-- Scope: 하단 메뉴 3개, 샘플 차트 제거, 365개 중복 없는 서울 날짜별 문구
+- Validation: Day 15 UI/Day 16 paid E2E/runtime/share contracts + lint + production build + demo local 200 PASS
+- Scope: 순위 카드만 렌더, 나머지 결과·공유·계정 귀속 UI 제거, 계산/결제/저장/복구 유지
 - Remaining: Production에서 기존/신규 1:1 결제 → AI 3-segment → 저장 → 재열람 실동작 검증
 - Risk: 실제 결제/Anthropic 생성 성공 여부는 기존 운영 blocker로 미검증
 - Deploy: 미배포; Git 자동배포 OFF 유지

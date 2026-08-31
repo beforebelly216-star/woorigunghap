@@ -122,7 +122,7 @@ for (const [label, shareSource] of [["1:1", oneToOneShare], ["1:N", oneToManySha
   assert.ok(shareSource.includes("canvas.height = 1920"), `${label} sharing must render a 1920px-high image`);
   assert.ok(shareSource.includes("link.download"), `${label} sharing must support image save`);
 }
-assert.ok(oneToManyResult.includes("<OneToManyShareCard view={view} />"), "paid 1:N result must mount its share UI");
+assert.ok(!oneToManyResult.includes("OneToManyShareCard"), "1:N ranking-only result must not mount removed share UI");
 assert.equal(vercel.fluid, true, "Fluid Compute must be pinned for long paid narrative functions");
 assert.equal(vercel.git?.deploymentEnabled, false, "automatic Vercel Git deployments must stay disabled until user approval");
 

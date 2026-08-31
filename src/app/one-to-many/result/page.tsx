@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import OneToManyPaidResult from "./one-to-many-paid-result";
 import "../one-to-many-foundation.css";
-import "../../../components/zootopi-mark.css";
 import "../../../components/candlestick-score.css";
 
 export default function OneToManyResultPage() {

@@ -71,6 +71,6 @@ assert.match(comparisonComponent, /canvas\.width = 1080/);
 assert.match(comparisonComponent, /canvas\.height = 1920/);
 assert.match(comparisonCss, /aspect-ratio: 9 \/ 16/);
 assert.match(comparisonCss, /@media \(max-width: [^)]+\)/);
-assert.match(comparisonResult, /<OneToManyShareCard view=\{view\}/);
+assert.doesNotMatch(comparisonResult, /OneToManyShareCard/, "1:다 순위 전용 결과에는 공유 UI를 렌더하지 않습니다.");
 
 console.log("paid 1:1 + Growth P3/P4 share card contract: PASS");

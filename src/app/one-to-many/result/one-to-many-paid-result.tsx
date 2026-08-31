@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { OneToManyResult } from "@/components/one-to-many-result";
-import { ReportAccountLink } from "@/components/report-account-link";
 import { buildOneToManyResultView } from "@/lib/compatibility/one-to-many-view";
 import type { OneToManyCalculationSnapshot } from "@/lib/compatibility/one-to-many";
 import type { OneToManyNarrativeContent, OneToManyNarrativeMeta } from "@/lib/narrative/one-to-many-report-engine";
@@ -50,7 +49,6 @@ export default function OneToManyPaidResult() {
   const [state, setState] = useState<ResultState>("loading");
   const [message, setMessage] = useState("결제와 저장 결과를 확인하고 있어요.");
   const [retryKey, setRetryKey] = useState(0);
-  const [accountOwned, setAccountOwned] = useState(false);
 
   const load = useCallback(async () => {
     if (!paymentId) {
@@ -67,7 +65,6 @@ export default function OneToManyPaidResult() {
         if (response.ok && payload?.product === "oneToMany" && payload.order && payload.report) {
           setOrder(payload.order);
           setReport(payload.report);
-          setAccountOwned(true);
           setState("ready");
           return;
         }
@@ -150,14 +147,7 @@ export default function OneToManyPaidResult() {
     return buildOneToManyResultView(report.snapshot, names, report.narrative);
   }, [order, report]);
 
-  if (state === "ready" && view && order) return <div className="one-to-many-result-wrap">
-    <OneToManyResult view={view} />
-    <ReportAccountLink
-      paymentId={order.paymentId}
-      accessToken={order.resultAccessToken ?? null}
-      alreadyClaimed={accountOwned}
-    />
-  </div>;
+  if (state === "ready" && view && order) return <OneToManyResult view={view} />;
 
   return <main className="one-to-many-result-page"><div className="comparison-empty-state">
     <p className="eyebrow">1:다 비교 결과</p>

@@ -290,17 +290,6 @@
   font-size: .82rem;
 }
 
-.one-to-many-result-wrap {
-  background: var(--saju-bg-base);
-}
-
-.one-to-many-result-wrap > .account-save-panel {
-  width: min(calc(100% - 40px), var(--saju-width-compare));
-  margin: 40px auto 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
 .one-to-many-result-page {
   padding: 40px 24px 88px;
 }

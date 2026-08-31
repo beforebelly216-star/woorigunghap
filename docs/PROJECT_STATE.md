@@ -57,6 +57,13 @@
 - 1:1: `내 정보 → 상대방 정보 → 확인` 3단계.
 - 1:N: `기본 정보 → 후보 정보 → 확인`, 후보 2~5명.
 
+### 1:N 결과 — 2026-08-31 재설계 준비
+
+- 사용자 요청에 따라 결과 화면은 `종합 결과 → 한눈에 보는 순위` 카드만 렌더한다.
+- 비교 총평, 후보 역할, 공통 지표, 상황별 추천, 후보별 강점·주의, 9개 상세점수, 마무리, 공유, 계정 귀속 안내와 결과 하단 버튼은 화면에서 제거했다.
+- 서버 결정론 점수 계산, 순위, 결제 검증, 저장, 복구, 중복 생성 방지 로직은 변경하지 않았다.
+- 기존 상세 뷰·서술 데이터 구조와 공유 컴포넌트는 향후 전면 재설계를 위해 저장 호환 코드로 유지하되 현재 결과 화면에는 렌더하지 않는다.
+
 ### 1:1 결과
 
 - **390px 모바일 layout v3 구현 완료.**
@@ -113,6 +120,7 @@
 
 ## 검증 상태
 
+- **1:N 순위 전용 결과 local validation PASS** — Day 15 UI/Day 16 paid E2E/runtime/share contracts + lint(0 errors, 기존 warnings 5) + production build + demo route local 200 응답 PASS.
 - **홈 섹션 정리/365일 한마디 local validation PASS** — 365개·중복 없음·서울 날짜/윤일 매핑·제거 UI contract + lint(0 errors, 기존 warnings 5) + production build + local 200 응답 PASS.
 - **홈 최근 보관함/점수 근거 UI local validation PASS** — source `fcdb9eb`, 보관함·정보안내·결과 UI·editorial/privacy contracts + TypeScript + lint + production build PASS.
 - **1:1 결과 UI 정리 local validation PASS** — 히트맵/구형 캐릭터 UI/단일 공유카드 contracts + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS.

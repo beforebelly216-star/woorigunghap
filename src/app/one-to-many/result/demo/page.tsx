@@ -6,11 +6,10 @@ import {
 } from "@/lib/compatibility/one-to-many-demo";
 import { buildOneToManyResultView } from "@/lib/compatibility/one-to-many-view";
 import "../../one-to-many-foundation.css";
-import "../../../../components/zootopi-mark.css";
 import "../../../../components/candlestick-score.css";
 
 export default function OneToManyDemoResultPage() {
   const snapshot = calculateOneToManyCompatibility(ONE_TO_MANY_DEMO_INPUT);
   const view = buildOneToManyResultView(snapshot, ONE_TO_MANY_DEMO_NAMES);
-  return <OneToManyResult view={view} demo />;
+  return <OneToManyResult view={view} />;
 }
