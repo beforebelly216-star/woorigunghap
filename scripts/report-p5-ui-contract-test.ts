@@ -45,7 +45,9 @@ assert.match(overrides, /partner-inner-mind-hero/);
 assert.match(overrides, /deep-strategy-steps/);
 
 assert.match(home, /home-p5\.module\.css/);
-assert.match(home, /무료 천생연분/);
+assert.match(home, /이상형 찾기/);
+assert.ok(home.indexOf("이상형 찾기") < home.indexOf("1:N 궁합 보기"));
+assert.ok(home.indexOf("1:N 궁합 보기") < home.indexOf("1:1 궁합 보기"));
 assert.match(home, /HomeRecentReports/);
 assert.match(homeRecent, /\/api\/account\/reports/);
 assert.match(homeRecent, /\.slice\(0, 3\)/);

@@ -96,6 +96,7 @@ assert.match(progressStorage, /export function removeReportProgress/);
 assert.match(oneToOne, /\/api\/account\/reports\/\$\{encodeURIComponent\(paymentId\)\}/);
 assert.match(oneToOne, /alreadyClaimed=\{accountOwned\}/);
 assert.match(oneToMany, /\/api\/account\/reports\/\$\{encodeURIComponent\(paymentId\)\}/);
-assert.match(oneToMany, /alreadyClaimed=\{accountOwned\}/);
+// 기존 유료 1:N은 보관함 조회 호환만 유지하고, 사용자 요청대로 순위 외 계정 귀속 UI는 렌더하지 않는다.
+assert.doesNotMatch(oneToMany, /alreadyClaimed=\{accountOwned\}/);
 
 console.log("Day 18 account report library + Foundation v2 UI contract checks: PASS");

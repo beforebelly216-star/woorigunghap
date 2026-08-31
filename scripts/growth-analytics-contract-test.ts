@@ -73,13 +73,14 @@ const oneToOne = source("src/app/one-to-one/result/compatibility-share-card.tsx"
 const oneToMany = source("src/components/one-to-many-share-card.tsx");
 for (const shareCard of [oneToOne, oneToMany]) {
   assert.match(shareCard, /share_card_open/);
-  assert.match(shareCard, /share_style_selected/);
   assert.match(shareCard, /share_image_download/);
   assert.match(shareCard, /share_native_open/);
   assert.match(shareCard, /share_link_copy/);
-  assert.match(shareCard, /experimentArm/);
   assert.match(shareCard, /publicShareTokenFromUrl/);
 }
+assert.doesNotMatch(oneToOne, /share_style_selected|experimentArm/, "1:1 단일 공유카드는 선택 실험 이벤트를 만들지 않습니다.");
+assert.match(oneToMany, /share_style_selected/);
+assert.match(oneToMany, /experimentArm/);
 
 const actions = source("src/app/share/[token]/shared-view-actions.tsx");
 assert.match(actions, /꽤 맞음/);
