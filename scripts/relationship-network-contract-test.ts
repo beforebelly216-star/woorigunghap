@@ -127,6 +127,11 @@ assert.ok(storeSource.includes("process.env.NODE_ENV === \"production\""), "Prod
 const experienceSource = readFileSync(join(process.cwd(), "src/components/relationship-network-experience.tsx"), "utf8");
 assert.equal(experienceSource.includes("const url = window.location.href"), false, "공유 링크에 권한 fragment가 포함되면 안 됩니다.");
 assert.ok(experienceSource.includes("window.location.origin"), "공유 링크는 fragment를 제외해 다시 조립해야 합니다.");
+assert.match(
+  experienceSource,
+  /<main className=\{`\$\{styles\.page\}[^`]*reference-input-screen/,
+  "초대 링크 참여 화면은 공용 생년정보 입력 스타일 범위 안에서 렌더되어야 합니다.",
+);
 
 const cronSource = readFileSync(join(process.cwd(), "src/app/api/cron/relationship-networks/route.ts"), "utf8");
 assert.ok(cronSource.includes("CRON_SECRET"));

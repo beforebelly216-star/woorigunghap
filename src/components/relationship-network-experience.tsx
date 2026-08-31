@@ -541,7 +541,7 @@ export function RelationshipNetworkExperience({
   ));
 
   return (
-    <main className={`${styles.page} relationship-network-page one-to-many-reference-page`}>
+    <main className={`${styles.page} reference-input-screen relationship-network-page one-to-many-reference-page`}>
       <div className={styles.shell}>
         <header className={`${styles.appHeader} one-to-many-app-header`}>
           <Link href="/" aria-label="홈으로 돌아가기">‹</Link>
