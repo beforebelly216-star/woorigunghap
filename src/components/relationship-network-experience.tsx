@@ -21,6 +21,10 @@ import {
   type RelationshipNetworkMember,
   type RelationshipNetworkPublic,
 } from "@/lib/relationship-network-contract";
+import {
+  forgetRelationshipNetwork,
+  rememberRelationshipNetwork,
+} from "@/lib/relationship-network-browser-storage";
 import styles from "@/app/one-to-many/relationship-network.module.css";
 
 const TOKEN_PATTERN = /^[a-f0-9]{64}$/;
@@ -42,17 +46,29 @@ function randomHexToken() {
   return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
 }
 
-function parseMembershipCredential(value: string | null): MembershipCredential | null {
-  if (!value) return null;
+function parseMembershipCredentials(value: string | null): MembershipCredential[] {
+  if (!value) return [];
   try {
-    const parsed = JSON.parse(value) as Record<string, unknown>;
-    if (typeof parsed.memberId !== "string" || typeof parsed.memberToken !== "string" || !TOKEN_PATTERN.test(parsed.memberToken)) {
-      return null;
+    const parsed = JSON.parse(value) as unknown;
+    const candidates = Array.isArray(parsed) ? parsed : [parsed];
+    const credentials = new Map<string, MembershipCredential>();
+    for (const candidate of candidates) {
+      if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) continue;
+      const record = candidate as Record<string, unknown>;
+      if (typeof record.memberId !== "string" || typeof record.memberToken !== "string" || !TOKEN_PATTERN.test(record.memberToken)) continue;
+      credentials.set(record.memberId, { memberId: record.memberId, memberToken: record.memberToken });
     }
-    return { memberId: parsed.memberId, memberToken: parsed.memberToken };
+    return Array.from(credentials.values());
   } catch {
-    return null;
+    return [];
   }
+}
+
+function upsertMembershipCredential(
+  memberships: MembershipCredential[],
+  credential: MembershipCredential,
+) {
+  return [...memberships.filter((membership) => membership.memberId !== credential.memberId), credential];
 }
 
 function memberName(members: RelationshipNetworkMember[], memberId: string) {
@@ -223,7 +239,9 @@ export function RelationshipNetworkExperience({
   const [selectedPairKey, setSelectedPairKey] = useState<string | null>(null);
   const [mode, setMode] = useState<GraphMode>(initialNetwork.memberCount > 8 ? "focus" : "all");
   const [ownerToken, setOwnerToken] = useState<string | null>(null);
-  const [membership, setMembership] = useState<MembershipCredential | null>(null);
+  const [memberships, setMemberships] = useState<MembershipCredential[]>([]);
+  const [credentialsReady, setCredentialsReady] = useState(false);
+  const [joinFormOpen, setJoinFormOpen] = useState(false);
   const [person, setPerson] = useState<PersonBirthFormState>(createEmptyPersonBirthForm());
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -256,7 +274,7 @@ export function RelationshipNetworkExperience({
   useEffect(() => {
     let active = true;
     let nextOwner: string | null = null;
-    let nextMembership: MembershipCredential | null = null;
+    let nextMemberships: MembershipCredential[] = [];
     const fragment = new URLSearchParams(window.location.hash.slice(1));
     const fragmentOwner = fragment.get("ownerToken");
     const fragmentMemberId = fragment.get("memberId");
@@ -264,32 +282,45 @@ export function RelationshipNetworkExperience({
     try {
       const storedOwner = window.localStorage.getItem(`woori-network-owner:${token}`);
       nextOwner = storedOwner && TOKEN_PATTERN.test(storedOwner) ? storedOwner : null;
-      nextMembership = parseMembershipCredential(window.localStorage.getItem(`woori-network-member:${token}`));
+      nextMemberships = parseMembershipCredentials(window.localStorage.getItem(`woori-network-member:${token}`));
     } catch {
       nextOwner = null;
-      nextMembership = null;
+      nextMemberships = [];
     }
     if (fragmentOwner && TOKEN_PATTERN.test(fragmentOwner)) nextOwner = fragmentOwner;
     if (fragmentMemberId && fragmentMemberToken && TOKEN_PATTERN.test(fragmentMemberToken)) {
-      nextMembership = { memberId: fragmentMemberId, memberToken: fragmentMemberToken };
+      nextMemberships = upsertMembershipCredential(nextMemberships, {
+        memberId: fragmentMemberId,
+        memberToken: fragmentMemberToken,
+      });
     }
     if (window.location.hash) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
     try {
       if (nextOwner) window.localStorage.setItem(`woori-network-owner:${token}`, nextOwner);
-      if (nextMembership) window.localStorage.setItem(`woori-network-member:${token}`, JSON.stringify(nextMembership));
+      if (nextMemberships.length > 0) window.localStorage.setItem(`woori-network-member:${token}`, JSON.stringify(nextMemberships));
+      if (nextOwner) {
+        rememberRelationshipNetwork({
+          token,
+          hostName: host?.displayName ?? "내",
+          expiresAt: initialNetwork.expiresAt,
+        });
+      }
     } catch {
       // 현재 탭 상태에는 권한을 유지하고, 차단된 영구 저장소만 건너뜁니다.
     }
     queueMicrotask(() => {
       if (!active) return;
       setOwnerToken(nextOwner);
-      setMembership(nextMembership);
-      if (nextMembership && initialNetwork.members.some((member) => member.id === nextMembership.memberId)) {
-        setSelectedMemberId(nextMembership.memberId);
+      setMemberships(nextMemberships);
+      setCredentialsReady(true);
+      setJoinFormOpen(!nextOwner && nextMemberships.length === 0);
+      const latestMembership = nextMemberships.at(-1);
+      if (latestMembership && initialNetwork.members.some((member) => member.id === latestMembership.memberId)) {
+        setSelectedMemberId(latestMembership.memberId);
       }
     });
     return () => { active = false; };
-  }, [initialNetwork.members, token]);
+  }, [host?.displayName, initialNetwork.expiresAt, initialNetwork.members, token]);
 
   useEffect(() => {
     let active = true;
@@ -399,13 +430,17 @@ export function RelationshipNetworkExperience({
         return;
       }
       const nextMembership = { memberId, memberToken };
+      const nextMemberships = upsertMembershipCredential(memberships, nextMembership);
       try {
-        window.localStorage.setItem(`woori-network-member:${token}`, JSON.stringify(nextMembership));
+        window.localStorage.setItem(`woori-network-member:${token}`, JSON.stringify(nextMemberships));
         window.sessionStorage.setItem(FREE_SELF_PERSON_STORAGE_KEY, JSON.stringify(normalized.person));
       } catch {
         // 현재 화면의 참여 권한과 결과는 유지합니다.
       }
-      setMembership(nextMembership);
+      setMemberships(nextMemberships);
+      setJoinFormOpen(false);
+      setPerson(createEmptyPersonBirthForm());
+      setConsent(false);
       replaceNetwork(next);
       setSelectedMemberId(memberId);
       setSelectedPairKey(relationshipNetworkPairKey(memberId, next.hostMemberId));
@@ -416,6 +451,15 @@ export function RelationshipNetworkExperience({
     } finally {
       setJoining(false);
     }
+  }
+
+  function openAdditionalJoin() {
+    joinAttemptRef.current = null;
+    setPerson(createEmptyPersonBirthForm());
+    setConsent(false);
+    setErrors({});
+    setJoinFormOpen(true);
+    setStatus("다음 사람이 자기 정보를 직접 입력해 주세요.");
   }
 
   async function shareNetwork() {
@@ -432,6 +476,25 @@ export function RelationshipNetworkExperience({
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
       setStatus("주소창의 링크를 복사해 공유해 주세요.");
+    }
+  }
+
+  async function copyManagementLink() {
+    if (!ownerToken) return;
+    const publicUrl = `${window.location.origin}${window.location.pathname}${window.location.search}`;
+    const hostMembership = memberships.find((membership) => membership.memberId === network.hostMemberId);
+    const fragment = new URLSearchParams({
+      ownerToken,
+      ...(hostMembership ? {
+        memberId: hostMembership.memberId,
+        memberToken: hostMembership.memberToken,
+      } : {}),
+    }).toString();
+    try {
+      await navigator.clipboard.writeText(`${publicUrl}#${fragment}`);
+      setStatus("방장 관리 링크를 복사했습니다. 공개 참여 링크와 구분해 보관해 주세요.");
+    } catch {
+      setStatus("관리 링크를 복사하지 못했습니다. 이 브라우저의 내가 만든 네트워크 목록은 유지됩니다.");
     }
   }
 
@@ -459,8 +522,9 @@ export function RelationshipNetworkExperience({
 
   async function removeMember(target: RelationshipNetworkMember) {
     if (target.isHost || managing) return;
-    const isSelf = membership?.memberId === target.id;
-    const credential = ownerToken || (isSelf ? membership?.memberToken : null);
+    const localMembership = memberships.find((membership) => membership.memberId === target.id) ?? null;
+    const isSelf = Boolean(localMembership);
+    const credential = ownerToken || localMembership?.memberToken || null;
     if (!credential) return;
     const confirmed = window.confirm(isSelf
       ? "내 생년정보와 모든 관계선을 이 네트워크에서 삭제할까요?"
@@ -481,13 +545,18 @@ export function RelationshipNetworkExperience({
       setSelectedMemberId(next.hostMemberId);
       setSelectedPairKey(null);
       if (isSelf) {
+        const nextMemberships = memberships.filter((membership) => membership.memberId !== target.id);
         try {
-          window.localStorage.removeItem(`woori-network-member:${token}`);
+          if (nextMemberships.length > 0) {
+            window.localStorage.setItem(`woori-network-member:${token}`, JSON.stringify(nextMemberships));
+          } else {
+            window.localStorage.removeItem(`woori-network-member:${token}`);
+          }
           window.sessionStorage.removeItem(FREE_SELF_PERSON_STORAGE_KEY);
         } catch {
           // 서버 삭제는 완료됐으므로 브라우저 저장소 오류는 무시합니다.
         }
-        setMembership(null);
+        setMemberships(nextMemberships);
         setPerson(createEmptyPersonBirthForm());
         setConsent(false);
       }
@@ -514,6 +583,7 @@ export function RelationshipNetworkExperience({
         window.localStorage.removeItem(`woori-network-owner:${token}`);
         window.localStorage.removeItem(`woori-network-member:${token}`);
         window.sessionStorage.removeItem(FREE_SELF_PERSON_STORAGE_KEY);
+        forgetRelationshipNetwork(token);
       } catch {
         // 서버 삭제는 완료됐으므로 브라우저 저장소 오류는 무시합니다.
       }
@@ -531,12 +601,12 @@ export function RelationshipNetworkExperience({
   const pairMembers = selectedEdge
     ? [memberName(network.members, selectedEdge.memberAId), memberName(network.members, selectedEdge.memberBId)]
     : [];
-  const pairIncludesViewer = Boolean(membership && selectedEdge && (
+  const pairIncludesViewer = Boolean(selectedEdge && memberships.some((membership) => (
     selectedEdge.memberAId === membership.memberId || selectedEdge.memberBId === membership.memberId
-  ));
-  const canJoin = !membership && network.isOpen && network.memberCount < network.memberLimit;
+  )));
+  const canJoin = credentialsReady && network.isOpen && network.memberCount < network.memberLimit;
   const selectedCanRemove = Boolean(selectedMember && !selectedMember.isHost && (
-    ownerToken || membership?.memberId === selectedMember.id
+    ownerToken || memberships.some((membership) => membership.memberId === selectedMember.id)
   ));
 
   return (
@@ -560,11 +630,11 @@ export function RelationshipNetworkExperience({
 
           <p className={styles.networkStatus} aria-live="polite">{status}</p>
 
-          {canJoin ? (
+          {canJoin && joinFormOpen ? (
             <form className={styles.joinCard} onSubmit={submitJoin} noValidate>
               <div className={styles.joinIntro}>
-                <h2>내 정보 추가하고 관계 확인하기</h2>
-                <p>내 정보는 내가 직접 입력합니다. 참여하면 현재와 이후의 모든 사람과 궁합이 연결돼요.</p>
+                <h2>{memberships.length > 0 || ownerToken ? "다음 사람 연결하기" : "내 정보 추가하고 관계 확인하기"}</h2>
+                <p>입력하는 사람이 자기 정보와 공개 범위를 직접 확인해 주세요. 참여하면 현재와 이후의 모든 사람과 궁합이 연결돼요.</p>
               </div>
               {errors.form ? <p className="field-error form-error-summary" role="alert">{errors.form}</p> : null}
               <PersonBirthFields
@@ -587,8 +657,14 @@ export function RelationshipNetworkExperience({
               </p>
               {errors.consent ? <small className="field-error" role="alert">{errors.consent}</small> : null}
               <button type="submit" className={styles.primaryButton} disabled={joining}>{joining ? "모든 관계를 계산하고 있어요…" : "내 인연 연결하기"}</button>
+              {(memberships.length > 0 || ownerToken) ? <button type="button" className={styles.joinCancelButton} onClick={() => setJoinFormOpen(false)}>입력 취소</button> : null}
             </form>
-          ) : !membership && (!network.isOpen || network.memberCount >= network.memberLimit) ? (
+          ) : canJoin ? (
+            <section className={styles.additionalJoinCard}>
+              <div><strong>다른 사람도 계속 연결할 수 있어요</strong><p>같은 휴대폰이나 브라우저에서도 다음 사람이 직접 입력할 수 있습니다.</p></div>
+              <button type="button" className={styles.primaryButton} onClick={openAdditionalJoin}>다른 사람 연결하기</button>
+            </section>
+          ) : credentialsReady && (!network.isOpen || network.memberCount >= network.memberLimit) ? (
             <section className={styles.emptyCard}>{network.isOpen ? "참여 인원이 가득 찼습니다. 기존 관계망은 계속 둘러볼 수 있어요." : "방장이 새 참여를 잠시 닫아두었습니다. 기존 관계망은 계속 볼 수 있어요."}</section>
           ) : null}
 
@@ -678,12 +754,13 @@ export function RelationshipNetworkExperience({
             </section>
           ) : null}
 
-          {(ownerToken || membership) ? (
+          {(ownerToken || memberships.length > 0) ? (
             <details className={styles.manageCard}>
               <summary>{ownerToken ? "방 관리" : "내 참여 정보 관리"}</summary>
               <div className={styles.manageBody}>
+                {ownerToken ? <div className={styles.manageRow}><div><strong>내 네트워크 저장·재열람</strong><small>이 브라우저의 목록에 자동 저장됐습니다. 다른 기기용 관리 링크는 타인에게 공유하지 마세요.</small></div><button type="button" className={styles.secondaryButton} onClick={copyManagementLink}>관리 링크 복사</button></div> : null}
                 {ownerToken ? <div className={styles.manageRow}><div><strong>새 참여 {network.isOpen ? "열림" : "닫힘"}</strong><small>관계망은 유지하고 새 입력만 제어합니다.</small></div><button type="button" className={styles.secondaryButton} disabled={managing} onClick={toggleNetwork}>{network.isOpen ? "참여 닫기" : "다시 열기"}</button></div> : null}
-                {selectedCanRemove && selectedMember ? <div className={styles.manageRow}><div><strong>{membership?.memberId === selectedMember.id ? "내 정보 삭제" : `${selectedMember.displayName} 삭제`}</strong><small>생년정보와 연결된 모든 관계선이 함께 삭제됩니다.</small></div><button type="button" className={styles.dangerButton} disabled={managing} onClick={() => removeMember(selectedMember)}>삭제</button></div> : null}
+                {selectedCanRemove && selectedMember ? <div className={styles.manageRow}><div><strong>{memberships.some((membership) => membership.memberId === selectedMember.id) ? "이 브라우저에서 입력한 정보 삭제" : `${selectedMember.displayName} 삭제`}</strong><small>생년정보와 연결된 모든 관계선이 함께 삭제됩니다.</small></div><button type="button" className={styles.dangerButton} disabled={managing} onClick={() => removeMember(selectedMember)}>삭제</button></div> : null}
                 {ownerToken ? <div className={styles.manageRow}><div><strong>네트워크 전체 삭제</strong><small>모든 참여 정보와 관계선을 되돌릴 수 없게 삭제합니다.</small></div><button type="button" className={styles.dangerButton} disabled={managing} onClick={deleteNetwork}>전체 삭제</button></div> : null}
               </div>
             </details>

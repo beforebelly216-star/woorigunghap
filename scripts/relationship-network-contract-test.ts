@@ -12,6 +12,7 @@ import {
   relationshipNetworkPairKey,
 } from "../src/lib/relationship-network-contract";
 import type { PersonBirthInput } from "../src/lib/report-input";
+import { parseSavedRelationshipNetworks } from "../src/lib/relationship-network-browser-storage";
 
 const gradeBoundaries = [
   [30, "E"], [49, "E"],
@@ -83,6 +84,7 @@ const parsed = parseRelationshipNetworkPublic({
   memberCount: 2,
   graphVersion: 2,
   isOpen: true,
+  expiresAt: "2026-10-01T00:00:00.000Z",
   createdAt: "private-timestamp",
   members: [
     { id: "member-a", displayName: "방장", isHost: true, birthDate: "1982-10-21" },
@@ -105,6 +107,14 @@ for (const privateField of ["birthDate", "birthTime", "gender", "calendarType", 
   assert.equal(publicPayload.includes(privateField), false, `공개 네트워크에 ${privateField}가 포함되면 안 됩니다.`);
 }
 
+const savedNetworks = parseSavedRelationshipNetworks(JSON.stringify([
+  { token: "b".repeat(64), hostName: "두 번째", expiresAt: "2026-10-02T00:00:00.000Z", savedAt: "2026-09-02T00:00:00.000Z" },
+  { token: "a".repeat(64), hostName: "첫 번째", expiresAt: "2026-10-01T00:00:00.000Z", savedAt: "2026-09-01T00:00:00.000Z" },
+  { token: "a".repeat(64), hostName: "중복", expiresAt: "2026-10-01T00:00:00.000Z", savedAt: "2026-08-30T00:00:00.000Z" },
+  { token: "c".repeat(64), hostName: "만료", expiresAt: "2026-08-31T00:00:00.000Z", savedAt: "2026-08-01T00:00:00.000Z" },
+]), Date.parse("2026-09-01T00:00:00.000Z"));
+assert.deepEqual(savedNetworks.map((network) => network.hostName), ["두 번째", "첫 번째"], "저장 목록은 만료·중복을 제거하고 최근 순서로 보여야 합니다.");
+
 const homeSource = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
 const idealIndex = homeSource.indexOf("이상형 찾기");
 const networkIndex = homeSource.indexOf("1:N 궁합 보기");
@@ -114,6 +124,7 @@ assert.ok(homeSource.includes("1:N 무료"));
 
 const networkPageSource = readFileSync(join(process.cwd(), "src/app/one-to-many/page.tsx"), "utf8");
 assert.ok(networkPageSource.includes("RelationshipNetworkCreateForm"));
+assert.ok(networkPageSource.includes("RelationshipNetworkSavedList"), "방장은 같은 브라우저에서 만든 네트워크 목록을 다시 열 수 있어야 합니다.");
 assert.equal(networkPageSource.includes("OneToManyForm"), false, "신규 1:N 진입은 과거 유료 폼을 렌더하지 않아야 합니다.");
 
 const storeSource = readFileSync(join(process.cwd(), "src/lib/relationship-network-store.ts"), "utf8");
@@ -127,6 +138,10 @@ assert.ok(storeSource.includes("process.env.NODE_ENV === \"production\""), "Prod
 const experienceSource = readFileSync(join(process.cwd(), "src/components/relationship-network-experience.tsx"), "utf8");
 assert.equal(experienceSource.includes("const url = window.location.href"), false, "공유 링크에 권한 fragment가 포함되면 안 됩니다.");
 assert.ok(experienceSource.includes("window.location.origin"), "공유 링크는 fragment를 제외해 다시 조립해야 합니다.");
+assert.ok(experienceSource.includes("다른 사람 연결하기"), "한 사람이 참여한 뒤에도 같은 브라우저에서 다음 사람 입력을 다시 열 수 있어야 합니다.");
+assert.ok(experienceSource.includes("copyManagementLink"), "방장은 다른 기기 재접속용 관리 링크를 별도로 저장할 수 있어야 합니다.");
+assert.ok(experienceSource.includes("JSON.stringify(nextMemberships)"), "같은 브라우저의 여러 참여자 삭제 권한을 덮어쓰지 않아야 합니다.");
+assert.equal(experienceSource.includes("const canJoin = !membership"), false, "기존 참여 자격만으로 새 사람 입력을 막으면 안 됩니다.");
 assert.match(
   experienceSource,
   /<main className=\{`\$\{styles\.page\}[^`]*reference-input-screen/,

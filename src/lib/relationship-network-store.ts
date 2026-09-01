@@ -446,6 +446,7 @@ async function loadRelationshipNetworkByHash(tokenHash: string): Promise<Relatio
     memberCount: members.length,
     graphVersion: room.graphVersion,
     isOpen: room.status === "active",
+    expiresAt: room.expiresAt,
     members,
     edges,
   };

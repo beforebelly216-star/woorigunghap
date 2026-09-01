@@ -11,6 +11,7 @@ import {
 } from "@/components/person-birth-fields";
 import { FREE_SELF_PERSON_STORAGE_KEY } from "@/lib/free-self-analysis-contract";
 import { parseRelationshipNetworkPublic } from "@/lib/relationship-network-contract";
+import { rememberRelationshipNetwork } from "@/lib/relationship-network-browser-storage";
 import styles from "@/app/one-to-many/relationship-network.module.css";
 
 const TOKEN_PATTERN = /^[a-f0-9]{64}$/;
@@ -90,9 +91,16 @@ export function RelationshipNetworkCreateForm() {
       }
 
       try {
+        window.localStorage.setItem(`woori-network-owner:${token}`, ownerToken);
+        window.localStorage.setItem(`woori-network-member:${token}`, JSON.stringify([{ memberId, memberToken }]));
         window.sessionStorage.setItem(FREE_SELF_PERSON_STORAGE_KEY, JSON.stringify(normalized.person));
+        rememberRelationshipNetwork({
+          token,
+          hostName: normalized.person.displayName,
+          expiresAt: network.expiresAt,
+        });
       } catch {
-        // 1:1 사전 채움은 선택 기능이므로 저장소가 차단돼도 생성 링크는 엽니다.
+        // 저장소가 차단돼도 fragment 관리 권한으로 생성 링크는 엽니다.
       }
       const fragment = new URLSearchParams({ ownerToken, memberId, memberToken }).toString();
       createAttemptRef.current = null;

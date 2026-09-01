@@ -184,6 +184,17 @@
 - [x] Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY / Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` READY
 - [x] 초대 폼 360/390/430px, browser console error 0, 가명 테스트 네트워크 삭제 확인
 
+## 완료 — 무료 1:N 연속 참여·방장 재열람 hotfix
+
+- [x] 같은 브라우저에서 참여 완료 뒤 `다른 사람 연결하기`로 다음 사람 입력 재개
+- [x] 한 브라우저의 여러 참여자 삭제 자격을 배열로 보존하고 기존 단일 자격 저장값 호환
+- [x] 방장 생성 즉시 `내가 만든 네트워크` 목록 저장 및 `/one-to-many` 재열람 UI
+- [x] 공개 참여 링크와 방장 전용 관리 링크 분리, 관리 링크로 다른 기기 권한 복구
+- [x] 만료·중복 저장 목록 정리 및 네트워크 삭제 시 목록 제거
+- [x] 1:N contract + Day 23 system QA + TypeScript + lint + production build PASS
+- [x] Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` READY
+- [ ] Production 배포 후 가명 방장 + 같은 브라우저 참여자 2명 + 저장 목록 재열람 + 전체 삭제 스모크
+
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
@@ -193,11 +204,11 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 타인 초대 링크 입력 양식·hydration hotfix, Preview/Production READY
-- Source: `674e50cac4cf50188081a00b17b6b454f2af38b9`
-- Validation: 초대 폼 360/390/430px, console error 0, 테스트 네트워크 삭제 PASS
-- Runtime: Preview 필수 env 존재, 합성 미존재 주문은 409 `PAYMENT_ORDER_NOT_READY`
-- Remaining: 기존 실패 실결제 verify → prepare/intro/dynamics/action → 저장 → 재열람 → 중복 비용 방지
-- Risk: 실제 결제/Anthropic 전체 생성 성공 여부는 운영 blocker로 미검증
-- Deploy: Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` / Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` / Git 자동배포 OFF
+- Worker/Task: Codex — 무료 1:N 같은 브라우저 연속 참여 + 방장 저장·재열람
+- Scope: 복수 참여자 자격, 로컬 생성 목록, 공개/관리 링크 분리, 30일 만료 유지
+- Validation: 1:N contract + system QA + TypeScript + lint + production build PASS
+- Preview: `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` READY; 네트워크 암호화 키 미설정으로 생성 QA 제외
+- Remaining: 승인된 Production 배포 후 가명 3명·재열람·삭제 운영 스모크
+- Risk: 관리 링크는 방장 권한이므로 공개 참여 링크와 구분해 비공개 보관 필요
+- Deploy: Production 승인 수신 / Git 자동배포 OFF 유지
 ```

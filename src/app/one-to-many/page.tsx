@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { RelationshipNetworkCreateForm } from "@/components/relationship-network-create-form";
+import { RelationshipNetworkSavedList } from "@/components/relationship-network-saved-list";
 import { ZootopiMark } from "@/components/zootopi-mark";
 import "../../components/zootopi-mark.css";
 import "../input-reference-v4.css";
@@ -39,6 +40,7 @@ export default function OneToManyPage() {
           <div><strong>03</strong><span>모든 관계<br/>자동 연결</span></div>
         </section>
 
+        <RelationshipNetworkSavedList />
         <RelationshipNetworkCreateForm />
       </div>
     </main>

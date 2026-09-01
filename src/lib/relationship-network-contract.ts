@@ -59,6 +59,7 @@ export type RelationshipNetworkPublic = {
   memberCount: number;
   graphVersion: number;
   isOpen: boolean;
+  expiresAt: string;
   members: RelationshipNetworkMember[];
   edges: RelationshipNetworkEdge[];
 };
@@ -154,6 +155,8 @@ export function parseRelationshipNetworkPublic(value: unknown): RelationshipNetw
     || typeof network.memberCount !== "number"
     || typeof network.graphVersion !== "number"
     || typeof network.isOpen !== "boolean"
+    || typeof network.expiresAt !== "string"
+    || Number.isNaN(Date.parse(network.expiresAt))
     || !Array.isArray(network.members)
     || !Array.isArray(network.edges)
   ) return null;
@@ -168,6 +171,7 @@ export function parseRelationshipNetworkPublic(value: unknown): RelationshipNetw
     memberCount: network.memberCount,
     graphVersion: network.graphVersion,
     isOpen: network.isOpen,
+    expiresAt: new Date(network.expiresAt).toISOString(),
     members: members as RelationshipNetworkMember[],
     edges: edges as RelationshipNetworkEdge[],
   };

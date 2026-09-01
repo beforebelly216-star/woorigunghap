@@ -139,6 +139,92 @@
   line-height: 1.35;
 }
 
+.savedNetworks {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 17px 15px;
+  border: 1px solid #ded2ef;
+  border-radius: 19px;
+  background: linear-gradient(180deg, #fff, #faf7ff);
+  box-shadow: 0 8px 24px rgba(47, 36, 54, .045);
+}
+
+.savedNetworksHeader,
+.savedNetworkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.savedNetworksHeader > div,
+.savedNetworkRow > div {
+  display: grid;
+  gap: 3px;
+}
+
+.savedNetworksHeader span {
+  color: #7652d8;
+  font-family: var(--saju-font-data);
+  font-size: .6rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.savedNetworksHeader h2 {
+  margin: 0;
+  font-size: .92rem;
+  letter-spacing: -.025em;
+}
+
+.savedNetworksHeader > small {
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: #efe8fb;
+  color: #6846b2;
+  font-size: .58rem;
+  font-weight: 900;
+}
+
+.savedNetworkList {
+  display: grid;
+  gap: 8px;
+}
+
+.savedNetworkRow {
+  padding: 12px;
+  border: 1px solid #ebe4f2;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.savedNetworkRow strong {
+  font-size: .73rem;
+}
+
+.savedNetworkRow small,
+.savedNetworks > p {
+  color: #777078;
+  font-size: .62rem;
+  line-height: 1.45;
+}
+
+.savedNetworkRow a {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #7652d8;
+  color: #fff;
+  font-size: .64rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.savedNetworks > p {
+  margin: 0;
+}
+
 .createForm {
   display: grid;
   gap: 12px;
@@ -427,6 +513,38 @@
   gap: 14px;
   border-color: #dfd3f0;
   background: linear-gradient(180deg, #fff, #fcf9ff);
+}
+
+.additionalJoinCard {
+  display: grid;
+  gap: 12px;
+  padding: 16px 15px;
+  border: 1px solid #dfd3f0;
+  border-radius: 19px;
+  background: linear-gradient(180deg, #fff, #faf7ff);
+  box-shadow: 0 8px 24px rgba(47, 36, 54, .045);
+}
+
+.additionalJoinCard strong {
+  font-size: .82rem;
+}
+
+.additionalJoinCard p {
+  margin: 5px 0 0;
+  color: #766f78;
+  font-size: .68rem;
+  line-height: 1.5;
+}
+
+.joinCancelButton {
+  min-height: 38px;
+  border: 0;
+  background: transparent;
+  color: #71677a;
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .joinIntro h2,

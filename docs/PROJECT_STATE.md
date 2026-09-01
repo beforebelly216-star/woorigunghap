@@ -67,6 +67,8 @@
 - 초대 링크에는 불투명 방 식별자만 포함한다. 방장 권한과 참여자 삭제 권한은 별도 token으로 분리하고 서버에는 해시만 저장한다.
 - 생년정보는 전용 서버 키로 AES-256-GCM 암호화하며 공개 API에는 별칭·점수·등급·사용자용 축만 포함한다. 외부 AI는 호출하지 않는다.
 - 새 참여는 약 4초 polling과 ETag로 갱신한다. 방장은 참여 중단·재개, 참여자 제거, 방 삭제를 할 수 있고 참여자는 자신을 삭제할 수 있다.
+- 참여 완료 뒤에도 `다른 사람 연결하기`로 같은 브라우저에서 여러 사람이 순서대로 직접 입력할 수 있으며, 각 참여자의 삭제 자격을 브라우저에 함께 보존한다.
+- 방장이 만든 네트워크는 같은 브라우저의 `내가 만든 네트워크` 목록에 자동 저장한다. 공개 참여 링크와 별도로 방장 권한이 든 관리 링크를 복사해 다른 기기 재접속에 사용할 수 있다.
 - 방은 생성 30일 뒤 조회를 차단하고 일일 자동 정리에서 삭제한다. 요청 남용 방지 식별값은 키 기반 HMAC으로 최대 1일 보관한다.
 - 신규 유료 1:N 주문과 checkout은 무료 네트워크로 안내한다. 기존 3,000원 구매 결과·공유·복구·저장 계약은 하위 호환으로 유지한다.
 
@@ -126,6 +128,7 @@
 
 ## 검증 상태
 
+- **무료 1:N 다중 참여·방장 재열람 hotfix local/Preview build PASS — 2026-09-01:** 같은 브라우저 연속 입력, 복수 참여자 삭제 자격 보존, 방장 로컬 목록, 공개/관리 링크 분리 계약 + Day 23 system QA + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS. Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` READY. Preview는 `NETWORK_PII_ENCRYPTION_KEY` 미설정으로 생성 실동작 QA를 중단했고 기존 데이터 호환성 영향 때문에 환경값을 자동 변경하지 않았다. Production 승인 배치에서 가명 생성·연속 참여·재열람·삭제 스모크를 수행한다.
 - **타인 초대 링크 입력 폼 hotfix Production validation PASS — 2026-09-01:** source `674e50cac4cf50188081a00b17b6b454f2af38b9`, Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY, Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` READY. 초대 폼 360/390/430px와 browser console error 0을 확인했고 가명 테스트 네트워크를 삭제했다. Preview에는 `DATABASE_URL`·PortOne·Anthropic 관련 환경변수가 존재하며 값은 노출하지 않았다. 비과금 합성 미존재 주문의 `payment-ready` 응답은 HTTP 409 `PAYMENT_ORDER_NOT_READY`로, DB 미설정 오류가 아니다.
 - **무료 1:N Production validation PASS — 2026-09-01:** source `c8e642d`, Core calculation validation #33437750277, Vercel production build/TypeScript PASS. 분리 배포에서 4명·6관계선, S=91/E=43, ETag 304, PII 비노출, 삭제를 확인했고 공개 운영 별칭에서도 생성 201·참여 201·S=91·PII 비노출·삭제 200을 확인했다.
 - **1:N 순위 전용 결과 local validation PASS** — Day 15 UI/Day 16 paid E2E/runtime/share contracts + lint(0 errors, 기존 warnings 5) + production build + demo route local 200 응답 PASS.
@@ -156,6 +159,7 @@
 - **Production 최신 Preview 기준 배포 완료 — 2026-08-29:** trigger `d8186ab`, Vercel SUCCESS (`E9hgx8qjpxdCBv9jAk4YXRYfZuGN`). 이후 Git 자동배포 OFF 복구 commit `8051554`, validation #838 PASS.
 - **무료 1:N Production 배포 완료 — 2026-09-01:** source `c8e642d`, deployment `dpl_H8A6Fkkjq9MpfvMc2aK2QNLpDNcA`, 운영 주소 `https://woorigunghap-uty7-beforebelly216-stars-projects.vercel.app`. Production의 `NETWORK_PII_ENCRYPTION_KEY`·`CRON_SECRET` 설정 및 공개 스모크 PASS. 운영 별칭만 공개하고 Preview·개별 배포 URL은 Vercel Authentication 보호를 유지한다.
 - **타인 초대 링크 입력 폼 hotfix Preview/Production 배포 완료 — 2026-09-01:** source `674e50cac4cf50188081a00b17b6b454f2af38b9`, Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY, Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` READY. 360/390/430px 운영 검증과 테스트 네트워크 삭제 완료.
+- **무료 1:N 다중 참여·방장 재열람 Preview build 완료 — 2026-09-01:** deployment `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` READY. Production 배포 승인 수신, 정확한 `main` 커밋 배포 후 운영 스모크 예정.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
