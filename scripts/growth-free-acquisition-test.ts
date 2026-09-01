@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { clearPersonBirthFieldError } from "../src/components/person-birth-fields";
 
 const homeSource = readFileSync("src/app/page.tsx", "utf8");
 const homeCss = readFileSync("src/app/home-p5.module.css", "utf8");
@@ -46,6 +47,13 @@ assert.match(birthFieldsSource, /hour > 23 \|\| minute > 59/);
 assert.doesNotMatch(birthFieldsSource, />오전<|>오후</);
 assert.match(birthFieldsSource, /calendar-choice/);
 assert.match(birthFieldsSource, /input-with-count/);
+assert.match(birthFieldsSource, /changedField: PersonBirthField/);
+assert.match(birthFieldsSource, /, "birthTime"\)}/);
+assert.deepEqual(
+  clearPersonBirthFieldError({ "person.birthTime": "시간 오류", "person.birthDate": "날짜 오류", form: "폼 오류" }, "person", "birthTime"),
+  { "person.birthDate": "날짜 오류" },
+  "출생시간을 수정하면 시간 오류와 폼 오류만 즉시 사라져야 합니다.",
+);
 
 const oneToOnePage = readFileSync("src/app/one-to-one/page.tsx", "utf8");
 const oneToOneSource = readFileSync("src/components/one-to-one-form-v3.tsx", "utf8");

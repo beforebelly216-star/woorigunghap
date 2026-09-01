@@ -195,6 +195,15 @@
 - [x] Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` READY
 - [x] Production `dpl_6seaA8Jo8CnWHGZEFgczeSJZCjfa` — 가명 방장 + 같은 브라우저 참여자 2명 + 3관계선 + 저장 목록 재열람 + 360/390/430px + console 0 + 전체 삭제·404 PASS
 
+## 진행 — 무료 1:N 보관함 노출·출생시간 오류 해제 hotfix
+
+- [x] 생성한 무료 인연 네트워크를 `/account/reports` 보관함에도 표시
+- [x] 비로그인도 같은 브라우저의 생성 네트워크를 보관함에서 재열람
+- [x] 공용 생년정보 입력 변경 시 해당 필드 오류와 폼 공통 오류만 즉시 제거
+- [x] 1:N/account/input contracts + Day 23 system QA + TypeScript + lint + production build PASS
+- [x] 실브라우저 `2460` 오류 → 입력 삭제 → 오류 제거·`aria-invalid=false`, console 0
+- [ ] Production 배포 후 생성 → 페이지 이탈 → 보관함 → 다시 보기 → 테스트 방 삭제 스모크
+
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
@@ -204,12 +213,11 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 무료 1:N 같은 브라우저 연속 참여 + 방장 저장·재열람 완료
-- Scope: 복수 참여자 자격, 로컬 생성 목록, 공개/관리 링크 분리, 30일 만료 유지
-- Validation: contract/system QA/TypeScript/lint/build + 운영 3명·3관계선·재열람·삭제 PASS
-- Source: `cc902bca42db57278d7614c6d008c223caf8b255`
-- Deploy: Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` / Production `dpl_6seaA8Jo8CnWHGZEFgczeSJZCjfa` READY
-- Remaining: 기존 실패 실결제 1:1 전체 복구 검증
-- Risk: 관리 링크는 방장 권한이므로 공개 참여 링크와 구분해 비공개 보관 필요
+- Worker/Task: Codex — 무료 1:N 보관함 노출 + 출생시간 오류 즉시 해제
+- Scope: 기존 로컬 생성 목록을 보관함에도 렌더, 공용 입력의 변경 필드 오류만 제거
+- Validation: 1:N/account/input contracts + system QA + TypeScript + lint + build + browser PASS
+- Deploy: 사용자 승인 수신; 정확한 main source 배포 후 운영 생성·보관함 재열람·삭제 스모크
+- Remaining: 운영 스모크 후 기존 실패 실결제 1:1 전체 복구 검증
+- Risk: 네트워크 보관함 목록은 같은 브라우저 기준이며 다른 기기는 관리 링크가 필요
 - Policy: Git 자동배포 OFF 유지
 ```

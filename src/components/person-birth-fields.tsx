@@ -22,6 +22,21 @@ export type PersonBirthFormState = {
   isLeapMonth: boolean;
 };
 
+export type PersonBirthField = keyof PersonBirthFormState;
+
+export function clearPersonBirthFieldError(
+  errors: Record<string, string>,
+  prefix: string,
+  field: PersonBirthField,
+) {
+  const fieldKey = `${prefix}.${field}`;
+  if (!(fieldKey in errors) && !("form" in errors)) return errors;
+  const next = { ...errors };
+  delete next[fieldKey];
+  delete next.form;
+  return next;
+}
+
 export function createEmptyPersonBirthForm(): PersonBirthFormState {
   return {
     displayName: "",
@@ -113,7 +128,7 @@ export function PersonBirthFields({
   placeholder: string;
   value: PersonBirthFormState;
   errors: Record<string, string>;
-  onChange: (next: PersonBirthFormState) => void;
+  onChange: (next: PersonBirthFormState, changedField: PersonBirthField) => void;
 }) {
   const error = (field: string) => errors[`${prefix}.${field}`];
   const id = (field: string, suffix?: string) => formFieldId(prefix, field, suffix);
@@ -138,7 +153,7 @@ export function PersonBirthFields({
             value={value.displayName}
             aria-invalid={Boolean(displayNameError)}
             aria-describedby={displayNameError ? id("displayName", "error") : undefined}
-            onChange={(event) => onChange({ ...value, displayName: event.target.value })}
+            onChange={(event) => onChange({ ...value, displayName: event.target.value }, "displayName")}
           />
           <small>{value.displayName.length} / 10</small>
         </div>
@@ -150,7 +165,7 @@ export function PersonBirthFields({
         <div className="segmented-control gender-control" role="radiogroup" aria-labelledby={id("gender", "label")} aria-invalid={Boolean(genderError)}>
           {GENDERS.map((gender) => (
             <label key={gender} className={value.gender === gender ? "selected" : ""}>
-              <input type="radio" name={`${prefix}-gender`} value={gender} checked={value.gender === gender} onChange={() => onChange({ ...value, gender })} />
+              <input type="radio" name={`${prefix}-gender`} value={gender} checked={value.gender === gender} onChange={() => onChange({ ...value, gender }, "gender")} />
               <span aria-hidden="true" className="gender-icon">{gender === "female" ? "♀" : "♂"}</span>
               {GENDER_LABELS[gender]}
             </label>
@@ -169,7 +184,7 @@ export function PersonBirthFields({
                 name={`${prefix}-calendar`}
                 value={calendarType}
                 checked={value.calendarType === calendarType}
-                onChange={() => onChange({ ...value, calendarType, isLeapMonth: calendarType === "solar" ? false : value.isLeapMonth })}
+                onChange={() => onChange({ ...value, calendarType, isLeapMonth: calendarType === "solar" ? false : value.isLeapMonth }, "calendarType")}
               />
               <span className="calendar-icon" aria-hidden="true">{calendarType === "solar" ? "☀️" : "🌙"}</span>
               <strong>{calendarType === "solar" ? "양력 (기본)" : "음력"}</strong>
@@ -193,14 +208,14 @@ export function PersonBirthFields({
           value={value.birthDate}
           aria-invalid={Boolean(birthDateError)}
           aria-describedby={ariaDescribedBy(id("birthDate", "hint"), birthDateError && id("birthDate", "error"))}
-          onChange={(event) => onChange({ ...value, birthDate: numbersOnly(event.target.value, 8) })}
+          onChange={(event) => onChange({ ...value, birthDate: numbersOnly(event.target.value, 8) }, "birthDate")}
         /></div>
         <small id={id("birthDate", "hint")} className="field-hint">예) 19950721 · 하이픈 없이 8자리</small>
         {birthDateError ? <small id={id("birthDate", "error")} className="field-error">{birthDateError}</small> : null}
       </label>
 
       {value.calendarType === "lunar" ? (
-        <label className="check-row"><input type="checkbox" checked={value.isLeapMonth} onChange={(event) => onChange({ ...value, isLeapMonth: event.target.checked })} />윤달 생일이에요</label>
+        <label className="check-row"><input type="checkbox" checked={value.isLeapMonth} onChange={(event) => onChange({ ...value, isLeapMonth: event.target.checked }, "isLeapMonth")} />윤달 생일이에요</label>
       ) : null}
 
       <div className="field-stack">
@@ -218,10 +233,10 @@ export function PersonBirthFields({
           aria-labelledby={id("birthTime", "label")}
           aria-invalid={Boolean(birthTimeError)}
           aria-describedby={ariaDescribedBy(id("birthTime", "hint"), birthTimeError && id("birthTime", "error"))}
-          onChange={(event) => onChange({ ...value, birthTime: numbersOnly(event.target.value, 4), meridiem: undefined })}
+          onChange={(event) => onChange({ ...value, birthTime: numbersOnly(event.target.value, 4), meridiem: undefined }, "birthTime")}
         /></div>
         <small id={id("birthTime", "hint")} className="field-hint">예) 오후 2시 30분은 1430, 오전 9시 30분은 0930</small>
-        <label className="check-row"><input type="checkbox" checked={!value.birthTimeKnown} onChange={(event) => onChange({ ...value, birthTimeKnown: !event.target.checked, birthTime: event.target.checked ? "" : birthTimeValue, meridiem: undefined })} /><span><strong>출생시간을 모르겠어요</strong><br/><small>모르는 경우에도 분석이 가능해요.</small></span></label>
+        <label className="check-row"><input type="checkbox" checked={!value.birthTimeKnown} onChange={(event) => onChange({ ...value, birthTimeKnown: !event.target.checked, birthTime: event.target.checked ? "" : birthTimeValue, meridiem: undefined }, "birthTime")} /><span><strong>출생시간을 모르겠어요</strong><br/><small>모르는 경우에도 분석이 가능해요.</small></span></label>
         {birthTimeError ? <small id={id("birthTime", "error")} className="field-error">{birthTimeError}</small> : null}
       </div>
     </fieldset>

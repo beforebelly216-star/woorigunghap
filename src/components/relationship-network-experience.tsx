@@ -4,6 +4,7 @@ import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  clearPersonBirthFieldError,
   createEmptyPersonBirthForm,
   normalizePersonBirthForm,
   PersonBirthFields,
@@ -643,9 +644,9 @@ export function RelationshipNetworkExperience({
                 placeholder="이 네트워크에서 사용할 별칭"
                 value={person}
                 errors={errors}
-                onChange={(next) => {
+                onChange={(next, changedField) => {
                   setPerson(next);
-                  setErrors((current) => ({ ...current, form: "" }));
+                  setErrors((current) => clearPersonBirthFieldError(current, "person", changedField));
                 }}
               />
               <label className={styles.consentCard}>

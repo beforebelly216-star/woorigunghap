@@ -4,6 +4,7 @@ import { FormEvent, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  clearPersonBirthFieldError,
   createEmptyPersonBirthForm,
   normalizePersonBirthForm,
   PersonBirthFields,
@@ -127,9 +128,9 @@ export function RelationshipNetworkCreateForm() {
           placeholder="예) 지민, 별이, 팀장님"
           value={person}
           errors={errors}
-          onChange={(next) => {
+          onChange={(next, changedField) => {
             setPerson(next);
-            setErrors((current) => ({ ...current, form: "", consent: "" }));
+            setErrors((current) => clearPersonBirthFieldError(current, "person", changedField));
           }}
         />
       </section>

@@ -127,6 +127,10 @@ assert.ok(networkPageSource.includes("RelationshipNetworkCreateForm"));
 assert.ok(networkPageSource.includes("RelationshipNetworkSavedList"), "방장은 같은 브라우저에서 만든 네트워크 목록을 다시 열 수 있어야 합니다.");
 assert.equal(networkPageSource.includes("OneToManyForm"), false, "신규 1:N 진입은 과거 유료 폼을 렌더하지 않아야 합니다.");
 
+const accountLibrarySource = readFileSync(join(process.cwd(), "src/app/account/reports/page.tsx"), "utf8");
+assert.ok(accountLibrarySource.includes("RelationshipNetworkSavedList"), "생성한 무료 네트워크는 보관함에서도 다시 열 수 있어야 합니다.");
+assert.ok(accountLibrarySource.includes("무료 인연 네트워크"), "보관함은 무료 네트워크 저장 위치를 안내해야 합니다.");
+
 const storeSource = readFileSync(join(process.cwd(), "src/lib/relationship-network-store.ts"), "utf8");
 assert.ok(storeSource.includes("calculateOneToOneCompatibility"), "모든 관계선은 기존 1:1 권위 계산 엔진을 사용해야 합니다.");
 assert.ok(storeSource.includes("{ timingBaseYear }"), "방 생성 연도의 계산 기준을 모든 새 관계선에 고정해야 합니다.");

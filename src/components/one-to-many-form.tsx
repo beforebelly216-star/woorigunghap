@@ -17,6 +17,7 @@ import {
   validateOneToManyReportInput,
 } from "@/lib/report-input";
 import {
+  clearPersonBirthFieldError,
   createEmptyPersonBirthForm,
   normalizePersonBirthForm,
   PersonBirthFields,
@@ -281,7 +282,11 @@ export function OneToManyForm() {
 
           <section className="one-to-many-group" aria-labelledby="reference-person-title">
             <div className="group-heading"><div><p className="card-label">내 정보</p><h2 id="reference-person-title">비교의 기준이 되는 사람</h2></div></div>
-            <PersonBirthFields title="내 정보" prefix="referencePerson" placeholder="예: 나" value={form.referencePerson} errors={errors} onChange={(referencePerson) => { setSaved(false); setForm({ ...form, referencePerson }); }} />
+            <PersonBirthFields title="내 정보" prefix="referencePerson" placeholder="예: 나" value={form.referencePerson} errors={errors} onChange={(referencePerson, changedField) => {
+              setSaved(false);
+              setForm((current) => ({ ...current, referencePerson }));
+              setErrors((current) => clearPersonBirthFieldError(current, "referencePerson", changedField));
+            }} />
           </section>
 
           <section className="candidate-count-section">
@@ -317,7 +322,10 @@ export function OneToManyForm() {
               <strong>후보 {activeCandidate + 1}</strong>
               {form.candidates.length > ONE_TO_MANY_MIN_CANDIDATES ? <button type="button" className="candidate-remove" onClick={() => removeCandidate(activeCandidate)}>삭제</button> : null}
             </div>
-            <PersonBirthFields title={`후보 ${activeCandidate + 1} 정보`} prefix={`candidates.${activeCandidate}`} placeholder={`예: 후보 ${activeCandidate + 1}`} value={form.candidates[activeCandidate]} errors={errors} onChange={(next) => updateCandidate(activeCandidate, next)} />
+            <PersonBirthFields title={`후보 ${activeCandidate + 1} 정보`} prefix={`candidates.${activeCandidate}`} placeholder={`예: 후보 ${activeCandidate + 1}`} value={form.candidates[activeCandidate]} errors={errors} onChange={(next, changedField) => {
+              updateCandidate(activeCandidate, next);
+              setErrors((current) => clearPersonBirthFieldError(current, `candidates.${activeCandidate}`, changedField));
+            }} />
           </div>
 
           <button type="button" className="secondary-action add-candidate" onClick={addCandidate} disabled={form.candidates.length >= ONE_TO_MANY_MAX_CANDIDATES}>+ 후보 추가 (최대 5명)</button>

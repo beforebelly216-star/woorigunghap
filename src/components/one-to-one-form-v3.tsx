@@ -18,6 +18,7 @@ import {
   validateOneToOneReportInput,
 } from "@/lib/report-input";
 import {
+  clearPersonBirthFieldError,
   createEmptyPersonBirthForm,
   normalizePersonBirthForm,
   PersonBirthFields,
@@ -395,7 +396,10 @@ export function OneToOneFormV3() {
               placeholder="예: 나 또는 별칭"
               value={form.personA}
               errors={errors}
-              onChange={(personA) => setForm({ ...form, personA })}
+              onChange={(personA, changedField) => {
+                setForm((current) => ({ ...current, personA }));
+                setErrors((current) => clearPersonBirthFieldError(current, "personA", changedField));
+              }}
             />
           </div>
 
@@ -422,7 +426,10 @@ export function OneToOneFormV3() {
               placeholder="예: 상대방 또는 별칭"
               value={form.personB}
               errors={errors}
-              onChange={(personB) => setForm({ ...form, personB })}
+              onChange={(personB, changedField) => {
+                setForm((current) => ({ ...current, personB }));
+                setErrors((current) => clearPersonBirthFieldError(current, "personB", changedField));
+              }}
             />
           </div>
 

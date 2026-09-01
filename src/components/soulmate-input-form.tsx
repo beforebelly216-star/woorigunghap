@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  clearPersonBirthFieldError,
   createEmptyPersonBirthForm,
   normalizePersonBirthForm,
   PersonBirthFields,
@@ -73,7 +74,10 @@ export function SoulmateInputForm() {
           placeholder="예) 지민, 나연, 별이"
           value={person}
           errors={errors}
-          onChange={(next) => { setPerson(next); setErrors((current) => ({ ...current, form: "" })); }}
+          onChange={(next, changedField) => {
+            setPerson(next);
+            setErrors((current) => clearPersonBirthFieldError(current, "soulmate", changedField));
+          }}
         />
       </div>
 
