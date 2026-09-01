@@ -193,7 +193,7 @@
 - [x] 만료·중복 저장 목록 정리 및 네트워크 삭제 시 목록 제거
 - [x] 1:N contract + Day 23 system QA + TypeScript + lint + production build PASS
 - [x] Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` READY
-- [ ] Production 배포 후 가명 방장 + 같은 브라우저 참여자 2명 + 저장 목록 재열람 + 전체 삭제 스모크
+- [x] Production `dpl_6seaA8Jo8CnWHGZEFgczeSJZCjfa` — 가명 방장 + 같은 브라우저 참여자 2명 + 3관계선 + 저장 목록 재열람 + 360/390/430px + console 0 + 전체 삭제·404 PASS
 
 ## 기본 검증
 
@@ -204,11 +204,12 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 무료 1:N 같은 브라우저 연속 참여 + 방장 저장·재열람
+- Worker/Task: Codex — 무료 1:N 같은 브라우저 연속 참여 + 방장 저장·재열람 완료
 - Scope: 복수 참여자 자격, 로컬 생성 목록, 공개/관리 링크 분리, 30일 만료 유지
-- Validation: 1:N contract + system QA + TypeScript + lint + production build PASS
-- Preview: `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` READY; 네트워크 암호화 키 미설정으로 생성 QA 제외
-- Remaining: 승인된 Production 배포 후 가명 3명·재열람·삭제 운영 스모크
+- Validation: contract/system QA/TypeScript/lint/build + 운영 3명·3관계선·재열람·삭제 PASS
+- Source: `cc902bca42db57278d7614c6d008c223caf8b255`
+- Deploy: Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` / Production `dpl_6seaA8Jo8CnWHGZEFgczeSJZCjfa` READY
+- Remaining: 기존 실패 실결제 1:1 전체 복구 검증
 - Risk: 관리 링크는 방장 권한이므로 공개 참여 링크와 구분해 비공개 보관 필요
-- Deploy: Production 승인 수신 / Git 자동배포 OFF 유지
+- Policy: Git 자동배포 OFF 유지
 ```

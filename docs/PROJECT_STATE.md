@@ -128,7 +128,7 @@
 
 ## 검증 상태
 
-- **무료 1:N 다중 참여·방장 재열람 hotfix local/Preview build PASS — 2026-09-01:** 같은 브라우저 연속 입력, 복수 참여자 삭제 자격 보존, 방장 로컬 목록, 공개/관리 링크 분리 계약 + Day 23 system QA + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS. Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` READY. Preview는 `NETWORK_PII_ENCRYPTION_KEY` 미설정으로 생성 실동작 QA를 중단했고 기존 데이터 호환성 영향 때문에 환경값을 자동 변경하지 않았다. Production 승인 배치에서 가명 생성·연속 참여·재열람·삭제 스모크를 수행한다.
+- **무료 1:N 다중 참여·방장 재열람 hotfix Production validation PASS — 2026-09-01:** source `cc902bca42db57278d7614c6d008c223caf8b255`, 같은 브라우저 연속 입력, 복수 참여자 삭제 자격 보존, 방장 로컬 목록, 공개/관리 링크 분리 계약 + Day 23 system QA + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS. Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ`, Production `dpl_6seaA8Jo8CnWHGZEFgczeSJZCjfa` READY. 운영에서 가명 3명·3관계선, 다음 사람 버튼 유지, 저장 목록 재열람, 관리 링크 UI, 360/390/430px 무오버플로, console error 0, 테스트 네트워크 삭제·404를 확인했다. Preview는 `NETWORK_PII_ENCRYPTION_KEY` 미설정이라 생성 실동작 QA를 생략했고 기존 데이터 호환성 영향 때문에 환경값을 자동 변경하지 않았다.
 - **타인 초대 링크 입력 폼 hotfix Production validation PASS — 2026-09-01:** source `674e50cac4cf50188081a00b17b6b454f2af38b9`, Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY, Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` READY. 초대 폼 360/390/430px와 browser console error 0을 확인했고 가명 테스트 네트워크를 삭제했다. Preview에는 `DATABASE_URL`·PortOne·Anthropic 관련 환경변수가 존재하며 값은 노출하지 않았다. 비과금 합성 미존재 주문의 `payment-ready` 응답은 HTTP 409 `PAYMENT_ORDER_NOT_READY`로, DB 미설정 오류가 아니다.
 - **무료 1:N Production validation PASS — 2026-09-01:** source `c8e642d`, Core calculation validation #33437750277, Vercel production build/TypeScript PASS. 분리 배포에서 4명·6관계선, S=91/E=43, ETag 304, PII 비노출, 삭제를 확인했고 공개 운영 별칭에서도 생성 201·참여 201·S=91·PII 비노출·삭제 200을 확인했다.
 - **1:N 순위 전용 결과 local validation PASS** — Day 15 UI/Day 16 paid E2E/runtime/share contracts + lint(0 errors, 기존 warnings 5) + production build + demo route local 200 응답 PASS.
@@ -159,7 +159,7 @@
 - **Production 최신 Preview 기준 배포 완료 — 2026-08-29:** trigger `d8186ab`, Vercel SUCCESS (`E9hgx8qjpxdCBv9jAk4YXRYfZuGN`). 이후 Git 자동배포 OFF 복구 commit `8051554`, validation #838 PASS.
 - **무료 1:N Production 배포 완료 — 2026-09-01:** source `c8e642d`, deployment `dpl_H8A6Fkkjq9MpfvMc2aK2QNLpDNcA`, 운영 주소 `https://woorigunghap-uty7-beforebelly216-stars-projects.vercel.app`. Production의 `NETWORK_PII_ENCRYPTION_KEY`·`CRON_SECRET` 설정 및 공개 스모크 PASS. 운영 별칭만 공개하고 Preview·개별 배포 URL은 Vercel Authentication 보호를 유지한다.
 - **타인 초대 링크 입력 폼 hotfix Preview/Production 배포 완료 — 2026-09-01:** source `674e50cac4cf50188081a00b17b6b454f2af38b9`, Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY, Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` READY. 360/390/430px 운영 검증과 테스트 네트워크 삭제 완료.
-- **무료 1:N 다중 참여·방장 재열람 Preview build 완료 — 2026-09-01:** deployment `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` READY. Production 배포 승인 수신, 정확한 `main` 커밋 배포 후 운영 스모크 예정.
+- **무료 1:N 다중 참여·방장 재열람 Preview/Production 배포 완료 — 2026-09-01:** source `cc902bca42db57278d7614c6d008c223caf8b255`, Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ`, Production `dpl_6seaA8Jo8CnWHGZEFgczeSJZCjfa` READY. 운영 별칭 스모크 및 테스트 데이터 삭제 완료.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
