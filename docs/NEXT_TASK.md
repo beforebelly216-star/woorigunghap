@@ -80,8 +80,8 @@
 - [x] 서버 설정 누락은 7회 자동 재시도하지 않고 즉시 같은 결제 수동 재확인 상태로 종료
 - [x] 결제 preflight/verify 구조화 오류 로그 추가
 - [x] local validation — paid-result/day8/runtime UI/server-store/1:N paid E2E/1:1 form contracts + lint + production build PASS
-- [ ] 실패한 Preview 대상에 `DATABASE_URL` 연결 여부 확인 및 hotfix 배포 (사용자 승인 필요)
-- [ ] 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 저장` 실동작 확인
+- [x] Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY 및 `DATABASE_URL`·PortOne·Anthropic 관련 환경변수 존재 확인(값 비노출). 비과금 합성 미존재 주문의 `payment-ready`는 HTTP 409 `PAYMENT_ORDER_NOT_READY`로 DB 미설정 오류가 아님
+- [ ] 기존 실패 실결제 1,000원 건으로 `payment verify → prepare → intro → dynamics → action → 저장 → 재열람` 실동작 및 중복 생성·중복 비용 방지 확인
 
 ### P3 실화면 QA
 - [ ] 실제 Sonnet 5 생성 1건에서 사용자 노출 본문 4,000~6,000자 확인
@@ -102,7 +102,7 @@
 
 ## Blocker / 운영 검증
 
-- [ ] 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
+- [ ] 기존 실패 실결제의 1:1 verify → 3-segment 생성 → 저장 → 재열람 Production 복구 및 중복 비용 방지 확인
 - [ ] 신규 실제 1:1 결제 → 전체 생성 → 서버 저장 → 보관함 재열람 시간 측정
 - [ ] AI/transport/dependency 실패 시 구조화 로그와 종료 UX 확인
 
@@ -177,6 +177,13 @@
 - [x] Production source `c8e642d` 배포·운영 승격 — `dpl_H8A6Fkkjq9MpfvMc2aK2QNLpDNcA`
 - [x] 공개 운영 스모크 — 홈 200, 신규 유료 주문 410, 생성/참여 201, S=91/E=43, PII 비노출, ETag 304, 삭제 200
 
+## 완료 — 타인 초대 링크 입력 양식 hotfix
+
+- [x] 공용 입력 폼 CSS 범위 누락과 SVG hydration mismatch 수정
+- [x] source `674e50cac4cf50188081a00b17b6b454f2af38b9`
+- [x] Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY / Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` READY
+- [x] 초대 폼 360/390/430px, browser console error 0, 가명 테스트 네트워크 삭제 확인
+
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
@@ -186,12 +193,11 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker: Codex
-- Task: 무료 링크형 1:N 인연 네트워크 전면 개편
-- Status: 구현·Production 배포·공개 운영 스모크 완료
-- Validation: Core #33437750277, Vercel build, 4명·6관계선, S=91/E=43, PII/ETag/삭제 PASS
-- Scope: 최대 12명 모든 쌍, E~S, network UI, 4초 갱신, 암호화·삭제·30일 retention
-- Remaining: Production에서 기존/신규 1:1 결제 → AI 3-segment → 저장 → 재열람 실동작 검증
-- Risk: 실제 결제/Anthropic 생성 성공 여부는 기존 운영 blocker로 미검증
-- Deploy: source c8e642d / dpl_H8A6Fkkjq9MpfvMc2aK2QNLpDNcA / Git 자동배포 OFF
+- Worker/Task: Codex — 타인 초대 링크 입력 양식·hydration hotfix, Preview/Production READY
+- Source: `674e50cac4cf50188081a00b17b6b454f2af38b9`
+- Validation: 초대 폼 360/390/430px, console error 0, 테스트 네트워크 삭제 PASS
+- Runtime: Preview 필수 env 존재, 합성 미존재 주문은 409 `PAYMENT_ORDER_NOT_READY`
+- Remaining: 기존 실패 실결제 verify → prepare/intro/dynamics/action → 저장 → 재열람 → 중복 비용 방지
+- Risk: 실제 결제/Anthropic 전체 생성 성공 여부는 운영 blocker로 미검증
+- Deploy: Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` / Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` / Git 자동배포 OFF
 ```

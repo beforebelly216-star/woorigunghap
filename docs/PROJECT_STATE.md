@@ -126,6 +126,7 @@
 
 ## 검증 상태
 
+- **타인 초대 링크 입력 폼 hotfix Production validation PASS — 2026-09-01:** source `674e50cac4cf50188081a00b17b6b454f2af38b9`, Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY, Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` READY. 초대 폼 360/390/430px와 browser console error 0을 확인했고 가명 테스트 네트워크를 삭제했다. Preview에는 `DATABASE_URL`·PortOne·Anthropic 관련 환경변수가 존재하며 값은 노출하지 않았다. 비과금 합성 미존재 주문의 `payment-ready` 응답은 HTTP 409 `PAYMENT_ORDER_NOT_READY`로, DB 미설정 오류가 아니다.
 - **무료 1:N Production validation PASS — 2026-09-01:** source `c8e642d`, Core calculation validation #33437750277, Vercel production build/TypeScript PASS. 분리 배포에서 4명·6관계선, S=91/E=43, ETag 304, PII 비노출, 삭제를 확인했고 공개 운영 별칭에서도 생성 201·참여 201·S=91·PII 비노출·삭제 200을 확인했다.
 - **1:N 순위 전용 결과 local validation PASS** — Day 15 UI/Day 16 paid E2E/runtime/share contracts + lint(0 errors, 기존 warnings 5) + production build + demo route local 200 응답 PASS.
 - **홈 섹션 정리/365일 한마디 local validation PASS** — 365개·중복 없음·서울 날짜/윤일 매핑·제거 UI contract + lint(0 errors, 기존 warnings 5) + production build + local 200 응답 PASS.
@@ -154,15 +155,15 @@
 - **주토피 원본 캐릭터 자산 Preview 배포 완료:** source PR #78, trigger `7cb538b`, Vercel SUCCESS (`Gjv1vd6wMAn74cvxFTPQFJH4es6s`). 이후 자동배포 OFF 복구 `7d37dd8`.
 - **Production 최신 Preview 기준 배포 완료 — 2026-08-29:** trigger `d8186ab`, Vercel SUCCESS (`E9hgx8qjpxdCBv9jAk4YXRYfZuGN`). 이후 Git 자동배포 OFF 복구 commit `8051554`, validation #838 PASS.
 - **무료 1:N Production 배포 완료 — 2026-09-01:** source `c8e642d`, deployment `dpl_H8A6Fkkjq9MpfvMc2aK2QNLpDNcA`, 운영 주소 `https://woorigunghap-uty7-beforebelly216-stars-projects.vercel.app`. Production의 `NETWORK_PII_ENCRYPTION_KEY`·`CRON_SECRET` 설정 및 공개 스모크 PASS. 운영 별칭만 공개하고 Preview·개별 배포 URL은 Vercel Authentication 보호를 유지한다.
+- **타인 초대 링크 입력 폼 hotfix Preview/Production 배포 완료 — 2026-09-01:** source `674e50cac4cf50188081a00b17b6b454f2af38b9`, Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY, Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` READY. 360/390/430px 운영 검증과 테스트 네트워크 삭제 완료.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
-1. Production에서 기존 1,000원 결제로 `payment verify → prepare → intro → dynamics → action → 결과 저장` 실복구 확인
+1. Production에서 기존 실패 실결제 1,000원 건으로 `payment verify → prepare → intro → dynamics → action → 결과 저장 → 재열람` 실복구 및 중복 생성·중복 비용 방지 확인
 2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
 3. 360 / 390 / 430px overflow/spacing QA
-4. 기존 실패 결제의 1:1 생성 → 저장 → 재열람 Production 복구 확인
-5. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
+4. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
 
 ## 출시 blocker
 
