@@ -37,7 +37,7 @@
 - 루트 레이아웃에서 Foundation v2/구버전 전역 CSS import를 제거하고 `report-theme.css` + `app-theme-v4.css`만 공통 렌더 경로로 유지한다.
 - 1:N 결과의 후행 route CSS보다 app theme가 우선하도록 선택자 계약을 고정했다.
 - 360/390/430px 홈·로그인·1:N 결과에서 가로 overflow 없음, 오류 overlay 없음, 모바일 카드 렌더를 실브라우저로 확인했다.
-- 주토피 공통 마스코트와 생성 대기 일러스트는 사용자 승인 캐릭터 시트에서 추출한 실제 픽셀 자산으로 교체했다. 기존 코드 생성/손그림 토끼 SVG는 사용자 화면에서 사용하지 않는다.
+- 주토피 공통 마스코트는 `smile / analyzing / idea / thinking / surprised` 고해상도 투명 PNG 표정 세트를 사용한다. 화면 맥락에 맞춰 포즈를 선택하되 과도하게 반복하지 않으며, 기존 코드 생성/손그림 토끼 SVG는 사용자 화면에서 사용하지 않는다.
 - 1:1/1:N 공용 히트맵은 낮은 점수 빨강 → 중간 노랑 → 높은 점수 녹색의 주가형 5단계 팔레트를 사용한다. 숫자와 지표 라벨은 항상 함께 표시한다.
 
 ### 홈 / 무료
@@ -69,7 +69,9 @@
 - 생년정보는 전용 서버 키로 AES-256-GCM 암호화하며 공개 API에는 별칭·점수·등급·사용자용 축만 포함한다. 외부 AI는 호출하지 않는다.
 - 새 참여는 약 4초 polling과 ETag로 갱신한다. 방장은 참여 중단·재개, 참여자 제거, 방 삭제를 할 수 있고 참여자는 자신을 삭제할 수 있다.
 - 참여 완료 뒤에도 `다른 사람 연결하기`로 같은 브라우저에서 여러 사람이 순서대로 직접 입력할 수 있으며, 각 참여자의 삭제 자격을 브라우저에 함께 보존한다.
-- 방장이 만든 네트워크는 같은 브라우저의 `내가 만든 네트워크` 목록에 자동 저장하고 `/one-to-many`와 계정 보관함 양쪽에서 다시 연다. 공개 참여 링크와 별도로 방장 권한이 든 관리 링크를 복사해 다른 기기 재접속에 사용할 수 있다.
+- 노드나 관계선을 누르면 viewer 기준 bottom sheet가 열려 기존 결정론 결과의 점수·등급·점수 범위·강점·조율 축을 간단히 설명하고 1:1 정밀궁합으로 연결한다.
+- 1080×1920 스토리 카드는 참여자 이름·개별 점수 없이 인원·관계 수·최고 등급만 사용한다. 결과 페이지의 동적 1200×630 OG와 `내 인연 네트워크 만들기` CTA로 공유 유입을 이어간다.
+- 방장이 만든 네트워크는 같은 브라우저의 `내가 만든 네트워크` 목록에 자동 저장하고 `/one-to-many`와 계정 보관함 양쪽에서 다시 연다. 카카오 로그인 계정에는 방장 권한 검증 뒤 공개 token만 AES-256-GCM으로 암호화해 연결하며, 다른 기기에서는 공개 결과를 재열람한다. 관리 token은 계정에 저장하거나 이전하지 않으므로 방 관리는 최초 기기 또는 별도 관리 링크가 필요하다.
 - 방은 생성 30일 뒤 조회를 차단하고 일일 자동 정리에서 삭제한다. 요청 남용 방지 식별값은 키 기반 HMAC으로 최대 1일 보관한다.
 - 신규 유료 1:N 주문과 checkout은 무료 네트워크로 안내한다. 기존 3,000원 구매 결과·공유·복구·저장 계약은 하위 호환으로 유지한다.
 
@@ -129,7 +131,8 @@
 
 ## 검증 상태
 
-- **무료 1:N 보관함 노출·출생시간 오류 해제 hotfix local validation PASS — 2026-09-01:** 생성 즉시 저장되는 기존 브라우저 목록을 `/account/reports`에도 렌더하고 비로그인 재열람 안내를 추가했다. 공용 생년정보 입력은 변경된 필드 오류만 즉시 제거한다. 1:N/account/input contracts + Day 23 system QA + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS. 실브라우저에서 `2460` 오류 표시 → 값 삭제 → 오류 DOM 제거·`aria-invalid=false`, console error 0을 확인했다. 로컬 네트워크 저장소 미연결로 생성→보관함 재노출은 Production 스모크에서 확인한다.
+- **무료 1:N 결과·공유·카카오 보관함 개편 Production validation PASS — 2026-09-02:** source `14f06fe63c3cb577c2995f2832f27bc64f105787`. 관계 네트워크·Kakao auth·계정 보관함·운영정책 contracts, TypeScript, lint(0 errors, 기존 warnings 5), production build(34/34) PASS. 운영에서 가명 3명·3관계선과 S/B/C, 연속 참여 버튼, 인물 동그라미 bottom sheet, 타인 간 점수, 1:1 CTA, 스토리 집계 카드, 출생시간 오류 입력 삭제 시 즉시 해제, 동적 OG `200 image/png`, 임시 방 전체 삭제 후 `404`를 확인했다.
+- **무료 1:N 보관함 노출·출생시간 오류 해제 hotfix Production validation PASS — 2026-09-02:** 생성 즉시 저장되는 기존 브라우저 목록을 `/account/reports`에도 렌더하고 비로그인 재열람 안내를 추가했다. 공용 생년정보 입력은 변경된 필드 오류만 즉시 제거한다. 1:N/account/input contracts + Day 23 system QA + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS. 운영에서 생성 후 재열람, 잘못된 출생시간 오류 표시 → 값 삭제 → 오류 DOM 제거, 임시 네트워크 삭제 후 `404`를 확인했다.
 - **무료 1:N 다중 참여·방장 재열람 hotfix Production validation PASS — 2026-09-01:** source `cc902bca42db57278d7614c6d008c223caf8b255`, 같은 브라우저 연속 입력, 복수 참여자 삭제 자격 보존, 방장 로컬 목록, 공개/관리 링크 분리 계약 + Day 23 system QA + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS. Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ`, Production `dpl_6seaA8Jo8CnWHGZEFgczeSJZCjfa` READY. 운영에서 가명 3명·3관계선, 다음 사람 버튼 유지, 저장 목록 재열람, 관리 링크 UI, 360/390/430px 무오버플로, console error 0, 테스트 네트워크 삭제·404를 확인했다. Preview는 `NETWORK_PII_ENCRYPTION_KEY` 미설정이라 생성 실동작 QA를 생략했고 기존 데이터 호환성 영향 때문에 환경값을 자동 변경하지 않았다.
 - **타인 초대 링크 입력 폼 hotfix Production validation PASS — 2026-09-01:** source `674e50cac4cf50188081a00b17b6b454f2af38b9`, Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY, Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` READY. 초대 폼 360/390/430px와 browser console error 0을 확인했고 가명 테스트 네트워크를 삭제했다. Preview에는 `DATABASE_URL`·PortOne·Anthropic 관련 환경변수가 존재하며 값은 노출하지 않았다. 비과금 합성 미존재 주문의 `payment-ready` 응답은 HTTP 409 `PAYMENT_ORDER_NOT_READY`로, DB 미설정 오류가 아니다.
 - **무료 1:N Production validation PASS — 2026-09-01:** source `c8e642d`, Core calculation validation #33437750277, Vercel production build/TypeScript PASS. 분리 배포에서 4명·6관계선, S=91/E=43, ETag 304, PII 비노출, 삭제를 확인했고 공개 운영 별칭에서도 생성 201·참여 201·S=91·PII 비노출·삭제 200을 확인했다.
@@ -162,6 +165,7 @@
 - **무료 1:N Production 배포 완료 — 2026-09-01:** source `c8e642d`, deployment `dpl_H8A6Fkkjq9MpfvMc2aK2QNLpDNcA`, 운영 주소 `https://woorigunghap-uty7-beforebelly216-stars-projects.vercel.app`. Production의 `NETWORK_PII_ENCRYPTION_KEY`·`CRON_SECRET` 설정 및 공개 스모크 PASS. 운영 별칭만 공개하고 Preview·개별 배포 URL은 Vercel Authentication 보호를 유지한다.
 - **타인 초대 링크 입력 폼 hotfix Preview/Production 배포 완료 — 2026-09-01:** source `674e50cac4cf50188081a00b17b6b454f2af38b9`, Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY, Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` READY. 360/390/430px 운영 검증과 테스트 네트워크 삭제 완료.
 - **무료 1:N 다중 참여·방장 재열람 Preview/Production 배포 완료 — 2026-09-01:** source `cc902bca42db57278d7614c6d008c223caf8b255`, Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ`, Production `dpl_6seaA8Jo8CnWHGZEFgczeSJZCjfa` READY. 운영 별칭 스모크 및 테스트 데이터 삭제 완료.
+- **무료 1:N 결과·공유·카카오 보관함 Preview/Production 배포 완료 — 2026-09-02:** source `14f06fe63c3cb577c2995f2832f27bc64f105787`, Preview `dpl_HuBG9fm47KktSepULxuxNucfq65X`, Production `dpl_7JUwo12hN7DMikJbwTqZtxGav3Ro` READY. 안정 주소 `https://woorigunghap-uty7.vercel.app`로 승격했고 운영 3인 관계망·해설·OG·입력 오류 해제·삭제 스모크 PASS. Git 자동배포 OFF 유지.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
@@ -169,7 +173,8 @@
 1. Production에서 기존 실패 실결제 1,000원 건으로 `payment verify → prepare → intro → dynamics → action → 결과 저장 → 재열람` 실복구 및 중복 생성·중복 비용 방지 확인
 2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
 3. 360 / 390 / 430px overflow/spacing QA
-4. 실제 1:1·1:N Web Share / 이미지 저장 / Shared View
+4. 실제 모바일 Instagram/Kakao의 1:N 스토리 이미지·파일 공유 수신 확인
+5. 보유 커스텀 도메인 연결과 DNS 검증 후 공유 URL의 `vercel.app` 제거
 
 ## 출시 blocker
 

@@ -195,14 +195,25 @@
 - [x] Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ` READY
 - [x] Production `dpl_6seaA8Jo8CnWHGZEFgczeSJZCjfa` — 가명 방장 + 같은 브라우저 참여자 2명 + 3관계선 + 저장 목록 재열람 + 360/390/430px + console 0 + 전체 삭제·404 PASS
 
-## 진행 — 무료 1:N 보관함 노출·출생시간 오류 해제 hotfix
+## 완료 — 무료 1:N 보관함 노출·출생시간 오류 해제 hotfix
 
 - [x] 생성한 무료 인연 네트워크를 `/account/reports` 보관함에도 표시
 - [x] 비로그인도 같은 브라우저의 생성 네트워크를 보관함에서 재열람
 - [x] 공용 생년정보 입력 변경 시 해당 필드 오류와 폼 공통 오류만 즉시 제거
 - [x] 1:N/account/input contracts + Day 23 system QA + TypeScript + lint + production build PASS
 - [x] 실브라우저 `2460` 오류 → 입력 삭제 → 오류 제거·`aria-invalid=false`, console 0
-- [ ] Production 배포 후 생성 → 페이지 이탈 → 보관함 → 다시 보기 → 테스트 방 삭제 스모크
+- [x] Production 생성 → 페이지 이탈 → 보관함 → 다시 보기 → 테스트 방 삭제·404 스모크
+
+## 완료 — 무료 1:N 결과·공유·카카오 보관함 개편
+
+- [x] 인물 동그라미·관계선 선택 시 점수·등급·강점·조율 축 bottom sheet 및 1:1 정밀궁합 CTA
+- [x] 1080×1920 익명 집계 스토리 카드, 1200×630 동적 OG, `내 인연 네트워크 만들기` 유입 CTA
+- [x] 방장 권한 검증 후 공개 token만 암호화해 카카오 계정 보관함에 저장하고 다른 기기 공개 재열람 지원
+- [x] 주토피 `smile / analyzing / idea / thinking / surprised` 고해상도 투명 PNG 표정 세트 적용
+- [x] 약관·개인정보·회원탈퇴 범위 및 계정 귀속 충돌 방지 계약 갱신
+- [x] source `14f06fe63c3cb577c2995f2832f27bc64f105787` + 관계 네트워크/Kakao auth/계정 보관함/운영정책 contracts + TypeScript + lint + production build PASS
+- [x] Preview `dpl_HuBG9fm47KktSepULxuxNucfq65X` READY / Production `dpl_7JUwo12hN7DMikJbwTqZtxGav3Ro` READY 및 안정 주소 승격
+- [x] 운영 3명·3관계선·타인 간 해설·스토리 집계·동적 OG·출생시간 오류 해제·임시 방 삭제 404 PASS
 
 ## 기본 검증
 
@@ -213,11 +224,12 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 무료 1:N 보관함 노출 + 출생시간 오류 즉시 해제
-- Scope: 기존 로컬 생성 목록을 보관함에도 렌더, 공용 입력의 변경 필드 오류만 제거
-- Validation: 1:N/account/input contracts + system QA + TypeScript + lint + build + browser PASS
-- Deploy: 사용자 승인 수신; 정확한 main source 배포 후 운영 생성·보관함 재열람·삭제 스모크
-- Remaining: 운영 스모크 후 기존 실패 실결제 1:1 전체 복구 검증
-- Risk: 네트워크 보관함 목록은 같은 브라우저 기준이며 다른 기기는 관리 링크가 필요
+- Worker/Task: Codex — 무료 1:N 결과·공유·카카오 계정 보관함 개편 완료
+- Source: 14f06fe63c3cb577c2995f2832f27bc64f105787
+- Scope: 관계 해설 bottom sheet, 익명 스토리/OG, 자기 네트워크 CTA, 주토피 표정 세트, 계정 저장
+- Validation: contracts + TypeScript + lint(0 errors) + build + 운영 3인 관계망/OG/오류 해제/삭제 PASS
+- Deploy: Preview dpl_HuBG9fm47KktSepULxuxNucfq65X / Production dpl_7JUwo12hN7DMikJbwTqZtxGav3Ro READY
+- Remaining: 커스텀 도메인 연결, 실제 모바일 Instagram/Kakao 파일 공유, 기존 실패 실결제 1:1 복구 검증
+- Risk: 계정은 공개 결과 재열람만 제공하며 관리는 최초 기기 또는 관리 링크가 필요
 - Policy: Git 자동배포 OFF 유지
 ```
