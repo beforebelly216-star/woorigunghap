@@ -1,5 +1,5 @@
 import { ZootopiMark } from "@/components/zootopi-mark";
-import { ZootopiBrand } from "@/components/zootopi-brand";
+import { WoorisajuBrand } from "@/components/woorisaju-brand";
 import { SoulmateInputForm } from "@/components/soulmate-input-form";
 import "../../components/zootopi-mark.css";
 import "../input-reference-v4.css";
@@ -10,7 +10,7 @@ export default function FreeSoulmatePage() {
     <main className={`${styles.page} reference-input-screen free-soulmate-page`}>
       <div className={styles.shell}>
         <header className={styles.brandRow}>
-          <ZootopiBrand className={styles.brand} />
+          <WoorisajuBrand className={styles.brand} />
           <span className={styles.badge}>🎁 무료 · 1분이면 끝나요</span>
         </header>
 

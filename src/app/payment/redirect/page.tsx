@@ -6,6 +6,7 @@ import { Suspense, useEffect, useState } from "react";
 import { loadOrderDraft } from "@/lib/order-storage";
 import { buildOneToManyResultUrl, buildOneToOneResultUrl } from "@/lib/result-access-token";
 import { productFromPaymentId } from "@/lib/payments/verification";
+import { FlowStatusScreen } from "@/components/flow-status-screen";
 
 type State = "checking" | "success" | "failed" | "cancelled";
 
@@ -159,16 +160,8 @@ function PaymentResult() {
     ? `${product === "oneToMany" ? "/one-to-many/checkout" : "/one-to-one/checkout"}?paymentId=${encodeURIComponent(paymentId)}`
     : null;
 
-  return (
-    <main className="result-page payment-result-page" aria-live="polite" aria-busy={state === "checking"}>
-      <p className="eyebrow">주토피</p>
-      <h1>{copy[0]}</h1>
-      <p>{copy[1]}</p>
-      {state === "checking" ? (
-        <p className="result-note">확인이 끝나지 않아도 새 결제를 만들지 않습니다.</p>
-      ) : null}
-      {state === "success" && paymentId ? (
-        <div className="recovery-actions">
+  const actions = state === "success" && paymentId ? (
+        <>
           <Link
             href={product === "oneToMany"
               ? buildOneToManyResultUrl(paymentId)
@@ -178,35 +171,46 @@ function PaymentResult() {
             바로 결과 보기
           </Link>
           <Link href="/account/reports" className="back-link">보관함에서 생성 상태 보기</Link>
-        </div>
+        </>
       ) : state === "failed" && safeRecheckOnly ? (
-        <div className="recovery-actions">
+        <>
           <button type="button" className="primary-link" onClick={() => window.location.reload()}>
             같은 결제 다시 확인
           </button>
           <Link href="/" className="back-link">처음으로 돌아가기</Link>
-        </div>
+        </>
       ) : state === "cancelled" ? (
-        <div className="recovery-actions">
+        <>
           {retryHref ? <Link href={retryHref} className="primary-link">결제 화면으로 돌아가기</Link> : null}
           <Link href="/" className="back-link">처음으로 돌아가기</Link>
-        </div>
+        </>
       ) : state === "failed" ? (
-        <div className="recovery-actions">
+        <>
           <Link href="/" className="back-link">처음으로 돌아가기</Link>
-        </div>
-      ) : null}
-    </main>
-  );
+        </>
+      ) : undefined;
+
+  return <FlowStatusScreen
+    activeStep="payment"
+    title={copy[0]}
+    description={copy[1]}
+    detail={state === "checking" ? "확인이 끝나지 않아도 새 결제를 만들지 않습니다." : undefined}
+    tone={state === "checking" ? "working" : state === "success" ? "success" : "error"}
+    expression={state === "checking" ? "analyzing" : state === "success" ? "smile" : "surprised"}
+    actions={actions}
+  />;
 }
 
 export default function PaymentRedirectPage() {
   return (
     <Suspense
       fallback={
-        <main className="result-page payment-result-page" aria-live="polite" aria-busy="true">
-          <p>결제 정보를 불러오는 중이에요.</p>
-        </main>
+        <FlowStatusScreen
+          activeStep="payment"
+          title="결제 정보를 불러오고 있어요"
+          description="결제 확인을 시작할 준비를 하고 있어요."
+          expression="analyzing"
+        />
       }
     >
       <PaymentResult />

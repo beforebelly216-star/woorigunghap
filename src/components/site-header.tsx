@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { AuthStatus } from "@/components/auth-status";
-import { ZootopiBrand } from "@/components/zootopi-brand";
+import { WoorisajuBrand } from "@/components/woorisaju-brand";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -20,13 +20,13 @@ export function SiteHeader() {
 
   if (pathname === "/") {
     return <header className="site-header site-header-home-a99">
-      <ZootopiBrand className="site-brand" />
+      <WoorisajuBrand className="site-brand" />
       <AuthStatus />
     </header>;
   }
 
   return <header className="site-header">
-    <ZootopiBrand className="site-brand" />
+    <WoorisajuBrand className="site-brand" />
     <AuthStatus />
   </header>;
 }

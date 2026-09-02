@@ -7,9 +7,9 @@ const requestEngine = readFileSync("src/lib/narrative/report-engine-v6-request.t
 const layout = readFileSync("src/app/one-to-one/result/report-layout-v3.tsx", "utf8");
 const components = readFileSync("src/app/one-to-one/result/report-v2-components.tsx", "utf8");
 
-assert.match(engine, /paid-report-v9-jootopi-direct-voice/);
-assert.match(engine, /당신은 주토피입니다/);
-assert.match(engine, /주토피가 친근한 반말/);
+assert.match(engine, /paid-report-v10-woorisaju-direct-voice/);
+assert.match(engine, /당신은 우리사주의 친근한 관계 해설자입니다/);
+assert.match(engine, /사용자에게 보이는 모든 문장은 친근한 반말/);
 assert.match(engine, /전문 용어가 필요하면 먼저 일상 언어로 뜻을 설명/);
 assert.match(engine, /'항목 점수', '가중치에 반영'/);
 assert.match(engine, /현실 장면과 두 사람의 체감으로 번역/);
@@ -39,4 +39,4 @@ assert.ok(!cleanIssues.includes("HEDGING_LANGUAGE_REPEATED"));
 assert.match(requestEngine, /HEDGING_LANGUAGE_REPEATED/);
 assert.match(requestEngine, /서버가 제공한/);
 
-console.log("paid report Jootopi voice + evidence explanation contract: PASS");
+console.log("paid report Woorisaju voice + evidence explanation contract: PASS");

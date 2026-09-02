@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
   const memberCount = network?.memberCount ?? 0;
   const relationshipCount = network?.edges.length ?? 0;
   const title = host
-    ? `${host.displayName}님의 인연 네트워크 — 나는 몇 등급일까? | 주토피`
-    : "나는 이 인연 네트워크에서 몇 등급일까? | 주토피";
+    ? `${host.displayName}님의 인연 네트워크 — 나는 몇 등급일까? | 우리사주`
+    : "나는 이 인연 네트워크에서 몇 등급일까? | 우리사주";
   const description = network
     ? `현재 ${memberCount}명, ${relationshipCount}쌍의 관계가 연결됐어. 내 정보만 입력하면 모든 참여자와의 궁합 점수·등급을 바로 확인할 수 있어.`
     : "내 정보만 입력하면 모든 참여자와의 궁합 점수·등급이 인물 네트워크에 연결돼.";
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
       description,
       type: "website",
       locale: "ko_KR",
-      siteName: "주토피",
+      siteName: "우리사주",
     },
     twitter: { card: "summary_large_image", title, description },
   };

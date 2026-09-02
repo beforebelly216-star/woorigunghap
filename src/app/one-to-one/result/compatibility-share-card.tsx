@@ -100,7 +100,7 @@ async function createShareImageBlob({
 
   ctx.fillStyle = "#222026";
   ctx.font = "800 42px Pretendard, sans-serif";
-  ctx.fillText("주토피", 160, 220);
+  ctx.fillText("우리사주", 160, 220);
   ctx.textAlign = "right";
   ctx.fillText(`${relationshipLabel} 궁합`, 920, 220);
   ctx.textAlign = "left";
@@ -199,7 +199,7 @@ export function CompatibilityShareCard({
   }, [relationshipType]);
 
   async function share() {
-    const shareText = `주토피 ${relationshipLabel} 궁합 · ${selfName} × ${partnerName} · ${shareCopy} · ${score}점`;
+    const shareText = `우리사주 ${relationshipLabel} 궁합 · ${selfName} × ${partnerName} · ${shareCopy} · ${score}점`;
 
     try {
       const blob = await createShareImageBlob({ selfName, partnerName, relationshipLabel, score, archetype, eyebrow: SHARE_OPTION.eyebrow, shareCopy, sides });
@@ -208,12 +208,12 @@ export function CompatibilityShareCard({
       const shareToken = publicShareTokenFromUrl(sharedViewUrl);
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         if (shareToken) trackGrowthEvent({ eventName: "share_native_open", product: "oneToOne", relationshipType, surface: "one_to_one_share_card", sharePurpose: SHARE_OPTION.purpose, shareToken });
-        await navigator.share({ title: `주토피 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl, files: [file] });
+        await navigator.share({ title: `우리사주 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl, files: [file] });
         setShareState("shared"); return;
       }
       if (navigator.share) {
         if (shareToken) trackGrowthEvent({ eventName: "share_native_open", product: "oneToOne", relationshipType, surface: "one_to_one_share_card", sharePurpose: SHARE_OPTION.purpose, shareToken });
-        await navigator.share({ title: `주토피 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl });
+        await navigator.share({ title: `우리사주 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl });
         setShareState("shared"); return;
       }
       await navigator.clipboard.writeText(`${shareText}\n${sharedViewUrl}`);
@@ -238,7 +238,7 @@ export function CompatibilityShareCard({
   return <section className={styles.section} aria-labelledby="compatibility-share-card-title">
     <div className={styles.heading}><small>결과 공유</small><h2 id="compatibility-share-card-title">둘만 보기 아까운 궁합, 한 장으로 보내기</h2><p>두 사람의 이름과 점수, 궁합 유형, 궁금증을 부르는 핵심 단서를 한 장에 담았어.</p></div>
     <div className={styles.card} data-archetype={archetype.id} data-purpose={SHARE_OPTION.purpose}>
-      <div className={styles.topline}><span>주토피</span><span>{relationshipLabel} 궁합</span></div>
+      <div className={styles.topline}><span>우리사주</span><span>{relationshipLabel} 궁합</span></div>
       <div className={styles.names}>{selfName} <span>×</span> {partnerName}</div>
       <div className={styles.mystery}>{SHARE_OPTION.eyebrow}</div><strong className={styles.shareCopy}>{shareCopy}</strong><p className={styles.pairType}>궁합 유형 · <b>{archetype.label}</b></p>
       <p className={styles.clue}>{archetype.subtitle}</p><div className={styles.sideGrid}><div className={styles.sideBox}><small>잘 맞는 지점</small><strong>{sides.strength}</strong></div><div className={`${styles.sideBox} ${styles.sideBoxWarm}`}><small>맞추면 더 좋은 지점</small><strong>{sides.tuning}</strong></div></div>

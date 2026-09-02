@@ -78,7 +78,7 @@
   --saju-width-report: 390px;
   --saju-width-compare: 390px;
 
-  /* 주토피 브랜드 스킨 레이어 — docs/DECISIONS.md UI/디자인 addendum(2026-08-25) 참고.
+  /* 우리사주 브랜드 스킨 레이어 — docs/DECISIONS.md UI/디자인 addendum(2026-08-25) 참고.
      오행 5색/semantic 토큰과 절대 대체하지 않는다. */
 
   /* 캐릭터 일러스트 전용 팔레트 — SVG/이미지 자산 내부 전용, UI 배경/버튼/배지 금지 */

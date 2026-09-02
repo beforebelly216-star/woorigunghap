@@ -1,5 +1,5 @@
 /**
- * 주토피 주식 테마 — 표시 전용 파생 매핑.
+ * 우리사주 차트 테마 — 표시 전용 파생 매핑.
  *
  * `score-scale.ts`의 `COMPATIBILITY_SCORE_BANDS`(min/max, 계산 임계치)는 절대 바꾸지 않는다.
  * 이 파일은 그 위에 "주식 테마 라벨/캔들스틱 모양"만 얹는 순수 표시 레이어다.
@@ -27,7 +27,7 @@ export function getStockBadge(score: number): string {
 }
 
 /**
- * 주토피 반말 캡션(§4.8) — 종합점수 헤더 옆에 붙는 짧은 코멘트.
+ * 마스코트 반말 캡션(§4.8) — 종합점수 헤더 옆에 붙는 짧은 코멘트.
  * 예외 없이 반말만 쓴다. 카피는 항상 현재형이며 미래 시제 예측 문장을 만들지 않는다(§3, §11).
  */
 export function getZootopiScoreCaption(score: number): string {

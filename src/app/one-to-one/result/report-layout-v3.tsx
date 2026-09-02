@@ -5,6 +5,7 @@ import type { CompatibilityDimension } from "@/lib/compatibility/types";
 import type { PaidReportFacts } from "@/lib/narrative/report-engine-v5";
 import type { EnhancedDetailedReportContent } from "@/lib/narrative/report-deep-content";
 import { ZootopiCaption } from "@/components/zootopi-mark";
+import { COMPATIBILITY_GRADE_COPY, getCompatibilityGrade } from "@/lib/compatibility/score-scale";
 import { CompatibilityHeatmap, ElementFacts, Paragraph, PillarGrid } from "./report-v2-components";
 import styles from "./report-layout-v3.module.css";
 
@@ -43,6 +44,8 @@ export default function ReportLayoutV3({
   debugNode?: ReactNode;
 }) {
   const conflictScenarios = content.relationshipFlow.conflictScenarios.slice(0, 3);
+  const grade = getCompatibilityGrade(score);
+  const gradeCopy = COMPATIBILITY_GRADE_COPY[grade];
 
   return <div className={styles.shell}>
     <header className={styles.topbar}>
@@ -53,6 +56,9 @@ export default function ReportLayoutV3({
 
     <section className={styles.hero} aria-labelledby="result-title">
       <div className={styles.scoreOrb}><strong>{score}</strong><small>점</small></div>
+      <div className={styles.gradeBadge} data-grade={grade} aria-label={`${grade}등급, ${gradeCopy.label}`}>
+        <strong>{grade}</strong><span>등급</span><small>{gradeCopy.label}</small>
+      </div>
       <h1 id="result-title">{personAName} <span>×</span> {personBName}</h1>
       <p className={styles.heroMeta}>{relationshipLabel}</p>
       <div className={styles.heroSummary}><strong>{content.overview.headline}</strong></div>
@@ -69,7 +75,7 @@ export default function ReportLayoutV3({
     </section>
 
     <section id="pillars" className={styles.section}>
-      <SectionHeading number="02" title="두 사람은 어떤 기운을 가졌을까?" description="주토피가 해석에 사용한 두 사람의 사주 원국이야." />
+      <SectionHeading number="02" title="두 사람은 어떤 기운을 가졌을까?" description="관계 해석에 사용한 두 사람의 사주 원국이야." />
       <div className={styles.personStack}>
         <article className={styles.personCard}>
           <div className={styles.personHeader}><small>첫 번째 사람</small><strong>{personAName}</strong></div>
@@ -132,8 +138,8 @@ export default function ReportLayoutV3({
     </section>
 
     <section className={styles.ending}>
-      <div><small>주토피 노트</small><h2>점수보다 중요한 건, 둘 사이에서 실제로 반복되는 장면이야.</h2></div>
-      <ZootopiCaption expression={score >= 80 ? "idea" : score >= 55 ? "smile" : "thinking"}>잘 맞는 순간은 더 자주 만들고, 부딪히는 패턴은 조금 일찍 알아차려 봐.</ZootopiCaption>
+      <div><small>관계 노트</small><h2>점수보다 중요한 건, 둘 사이에서 실제로 반복되는 장면이야.</h2></div>
+      <ZootopiCaption label="한마디" expression={score >= 80 ? "idea" : score >= 55 ? "smile" : "thinking"}>잘 맞는 순간은 더 자주 만들고, 부딪히는 패턴은 조금 일찍 알아차려 봐.</ZootopiCaption>
     </section>
 
     <section id="share" className={styles.utilitySection}>{shareNode}</section>

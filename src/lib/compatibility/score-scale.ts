@@ -4,6 +4,24 @@ import { RELATIONSHIP_SCORE_WEIGHTS } from "./weights";
 
 export const PUBLIC_COMPATIBILITY_SCORE_FLOOR = 30;
 export const PUBLIC_COMPATIBILITY_SCORE_CEILING = 100;
+export const COMPATIBILITY_GRADE_POLICY_VERSION = "relationship-grade-v1" as const;
+
+export const COMPATIBILITY_GRADES = ["S", "A", "B", "C", "D", "E"] as const;
+export type CompatibilityGrade = (typeof COMPATIBILITY_GRADES)[number];
+
+export const COMPATIBILITY_GRADE_COPY: Record<CompatibilityGrade, {
+  min: number;
+  max: number;
+  label: string;
+  description: string;
+}> = {
+  S: { min: 90, max: 100, label: "강하게 통하는 관계", description: "여러 관계 축에서 강점이 뚜렷하게 겹쳐요." },
+  A: { min: 80, max: 89, label: "아주 잘 맞는 관계", description: "편하게 맞는 지점이 많고 조율 부담이 적은 편이에요." },
+  B: { min: 70, max: 79, label: "잘 맞는 관계", description: "강점이 분명하고 차이는 대화로 맞추기 좋은 편이에요." },
+  C: { min: 60, max: 69, label: "균형을 찾는 관계", description: "맞는 부분과 다른 부분이 함께 보여요." },
+  D: { min: 50, max: 59, label: "조율이 필요한 관계", description: "서로의 방식과 기대를 자주 확인할수록 좋아요." },
+  E: { min: 30, max: 49, label: "세심한 조율이 필요한 관계", description: "반복되는 차이를 먼저 알고 천천히 맞춰가는 편이 좋아요." },
+};
 
 export type CompatibilityScoreBand = {
   min: number;
@@ -27,19 +45,34 @@ export const COMPATIBILITY_DIMENSION_RAW_BOUNDS: Record<CompatibilityDimension, 
 };
 
 export const COMPATIBILITY_SCORE_BANDS: readonly CompatibilityScoreBand[] = [
-  { min: 95, max: 100, label: "최상급 궁합", shortLabel: "최상급", description: "핵심 궁합 지표 대부분이 매우 강하게 맞는 조합이에요. 서로의 차이보다 잘 맞는 힘이 훨씬 크게 보입니다." },
-  { min: 90, max: 94, label: "아주 잘 맞는 궁합", shortLabel: "아주 잘 맞음", description: "전반적으로 조화가 매우 좋은 편이에요. 몇 가지 차이가 있어도 관계의 강점이 뚜렷합니다." },
-  { min: 85, max: 89, label: "상당히 잘 맞는 궁합", shortLabel: "상당히 잘 맞음", description: "여러 핵심 지표에서 강점이 겹쳐요. 실제 관계에서도 편한 장면을 만들기 쉬운 편입니다." },
-  { min: 80, max: 84, label: "잘 맞는 궁합", shortLabel: "잘 맞는 편", description: "전체적으로 잘 맞는 편이에요. 약한 지점 몇 가지만 조율하면 장점이 더 선명해집니다." },
-  { min: 75, max: 79, label: "좋은 궁합", shortLabel: "좋은 편", description: "강점이 분명한 좋은 조합이에요. 서로 다른 리듬은 대화로 맞춰갈 여지가 있습니다." },
-  { min: 70, max: 74, label: "무난하게 잘 맞는 궁합", shortLabel: "무난하게 잘 맞음", description: "잘 맞는 부분과 다른 부분이 함께 보여요. 관계의 기본 체력은 무난한 편입니다." },
-  { min: 65, max: 69, label: "조율하면 좋아지는 궁합", shortLabel: "조율하면 좋음", description: "차이가 조금 더 눈에 띄지만, 서로의 방식을 알면 편해질 수 있는 구간이에요." },
-  { min: 60, max: 64, label: "차이가 있는 궁합", shortLabel: "차이가 있음", description: "생활·표현·갈등 방식 중 여러 지점에서 조율이 필요해요. 맞추는 방식이 중요합니다." },
-  { min: 55, max: 59, label: "조율이 많이 필요한 궁합", shortLabel: "조율 필요", description: "서로 다른 지점이 꽤 분명합니다. 잘 맞는 강점을 의식적으로 살리지 않으면 피로가 쌓일 수 있어요." },
-  { min: 50, max: 54, label: "차이가 큰 궁합", shortLabel: "차이가 큰 편", description: "관계의 기본 리듬 차이가 큽니다. 자연스럽게 맞기보다 서로의 방식을 이해하고 조율하려는 노력이 많이 필요해요." },
-  { min: 40, max: 49, label: "부딪힘이 많은 궁합", shortLabel: "부딪힘이 많음", description: "핵심 관계 지표에서 충돌과 불균형이 많이 보입니다. 끌림이 있더라도 반복되는 피로 지점을 분명히 확인할 필요가 있어요." },
-  { min: 30, max: 39, label: "맞추기 어려운 궁합", shortLabel: "맞추기 어려움", description: "여러 핵심 지표가 동시에 약한 조합입니다. 좋은 점을 억지로 부풀리기보다 실제로 반복될 수 있는 갈등 구조를 먼저 보는 편이 낫습니다." },
+  ...COMPATIBILITY_GRADES.map((grade) => ({
+    ...COMPATIBILITY_GRADE_COPY[grade],
+    label: `${grade}등급 · ${COMPATIBILITY_GRADE_COPY[grade].label}`,
+    shortLabel: `${grade}등급`,
+  })),
 ] as const;
+
+type CalibrationKnot = { raw: number; score: number };
+
+/**
+ * Deterministic contrast curve for the public score. The calculation itself
+ * remains untouched; these knots only spread the realistically observed raw
+ * interval so weak and strong pairs no longer collapse into the 60s and 70s.
+ */
+function compatibilityCalibrationKnots(): readonly CalibrationKnot[] {
+  const range = getCommonCompatibilityRawRange();
+  return [
+    { raw: range.min, score: 30 },
+    { raw: 58, score: 35 },
+    { raw: 62, score: 45 },
+    { raw: 66, score: 55 },
+    { raw: 70, score: 66 },
+    { raw: 74, score: 78 },
+    { raw: 78, score: 89 },
+    { raw: 82, score: 96 },
+    { raw: range.max, score: 100 },
+  ];
+}
 
 export function getCompatibilityRawRange(relationshipType: RelationshipType) {
   let min = 0;
@@ -78,11 +111,37 @@ export function calibrateCompatibilityScore(rawScore: number) {
   if (!Number.isFinite(rawScore)) throw new RangeError("궁합 점수는 유한한 숫자여야 합니다.");
   const range = getCommonCompatibilityRawRange();
   const clampedRaw = Math.min(range.max, Math.max(range.min, rawScore));
-  const ratio = (clampedRaw - range.min) / (range.max - range.min);
-  return Math.round(
-    PUBLIC_COMPATIBILITY_SCORE_FLOOR
-      + ratio * (PUBLIC_COMPATIBILITY_SCORE_CEILING - PUBLIC_COMPATIBILITY_SCORE_FLOOR),
+  const knots = compatibilityCalibrationKnots();
+  const upperIndex = knots.findIndex((knot) => clampedRaw <= knot.raw);
+  if (upperIndex <= 0) return knots[0].score;
+  const lower = knots[upperIndex - 1];
+  const upper = knots[upperIndex];
+  const ratio = (clampedRaw - lower.raw) / (upper.raw - lower.raw);
+  return Math.round(lower.score + ratio * (upper.score - lower.score));
+}
+
+/** Re-map stored v1.6 linear public scores without mistaking them for raw scores. */
+export function migrateStoredCompatibilityScore(score: number, sourceScoringVersion: string) {
+  const clampedScore = Math.min(
+    PUBLIC_COMPATIBILITY_SCORE_CEILING,
+    Math.max(PUBLIC_COMPATIBILITY_SCORE_FLOOR, score),
   );
+  if (sourceScoringVersion !== "1.6.0") return Math.round(clampedScore);
+  const range = getCommonCompatibilityRawRange();
+  const legacyRatio = (clampedScore - PUBLIC_COMPATIBILITY_SCORE_FLOOR)
+    / (PUBLIC_COMPATIBILITY_SCORE_CEILING - PUBLIC_COMPATIBILITY_SCORE_FLOOR);
+  return calibrateCompatibilityScore(range.min + legacyRatio * (range.max - range.min));
+}
+
+export function getCompatibilityGrade(score: number): CompatibilityGrade {
+  const normalized = Math.min(
+    PUBLIC_COMPATIBILITY_SCORE_CEILING,
+    Math.max(PUBLIC_COMPATIBILITY_SCORE_FLOOR, Math.round(score)),
+  );
+  return COMPATIBILITY_GRADES.find((grade) => {
+    const range = COMPATIBILITY_GRADE_COPY[grade];
+    return normalized >= range.min && normalized <= range.max;
+  }) ?? "E";
 }
 
 export function getCompatibilityScoreBand(score: number): CompatibilityScoreBand {

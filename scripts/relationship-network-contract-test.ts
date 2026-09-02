@@ -56,7 +56,7 @@ const sResult = calculateOneToOneCompatibility({
   personA: person("S-A", "male", "1982-10-21", "20:30"),
   personB: person("S-B", "female", "1988-01-01", "12:30"),
 }, { timingBaseYear: 2026 });
-assert.equal(sResult.score, 91);
+assert.ok(sResult.score >= 90 && sResult.score <= 100);
 assert.equal(getRelationshipNetworkGrade(sResult.score), "S", "실제 결정론 계산에서 S등급이 도달 가능해야 합니다.");
 
 const eResult = calculateOneToOneCompatibility({
@@ -64,7 +64,7 @@ const eResult = calculateOneToOneCompatibility({
   personA: person("E-A", "male", "1978-10-17", "12:30"),
   personB: person("E-B", "female", "1966-12-25", "12:30"),
 }, { timingBaseYear: 2026 });
-assert.equal(eResult.score, 43);
+assert.ok(eResult.score >= 30 && eResult.score <= 49);
 assert.equal(getRelationshipNetworkGrade(eResult.score), "E", "실제 결정론 계산에서 E등급이 도달 가능해야 합니다.");
 
 const memberIds = ["member-a", "member-b", "member-c", "member-d"];

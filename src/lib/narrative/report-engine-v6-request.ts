@@ -45,6 +45,7 @@ const CRITICAL_QUALITY_ISSUES = new Set([
   "INTRO_DAY_PILLAR_UNKNOWN_EXPOSED",
   "INTRO_ELEMENT_RANK_MISMATCH",
   "INTRO_UNSUPPORTED_NUMERIC_FACT",
+  "GRAMMAR_DANGLING_PARTICLE",
 ]);
 
 function safeError(body: unknown) {
@@ -213,7 +214,11 @@ function sanitizeCriticalNarrativeText(text: string, relationshipType: string | 
     .replace(/soft signal/gi, "보조 흐름")
     .replace(/서버(?:에서)?\s*(?:계산상|가\s*제공한|에서\s*제공한)/g, "궁합 흐름상")
     .replace(/참고\s*(?:신호|값)/g, "관계 흐름")
-    .replace(/역할 공급도|배우자 역할 점수|유용신 적합도|범위값|aRoleSupply|bRoleSupply|weightedPoints|maxPoints/g, "관계 영향");
+    .replace(/역할 공급도|배우자 역할 점수|유용신 적합도|범위값|aRoleSupply|bRoleSupply|weightedPoints|maxPoints/g, "관계 영향")
+    .replace(
+      /(뚜렷|분명|확실|선명)하게\s+(?:\{\{(?:SELF|PARTNER|BOTH)\}\}|[가-힣A-Za-z0-9_-]{1,24}님)(?:과|와)\s*([.!?])/g,
+      (_match, stem: string, punctuation: string) => `${stem}해${punctuation}`,
+    );
 
   if (relationshipType === "friend" || relationshipType === "coworker") {
     sanitized = sanitized
@@ -501,6 +506,9 @@ export function collectPaidNarrativeQualityIssues(
   }
   if (hasElementPsychologyOverreach(joined)) issues.push("ELEMENT_PSYCHOLOGY_OVERREACH");
   if (hasUnsupportedNumericPrescription(joined)) issues.push("UNSUPPORTED_NUMERIC_PRESCRIPTION");
+  if (/(?:\{\{(?:SELF|PARTNER|BOTH)\}\}|[가-힣A-Za-z0-9_-]{1,24}님)(?:과|와|은|는|이|가|을|를|에게|의)\s*[.!?]/.test(joined)) {
+    issues.push("GRAMMAR_DANGLING_PARTICLE");
+  }
   if (/(20\d{2}년|\b대운\b|\b세운\b|월운)/.test(joined)) issues.push("FUTURE_TIMING_LEAK");
 
   const maxNameTokens = Math.max(12, Math.ceil(characters / 120));

@@ -1,27 +1,22 @@
 import type { CompatibilityDimension } from "@/lib/compatibility/types";
+import {
+  COMPATIBILITY_GRADE_COPY,
+  COMPATIBILITY_GRADE_POLICY_VERSION,
+  COMPATIBILITY_GRADES,
+  getCompatibilityGrade,
+  type CompatibilityGrade,
+} from "@/lib/compatibility/score-scale";
 import type { PersonBirthInput } from "@/lib/report-input";
 
 export const RELATIONSHIP_NETWORK_VERSION = "relationship-network-v1" as const;
 export const RELATIONSHIP_NETWORK_MEMBER_LIMIT = 12;
 export const RELATIONSHIP_NETWORK_POLL_INTERVAL_MS = 4_000;
-export const RELATIONSHIP_NETWORK_GRADE_POLICY_VERSION = "relationship-grade-v1" as const;
+export const RELATIONSHIP_NETWORK_GRADE_POLICY_VERSION = COMPATIBILITY_GRADE_POLICY_VERSION;
 
-export const RELATIONSHIP_NETWORK_GRADES = ["S", "A", "B", "C", "D", "E"] as const;
-export type RelationshipNetworkGrade = (typeof RELATIONSHIP_NETWORK_GRADES)[number];
+export const RELATIONSHIP_NETWORK_GRADES = COMPATIBILITY_GRADES;
+export type RelationshipNetworkGrade = CompatibilityGrade;
 
-export const RELATIONSHIP_NETWORK_GRADE_COPY: Record<RelationshipNetworkGrade, {
-  min: number;
-  max: number;
-  label: string;
-  description: string;
-}> = {
-  S: { min: 90, max: 100, label: "강하게 통하는 관계", description: "여러 관계 축에서 강점이 뚜렷하게 겹쳐요." },
-  A: { min: 80, max: 89, label: "아주 잘 맞는 관계", description: "편하게 맞는 지점이 많고 조율 부담이 적은 편이에요." },
-  B: { min: 70, max: 79, label: "잘 맞는 관계", description: "강점이 분명하고 차이는 대화로 맞추기 좋은 편이에요." },
-  C: { min: 60, max: 69, label: "균형을 찾는 관계", description: "맞는 부분과 다른 부분이 함께 보여요." },
-  D: { min: 50, max: 59, label: "조율이 필요한 관계", description: "서로의 방식과 기대를 자주 확인할수록 좋아요." },
-  E: { min: 30, max: 49, label: "세심한 조율이 필요한 관계", description: "반복되는 차이를 먼저 알고 천천히 맞춰가는 편이 좋아요." },
-};
+export const RELATIONSHIP_NETWORK_GRADE_COPY = COMPATIBILITY_GRADE_COPY;
 
 export const RELATIONSHIP_NETWORK_DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
   dayMaster: "대화 템포",
@@ -84,11 +79,7 @@ export type RelationshipNetworkStoredMember = RelationshipNetworkMember & {
 };
 
 export function getRelationshipNetworkGrade(score: number): RelationshipNetworkGrade {
-  const normalized = Math.max(30, Math.min(100, Math.round(score)));
-  return RELATIONSHIP_NETWORK_GRADES.find((grade) => {
-    const range = RELATIONSHIP_NETWORK_GRADE_COPY[grade];
-    return normalized >= range.min && normalized <= range.max;
-  }) ?? "E";
+  return getCompatibilityGrade(score);
 }
 
 export function relationshipNetworkPairKey(leftId: string, rightId: string) {

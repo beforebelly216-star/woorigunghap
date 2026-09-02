@@ -21,7 +21,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return <main className="login-page">
     <section className="login-card">
-      <p className="eyebrow">주토피 시작하기</p>
+      <p className="eyebrow">우리사주 시작하기</p>
       <h1>카카오로 로그인하고<br />모든 궁합을 시작해 봐.</h1>
       <p>무료 분석부터 인연 네트워크, 1:1 궁합까지 로그인 뒤에 이용할 수 있어. 만든 결과는 보관함에서 다시 볼 수 있게 안전하게 연결해 둘게.</p>
       {ERROR_MESSAGES[errorKey] ? <p className="login-error" role="alert">{ERROR_MESSAGES[errorKey]}</p> : null}

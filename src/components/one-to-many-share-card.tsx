@@ -99,7 +99,7 @@ async function createShareImageBlob(input: { relationshipLabel: string; candidat
   ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, 1080, 1920);
   ctx.fillStyle = "#FFFFFF"; roundedRect(ctx, 90, 110, 900, 1700, 52);
   ctx.fillStyle = "#7652D8"; roundedRect(ctx, 90, 110, 900, 16, 8);
-  ctx.fillStyle = "#222026"; ctx.font = "800 42px Pretendard, sans-serif"; ctx.fillText("주토피", 160, 220);
+  ctx.fillStyle = "#222026"; ctx.font = "800 42px Pretendard, sans-serif"; ctx.fillText("우리사주", 160, 220);
   ctx.textAlign = "right"; ctx.fillText(`1:다 ${input.relationshipLabel}`, 920, 220); ctx.textAlign = "left";
   ctx.fillStyle = "#918991"; ctx.font = "900 28px Pretendard, sans-serif"; ctx.fillText(input.eyebrow, 160, 350);
   ctx.fillStyle = "#222026"; ctx.font = "900 62px Pretendard, sans-serif";
@@ -150,14 +150,14 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
   useEffect(() => { trackGrowthEvent({ eventName: "share_card_open", product: "oneToMany", relationshipType, surface: "one_to_many_share_card", sharePurpose: initialPurpose, experimentArm }); }, [experimentArm, initialPurpose, relationshipType]);
 
   async function share() {
-    const shareText = `주토피 1:다 ${view.relationshipLabel} 비교 · ${shareCopy}`;
+    const shareText = `우리사주 1:다 ${view.relationshipLabel} 비교 · ${shareCopy}`;
     try {
       const blob = await createShareImageBlob({ relationshipLabel: view.relationshipLabel, candidateCount: view.rankings.length, purpose, eyebrow: selectedOption.eyebrow, shareCopy, roles, sides });
       const file = new File([blob], `woorisaju-comparison-${purpose}.png`, { type: "image/png" });
       const sharedViewUrl = await createPublicShareUrl(buildOneToManyPublicShare({ relationshipType, relationshipLabel: view.relationshipLabel, headline: shareCopy, summary: view.summary, includeDisplayNames: true, candidates: publicCandidates }));
       const shareToken = publicShareTokenFromUrl(sharedViewUrl);
-      if (navigator.share && navigator.canShare?.({ files: [file] })) { if (shareToken) trackGrowthEvent({ eventName: "share_native_open", product: "oneToMany", relationshipType, surface: "one_to_many_share_card", sharePurpose: purpose, experimentArm, shareToken }); await navigator.share({ title: `주토피 1:다 ${view.relationshipLabel} 비교`, text: shareText, url: sharedViewUrl, files: [file] }); setShareState("shared"); return; }
-      if (navigator.share) { if (shareToken) trackGrowthEvent({ eventName: "share_native_open", product: "oneToMany", relationshipType, surface: "one_to_many_share_card", sharePurpose: purpose, experimentArm, shareToken }); await navigator.share({ title: `주토피 1:다 ${view.relationshipLabel} 비교`, text: shareText, url: sharedViewUrl }); setShareState("shared"); return; }
+      if (navigator.share && navigator.canShare?.({ files: [file] })) { if (shareToken) trackGrowthEvent({ eventName: "share_native_open", product: "oneToMany", relationshipType, surface: "one_to_many_share_card", sharePurpose: purpose, experimentArm, shareToken }); await navigator.share({ title: `우리사주 1:다 ${view.relationshipLabel} 비교`, text: shareText, url: sharedViewUrl, files: [file] }); setShareState("shared"); return; }
+      if (navigator.share) { if (shareToken) trackGrowthEvent({ eventName: "share_native_open", product: "oneToMany", relationshipType, surface: "one_to_many_share_card", sharePurpose: purpose, experimentArm, shareToken }); await navigator.share({ title: `우리사주 1:다 ${view.relationshipLabel} 비교`, text: shareText, url: sharedViewUrl }); setShareState("shared"); return; }
       await navigator.clipboard.writeText(`${shareText}\n${sharedViewUrl}`); if (shareToken) trackGrowthEvent({ eventName: "share_link_copy", product: "oneToMany", relationshipType, surface: "one_to_many_share_card", sharePurpose: purpose, experimentArm, shareToken }); setShareState("copied");
     } catch (error) { if (error instanceof DOMException && error.name === "AbortError") return; setShareState("failed"); }
   }
@@ -169,7 +169,7 @@ export function OneToManyShareCard({ view }: OneToManyShareCardProps) {
     <div className={styles.heading}><small>결과 공유</small><h2 id="one-to-many-share-title">순위보다, 관계 역할로 공유하기</h2><p>관계 영수증·한 장 요약과 역할형 카드를 골라 이름과 함께 공유할 수 있어.</p></div>
     <div className={styles.typeTabs} role="group" aria-label="1:다 공유 카드 종류">{cardOptions.map((option) => <button key={option.purpose} type="button" data-purpose={option.purpose} aria-pressed={purpose === option.purpose} className={purpose === option.purpose ? styles.typeButtonActive : styles.typeButton} onClick={() => { if (purpose !== option.purpose) trackGrowthEvent({ eventName: "share_style_selected", product: "oneToMany", relationshipType, surface: "one_to_many_share_card", sharePurpose: option.purpose, experimentArm }); setPurpose(option.purpose); setShareState("idle"); }}>{option.label}</button>)}</div>
     <div className={styles.card} data-purpose={purpose} data-pattern={pattern} data-experiment-arm={experimentArm}>
-      <div className={styles.topline}><span>주토피</span><span>1:다 {view.relationshipLabel}</span></div><div className={styles.mystery}>{selectedOption.eyebrow}</div><strong className={styles.shareCopy}>{shareCopy}</strong>
+      <div className={styles.topline}><span>우리사주</span><span>1:다 {view.relationshipLabel}</span></div><div className={styles.mystery}>{selectedOption.eyebrow}</div><strong className={styles.shareCopy}>{shareCopy}</strong>
       {purpose === "receipt" ? <div className={styles.roleGrid}>{roles.map((role) => <div className={styles.roleBox} key={role.label}><small>{role.label}</small><strong>{role.displayName} · {role.score}점</strong></div>)}</div> : purpose === "recap" ? <><div className={styles.roleGrid}>{roles.map((role) => <div className={styles.roleBox} key={role.label}><small>{role.label}</small><strong>{role.displayName}</strong></div>)}</div><div className={styles.sideGrid}><div className={styles.sideBox}><small>상대적으로 강한 축</small><strong>{sides.strength}</strong></div><div className={`${styles.sideBox} ${styles.sideBoxWarm}`}><small>맞추면 더 좋아지는 축</small><strong>{sides.tuning}</strong></div></div></> : purpose === "two_sides" ? <div className={styles.sideGrid}><div className={styles.sideBox}><small>상대적으로 강한 축</small><strong>{sides.strength}</strong></div><div className={`${styles.sideBox} ${styles.sideBoxWarm}`}><small>맞추면 더 좋아지는 축</small><strong>{sides.tuning}</strong></div></div> : <div className={styles.roleGrid}>{roles.map((role) => <div className={styles.roleBox} key={role.label}><small>{role.label}</small><strong>{role.displayName}</strong></div>)}</div>}
       <div className={styles.candidateCount}>후보 {view.rankings.length}명 비교</div><div className={styles.footer}>순번보다 관계 역할을 보여주는 9:16 공유 카드</div>
     </div>

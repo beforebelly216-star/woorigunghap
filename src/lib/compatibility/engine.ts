@@ -26,7 +26,7 @@ import {
   getRelationshipDimensionWeight,
 } from "./weights";
 
-export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.5.0";
+export const COMPATIBILITY_ENGINE_VERSION = "compatibility-engine-v1.6.0";
 
 export const COMPATIBILITY_DIMENSIONS = [
   "dayMaster",

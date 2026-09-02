@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import { calculateOneToOneCompatibility } from "../src/lib/compatibility/engine";
 import {
   calibrateCompatibilityScore,
+  getCompatibilityGrade,
   getCommonCompatibilityRawRange,
   getCompatibilityRawRange,
   getCompatibilityScoreBand,
+  migrateStoredCompatibilityScore,
 } from "../src/lib/compatibility/score-scale";
 import { RELATIONSHIP_SCORE_WEIGHTS } from "../src/lib/compatibility/weights";
 import type { OneToOneReportInput, PersonBirthInput, RelationshipType } from "../src/lib/report-input";
@@ -42,7 +44,25 @@ assert.equal(calibrateCompatibilityScore(commonRawRange.max), 100, "공통 원�
 assert.equal(calibrateCompatibilityScore(commonRawRange.min - 100), 30, "공통 하단 미만은 30점에 고정합니다.");
 assert.equal(calibrateCompatibilityScore(commonRawRange.max + 100), 100, "공통 상단 초과는 100점에 고정합니다.");
 assert.ok(calibrateCompatibilityScore(60) < 60, "낮은 원점수를 재미 목적으로 끌어올리지 않아야 합니다.");
+assert.ok(calibrateCompatibilityScore(60) <= 42, "실제 하위권 원점수는 E등급에 가까운 낮은 점수로 벌어져야 합니다.");
+assert.ok(calibrateCompatibilityScore(76) >= 80, "실제 상위권 원점수는 A등급 이상으로 벌어져야 합니다.");
+assert.ok(calibrateCompatibilityScore(79) >= 90, "매우 강한 실제 원점수는 S등급에 도달할 수 있어야 합니다.");
 assert.equal(getCompatibilityScoreBand(30).min, 30);
+for (const [score, grade] of [[30, "E"], [49, "E"], [50, "D"], [59, "D"], [60, "C"], [69, "C"], [70, "B"], [79, "B"], [80, "A"], [89, "A"], [90, "S"], [100, "S"]] as const) {
+  assert.equal(getCompatibilityGrade(score), grade, `${score}점은 ${grade}등급이어야 합니다.`);
+}
+assert.equal(
+  migrateStoredCompatibilityScore(65, "1.6.0"),
+  calibrateCompatibilityScore(commonRawRange.min + .5 * (commonRawRange.max - commonRawRange.min)),
+  "기존 v1.6 공개 점수는 원점수로 오인하지 않고 이전 선형식을 역산해야 합니다.",
+);
+assert.equal(migrateStoredCompatibilityScore(65, "1.5.0"), 65, "해석 방식이 불명확한 구버전 범위값은 보존합니다.");
+let previousCalibrated = 30;
+for (let raw = commonRawRange.min; raw <= commonRawRange.max; raw += 0.25) {
+  const calibrated = calibrateCompatibilityScore(raw);
+  assert.ok(calibrated >= previousCalibrated, "공개 점수 보정은 원점수 순서를 뒤집으면 안 됩니다.");
+  previousCalibrated = calibrated;
+}
 
 for (const relationshipType of RELATIONSHIP_TYPES) {
   const total = Object.values(RELATIONSHIP_SCORE_WEIGHTS[relationshipType]).reduce<number>(

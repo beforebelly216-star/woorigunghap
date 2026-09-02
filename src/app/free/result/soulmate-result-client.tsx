@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ZootopiMark } from "@/components/zootopi-mark";
+import { ZootopiMark, type ZootopiExpression } from "@/components/zootopi-mark";
 import {
   parseSoulmateResult,
   SOULMATE_RESULT_STORAGE_KEY,
@@ -33,7 +33,7 @@ function ResultHeader() {
   </header>;
 }
 
-function CharacterComment({ text, expression = "smile" }: { text: string; expression?: "smile" | "idea" | "thinking" }) {
+function CharacterComment({ text, expression = "smile" }: { text: string; expression?: ZootopiExpression }) {
   return <aside className={styles.characterComment}>
     <div className={styles.characterMini}><ZootopiMark expression={expression} /></div>
     <p>{text}</p>
@@ -121,7 +121,7 @@ export default function SoulmateResultClient() {
         <h1>{result.displayName}님과<br/>가장 잘 맞는 사주를<br/>찾았어</h1>
         <p>네 사주팔자 전체를 먼저 보고, 일간과 오행의 보완 관계를 차례로 풀어줄게.</p>
       </div>
-      <div className={styles.heroMascot}><span>♥</span><ZootopiMark expression="idea" withBody /></div>
+      <div className={styles.heroMascot}><span>♥</span><ZootopiMark expression="surprised" withBody /></div>
     </section>
 
     <section className={styles.section}>
@@ -184,7 +184,7 @@ export default function SoulmateResultClient() {
         <ul className={styles.cautionList}>{result.detailed.cautions.map((item) => <li key={item}>{item}</li>)}</ul>
       </article>
 
-      <CharacterComment text={result.zootopi.middle} expression="idea" />
+      <CharacterComment text={result.zootopi.middle} expression="analyzing" />
     </section>
 
     <section className={styles.section}>
@@ -198,10 +198,10 @@ export default function SoulmateResultClient() {
 
     <section className={styles.finalComment}>
       <div>
-        <span>04 · 주토피 마지막 한마디</span>
+        <span>04 · 마지막 한마디</span>
         <p>{result.zootopi.closing}</p>
       </div>
-      <ZootopiMark expression="smile" withBody />
+      <ZootopiMark expression="thinking" withBody />
     </section>
 
     <section className={styles.methodNote}>

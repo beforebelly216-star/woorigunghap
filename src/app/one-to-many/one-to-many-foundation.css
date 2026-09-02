@@ -438,7 +438,7 @@
   letter-spacing: -.04em;
 }
 
-/* 주토피 주식 테마 — 1:N 비교 총평 캡션, 순위 미니 캔들, 공통지표 히트맵 매트릭스(§10, §12.2, §13.2) */
+/* 우리사주 차트 테마 — 1:N 비교 총평 캡션, 순위 미니 캔들, 공통지표 히트맵 매트릭스(§10, §12.2, §13.2) */
 .one-to-many-result-page .comparison-hero .zt-caption {
   margin-top: 20px;
   max-width: 420px;

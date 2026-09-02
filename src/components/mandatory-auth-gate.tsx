@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { FlowStatusScreen } from "@/components/flow-status-screen";
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/terms", "/privacy", "/refund", "/operating-policy"]);
 
@@ -38,6 +39,12 @@ export function MandatoryAuthGate({ children }: { children: React.ReactNode }) {
     return () => { active = false; };
   }, [isPublic, pathname]);
 
-  if (!authorized) return <main className="auth-gate-screen" role="status">카카오 로그인 상태를 확인하고 있어.</main>;
+  if (!authorized) return <FlowStatusScreen
+    activeStep="login"
+    title="로그인 상태를 확인하고 있어요"
+    description="저장된 결과와 결제 정보를 안전하게 연결하고 있어요. 확인되면 자동으로 다음 단계로 이동합니다."
+    detail="이 화면에서 새 결제나 중복 요청은 발생하지 않아요."
+    expression="thinking"
+  />;
   return children;
 }

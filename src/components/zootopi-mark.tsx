@@ -1,5 +1,5 @@
 /**
- * 주토피 공통 마스코트.
+ * 우리사주 공통 마스코트.
  *
  * 서비스 전반에서 같은 인상을 유지하는 고해상도 투명 PNG 표정 자산을 사용한다.
  *
@@ -9,7 +9,7 @@
 export type ZootopiExpression = "smile" | "analyzing" | "idea" | "thinking" | "surprised";
 
 /**
- * 소형 아이콘부터 카드 히어로까지 공통으로 쓰는 주토피 마크.
+ * 소형 아이콘부터 카드 히어로까지 공통으로 쓰는 마스코트 마크.
  * expression에 맞는 표정과 제스처를 사용한다.
  * `withBody`는 기존 호출부 호환성을 위해 prop 계약에 남겨 둔다.
  */
@@ -32,11 +32,11 @@ export function ZootopiMark({
   );
 }
 
-/** 주토피 발화 캡션. children은 항상 반말로 작성한다. */
+/** 마스코트 발화 캡션. children은 항상 반말로 작성한다. */
 export function ZootopiCaption({
   expression = "smile",
   children,
-  label = "주토피",
+  label = "한마디",
 }: {
   expression?: ZootopiExpression;
   children: React.ReactNode;

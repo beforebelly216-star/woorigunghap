@@ -18,6 +18,7 @@ import {
 import { loadOrderDraft, saveOrderDraft } from "@/lib/order-storage";
 import type { OneToOneOrderDraft } from "@/lib/orders";
 import { ReportAccountLink } from "@/components/report-account-link";
+import { FlowStatusScreen } from "@/components/flow-status-screen";
 import {
   emptyReportProgress,
   loadReportProgress,
@@ -32,7 +33,7 @@ import {
 import { CompatibilityShareCard } from "./compatibility-share-card";
 import { buildCompatibilityShareArchetype } from "@/lib/narrative/compatibility-share-card";
 import { normalizeStoredPaidReportForDisplay } from "@/lib/narrative/stored-report-compat";
-import { calibrateCompatibilityScore } from "@/lib/compatibility/score-scale";
+import { calibrateCompatibilityScore, migrateStoredCompatibilityScore } from "@/lib/compatibility/score-scale";
 import { COMPATIBILITY_SCORING_VERSION } from "@/lib/compatibility/weights";
 import { buildDimensionEvidenceCopy } from "@/lib/compatibility/dimension-evidence-copy";
 import ReportLayoutV3 from "./report-layout-v3";
@@ -50,10 +51,10 @@ const MAX_AUTOMATIC_PHASE_ATTEMPTS = 12;
 const MAX_AUTOMATIC_PHASE_MS = 420_000;
 const PHASE_REQUEST_TIMEOUT_MS = 285_000;
 const STAGE_COPY: Record<"prepare" | PaidReportSegmentName, string> = {
-  prepare: "결제와 두 사람의 정보를 확인하고 있어.",
-  intro: "두 사람의 사주와 관계 성향을 차근차근 읽고 있어.",
-  dynamics: "둘 사이의 케미와 관계 구조를 분석하고 있어.",
-  action: "관계에서 바로 이해할 수 있는 핵심 답을 정리하고 있어.",
+  prepare: "결제와 두 사람의 정보를 확인하고 있어요.",
+  intro: "두 사람의 사주와 관계 성향을 차근차근 읽고 있어요.",
+  dynamics: "둘 사이의 케미와 관계 구조를 분석하고 있어요.",
+  action: "관계에서 바로 이해할 수 있는 핵심 답을 정리하고 있어요.",
 };
 
 class FatalGenerationError extends Error {
@@ -451,19 +452,49 @@ export default function ResultV2() {
       .filter(([dimension, value]) => dimension !== "luckCycleAlignment" && value.maxPoints > 0);
   }, [snapshot]);
 
-  if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 불러올 입력정보가 없어.</h1><p>결제 자체는 사라지지 않았어. 같은 브라우저의 원래 결제 탭이 있으면 그 탭을 다시 열어 줘. 없으면 아래에서 두 사람의 정보만 다시 입력해 기존 결제로 결과를 복구할 수 있어.</p>{paymentId ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력정보 다시 넣기</Link> : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}</div></main>;
+  if (status === "missing") return <FlowStatusScreen
+    activeStep="report"
+    title="결과를 만들 입력 정보가 필요해요"
+    description="결제는 그대로 보존되어 있어요. 두 사람의 정보만 다시 입력하면 같은 결제로 결과를 복구할 수 있습니다."
+    detail="원래 결제 탭이 남아 있다면 그 탭을 먼저 다시 열어보세요."
+    tone="error"
+    expression="surprised"
+    actions={paymentId
+      ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력 정보 다시 넣기</Link>
+      : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}
+  />;
 
-  if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">주토피</p><h1 className="generation-title">상세 리포트를 만들고 있어요.</h1><p>{STAGE_COPY[stage]}</p><p>현재 응답에 통상적으로 소요되는 시간은 약 5분이야.</p>{stageAttempt > 1 ? <p>연결이 잠깐 끊겨도 같은 결제로 자동으로 이어서 시도하고 있어.</p> : <p>창을 그대로 열어두면 완성되는 즉시 보여줄게.</p>}</div></main>;
+  if (status === "loading") return <FlowStatusScreen
+    activeStep="report"
+    title="상세 리포트를 만들고 있어요"
+    description={STAGE_COPY[stage]}
+    detail={stageAttempt > 1
+      ? `응답이 늦어져 같은 결제로 자동 재시도 중입니다. ${stageAttempt}번째 확인 · 추가 결제 없음`
+      : "보통 약 5분이 걸리며, 창을 그대로 열어두면 완성되는 즉시 보여드려요."}
+    expression="idea"
+  />;
 
-  if (status === "fatal" && accountSource && fatalReason === "AUTHENTICATION_REQUIRED") return <main className="v2-page"><div className="v2-state">
-    <p className="v2-kicker">내 궁합 보관함</p>
-    <h1>보관함 결과를 열 수 없어요.</h1>
-    <p>{fatalMessage ?? "로그인 상태와 결과 소유권을 다시 확인해 줘."}</p>
-    <Link href={`/login?${new URLSearchParams({ returnTo: `/one-to-one/result?paymentId=${paymentId ?? ""}&source=account` }).toString()}`} className="primary-link">카카오 로그인 다시 하기</Link>
-    <Link href="/account/reports">보관함으로 돌아가기</Link>
-  </div></main>;
+  if (status === "fatal" && accountSource && fatalReason === "AUTHENTICATION_REQUIRED") return <FlowStatusScreen
+    activeStep="login"
+    title="보관함 결과를 열려면 로그인이 필요해요"
+    description={fatalMessage ?? "로그인 상태와 결과 소유권을 다시 확인해 주세요."}
+    tone="error"
+    expression="surprised"
+    actions={<>
+      <Link href={`/login?${new URLSearchParams({ returnTo: `/one-to-one/result?paymentId=${paymentId ?? ""}&source=account` }).toString()}`} className="primary-link">카카오 로그인 다시 하기</Link>
+      <Link href="/account/reports">보관함으로 돌아가기</Link>
+    </>}
+  />;
 
-  if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">주토피</p><h1>{fatalGenerationTitle(fatalReason)}</h1><p>{fatalMessage ?? "결제 또는 API 상태를 확인해 줘."}</p><p>결제는 다시 하지 않아도 돼.</p>{paymentId ? <button type="button" className="primary-link" onClick={retrySamePayment}>같은 결제로 다시 시도</button> : null}</div></main>;
+  if (status === "fatal" || !order || !snapshot || !content || !facts) return <FlowStatusScreen
+    activeStep="report"
+    title={fatalGenerationTitle(fatalReason)}
+    description={fatalMessage ?? "결제 또는 결과 생성 상태를 확인해 주세요."}
+    detail="결제는 다시 하지 않아도 됩니다."
+    tone="error"
+    expression="surprised"
+    actions={paymentId ? <button type="button" className="primary-link" onClick={retrySamePayment}>같은 결제로 다시 시도</button> : undefined}
+  />;
 
   const { personA, personB, relationshipType } = order.inputSnapshot;
   const relationshipLabel = RELATIONSHIP_LABELS[relationshipType];
@@ -477,8 +508,8 @@ export default function ResultV2() {
   const publicUncertaintyRange = snapshot.scoringVersion === COMPATIBILITY_SCORING_VERSION
     ? snapshot.uncertaintyRange
     : (() => {
-        const min = calibrateCompatibilityScore(snapshot.uncertaintyRange.min);
-        const max = calibrateCompatibilityScore(snapshot.uncertaintyRange.max);
+        const min = migrateStoredCompatibilityScore(snapshot.uncertaintyRange.min, snapshot.scoringVersion);
+        const max = migrateStoredCompatibilityScore(snapshot.uncertaintyRange.max, snapshot.scoringVersion);
         return { min, max, width: max - min };
       })();
   const displaySnapshot = snapshot.score === publicScore && snapshot.uncertaintyRange.min === publicUncertaintyRange.min

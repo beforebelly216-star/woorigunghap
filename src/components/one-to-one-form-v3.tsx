@@ -305,7 +305,7 @@ export function OneToOneFormV3() {
               <strong>먼저, 네 정보와 관계를 알려줘.</strong>
               <p>무료 분석에서 넘어왔다면 네 정보가 자동으로 채워져 있어.</p>
             </div>
-            <ZootopiMark expression="smile" withBody />
+            <ZootopiMark expression="analyzing" withBody />
           </div>
 
           <section className="form-section relationship-section v3-card-section">

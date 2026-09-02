@@ -9,7 +9,7 @@ import "./one-to-many-input-v3.css";
 import styles from "./relationship-network.module.css";
 
 export const metadata: Metadata = {
-  title: "무료 인연 네트워크 | 주토피",
+  title: "무료 인연 네트워크 | 우리사주",
   description: "내 정보만 입력하고 링크를 공유하면 친구들의 궁합 관계가 실시간 인물 네트워크로 연결돼",
 };
 

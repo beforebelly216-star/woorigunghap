@@ -214,7 +214,7 @@ export async function createRelationshipNetworkStoryBlob(
   context.textAlign = "left";
   context.fillStyle = "#5f3da9";
   context.font = "900 36px Pretendard, Apple SD Gothic Neo, sans-serif";
-  context.fillText("주토피 · 인연 네트워크", 104, 145);
+  context.fillText("우리사주 · 인연 네트워크", 104, 145);
 
   context.fillStyle = "#25202c";
   context.font = "900 72px Pretendard, Apple SD Gothic Neo, sans-serif";

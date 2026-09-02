@@ -8,6 +8,16 @@
 .scoreOrb{width:auto;height:auto;padding:0;background:transparent;color:#6b4ec3;box-shadow:none}
 .scoreOrb strong{font-size:4.6rem;line-height:.92;font-weight:950}
 .scoreOrb small{font-size:.86rem;color:#7b7280}
+.gradeBadge{display:inline-flex;align-items:center;gap:4px;margin-top:12px;padding:7px 12px;border:1px solid #dcd0f5;border-radius:999px;background:#f4efff;color:#6848bd;box-shadow:0 5px 14px rgba(96,67,157,.08)}
+.gradeBadge strong{font-size:1.12rem;line-height:1;font-weight:950}
+.gradeBadge span{font-size:.68rem;font-weight:900}
+.gradeBadge small{margin-left:4px;padding-left:8px;border-left:1px solid currentColor;font-size:.64rem;font-weight:750;opacity:.82}
+.gradeBadge[data-grade="S"]{border-color:#e8b9da;background:linear-gradient(120deg,#f2eaff,#fff0f8);color:#8b3f9e}
+.gradeBadge[data-grade="A"]{border-color:#d9c8f6;background:#f3eeff;color:#6848bd}
+.gradeBadge[data-grade="B"]{border-color:#c8dfd2;background:#f0faf4;color:#327655}
+.gradeBadge[data-grade="C"]{border-color:#e4dbc0;background:#fff9e9;color:#80682a}
+.gradeBadge[data-grade="D"]{border-color:#edcfad;background:#fff5e9;color:#9a5b1e}
+.gradeBadge[data-grade="E"]{border-color:#efc4c4;background:#fff1f1;color:#a14343}
 .hero h1{margin:17px 0 0;font-size:1.35rem;color:#262228}
 .hero h1 span{color:#9a8ba5}
 .heroMeta{margin:7px 0 0;color:#7456c7;font-size:.76rem;font-weight:850;opacity:1}

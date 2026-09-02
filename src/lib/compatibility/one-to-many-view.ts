@@ -5,7 +5,7 @@ import {
   type OneToManyCandidateId,
 } from "./one-to-many";
 import type { CompatibilityDimension, CompatibilityProfile } from "./types";
-import { calibrateCompatibilityScore } from "./score-scale";
+import { calibrateCompatibilityScore, migrateStoredCompatibilityScore } from "./score-scale";
 import { COMPATIBILITY_SCORING_VERSION } from "./weights";
 import type { OneToManyNarrativeContent } from "@/lib/narrative/one-to-many-report-engine";
 
@@ -170,8 +170,8 @@ function publicCandidateRange(candidate: OneToManyCalculationSnapshot["candidate
   if (candidate.calculationSnapshot.scoringVersion === COMPATIBILITY_SCORING_VERSION) {
     return candidate.uncertaintyRange;
   }
-  const min = calibrateCompatibilityScore(candidate.uncertaintyRange.min);
-  const max = calibrateCompatibilityScore(candidate.uncertaintyRange.max);
+  const min = migrateStoredCompatibilityScore(candidate.uncertaintyRange.min, candidate.calculationSnapshot.scoringVersion);
+  const max = migrateStoredCompatibilityScore(candidate.uncertaintyRange.max, candidate.calculationSnapshot.scoringVersion);
   return { min, max, width: max - min };
 }
 

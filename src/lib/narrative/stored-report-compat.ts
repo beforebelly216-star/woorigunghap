@@ -9,6 +9,10 @@ function stripLegacyInternalLanguage(text: string) {
   return text
     .replace(/서버\s*(?:계산상|가\s*제공한|에서\s*제공한)\s*/g, "")
     .replace(/\s+([,.!?])/g, "$1")
+    .replace(
+      /(뚜렷|분명|확실|선명)하게\s+[가-힣A-Za-z0-9_-]{1,24}님(?:과|와)\s*([.!?])/g,
+      (_match, stem: string, punctuation: string) => `${stem}해${punctuation}`,
+    )
     .replace(/[ \t]{2,}/g, " ");
 }
 

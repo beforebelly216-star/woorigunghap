@@ -9,12 +9,11 @@ button, input, select { font: inherit; }
 .site-content { flex: 1; min-width: 0; }
 .site-header { width: min(100%, 390px); min-height: 62px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--saju-border, #EAE3DD); }
 .site-brand { color: inherit; font-family: var(--saju-font-heading, sans-serif); font-size: 1rem; font-weight: 850; letter-spacing: -.04em; text-decoration: none; }
-.zootopi-brand { position: relative; min-height: 48px; display: inline-flex; align-items: center; gap: 7px; color: #211d25; text-decoration: none; transform-origin: left center; transition: transform .18s ease, filter .18s ease; }
-.zootopi-brand:hover { transform: translateY(-1px) scale(1.02); filter: saturate(1.08); }
-.zootopi-brand:active { transform: scale(.97); }
-.zootopi-brand__mascot { width: 43px; height: 48px; display: block; filter: drop-shadow(0 3px 5px rgba(49,35,19,.13)); }
-.zootopi-brand__wordmark { font-size: 1.2rem; font-weight: 950; letter-spacing: -.065em; }
-.zootopi-brand__spark { margin: -18px 0 0 -4px; color: #f5b800; font-size: .65rem; }
+.woorisaju-brand { position: relative; min-height: 48px; display: inline-flex; align-items: center; gap: 8px; color: #6545bd; text-decoration: none; transform-origin: left center; transition: transform .18s ease, filter .18s ease; }
+.woorisaju-brand:hover { transform: translateY(-1px) scale(1.02); filter: saturate(1.08); }
+.woorisaju-brand:active { transform: scale(.97); }
+.woorisaju-brand__chart { width: 42px; height: 42px; flex: none; overflow: visible; filter: drop-shadow(0 4px 8px rgba(93,63,153,.12)); }
+.woorisaju-brand__wordmark { color:#211d25; font-size: 1.22rem; font-weight: 950; letter-spacing: -.07em; }
 .site-header a { min-height: 44px; display: inline-flex; align-items: center; }
 .site-header-home-a99 { width: min(100%, 390px); min-height: 64px; padding: 0 17px; border-bottom: 0; background: #fff; }
 .site-header-home-a99 .site-brand { font-size: 1.22rem; letter-spacing: -.045em; }

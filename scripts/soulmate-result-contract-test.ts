@@ -41,7 +41,7 @@ for (const required of [
   "사주팔자 · 원국",
   "가장 잘 맞는 일간 TOP",
   "잘 맞는 사주의 구체적인 모습",
-  "주토피 마지막 한마디",
+  "마지막 한마디",
   "1:1 궁합 분석하기",
 ]) assert.ok(page.includes(required), `결과 화면에 ${required}가 있어야 합니다.`);
 

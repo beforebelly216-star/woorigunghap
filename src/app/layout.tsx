@@ -8,8 +8,8 @@ import "./app-theme-v4.css";
 import "../components/zootopi-mark.css";
 
 export const metadata: Metadata = {
-  title: "주토피 | 관계 궁합 리포트",
-  description: "생년월일시와 관계 유형을 바탕으로 연인, 친구, 직장동료의 관계 궁합을 풀어주는 주토피 리포트",
+  title: "우리사주 | 관계 궁합 리포트",
+  description: "생년월일시와 관계 유형을 바탕으로 연인, 친구, 직장동료의 관계 궁합을 풀어주는 우리사주 리포트",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

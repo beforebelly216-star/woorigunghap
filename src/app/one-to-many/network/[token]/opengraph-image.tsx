@@ -8,7 +8,7 @@ import { loadRelationshipNetwork } from "@/lib/relationship-network-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const alt = "주토피 인연 네트워크 초대";
+export const alt = "우리사주 인연 네트워크 초대";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -108,7 +108,7 @@ export default async function RelationshipNetworkOpenGraphImage({
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, color: "#6744b0", fontSize: 25, fontWeight: 800 }}>
               <span style={{ display: "flex", width: 13, height: 13, borderRadius: 99, background: "#8b64e6" }} />
-              주토피 · 인연 네트워크
+              우리사주 · 인연 네트워크
             </div>
             <div style={{ display: "flex", marginTop: 34, fontSize: 55, lineHeight: 1.18, fontWeight: 900, letterSpacing: "-2px" }}>
               {headline}

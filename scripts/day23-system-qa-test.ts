@@ -7,8 +7,12 @@ import {
   personalizeNarrativeNames,
 } from "../src/lib/narrative/name-personalization";
 import { buildReportEvidencePack } from "../src/lib/narrative/report-engine";
-import { collectPaidNarrativeQualityIssues } from "../src/lib/narrative/report-engine-v6-request";
+import {
+  collectPaidNarrativeQualityIssues,
+  repairPaidNarrativeForRelease,
+} from "../src/lib/narrative/report-engine-v6-request";
 import type { OneToOneReportInput } from "../src/lib/report-input";
+import { sanitizeStoredReportTextForPerson } from "../src/lib/narrative/stored-report-compat";
 
 const oneToOneOrder = readFileSync("src/app/api/orders/one-to-one/route.ts", "utf8");
 const oneToOneReport = readFileSync("src/app/api/compatibility/one-to-one/route.ts", "utf8");
@@ -123,6 +127,32 @@ assert.ok(badIssues.includes("DEVELOPER_LABEL_A_B_EXPOSED"));
 assert.ok(badIssues.includes("DETERMINISTIC_CERTAINTY"));
 assert.ok(badIssues.includes("RELATIONSHIP_ROMANCE_LEAK"));
 assert.ok(badIssues.includes("COWORKER_HIERARCHY_NOT_REFLECTED"));
+
+const danglingParticleOutput = {
+  elements: "둘의 기운을 합쳐보면 서로 부족한 부분을 채워주는 그림이 꽤 뚜렷하게 {{SELF}}와. {{SELF}}은 나무와 흙 기운이 강해.",
+};
+assert.ok(
+  collectPaidNarrativeQualityIssues(danglingParticleOutput, "DYNAMICS").includes("GRAMMAR_DANGLING_PARTICLE"),
+  "이름과 조사만 남은 미완성 문장은 공개 전에 차단해야 합니다.",
+);
+const repairedDanglingParticle = repairPaidNarrativeForRelease(
+  danglingParticleOutput,
+  "DYNAMICS",
+  '{"relationshipType":"lover"}',
+) as typeof danglingParticleOutput;
+assert.equal(
+  repairedDanglingParticle.elements,
+  "둘의 기운을 합쳐보면 서로 부족한 부분을 채워주는 그림이 꽤 뚜렷해. {{SELF}}은 나무와 흙 기운이 강해.",
+);
+assert.ok(!collectPaidNarrativeQualityIssues(repairedDanglingParticle, "DYNAMICS").includes("GRAMMAR_DANGLING_PARTICLE"));
+assert.equal(
+  sanitizeStoredReportTextForPerson(
+    "둘의 기운을 합쳐보면 서로 부족한 부분을 채워주는 그림이 꽤 뚜렷하게 전종윤님과. 전종윤님은 나무와 흙 기운이 강해.",
+    { korean: "갑자", hanja: "甲子", stem: "갑", branch: "자" },
+  ),
+  "둘의 기운을 합쳐보면 서로 부족한 부분을 채워주는 그림이 꽤 뚜렷해. 전종윤님은 나무와 흙 기운이 강해.",
+  "이미 저장된 사용자 이름 문장도 다시 열 때 자연스럽게 복구해야 합니다.",
+);
 
 const manualQaRegressionIssues = collectPaidNarrativeQualityIssues(
   {
