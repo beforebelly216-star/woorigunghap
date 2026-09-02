@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { AUTH_SESSION_COOKIE } from "@/lib/auth-policy";
+import { loadAuthenticatedRequestUser } from "@/lib/auth-request";
 
 const PUBLIC_PAGES = new Set(["/", "/login", "/terms", "/privacy", "/refund", "/operating-policy"]);
 
@@ -12,11 +12,14 @@ function isPublicRequest(pathname: string) {
     || pathname.startsWith("/api/cron/");
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  if (isPublicRequest(pathname) || request.cookies.has(AUTH_SESSION_COOKIE)) {
+  if (isPublicRequest(pathname)) {
     return NextResponse.next();
   }
+
+  const user = await loadAuthenticatedRequestUser(request).catch(() => null);
+  if (user) return NextResponse.next();
 
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "카카오 로그인이 필요해." }, { status: 401 });

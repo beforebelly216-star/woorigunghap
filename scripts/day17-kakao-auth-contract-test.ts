@@ -58,7 +58,9 @@ assert.match(loginPage, /카카오로 로그인하고/);
 assert.match(loginPage, /로그인 뒤에 이용할 수 있어/);
 assert.doesNotMatch(loginPage, /로그인 없이 돌아가기|로그인하지 않아도/);
 const proxy = readFileSync("src/proxy.ts", "utf8");
-assert.match(proxy, /AUTH_SESSION_COOKIE/);
+assert.match(proxy, /loadAuthenticatedRequestUser/);
+assert.match(proxy, /await loadAuthenticatedRequestUser\(request\)/);
+assert.doesNotMatch(proxy, /request\.cookies\.has\(AUTH_SESSION_COOKIE\)/);
 assert.match(proxy, /카카오 로그인이 필요해/);
 
 console.log("Day 17 Kakao auth contract checks: PASS");
