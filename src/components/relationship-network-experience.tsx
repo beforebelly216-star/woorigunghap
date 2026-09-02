@@ -3,6 +3,8 @@
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { RelationshipNetworkShareCard } from "@/components/relationship-network-share-card";
+import { ZootopiMark } from "@/components/zootopi-mark";
 import {
   clearPersonBirthFieldError,
   createEmptyPersonBirthForm,
@@ -41,6 +43,8 @@ const GRADE_COLORS: Record<RelationshipNetworkGrade, string> = {
 
 type MembershipCredential = { memberId: string; memberToken: string };
 type GraphMode = "focus" | "strong" | "all";
+type AuthState = "loading" | "guest" | "authenticated";
+type ClaimState = "idle" | "saving" | "saved" | "error";
 
 function randomHexToken() {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
@@ -250,11 +254,19 @@ export function RelationshipNetworkExperience({
   const [joining, setJoining] = useState(false);
   const [managing, setManaging] = useState(false);
   const [deleted, setDeleted] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [authState, setAuthState] = useState<AuthState>("loading");
+  const [claimState, setClaimState] = useState<ClaimState>("idle");
   const etagRef = useRef(`"relationship-network-${initialNetwork.graphVersion}"`);
   const memberCountRef = useRef(initialNetwork.memberCount);
   const joinAttemptRef = useRef<{ idempotencyKey: string; memberToken: string } | null>(null);
+  const claimAttemptRef = useRef<string | null>(null);
 
   const host = network.members.find((member) => member.id === network.hostMemberId) ?? network.members[0];
+  const latestMembership = memberships.slice().reverse().find((membership) => (
+    network.members.some((member) => member.id === membership.memberId)
+  ));
+  const viewerMemberId = latestMembership?.memberId ?? network.hostMemberId;
   const selectedMember = network.members.find((member) => member.id === selectedMemberId) ?? host;
   const connections = selectedMember
     ? network.edges
@@ -324,6 +336,47 @@ export function RelationshipNetworkExperience({
   }, [host?.displayName, initialNetwork.expiresAt, initialNetwork.members, token]);
 
   useEffect(() => {
+    if (!credentialsReady) return;
+    let active = true;
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then((response) => response.json())
+      .then(async (payload: { authenticated?: boolean } | null) => {
+        if (!active) return;
+        if (!payload?.authenticated) {
+          setAuthState("guest");
+          return;
+        }
+        setAuthState("authenticated");
+        if (!ownerToken || claimAttemptRef.current === ownerToken) return;
+        claimAttemptRef.current = ownerToken;
+        setClaimState("saving");
+        try {
+          const response = await fetch("/api/account/relationship-networks", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ token, ownerToken }),
+            cache: "no-store",
+          });
+          if (!active) return;
+          setClaimState(response.ok ? "saved" : "error");
+        } catch {
+          if (active) setClaimState("error");
+        }
+      })
+      .catch(() => { if (active) setAuthState("guest"); });
+    return () => { active = false; };
+  }, [credentialsReady, ownerToken, token]);
+
+  useEffect(() => {
+    if (!detailOpen) return;
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") setDetailOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [detailOpen]);
+
+  useEffect(() => {
     let active = true;
     let missing = false;
     let inFlight = false;
@@ -374,10 +427,25 @@ export function RelationshipNetworkExperience({
 
   function selectMember(memberId: string) {
     setSelectedMemberId(memberId);
-    setSelectedPairKey(memberId === network.hostMemberId
-      ? null
-      : relationshipNetworkPairKey(memberId, network.hostMemberId));
+    const directEdge = memberId === viewerMemberId
+      ? network.edges
+          .filter((edge) => edge.memberAId === memberId || edge.memberBId === memberId)
+          .sort((left, right) => right.score - left.score)[0]
+      : network.edges.find((edge) => (
+          (edge.memberAId === viewerMemberId && edge.memberBId === memberId)
+          || (edge.memberBId === viewerMemberId && edge.memberAId === memberId)
+        ));
+    setSelectedPairKey(directEdge
+      ? relationshipNetworkPairKey(directEdge.memberAId, directEdge.memberBId)
+      : null);
     setMode("focus");
+    if (directEdge) setDetailOpen(true);
+  }
+
+  function selectEdge(edge: RelationshipNetworkEdge) {
+    setSelectedPairKey(relationshipNetworkPairKey(edge.memberAId, edge.memberBId));
+    setSelectedMemberId(edge.memberAId === viewerMemberId ? edge.memberBId : edge.memberAId);
+    setDetailOpen(true);
   }
 
   function replaceNetwork(next: RelationshipNetworkPublic) {
@@ -445,6 +513,7 @@ export function RelationshipNetworkExperience({
       replaceNetwork(next);
       setSelectedMemberId(memberId);
       setSelectedPairKey(relationshipNetworkPairKey(memberId, next.hostMemberId));
+      setDetailOpen(true);
       setStatus("내 인연이 연결됐어요. 다른 사람과의 관계선도 눌러보세요.");
       joinAttemptRef.current = null;
     } catch {
@@ -461,23 +530,6 @@ export function RelationshipNetworkExperience({
     setErrors({});
     setJoinFormOpen(true);
     setStatus("다음 사람이 자기 정보를 직접 입력해 주세요.");
-  }
-
-  async function shareNetwork() {
-    const url = `${window.location.origin}${window.location.pathname}${window.location.search}`;
-    const title = `${host?.displayName ?? "친구"}님의 인연 네트워크`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, text: "내 정보만 입력하면 우리 사이 궁합이 인물 네트워크에 연결돼요.", url });
-        setStatus("공유 창을 열었습니다.");
-        return;
-      }
-      await navigator.clipboard.writeText(url);
-      setStatus("공유 링크를 복사했습니다.");
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      setStatus("주소창의 링크를 복사해 공유해 주세요.");
-    }
   }
 
   async function copyManagementLink() {
@@ -623,13 +675,34 @@ export function RelationshipNetworkExperience({
           <section className={styles.networkHero}>
             <div className={styles.heroTopline}>
               <span className={network.isOpen ? styles.liveBadge : styles.closedBadge}>{network.isOpen ? "실시간 연결 중" : "새 참여 닫힘"}</span>
-              <button type="button" className={styles.shareButton} onClick={shareNetwork}>링크 공유</button>
+              <button type="button" className={styles.shareButton} onClick={() => document.getElementById("network-share-card")?.scrollIntoView({ behavior: "smooth", block: "center" })}>스토리 공유</button>
             </div>
-            <h1><strong>{host?.displayName ?? "친구"}</strong>님의<br/>인연 네트워크</h1>
-            <p>노드나 관계선을 누르면 두 사람의 총점과 등급을 볼 수 있어요. 새 참여는 약 4초 안에 함께 갱신됩니다.</p>
+            <div className={styles.networkHeroContent}>
+              <div>
+                <span className={styles.eyebrow}>MY CONNECTION MAP</span>
+                <h1><strong>{host?.displayName ?? "친구"}</strong>님의<br/>인연 네트워크</h1>
+                <p>친구가 들어올 때마다 새로운 관계가 이어져요. 동그라미를 눌러 점수가 나온 이유까지 확인해 보세요.</p>
+              </div>
+              <div className={styles.resultMascot}><ZootopiMark expression="analyzing" withBody /></div>
+            </div>
           </section>
 
           <p className={styles.networkStatus} aria-live="polite">{status}</p>
+
+          {ownerToken && authState === "guest" ? (
+            <section className={styles.accountSaveCard}>
+              <div className={styles.accountSaveMascot}><ZootopiMark expression="thinking" withBody /></div>
+              <div>
+                <strong>이 인연 네트워크를 잃어버리지 마세요</strong>
+                <p>카카오로 로그인하면 계정 보관함에 저장되어 다른 기기에서도 다시 찾을 수 있어요.</p>
+                <Link href={`/login?${new URLSearchParams({ returnTo: `/one-to-many/network/${token}` }).toString()}`}>카카오 로그인하고 저장</Link>
+              </div>
+            </section>
+          ) : ownerToken && authState === "authenticated" ? (
+            <p className={`${styles.accountSaveState} ${claimState === "error" ? styles.accountSaveStateError : ""}`}>
+              {claimState === "saved" ? "✓ 카카오 계정 보관함에 저장했습니다." : claimState === "error" ? "계정 저장을 완료하지 못했습니다. 관리 링크는 이 기기에 안전하게 남아 있어요." : "카카오 계정 보관함에 저장하고 있어요…"}
+            </p>
+          ) : null}
 
           {canJoin && joinFormOpen ? (
             <form className={styles.joinCard} onSubmit={submitJoin} noValidate>
@@ -671,9 +744,10 @@ export function RelationshipNetworkExperience({
 
           <section className={styles.graphCard}>
             <div className={styles.graphHeader}>
-              <div><h2>모든 사람의 관계망</h2><p>전체 {network.edges.length}개 관계 · 선택한 인물 중심으로 탐색</p></div>
+              <div><h2>모든 사람의 관계망</h2><p>전체 {network.edges.length}개 관계 · 동그라미를 누르면 관계 해설이 열려요</p></div>
               <span className={styles.countBadge}>{network.memberCount}명</span>
             </div>
+            <p className={styles.graphTapHint}><span>✦</span> {memberName(network.members, viewerMemberId)}님을 기준으로 궁금한 사람을 눌러보세요</p>
             <div className={styles.modeTabs} aria-label="관계선 보기 방식">
               {(["focus", "strong", "all"] as GraphMode[]).map((value) => (
                 <button
@@ -693,7 +767,7 @@ export function RelationshipNetworkExperience({
               selectedPairKey={activePairKey}
               mode={mode}
               onSelectMember={selectMember}
-              onSelectEdge={(edge) => setSelectedPairKey(relationshipNetworkPairKey(edge.memberAId, edge.memberBId))}
+              onSelectEdge={selectEdge}
             />
             <div className={styles.memberChips} aria-label="참여자 선택">
               {network.members.map((member) => (
@@ -709,26 +783,16 @@ export function RelationshipNetworkExperience({
           </section>
 
           {selectedEdge ? (
-            <section className={styles.relationshipCard} aria-label={`${pairMembers.join("와 ")}의 궁합 결과`}>
-              <div className={styles.relationshipHeader}>
-                <div className={styles.relationshipNames}><small>선택한 두 사람의 토탈 점수</small><h2>{pairMembers.join(" × ")}</h2></div>
-                <span className={styles.gradeBadge} style={{ background: GRADE_COLORS[selectedEdge.grade] }}>{selectedEdge.grade}</span>
-              </div>
-              <div className={styles.scoreLine}><strong>{selectedEdge.score}</strong><span>/ 100점</span></div>
-              <p className={styles.relationshipLabel}>{RELATIONSHIP_NETWORK_GRADE_COPY[selectedEdge.grade].label}</p>
-              <p className={styles.relationshipDescription}>{RELATIONSHIP_NETWORK_GRADE_COPY[selectedEdge.grade].description}</p>
-              {selectedEdge.scoreRange.min !== selectedEdge.scoreRange.max ? <p className={styles.rangeNote}>출생시간 정보에 따른 예상 범위 {selectedEdge.scoreRange.min}~{selectedEdge.scoreRange.max}점</p> : null}
-              <div className={styles.insightGrid}>
-                <div><small>잘 맞는 축</small><p>{selectedEdge.strengths.join(" · ") || "균형을 확인 중이에요"}</p></div>
-                <div><small>맞춰볼 축</small><p>{selectedEdge.adjustments.join(" · ") || "큰 조율점이 적어요"}</p></div>
-              </div>
-              <Link className={`${styles.primaryButton} ${styles.ctaButton}`} href={pairIncludesViewer ? "/one-to-one?from=free" : "/one-to-one"}>
-                {pairIncludesViewer ? "우리 둘의 1:1 정밀궁합 보기" : "1:1 정밀궁합 직접 확인하기"}
-              </Link>
-            </section>
+            <button type="button" className={styles.relationshipPeek} onClick={() => setDetailOpen(true)} aria-label={`${pairMembers.join("와 ")}의 관계 해설 다시 열기`}>
+              <span style={{ background: GRADE_COLORS[selectedEdge.grade] }}>{selectedEdge.grade}</span>
+              <div><small>지금 선택한 관계</small><strong>{pairMembers.join(" × ")}</strong><p>{RELATIONSHIP_NETWORK_GRADE_COPY[selectedEdge.grade].label} · {selectedEdge.score}점</p></div>
+              <b>해설 보기 ›</b>
+            </button>
           ) : (
             <section className={styles.emptyCard}>{network.memberCount === 1 ? "공유 링크로 첫 친구가 참여하면 두 사람의 토탈 점수와 관계선이 나타납니다." : "인물이나 관계선을 선택해 두 사람의 궁합을 확인해 보세요."}</section>
           )}
+
+          <RelationshipNetworkShareCard network={network} onStatus={setStatus} />
 
           {selectedMember && connections.length > 0 ? (
             <section className={styles.rankingCard}>
@@ -737,7 +801,7 @@ export function RelationshipNetworkExperience({
                 {connections.map((edge) => {
                   const otherId = otherMemberId(edge, selectedMember.id);
                   const pairKey = relationshipNetworkPairKey(edge.memberAId, edge.memberBId);
-                  return <button key={pairKey} type="button" className={`${styles.connectionButton} ${activePairKey === pairKey ? styles.connectionButtonActive : ""}`} onClick={() => setSelectedPairKey(pairKey)}><strong>{memberName(network.members, otherId)}</strong><span>{edge.score}점</span><b style={{ background: GRADE_COLORS[edge.grade] }}>{edge.grade}</b></button>;
+                  return <button key={pairKey} type="button" className={`${styles.connectionButton} ${activePairKey === pairKey ? styles.connectionButtonActive : ""}`} onClick={() => selectEdge(edge)}><strong>{memberName(network.members, otherId)}</strong><span>{edge.score}점</span><b style={{ background: GRADE_COLORS[edge.grade] }}>{edge.grade}</b></button>;
                 })}
               </div>
             </section>
@@ -749,11 +813,17 @@ export function RelationshipNetworkExperience({
               <div className={styles.rankingList}>
                 {hostRanking.map((edge, index) => {
                   const otherId = otherMemberId(edge, network.hostMemberId);
-                  return <div className={styles.rankingRow} key={relationshipNetworkPairKey(edge.memberAId, edge.memberBId)}><em>{index + 1}</em><strong>{memberName(network.members, otherId)}</strong><span>{edge.score}점</span><b style={{ background: GRADE_COLORS[edge.grade] }}>{edge.grade}</b></div>;
+                  return <button type="button" className={styles.rankingRow} onClick={() => selectEdge(edge)} key={relationshipNetworkPairKey(edge.memberAId, edge.memberBId)}><em>{index + 1}</em><strong>{memberName(network.members, otherId)}</strong><span>{edge.score}점</span><b style={{ background: GRADE_COLORS[edge.grade] }}>{edge.grade}</b></button>;
                 })}
               </div>
             </section>
           ) : null}
+
+          <section className={styles.ownNetworkCta}>
+            <div className={styles.ownNetworkMascot}><ZootopiMark expression="idea" withBody /></div>
+            <div><small>보고만 가기 아쉽다면</small><h2>내 인연 네트워크도 만들어볼까요?</h2><p>내 정보 한 번만 입력하고 친구들의 궁합을 한 화면에 모아보세요.</p></div>
+            <Link href="/one-to-many">내 네트워크 무료로 만들기</Link>
+          </section>
 
           {(ownerToken || memberships.length > 0) ? (
             <details className={styles.manageCard}>
@@ -770,6 +840,32 @@ export function RelationshipNetworkExperience({
           <p className={styles.formFootnote}>궁합 점수는 기존 사주 계산의 9가지 관계 축을 사용하며 AI가 점수나 등급을 바꾸지 않습니다.</p>
         </div>
       </div>
+
+      {detailOpen && selectedEdge ? (
+        <div className={styles.detailBackdrop} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetailOpen(false); }}>
+          <section className={styles.detailSheet} role="dialog" aria-modal="true" aria-labelledby="relationship-detail-title">
+            <button type="button" className={styles.detailClose} onClick={() => setDetailOpen(false)} aria-label="관계 해설 닫기">×</button>
+            <div className={styles.detailHandle} aria-hidden="true" />
+            <div className={styles.detailHeading}>
+              <div><small>두 사람의 관계 흐름</small><h2 id="relationship-detail-title">{pairMembers.join(" × ")}</h2></div>
+              <div className={styles.detailScore}><strong>{selectedEdge.score}</strong><span>점</span><b style={{ background: GRADE_COLORS[selectedEdge.grade] }}>{selectedEdge.grade}</b></div>
+            </div>
+            <div className={styles.detailSummary}>
+              <strong>{RELATIONSHIP_NETWORK_GRADE_COPY[selectedEdge.grade].label}</strong>
+              <p>{RELATIONSHIP_NETWORK_GRADE_COPY[selectedEdge.grade].description}</p>
+              <small>대화 템포부터 생활 리듬·회복·신뢰까지 여러 관계 흐름을 함께 본 결과예요.</small>
+            </div>
+            {selectedEdge.scoreRange.min !== selectedEdge.scoreRange.max ? <p className={styles.rangeNote}>출생시간 정보에 따른 예상 범위 {selectedEdge.scoreRange.min}~{selectedEdge.scoreRange.max}점</p> : null}
+            <div className={styles.detailInsights}>
+              <div><span>✨ 자연스럽게 맞는 흐름</span><p>{selectedEdge.strengths.join(" · ") || "서로 다른 리듬이 균형을 만들어요"}</p></div>
+              <div><span>🌿 알면 더 편해지는 흐름</span><p>{selectedEdge.adjustments.join(" · ") || "큰 조율점이 적어 편안한 편이에요"}</p></div>
+            </div>
+            <Link className={`${styles.primaryButton} ${styles.ctaButton}`} href={pairIncludesViewer ? "/one-to-one?from=free" : "/one-to-one"}>
+              {pairIncludesViewer ? "우리 둘의 1:1 정밀궁합 보기" : "1:1 정밀궁합 직접 확인하기"}
+            </Link>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }

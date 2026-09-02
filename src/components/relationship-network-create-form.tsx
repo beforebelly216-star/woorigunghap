@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -29,6 +29,7 @@ function randomHexToken() {
 
 export function RelationshipNetworkCreateForm() {
   const router = useRouter();
+  const [authState, setAuthState] = useState<"loading" | "guest" | "authenticated">("loading");
   const [person, setPerson] = useState<PersonBirthFormState>(createEmptyPersonBirthForm());
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -39,6 +40,17 @@ export function RelationshipNetworkCreateForm() {
     memberToken: string;
     idempotencyKey: string;
   } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((payload: { authenticated?: boolean } | null) => {
+        if (active) setAuthState(payload?.authenticated ? "authenticated" : "guest");
+      })
+      .catch(() => { if (active) setAuthState("guest"); });
+    return () => { active = false; };
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -103,6 +115,18 @@ export function RelationshipNetworkCreateForm() {
       } catch {
         // 저장소가 차단돼도 fragment 관리 권한으로 생성 링크는 엽니다.
       }
+      if (authState === "authenticated") {
+        try {
+          await fetch("/api/account/relationship-networks", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ token, ownerToken }),
+            cache: "no-store",
+          });
+        } catch {
+          // 결과 화면에서 다시 저장을 시도하므로 생성 흐름은 계속 진행합니다.
+        }
+      }
       const fragment = new URLSearchParams({ ownerToken, memberId, memberToken }).toString();
       createAttemptRef.current = null;
       router.push(`${url}#${fragment}`);
@@ -116,6 +140,18 @@ export function RelationshipNetworkCreateForm() {
   return (
     <form className={styles.createForm} onSubmit={submit} noValidate>
       {errors.form ? <p className="field-error form-error-summary" role="alert">{errors.form}</p> : null}
+      {authState === "guest" ? (
+        <aside className={styles.authSaveNudge}>
+          <div>
+            <strong>카카오 로그인하고 오래 기억해 두세요</strong>
+            <p>로그인하면 만든 인연 네트워크가 계정 보관함에 저장되어 다른 기기에서도 다시 찾을 수 있어요.</p>
+          </div>
+          <Link href="/login?returnTo=%2Fone-to-many">카카오 로그인</Link>
+          <small>로그인 없이도 무료로 만들 수 있고, 이 기기에는 자동 저장됩니다.</small>
+        </aside>
+      ) : authState === "authenticated" ? (
+        <p className={styles.authSavedHint}>✓ 만들면 카카오 계정 보관함에도 자동 저장됩니다.</p>
+      ) : null}
       <section className={styles.formCard}>
         <div className={styles.formHeading}>
           <span>STEP 1</span>

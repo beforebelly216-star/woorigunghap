@@ -13,6 +13,7 @@ export function SiteFooter() {
     || pathname === "/one-to-one"
     || pathname === "/one-to-one/result"
     || pathname === "/one-to-many"
+    || pathname.startsWith("/one-to-many/network/")
     || pathname.startsWith("/one-to-many/result")
     || pathname.startsWith("/share/")
   ) return null;

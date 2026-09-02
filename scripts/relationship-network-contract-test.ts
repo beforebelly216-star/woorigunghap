@@ -131,6 +131,70 @@ const accountLibrarySource = readFileSync(join(process.cwd(), "src/app/account/r
 assert.ok(accountLibrarySource.includes("RelationshipNetworkSavedList"), "생성한 무료 네트워크는 보관함에서도 다시 열 수 있어야 합니다.");
 assert.ok(accountLibrarySource.includes("무료 인연 네트워크"), "보관함은 무료 네트워크 저장 위치를 안내해야 합니다.");
 
+const accountNetworkStoreSource = readFileSync(
+  join(process.cwd(), "src/lib/account-relationship-network-store.ts"),
+  "utf8",
+);
+const accountNetworkRouteSource = readFileSync(
+  join(process.cwd(), "src/app/api/account/relationship-networks/route.ts"),
+  "utf8",
+);
+const savedNetworkListSource = readFileSync(
+  join(process.cwd(), "src/components/relationship-network-saved-list.tsx"),
+  "utf8",
+);
+assert.match(accountNetworkStoreSource, /CREATE TABLE IF NOT EXISTS woorigunghap_account_relationship_networks/);
+assert.match(accountNetworkStoreSource, /network_token_ciphertext TEXT NOT NULL/);
+assert.match(accountNetworkStoreSource, /REFERENCES woorigunghap_relationship_networks\(token_hash\) ON DELETE CASCADE/);
+assert.match(accountNetworkStoreSource, /REFERENCES woorigunghap_users\(user_id\) ON DELETE CASCADE/);
+assert.match(accountNetworkStoreSource, /createCipheriv\("aes-256-gcm"/);
+assert.match(accountNetworkStoreSource, /cipher\.setAAD/);
+assert.match(accountNetworkStoreSource, /owner_token_hash = \$\{ownerTokenHash\}/);
+assert.doesNotMatch(accountNetworkStoreSource, /owner_token_ciphertext|owner_token TEXT/);
+assert.match(accountNetworkStoreSource, /WHERE woorigunghap_account_relationship_networks\.user_id = EXCLUDED\.user_id/);
+assert.match(accountNetworkRouteSource, /isSameOriginPost\(request\)/);
+assert.match(accountNetworkRouteSource, /loadAuthenticatedRequestUser/);
+assert.match(accountNetworkRouteSource, /listAccountRelationshipNetworks\(user\.userId\)/);
+assert.match(accountNetworkRouteSource, /claimAccountRelationshipNetwork/);
+assert.match(accountNetworkRouteSource, /status: 401/);
+assert.match(accountNetworkRouteSource, /status: 409/);
+assert.match(accountNetworkRouteSource, /private, no-store/);
+assert.match(savedNetworkListSource, /\/api\/account\/relationship-networks/);
+assert.match(savedNetworkListSource, /mergeSavedNetworks/);
+assert.match(savedNetworkListSource, /카카오 보관함 · 이 기기/);
+assert.match(savedNetworkListSource, /방 관리는 처음 만든 기기 또는 관리 링크/);
+
+const networkExperienceSource = readFileSync(
+  join(process.cwd(), "src/components/relationship-network-experience.tsx"),
+  "utf8",
+);
+const networkShareSource = readFileSync(
+  join(process.cwd(), "src/components/relationship-network-share-card.tsx"),
+  "utf8",
+);
+const networkOgSource = readFileSync(
+  join(process.cwd(), "src/app/one-to-many/network/[token]/opengraph-image.tsx"),
+  "utf8",
+);
+const zootopiStyleSource = readFileSync(
+  join(process.cwd(), "src/components/zootopi-mark.css"),
+  "utf8",
+);
+assert.match(networkExperienceSource, /role="dialog"/);
+assert.match(networkExperienceSource, /동그라미를 눌러 점수가 나온 이유/);
+assert.match(networkExperienceSource, /카카오 로그인하고 저장/);
+assert.match(networkExperienceSource, /내 인연 네트워크도 만들어볼까요/);
+assert.match(networkExperienceSource, /<RelationshipNetworkShareCard/);
+assert.match(networkShareSource, /const STORY_WIDTH = 1080/);
+assert.match(networkShareSource, /const STORY_HEIGHT = 1920/);
+assert.match(networkShareSource, /개별 이름·점수는 이 카드에 포함되지 않습니다/);
+assert.match(networkShareSource, /navigator\.canShare\?\.\(storyShareData\)/);
+assert.match(networkOgSource, /new ImageResponse/);
+assert.match(networkOgSource, /나는 이 지도에서 몇 등급일까/);
+for (const expression of ["smile", "analyzing", "idea", "thinking", "surprised"]) {
+  assert.match(zootopiStyleSource, new RegExp(`jootopi-${expression}-v2\\.png`));
+}
+
 const storeSource = readFileSync(join(process.cwd(), "src/lib/relationship-network-store.ts"), "utf8");
 assert.ok(storeSource.includes("calculateOneToOneCompatibility"), "모든 관계선은 기존 1:1 권위 계산 엔진을 사용해야 합니다.");
 assert.ok(storeSource.includes("{ timingBaseYear }"), "방 생성 연도의 계산 기준을 모든 새 관계선에 고정해야 합니다.");

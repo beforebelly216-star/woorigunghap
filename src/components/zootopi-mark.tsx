@@ -1,8 +1,7 @@
 /**
  * 주토피 공통 마스코트.
  *
- * 승인된 캐릭터 시트에서 추출한 실제 주토피 픽셀 자산을 사용한다.
- * 과거 인앱 단순 SVG 토끼를 다시 그리지 않는다.
+ * 서비스 전반에서 같은 인상을 유지하는 고해상도 투명 PNG 표정 자산을 사용한다.
  *
  * 사용 규칙: ZootopiCaption의 발화 텍스트는 항상 반말로 작성한다.
  */
@@ -11,8 +10,7 @@ export type ZootopiExpression = "smile" | "analyzing" | "idea" | "thinking" | "s
 
 /**
  * 소형 아이콘부터 카드 히어로까지 공통으로 쓰는 주토피 마크.
- * 현재 승인 원본의 기본 미소 포즈를 모든 소형 마크에 사용하고,
- * 생성 대기 전용 포즈는 /zootopi-bullish-loading.svg에서 별도로 사용한다.
+ * expression에 맞는 표정과 제스처를 사용한다.
  * `withBody`는 기존 호출부 호환성을 위해 prop 계약에 남겨 둔다.
  */
 export function ZootopiMark({

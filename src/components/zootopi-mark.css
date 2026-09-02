@@ -1,4 +1,4 @@
-/* 주토피 마스코트 공통 스타일. 승인된 캐릭터 시트 추출 자산을 그대로 렌더한다. */
+/* 주토피 마스코트 공통 스타일. 투명 배경 고해상도 표정 자산을 사용한다. */
 .zt-mark {
   display: inline-block;
   width: 100%;
@@ -9,7 +9,23 @@
   display: block;
   width: 100%;
   height: 100%;
-  background: url('/jootopi-smile.svg') center / contain no-repeat;
+  background: url('/jootopi/jootopi-smile-v2.png') center / contain no-repeat;
+}
+
+.zt-mark--analyzing .zt-mark__art {
+  background-image: url('/jootopi/jootopi-analyzing-v2.png');
+}
+
+.zt-mark--idea .zt-mark__art {
+  background-image: url('/jootopi/jootopi-idea-v2.png');
+}
+
+.zt-mark--thinking .zt-mark__art {
+  background-image: url('/jootopi/jootopi-thinking-v2.png');
+}
+
+.zt-mark--surprised .zt-mark__art {
+  background-image: url('/jootopi/jootopi-surprised-v2.png');
 }
 
 .zt-caption {
