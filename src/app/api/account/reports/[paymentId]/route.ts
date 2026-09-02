@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteOwnedAccountReport, loadOwnedAccountReport } from "@/lib/account-report-store";
+import {
+  deleteOwnedAccountReport,
+  loadOwnedAccountReport,
+  loadResumableOwnedOneToOneReport,
+} from "@/lib/account-report-store";
 import { isSameOriginPost } from "@/lib/auth-policy";
 import { loadAuthenticatedRequestUser } from "@/lib/auth-request";
 
@@ -25,10 +29,12 @@ export async function GET(
   }
   try {
     const report = await loadOwnedAccountReport(user.userId, paymentId);
-    if (!report) {
-      return NextResponse.json({ error: "보관함에서 결과를 찾지 못했습니다." }, { status: 404, headers: privateHeaders });
-    }
-    return NextResponse.json(report, { headers: privateHeaders });
+    if (report) return NextResponse.json(report, { headers: privateHeaders });
+
+    const resumable = await loadResumableOwnedOneToOneReport(user.userId, paymentId);
+    if (resumable) return NextResponse.json(resumable, { headers: privateHeaders });
+
+    return NextResponse.json({ error: "보관함에서 결과를 찾지 못했습니다." }, { status: 404, headers: privateHeaders });
   } catch (error) {
     console.error("[woorigunghap:account-report-detail]", error);
     return NextResponse.json({ error: "보관함 결과를 불러오지 못했습니다." }, { status: 503, headers: privateHeaders });

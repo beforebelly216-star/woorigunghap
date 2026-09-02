@@ -134,8 +134,9 @@ async function main() {
   const resultUi = readFileSync("src/app/one-to-one/result/result-v2.tsx", "utf8");
   assert.doesNotMatch(resultUi, /상세 해설 생성이 지연되고 있어요/);
   assert.doesNotMatch(resultUi, /같은 결제로 다시 생성하기/);
-  assert.doesNotMatch(resultUi, /AbortController/);
-  assert.doesNotMatch(resultUi, /210_000/);
+  assert.match(resultUi, /AbortController/);
+  assert.match(resultUi, /PHASE_REQUEST_TIMEOUT_MS = 285_000/);
+  assert.match(resultUi, /MAX_AUTOMATIC_PHASE_MS = 420_000/);
   assert.match(resultUi, /while \(!cancelled\)/);
   assert.match(resultUi, /retryDelay\(attempt\)/);
   assert.match(resultUi, /response\.status >= 500/);
@@ -143,7 +144,8 @@ async function main() {
   assert.match(resultUi, /loadReportProgress\(draft\.paymentId, draft\.createdAt\)/);
   assert.match(resultUi, /dimension !== "luckCycleAlignment"/);
   assert.doesNotMatch(resultUi, /threeYearTiming=\{snapshot\.threeYearTiming\}/);
-  assert.match(resultUi, /완료될 때까지 계속 기다립니다/);
+  assert.doesNotMatch(resultUi, /retried indefinitely|완료될 때까지 계속 기다립니다/);
+  assert.match(resultUi, /같은 결제로 다시 시도/);
 
   const apiRoute = readFileSync("src/app/api/compatibility/one-to-one/route.ts", "utf8");
   assert.match(apiRoute, /PHASES = \["prepare", \.\.\.PAID_REPORT_SEGMENTS\]/);

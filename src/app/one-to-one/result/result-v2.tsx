@@ -46,6 +46,9 @@ const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
 
 const SEGMENTS: PaidReportSegmentName[] = ["intro", "dynamics", "action"];
 const MAX_AUTOMATIC_FORMAT_ATTEMPTS = 2;
+const MAX_AUTOMATIC_PHASE_ATTEMPTS = 12;
+const MAX_AUTOMATIC_PHASE_MS = 420_000;
+const PHASE_REQUEST_TIMEOUT_MS = 285_000;
 const STAGE_COPY: Record<"prepare" | PaidReportSegmentName, string> = {
   prepare: "결제와 두 사람의 정보를 확인하고 있어.",
   intro: "두 사람의 사주와 관계 성향을 차근차근 읽고 있어.",
@@ -113,9 +116,12 @@ function accessTokenFromFragment() {
   return isResultAccessToken(token) ? token : null;
 }
 
-function saveRecoveredProgress(order: OneToOneOrderDraft, payload: RecoveryPayload) {
-  if (!payload.progress) return;
-  saveReportProgress({
+function recoveredProgress(
+  order: DisplayOneToOneOrder,
+  payload: Pick<RecoveryPayload, "progress">,
+) {
+  if (!payload.progress) return null;
+  const progress: ReportProgress = {
     version: "report-progress-v7-1",
     paymentId: order.paymentId,
     orderCreatedAt: order.createdAt,
@@ -124,7 +130,9 @@ function saveRecoveredProgress(order: OneToOneOrderDraft, payload: RecoveryPaylo
     segments: payload.progress.segments,
     metas: payload.progress.metas,
     updatedAt: payload.progress.updatedAt,
-  });
+  };
+  saveReportProgress(progress);
+  return progress;
 }
 
 export default function ResultV2() {
@@ -166,27 +174,45 @@ export default function ResultV2() {
     let cancelled = false;
 
     async function postPhase<T>(
-      draft: OneToOneOrderDraft,
+      draft: DisplayOneToOneOrder,
       phase: "prepare" | PaidReportSegmentName,
     ): Promise<T> {
       let attempt = 0;
+      const startedAt = Date.now();
 
       while (!cancelled) {
         attempt += 1;
         setStage(phase);
         setStageAttempt(attempt);
+        const remainingMs = MAX_AUTOMATIC_PHASE_MS - (Date.now() - startedAt);
+        if (remainingMs <= 0 || attempt > MAX_AUTOMATIC_PHASE_ATTEMPTS) {
+          throw new FatalGenerationError(
+            "서버 연결 지연이 반복돼 자동 대기를 멈췄어. 결제는 유지됐고 같은 결제로 다시 이어갈 수 있어.",
+            "REPORT_RECOVERY_EXHAUSTED",
+          );
+        }
+
+        const controller = new AbortController();
+        const timeout = window.setTimeout(
+          () => controller.abort(),
+          Math.min(PHASE_REQUEST_TIMEOUT_MS, remainingMs),
+        );
 
         try {
+          const hasRecoveryToken = typeof draft.resultAccessToken === "string";
           const response = await fetch("/api/compatibility/one-to-one", {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
               paymentId: draft.paymentId,
-              accessToken: draft.resultAccessToken,
-              input: draft.inputSnapshot,
+              ...(hasRecoveryToken ? {
+                accessToken: draft.resultAccessToken,
+                input: draft.inputSnapshot,
+              } : {}),
               phase,
             }),
             cache: "no-store",
+            signal: controller.signal,
           });
           const payload = await response.json().catch(() => null) as ({
             error?: string;
@@ -210,13 +236,35 @@ export default function ResultV2() {
               payload?.reason ?? payload?.code ?? null,
             );
           }
+
+          if (
+            attempt >= MAX_AUTOMATIC_PHASE_ATTEMPTS
+            || Date.now() - startedAt >= MAX_AUTOMATIC_PHASE_MS
+          ) {
+            throw new FatalGenerationError(
+              payload?.error ?? "서버 연결 지연이 반복돼 자동 대기를 멈췄어. 같은 결제로 다시 이어갈 수 있어.",
+              reason ?? "REPORT_RECOVERY_EXHAUSTED",
+            );
+          }
         } catch (error) {
           if (error instanceof FatalGenerationError) throw error;
-          // Network interruption or a platform/server timeout is retried indefinitely.
+          if (
+            attempt >= MAX_AUTOMATIC_PHASE_ATTEMPTS
+            || Date.now() - startedAt >= MAX_AUTOMATIC_PHASE_MS
+          ) {
+            throw new FatalGenerationError(
+              "서버 연결이 반복해서 끊겨 자동 대기를 멈췄어. 결제는 유지됐고 같은 결제로 다시 이어갈 수 있어.",
+              "REPORT_CONNECTION_TIMEOUT",
+            );
+          }
+        } finally {
+          window.clearTimeout(timeout);
         }
 
         if (cancelled) throw new Error("CANCELLED");
-        await wait(retryDelay(attempt));
+        const retryRemainingMs = MAX_AUTOMATIC_PHASE_MS - (Date.now() - startedAt);
+        if (retryRemainingMs <= 0) continue;
+        await wait(Math.min(retryDelay(attempt), retryRemainingMs));
       }
 
       throw new Error("CANCELLED");
@@ -228,6 +276,9 @@ export default function ResultV2() {
         return;
       }
 
+      let draft: DisplayOneToOneOrder | null = null;
+      let progress: ReportProgress | null = null;
+
       if (accountSource) {
         try {
           const response = await fetch(`/api/account/reports/${encodeURIComponent(paymentId)}`, {
@@ -235,72 +286,73 @@ export default function ResultV2() {
             referrerPolicy: "no-referrer",
           });
           const payload = await response.json().catch(() => null) as AccountReportPayload | null;
-          const recoveredContent = payload?.progress ? completeContent(payload.progress) : null;
           if (
             response.ok
             && payload?.product === "oneToOne"
             && payload.order
-            && payload.progress?.snapshot
-            && payload.progress.facts
-            && recoveredContent
           ) {
-            setOrder(payload.order);
-            setSnapshot(payload.progress.snapshot);
-            setFacts(payload.progress.facts);
-            setContent(recoveredContent);
-            setSegmentMetas(payload.progress.metas);
+            draft = payload.order;
+            progress = recoveredProgress(payload.order, payload);
             setAccountOwned(true);
-            setStatus("ready");
+          } else {
+            setFatalMessage(response.status === 401
+              ? "이 보관함 결과를 열려면 다시 로그인해 줘."
+              : payload?.error ?? "보관함에서 결과를 불러오지 못했습니다.");
+            setFatalReason(response.status === 401 ? "AUTHENTICATION_REQUIRED" : "ACCOUNT_REPORT_LOAD_FAILED");
+            setStatus("fatal");
             return;
           }
-          setFatalMessage(response.status === 401
-            ? "이 보관함 결과를 열려면 다시 로그인해 줘."
-            : payload?.error ?? "보관함에서 결과를 불러오지 못했습니다.");
-          setStatus("fatal");
-          return;
         } catch {
           setFatalMessage("보관함에서 결과를 불러오지 못했습니다.");
+          setFatalReason("ACCOUNT_REPORT_LOAD_FAILED");
           setStatus("fatal");
           return;
+        }
+      } else {
+        const storedDraft = loadOrderDraft(paymentId);
+        draft = storedDraft?.product === "oneToOne" ? storedDraft : null;
+        if (!draft) {
+          const accessToken = accessTokenFromFragment();
+          if (accessToken) {
+            try {
+              const response = await fetch("/api/reports/one-to-one/recover", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ paymentId, accessToken }),
+                cache: "no-store",
+                referrerPolicy: "no-referrer",
+              });
+              const payload = await response.json().catch(() => null) as RecoveryPayload | null;
+              if (response.ok && payload?.order) {
+                draft = payload.order;
+                saveOrderDraft(payload.order);
+                progress = recoveredProgress(payload.order, payload);
+              }
+            } catch {
+              // The manual paid-order recovery path remains available below.
+            }
+          }
+          if (!draft) {
+            setStatus("missing");
+            return;
+          }
         }
       }
 
-      const storedDraft = loadOrderDraft(paymentId);
-      let draft: OneToOneOrderDraft | null = storedDraft?.product === "oneToOne" ? storedDraft : null;
       if (!draft) {
-        const accessToken = accessTokenFromFragment();
-        if (accessToken) {
-          try {
-            const response = await fetch("/api/reports/one-to-one/recover", {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({ paymentId, accessToken }),
-              cache: "no-store",
-              referrerPolicy: "no-referrer",
-            });
-            const payload = await response.json().catch(() => null) as RecoveryPayload | null;
-            if (response.ok && payload?.order) {
-              draft = payload.order;
-              saveOrderDraft(draft);
-              saveRecoveredProgress(draft, payload);
-            }
-          } catch {
-            // The manual paid-order recovery path remains available below.
-          }
-        }
-        if (!draft) {
-          setStatus("missing");
-          return;
-        }
+        setStatus("missing");
+        return;
       }
-      const shareableUrl = buildOneToOneResultUrl(draft.paymentId, draft.resultAccessToken);
-      window.history.replaceState(null, "", shareableUrl);
+      if (draft.resultAccessToken) {
+        const shareableUrl = buildOneToOneResultUrl(draft.paymentId, draft.resultAccessToken);
+        window.history.replaceState(null, "", shareableUrl);
+      }
       setOrder(draft);
       setStatus("loading");
       setFatalMessage(null);
       setFatalReason(null);
 
-      let progress = loadReportProgress(draft.paymentId, draft.createdAt)
+      progress = progress ?? loadReportProgress(draft.paymentId, draft.createdAt)
         ?? emptyReportProgress(draft.paymentId, draft.createdAt);
 
       const cachedContent = completeContent(progress);
@@ -369,10 +421,9 @@ export default function ResultV2() {
           setStatus("fatal");
           return;
         }
-        // Any unknown transport-level issue should keep waiting rather than show a delay error.
-        setStageAttempt((current) => current + 1);
-        await wait(3_000);
-        if (!cancelled) void run();
+        setFatalMessage("저장된 진행 상태를 다시 확인하지 못했어. 결제는 유지됐고 같은 결제로 다시 이어갈 수 있어.");
+        setFatalReason("REPORT_RECOVERY_FAILED");
+        setStatus("fatal");
       }
     }
 
@@ -404,7 +455,7 @@ export default function ResultV2() {
 
   if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">주토피</p><h1 className="generation-title">상세 리포트를 만들고 있어요.</h1><p>{STAGE_COPY[stage]}</p><p>현재 응답에 통상적으로 소요되는 시간은 약 5분이야.</p>{stageAttempt > 1 ? <p>연결이 잠깐 끊겨도 같은 결제로 자동으로 이어서 시도하고 있어.</p> : <p>창을 그대로 열어두면 완성되는 즉시 보여줄게.</p>}</div></main>;
 
-  if (status === "fatal" && accountSource) return <main className="v2-page"><div className="v2-state">
+  if (status === "fatal" && accountSource && fatalReason === "AUTHENTICATION_REQUIRED") return <main className="v2-page"><div className="v2-state">
     <p className="v2-kicker">내 궁합 보관함</p>
     <h1>보관함 결과를 열 수 없어요.</h1>
     <p>{fatalMessage ?? "로그인 상태와 결과 소유권을 다시 확인해 줘."}</p>

@@ -1,5 +1,7 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { calculateOneToOneCompatibility } from "@/lib/compatibility/engine";
+import { loadResumableOwnedOneToOneReport } from "@/lib/account-report-store";
+import { loadAuthenticatedRequestUser } from "@/lib/auth-request";
 import { buildPaidReportFacts } from "@/lib/narrative/report-engine-v5";
 import {
   PAID_REPORT_SEGMENTS,
@@ -40,7 +42,7 @@ import { isResultAccessToken } from "@/lib/result-access-token";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
-const REPORT_RUNTIME_VERSION = "paid-report-v8-action-core-bounded-retry-20260828";
+const REPORT_RUNTIME_VERSION = "paid-report-v9-account-resume-bounded-20260903";
 const PHASES = ["prepare", ...PAID_REPORT_SEGMENTS] as const;
 type ReportPhase = (typeof PHASES)[number];
 
@@ -117,16 +119,18 @@ function failureMessage(reason: string) {
 async function readOrCreateServerProgress(
   paymentId: string,
   input: OneToOneReportInput,
-  accessToken: string,
+  accessToken: string | null,
   orderExists: boolean,
 ): Promise<ServerReportProgress | null> {
   if (!isServerReportStoreConfigured()) return null;
   try {
     if (!orderExists) {
+      if (!accessToken) throw new Error("SERVER_ORDER_RECOVERY_TOKEN_REQUIRED");
       const persisted = await saveServerOrderDraft(createRecoveredOneToOneOrderDraft(input, paymentId, accessToken));
       if (!persisted) throw new Error("SERVER_ORDER_RECOVERY_FAILED");
     }
-    await markServerOrderPaid(paymentId);
+    const paidStored = await markServerOrderPaid(paymentId);
+    if (!paidStored) throw new Error("SERVER_ORDER_PAID_STATE_MISSING");
     return await loadServerReportProgress(paymentId);
   } catch (error) {
     console.error("[woorigunghap:server-report-store-read]", error);
@@ -251,7 +255,7 @@ export async function POST(request: NextRequest) {
   const requestedInput = parseOneToOneReportInput(candidate.input);
   const phase = parsePhase(candidate.phase);
 
-  if (!paymentId || !accessToken || !requestedInput || !phase) {
+  if (!paymentId || !phase) {
     return NextResponse.json(
       {
         error: "결제번호, 궁합 입력값 또는 생성 단계가 올바르지 않습니다. 페이지를 새로고침해 주세요.",
@@ -263,8 +267,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const requestedValidation = validateOneToOneReportInput(requestedInput);
-  if (!requestedValidation.valid) {
+  if (accessToken && !requestedInput) {
+    return NextResponse.json(
+      {
+        error: "결제 당시 입력정보가 올바르지 않습니다. 페이지를 새로고침해 주세요.",
+        code: "REPORT_INPUT_REQUIRED",
+        retryable: false,
+        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+      },
+      { status: 400 },
+    );
+  }
+
+  const requestedValidation = requestedInput ? validateOneToOneReportInput(requestedInput) : null;
+  if (requestedValidation && !requestedValidation.valid) {
     return NextResponse.json(
       { error: "궁합 계산 입력값을 다시 확인해 주세요.", fieldErrors: requestedValidation.errors, reportRuntimeVersion: REPORT_RUNTIME_VERSION },
       { status: 400 },
@@ -272,10 +288,27 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const orderExists = isServerReportStoreConfigured() ? await hasServerOrder(paymentId) : false;
-    const storedOrder = orderExists
-      ? await loadServerOrderForAccess(paymentId, accessToken, "oneToOne")
+    const authenticatedUser = !accessToken
+      ? await loadAuthenticatedRequestUser(request).catch(() => null)
       : null;
+    const accountReport = !accessToken && authenticatedUser
+      ? await loadResumableOwnedOneToOneReport(authenticatedUser.userId, paymentId)
+      : null;
+    if (!accessToken && !accountReport) {
+      return NextResponse.json({
+        error: authenticatedUser
+          ? "이 계정에 저장된 1:1 결제를 찾지 못했습니다."
+          : "같은 결제를 이어서 보려면 다시 로그인해 주세요.",
+        code: authenticatedUser ? "ACCOUNT_REPORT_ACCESS_DENIED" : "AUTHENTICATION_REQUIRED",
+        retryable: false,
+        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+      }, { status: authenticatedUser ? 403 : 401 });
+    }
+
+    const orderExists = isServerReportStoreConfigured() ? await hasServerOrder(paymentId) : false;
+    const storedOrder = accessToken && orderExists
+      ? await loadServerOrderForAccess(paymentId, accessToken, "oneToOne")
+      : accountReport?.order ?? null;
 
     if (orderExists && (!storedOrder || storedOrder.product !== "oneToOne")) {
       return NextResponse.json({
@@ -287,6 +320,14 @@ export async function POST(request: NextRequest) {
     }
 
     const input = storedOrder?.product === "oneToOne" ? storedOrder.inputSnapshot : requestedInput;
+    if (!input) {
+      return NextResponse.json({
+        error: "결제 당시 입력정보를 확인할 수 없습니다.",
+        code: "REPORT_INPUT_REQUIRED",
+        retryable: false,
+        reportRuntimeVersion: REPORT_RUNTIME_VERSION,
+      }, { status: 400 });
+    }
     const validation = validateOneToOneReportInput(input);
     if (!validation.valid) {
       return NextResponse.json({

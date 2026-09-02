@@ -42,6 +42,9 @@ assert.match(accountStore, /payment_status = 'paid'[\s\S]*generation_status <> '
 assert.match(accountStore, /subjectName: order\.inputSnapshot\.personB\.displayName/);
 assert.match(accountStore, /calibrateCompatibilityScore\(completed\.progress\.snapshot\.rawTotal\)/);
 assert.match(accountStore, /calibrateCompatibilityScore\(leadingCandidate\.calculationSnapshot\.rawTotal\)/);
+assert.match(accountStore, /export async function loadResumableOwnedOneToOneReport/);
+assert.match(accountStore, /account\.product = 'oneToOne'/);
+assert.match(accountStore, /loadServerReportProgress\(paymentId\)/);
 
 assert.match(claimRoute, /isSameOriginPost\(request\)/);
 assert.match(claimRoute, /loadAuthenticatedRequestUser/);
@@ -53,6 +56,7 @@ assert.match(listRoute, /listAccountReports\(user\.userId\)/);
 assert.match(listRoute, /status: 401/);
 assert.match(detailRoute, /params: Promise<\{ paymentId: string \}>/);
 assert.match(detailRoute, /loadOwnedAccountReport\(user\.userId, paymentId\)/);
+assert.match(detailRoute, /loadResumableOwnedOneToOneReport\(user\.userId, paymentId\)/);
 assert.match(detailRoute, /status: 404/);
 assert.doesNotMatch(detailRoute, /accessToken|generateOneToManyNarrative|generatePaidReport/);
 assert.match(detailRoute, /export async function DELETE/);
@@ -64,6 +68,7 @@ assert.match(accountLink, /\/api\/account\/reports\/claim/);
 assert.match(accountLink, /JSON\.stringify\(\{ paymentId, accessToken \}\)/);
 assert.doesNotMatch(accountLink, /accessToken=.*href|searchParams.*accessToken/);
 assert.match(libraryPage, /source: "account"/);
+assert.match(libraryPage, /같은 결제로 생성 이어가기/);
 assert.match(libraryPage, /RelationshipNetworkSavedList/);
 assert.match(libraryPage, /무료 인연 네트워크/);
 assert.match(libraryPage, />생성중</);
@@ -95,6 +100,8 @@ assert.doesNotMatch(broadMobile, /\.library-page\s*\{/);
 assert.match(orderStorage, /export function removeOrderDraft/);
 assert.match(progressStorage, /export function removeReportProgress/);
 assert.match(oneToOne, /\/api\/account\/reports\/\$\{encodeURIComponent\(paymentId\)\}/);
+assert.match(oneToOne, /recoveredProgress\(payload\.order, payload\)/);
+assert.match(oneToOne, /MAX_AUTOMATIC_PHASE_ATTEMPTS = 12/);
 assert.match(oneToOne, /alreadyClaimed=\{accountOwned\}/);
 assert.match(oneToMany, /\/api\/account\/reports\/\$\{encodeURIComponent\(paymentId\)\}/);
 // 기존 유료 1:N은 보관함 조회 호환만 유지하고, 사용자 요청대로 순위 외 계정 귀속 UI는 렌더하지 않는다.

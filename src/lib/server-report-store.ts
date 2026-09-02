@@ -532,12 +532,14 @@ export async function markServerOrderPaid(paymentId: string) {
   if (!await ensureSchema()) return false;
   const sql = getQuery();
   if (!sql) return false;
-  await sql`
+  const rows = await sql`
     UPDATE woorigunghap_order_records
     SET payment_status = 'paid', updated_at = NOW()
     WHERE payment_id = ${paymentId}
+      AND generation_status <> 'deleted'
+    RETURNING payment_id
   `;
-  return true;
+  return rows.length === 1;
 }
 
 export async function hasServerOrder(paymentId: string) {

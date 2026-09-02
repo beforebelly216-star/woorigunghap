@@ -76,8 +76,8 @@ assert.ok(oneToManyPaidResult.includes("같은 결제로 다시 확인하기"), 
 assert.ok(oneToManyPaidResult.includes("REPORT_GENERATION_IN_PROGRESS"), "1:N generation must preserve single-flight in-progress recovery");
 
 assert.ok(
-  oneToOneRoute.includes("paid-report-v8-action-core-bounded-retry-20260828"),
-  "1:1 route must expose the action-core bounded-retry runtime version",
+  oneToOneRoute.includes("paid-report-v9-account-resume-bounded-20260903"),
+  "1:1 route must expose the account-resume bounded-retry runtime version",
 );
 assert.ok(oneToOneRoute.includes("export const maxDuration = 300"), "1:1 route must use the Hobby Fluid Compute duration ceiling");
 assert.ok(oneToOneRoute.includes('requestedSegment === "dynamics" ? ["dynamics", "action"] : [requestedSegment]'), "intro must run alone and only the two long segments may overlap");
@@ -92,7 +92,18 @@ assert.ok(oneToOneRoute.includes('code: "REPORT_GENERATION_STOPPED"'), "exhauste
 assert.ok(oneToOneRoute.includes('reason === "REPORT_GENERATION_IN_PROGRESS" || reason === "AI_FORMAT"'), "only in-progress and format recovery may be retried by this route");
 assert.ok(oneToOneRoute.includes("retryable: retryableReportReason(reason)"), "format recovery must be declared to the result client");
 assert.ok(oneToOneResult.includes("MAX_AUTOMATIC_FORMAT_ATTEMPTS = 2"), "format recovery must be bounded to one automatic same-payment retry");
+assert.ok(oneToOneResult.includes("MAX_AUTOMATIC_PHASE_ATTEMPTS = 12"), "transport and platform recovery must have an attempt ceiling");
+assert.ok(oneToOneResult.includes("MAX_AUTOMATIC_PHASE_MS = 420_000"), "each phase must have a total automatic recovery deadline");
+assert.ok(oneToOneResult.includes("PHASE_REQUEST_TIMEOUT_MS = 285_000"), "a browser request must end before the platform function ceiling");
+assert.ok(oneToOneResult.includes("signal: controller.signal"), "long phase requests must be abortable");
+assert.ok(!oneToOneResult.includes("retried indefinitely"), "the paid result must never promise or implement infinite retries");
+assert.ok(!oneToOneResult.includes("if (!cancelled) void run();\n      }"), "an unknown error must not recursively restart the whole report forever");
 assert.ok(oneToOneResult.includes("같은 결제로 다시 시도"), "exhausted generation must provide an in-page same-payment retry");
+assert.ok(oneToOneResult.includes("recoveredProgress(payload.order, payload)"), "an incomplete owned report must hydrate stored progress before resuming");
+assert.ok(oneToOneRoute.includes("loadResumableOwnedOneToOneReport"), "the generation API must accept authenticated account ownership for recovery");
+assert.ok(oneToOneRoute.includes("SERVER_ORDER_PAID_STATE_MISSING"), "generation must reject a missing authoritative paid row");
+assert.ok(accountLibrary.includes("같은 결제로 생성 이어가기"), "the library must link incomplete 1:1 reports back to generation");
+assert.ok(accountLibrary.includes('report.product === "oneToOne"'), "1:1 library recovery must not use the no-op payment verification poll");
 const actionSchemaSource = oneToOneEngineV8.slice(
   oneToOneEngineV8.indexOf("const ACTION_SCHEMA"),
   oneToOneEngineV8.indexOf("export type IntroSegment"),

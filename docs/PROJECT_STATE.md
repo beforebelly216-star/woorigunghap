@@ -132,8 +132,18 @@
 - `AI_FORMAT`은 같은 결제로 한 번만 자동 재시도한다. 재실패 시 무한 호출하지 않고 화면 안의 `같은 결제로 다시 시도` 버튼을 제공한다.
 - 런타임 버전: `paid-report-v8-action-core-bounded-retry-20260828`.
 
+### 결제 후 1:1 무한대기 재발 hotfix — 2026-09-03
+
+- 결과 화면의 네트워크·5xx·플랫폼 timeout 무제한 재시도와 알 수 없는 오류의 전체 생성 재귀 재시작을 제거했다.
+- 자동 복구는 단계별 최대 12회·총 7분, 요청당 285초로 제한한다. 소진되면 결제를 보존하고 같은 결제 수동 재개 화면으로 종료한다.
+- `markServerOrderPaid()`도 실제 `UPDATE ... RETURNING` 결과가 정확히 1건일 때만 성공한다.
+- 계정에 귀속된 미완성 1:1은 보관함 카드에서 다시 열 수 있고, 서버의 저장된 구간부터 계정 소유권으로 재개한다. 결과 복구키 원문은 계정 API에 노출하지 않는다.
+- 보관함의 1:1 생성중 카드가 호출하던 무의미한 결제 재확인 polling은 제거했다. 1:N 레거시 자동 확인은 유지한다.
+- 런타임 버전: `paid-report-v9-account-resume-bounded-20260903`.
+
 ## 검증 상태
 
+- **결제 후 1:1 무한대기 재발 hotfix local validation PASS — 2026-09-03:** 결제·서술·서버 저장·계정 보관함·runtime·system·beta·AI 계약 9종, TypeScript, lint(0 errors, 0 warnings), production build(34/34) PASS. 로컬 HTTP에서 홈 `200`, 보호 결과 로그인 이동 `307`, 미인증 보관함/생성 API `401`을 확인했다. 인앱 브라우저의 localhost 접근은 브라우저 URL 정책으로 차단되어 시각 QA는 배포 URL에서 수행한다.
 - **주토피 서비스 전면 개편 Production validation PASS — 2026-09-03:** Production source `d7c9870638c5ce9a0fd3559751fbde1e8adf5dc9`, implementation source `554ace8`. 필수 카카오 로그인, 순백색·시스템 글꼴·주토피 로고, 천생연분 TOP 3, 1:1 입력·결제·대기·결과·AI 서술, 이름이 포함된 1:1·1:N 공유 계약을 갱신했다. 관련 contracts, TypeScript, lint(0 errors, 0 warnings), production build(34/34) PASS. Preview에서 360/390/430px 홈 순서·삭제 문구 부재·흰 배경·무오버플로·console error 0을 확인했다. 운영에서 주토피 홈 `200`, 보호 화면 로그인 이동 `307`, 임의 64자리 세션 쿠키의 보호 API `401`, 새 배포 error 로그 0건을 확인했다.
 - **무료 1:N 결과·공유·카카오 보관함 개편 Production validation PASS — 2026-09-02:** source `14f06fe63c3cb577c2995f2832f27bc64f105787`. 관계 네트워크·Kakao auth·계정 보관함·운영정책 contracts, TypeScript, lint(0 errors, 기존 warnings 5), production build(34/34) PASS. 운영에서 가명 3명·3관계선과 S/B/C, 연속 참여 버튼, 인물 동그라미 bottom sheet, 타인 간 점수, 1:1 CTA, 스토리 집계 카드, 출생시간 오류 입력 삭제 시 즉시 해제, 동적 OG `200 image/png`, 임시 방 전체 삭제 후 `404`를 확인했다.
 - **무료 1:N 보관함 노출·출생시간 오류 해제 hotfix Production validation PASS — 2026-09-02:** 생성 즉시 저장되는 기존 브라우저 목록을 `/account/reports`에도 렌더하고 비로그인 재열람 안내를 추가했다. 공용 생년정보 입력은 변경된 필드 오류만 즉시 제거한다. 1:N/account/input contracts + Day 23 system QA + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS. 운영에서 생성 후 재열람, 잘못된 출생시간 오류 표시 → 값 삭제 → 오류 DOM 제거, 임시 네트워크 삭제 후 `404`를 확인했다.

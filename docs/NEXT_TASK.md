@@ -97,6 +97,18 @@
 - [x] Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY 및 `DATABASE_URL`·PortOne·Anthropic 관련 환경변수 존재 확인(값 비노출). 비과금 합성 미존재 주문의 `payment-ready`는 HTTP 409 `PAYMENT_ORDER_NOT_READY`로 DB 미설정 오류가 아님
 - [ ] 기존 실패 실결제 1,000원 건으로 `payment verify → prepare → intro → dynamics → action → 저장 → 재열람` 실동작 및 중복 생성·중복 비용 방지 확인
 
+### BLOCKER — 결제 후 1:1 무한대기 재발 hotfix (2026-09-03)
+
+- [x] 결과 클라이언트가 네트워크·5xx·플랫폼 timeout을 무제한 재시도하고, 알 수 없는 오류에서 전체 `run()`을 재귀 재시작하던 직접 원인 제거
+- [x] 단계별 자동 복구를 최대 12회·총 7분으로 제한하고 각 요청을 285초에 중단; 소진 시 새 결제 없이 `같은 결제로 다시 시도` 제공
+- [x] 서버의 paid 상태 갱신도 `UPDATE ... RETURNING` 정확히 1건을 확인하도록 강화
+- [x] 미완성 1:1 보관함 카드를 다시 열 수 있게 만들고, 로그인 계정 소유권으로 저장된 구간부터 복구키 없이 생성 재개
+- [x] 보관함의 1:1 무의미한 payment verify polling 제거, 결제 성공 안내를 실제 재개 동작과 일치시킴
+- [x] payment/narrative/server-store/account/runtime/system/beta/AI hotfix contracts + TypeScript + lint + production build PASS
+- [ ] Preview 배포 및 공개 로그인 경계·API 스모크
+- [ ] 사용자 승인 범위의 Production 승격 및 안정 주소 스모크
+- [ ] 기존 실패 실결제에서 남은 세그먼트 생성·저장·보관함 재열람 최종 확인
+
 ### P3 실화면 QA
 - [ ] 실제 Sonnet 5 생성 1건에서 사용자 노출 본문 4,000~6,000자 확인
 - [ ] 390px pixel-level 대조 및 360/430px overflow/spacing/장문 카드 QA
@@ -238,12 +250,12 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 주토피 서비스 전면 개편
-- Source: Production d7c9870638c5ce9a0fd3559751fbde1e8adf5dc9 (implementation 554ace8)
-- Scope: 필수 Kakao 로그인, 순백색·시스템 글꼴·주토피 UI, 천생연분 TOP 3, 1:1 입력·결제·대기·결과·AI 서술, 이름이 포함된 공유 카드
-- Validation: 관련 contracts + TypeScript + lint(0 errors, 0 warnings) + production build(34/34) PASS
-- Deploy: Production dpl_DJtPTz1bxy7Hg1TRX1Ucic8sV9jq READY, 안정 주소 홈 200·로그인 307·가짜 세션 API 401·초기 error 로그 0건 PASS
-- Remaining: 로그인 계정 실데이터 QA, 실제 모바일 공유, 기존 실패 실결제 1:1 복구 검증
-- Risk: 실제 카카오 로그인 후 무료·1:N·1:1 실데이터 전 구간과 결제 생성은 별도 운영 계정 스모크가 필요함
+- Worker/Task: Codex — 결제 후 1:1 무한대기 재발 hotfix
+- Source: local validated, deployment pending
+- Scope: 단계별 유한 재시도, 요청 timeout, paid UPDATE 확인, 미완성 보관함 결과의 계정 소유권 재개
+- Validation: 관련 contracts 9종 + TypeScript + lint(0 errors, 0 warnings) + production build(34/34) PASS
+- Deploy: Preview/Production pending
+- Remaining: 기존 실패 실결제의 남은 세그먼트 생성·저장·재열람 실확인
+- Risk: 운영 실결제 식별정보와 운영 DB 비밀값을 사용하지 않아 실데이터 완료 여부는 구매 계정에서 확인 필요
 - Policy: Git 자동배포 OFF 유지
 ```

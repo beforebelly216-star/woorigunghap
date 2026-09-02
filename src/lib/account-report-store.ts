@@ -6,7 +6,9 @@ import { RELATIONSHIP_LABELS } from "@/lib/report-input";
 import {
   ensureServerReportStoreSchema,
   loadCompletedServerReport,
+  loadServerReportProgress,
   type CompletedAccountReport,
+  type ServerReportProgress,
   type StoredOrderDraft,
 } from "@/lib/server-report-store";
 import { ensurePublicShareStoreSchema } from "@/lib/share/public-share-store";
@@ -23,6 +25,12 @@ export type AccountReportSummary = {
   createdAt: string;
   claimedAt: string;
   status: "generating" | "ready";
+};
+
+export type ResumableOwnedOneToOneReport = {
+  product: "oneToOne";
+  order: Extract<StoredOrderDraft, { product: "oneToOne" }>;
+  progress: ServerReportProgress | null;
 };
 
 let query: NeonQueryFunction<false, false> | null = null;
@@ -205,6 +213,30 @@ export async function loadOwnedAccountReport(
   `;
   if (ownership.length === 0) return null;
   return loadCompletedServerReport(paymentId);
+}
+
+export async function loadResumableOwnedOneToOneReport(
+  userId: string,
+  paymentId: string,
+): Promise<ResumableOwnedOneToOneReport | null> {
+  if (!await ensureAccountReportSchema()) return null;
+  const sql = getQuery();
+  if (!sql) return null;
+  const rows = await sql`
+    SELECT records.order_json
+    FROM woorigunghap_account_reports account
+    JOIN woorigunghap_order_records records ON records.payment_id = account.payment_id
+    WHERE account.user_id = ${userId}
+      AND account.payment_id = ${paymentId}
+      AND account.product = 'oneToOne'
+      AND records.payment_status = 'paid'
+      AND records.generation_status <> 'deleted'
+    LIMIT 1
+  `;
+  const order = parseStoredOrder(rows[0]?.order_json);
+  if (!order || order.product !== "oneToOne" || order.paymentId !== paymentId) return null;
+  const progress = await loadServerReportProgress(paymentId);
+  return { product: "oneToOne", order, progress };
 }
 
 export async function deleteOwnedAccountReport(userId: string, paymentId: string) {
