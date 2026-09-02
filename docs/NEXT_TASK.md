@@ -2,6 +2,18 @@
 
 > GPT와 Claude 공용 실행 큐. 최신 `main`과 최신 사용자 지시가 최우선이다.
 
+## 완료 — 우리사주 브랜드·점수 대비·결제 후 상태 UI (2026-09-03)
+
+- [x] 마스코트 티셔츠의 4색 차트와 `우리사주` 워드마크를 결합한 벡터 로고 적용
+- [x] SEO·공유·결과 문구의 `주토피` 노출 제거 및 한 화면 내 마스코트 포즈 중복 최소화
+- [x] 로그인 확인 → 결제 확인 → 결과 만들기 공통 3단계 상태 카드 적용
+- [x] 이름+조사에서 끝나는 비문 품질 차단, 재시도/결정론 복구, 기존 저장 결과 표시 교정
+- [x] scoring v1.7 단조 대비 보정으로 E~S 실도달 분포 확대, 원점수·가중치·순서 유지
+- [x] 1:1과 인연 네트워크의 E~S 등급 범위·판정 함수 단일화 및 1:1 결과 배지 적용
+- [x] contracts 15종 + TypeScript + lint(0 errors, 0 warnings) + production build(34/34) PASS
+- [x] 390px 로컬 브라우저 로고·브랜드·overflow·console·로그인 경계 PASS
+- [ ] Preview 배포·검증 후 사용자 승인에 따라 동일 artifact Production 승격
+
 ## 완료 — 이전 서비스 전면 개편 (2026-09-02)
 
 - [x] 전 서비스 기능 카카오 로그인 필수화 및 서버 경계의 로그인 쿠키 선검사
@@ -250,12 +262,12 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 결제 후 1:1 무한대기 재발 hotfix
-- Source: `6094aa9a8b1bd871190238e30eabbd2f124fbb77`
-- Scope: 단계별 유한 재시도, 요청 timeout, paid UPDATE 확인, 미완성 보관함 결과의 계정 소유권 재개
-- Validation: 관련 contracts 9종 + TypeScript + lint(0 errors, 0 warnings) + production build(34/34) PASS
-- Deploy: Preview `dpl_H17dcuKbjq2Eu8vRGnD7zsEKg3KD` / Production `dpl_B2T4RDQpG3tLryVfEZ5sSNdSWyfk` READY
-- Remaining: 기존 실패 실결제의 남은 세그먼트 생성·저장·재열람 실확인
-- Risk: 운영 실결제 식별정보와 운영 DB 비밀값을 사용하지 않아 실데이터 완료 여부는 구매 계정에서 확인 필요
+- Worker/Task: Codex — 우리사주 브랜드·점수 대비·결제 후 상태 UI
+- Source: implementation `75c18f7`
+- Scope: 차트 결합 로고, 마스코트 포즈 분산, 공통 결제 후 상태 UI, 비문 차단·복구, scoring v1.7, 1:1/1:N 공용 E~S 등급
+- Validation: 관련 contracts 15종 + TypeScript + lint(0 errors, 0 warnings) + production build(34/34) + 390px local browser PASS
+- Deploy: Preview 대기 / Production 승인 대기
+- Remaining: Preview 배포·검증, 동일 artifact Production 승격, 기존 실패 실결제의 남은 세그먼트 생성·저장·재열람 실확인
+- Risk: 운영 실결제 식별정보와 운영 DB 비밀값을 사용하지 않아 실결제 완료 여부는 구매 계정에서 확인 필요
 - Policy: Git 자동배포 OFF 유지
 ```
