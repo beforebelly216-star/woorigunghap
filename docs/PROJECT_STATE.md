@@ -143,7 +143,7 @@
 
 ## 검증 상태
 
-- **결제 후 1:1 무한대기 재발 hotfix local validation PASS — 2026-09-03:** 결제·서술·서버 저장·계정 보관함·runtime·system·beta·AI 계약 9종, TypeScript, lint(0 errors, 0 warnings), production build(34/34) PASS. 로컬 HTTP에서 홈 `200`, 보호 결과 로그인 이동 `307`, 미인증 보관함/생성 API `401`을 확인했다. 인앱 브라우저의 localhost 접근은 브라우저 URL 정책으로 차단되어 시각 QA는 배포 URL에서 수행한다.
+- **결제 후 1:1 무한대기 재발 hotfix Production validation PASS — 2026-09-03:** source `6094aa9a8b1bd871190238e30eabbd2f124fbb77`. 결제·서술·서버 저장·계정 보관함·runtime·system·beta·AI 계약 9종, TypeScript, lint(0 errors, 0 warnings), production build(34/34) PASS. Preview/Production에서 홈 `200`, 보호 결과 로그인 이동 `307`, 미인증 보관함/생성 API `401`, 운영 1:1 로그인 화면과 browser console error 0, 승격 후 Production error 로그 0건을 확인했다.
 - **주토피 서비스 전면 개편 Production validation PASS — 2026-09-03:** Production source `d7c9870638c5ce9a0fd3559751fbde1e8adf5dc9`, implementation source `554ace8`. 필수 카카오 로그인, 순백색·시스템 글꼴·주토피 로고, 천생연분 TOP 3, 1:1 입력·결제·대기·결과·AI 서술, 이름이 포함된 1:1·1:N 공유 계약을 갱신했다. 관련 contracts, TypeScript, lint(0 errors, 0 warnings), production build(34/34) PASS. Preview에서 360/390/430px 홈 순서·삭제 문구 부재·흰 배경·무오버플로·console error 0을 확인했다. 운영에서 주토피 홈 `200`, 보호 화면 로그인 이동 `307`, 임의 64자리 세션 쿠키의 보호 API `401`, 새 배포 error 로그 0건을 확인했다.
 - **무료 1:N 결과·공유·카카오 보관함 개편 Production validation PASS — 2026-09-02:** source `14f06fe63c3cb577c2995f2832f27bc64f105787`. 관계 네트워크·Kakao auth·계정 보관함·운영정책 contracts, TypeScript, lint(0 errors, 기존 warnings 5), production build(34/34) PASS. 운영에서 가명 3명·3관계선과 S/B/C, 연속 참여 버튼, 인물 동그라미 bottom sheet, 타인 간 점수, 1:1 CTA, 스토리 집계 카드, 출생시간 오류 입력 삭제 시 즉시 해제, 동적 OG `200 image/png`, 임시 방 전체 삭제 후 `404`를 확인했다.
 - **무료 1:N 보관함 노출·출생시간 오류 해제 hotfix Production validation PASS — 2026-09-02:** 생성 즉시 저장되는 기존 브라우저 목록을 `/account/reports`에도 렌더하고 비로그인 재열람 안내를 추가했다. 공용 생년정보 입력은 변경된 필드 오류만 즉시 제거한다. 1:N/account/input contracts + Day 23 system QA + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS. 운영에서 생성 후 재열람, 잘못된 출생시간 오류 표시 → 값 삭제 → 오류 DOM 제거, 임시 네트워크 삭제 후 `404`를 확인했다.
@@ -182,6 +182,7 @@
 - **무료 1:N 결과·공유·카카오 보관함 Preview/Production 배포 완료 — 2026-09-02:** source `14f06fe63c3cb577c2995f2832f27bc64f105787`, Preview `dpl_HuBG9fm47KktSepULxuxNucfq65X`, Production `dpl_7JUwo12hN7DMikJbwTqZtxGav3Ro` READY. 안정 주소 `https://woorigunghap-uty7.vercel.app`로 승격했고 운영 3인 관계망·해설·OG·입력 오류 해제·삭제 스모크 PASS. Git 자동배포 OFF 유지.
 - **주토피 서비스 전면 개편 Preview 배포 완료 — 2026-09-02:** implementation source `554ace8`, deployment `dpl_9gaSGYsPYoR5tSF9uskYZ6F858zU` READY, URL `https://woorigunghap-uty7-rnoa3fpbf-beforebelly216-stars-projects.vercel.app`. 360/390/430px와 로그인·가짜 세션 차단 스모크 PASS. Production은 사용자 명시 승인 대기, Git 자동배포 OFF 유지.
 - **주토피 서비스 전면 개편 Production 배포 완료 — 2026-09-03:** source `d7c9870638c5ce9a0fd3559751fbde1e8adf5dc9`, 검증된 Preview를 재빌드 없이 승격한 deployment `dpl_DJtPTz1bxy7Hg1TRX1Ucic8sV9jq` READY. 안정 주소 `https://woorigunghap-uty7.vercel.app` 전환 및 홈·로그인 경계·가짜 세션 차단·초기 error 로그 스모크 PASS. Git 자동배포 OFF 유지.
+- **결제 후 1:1 무한대기 재발 hotfix Preview/Production 배포 완료 — 2026-09-03:** source `6094aa9a8b1bd871190238e30eabbd2f124fbb77`, Preview `dpl_H17dcuKbjq2Eu8vRGnD7zsEKg3KD`, Production `dpl_B2T4RDQpG3tLryVfEZ5sSNdSWyfk` READY. 안정 주소 `https://woorigunghap-uty7.vercel.app`의 홈·로그인 재개 경로·미인증 API 경계·browser console·초기 Production error 로그 스모크 PASS. Git 자동배포 OFF 유지.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크

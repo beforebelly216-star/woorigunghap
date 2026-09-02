@@ -105,8 +105,8 @@
 - [x] 미완성 1:1 보관함 카드를 다시 열 수 있게 만들고, 로그인 계정 소유권으로 저장된 구간부터 복구키 없이 생성 재개
 - [x] 보관함의 1:1 무의미한 payment verify polling 제거, 결제 성공 안내를 실제 재개 동작과 일치시킴
 - [x] payment/narrative/server-store/account/runtime/system/beta/AI hotfix contracts + TypeScript + lint + production build PASS
-- [ ] Preview 배포 및 공개 로그인 경계·API 스모크
-- [ ] 사용자 승인 범위의 Production 승격 및 안정 주소 스모크
+- [x] Preview `dpl_H17dcuKbjq2Eu8vRGnD7zsEKg3KD` READY 및 공개 로그인 경계·API 스모크 PASS
+- [x] Production `dpl_B2T4RDQpG3tLryVfEZ5sSNdSWyfk` READY, 안정 주소 승격·브라우저·초기 error 로그 스모크 PASS
 - [ ] 기존 실패 실결제에서 남은 세그먼트 생성·저장·보관함 재열람 최종 확인
 
 ### P3 실화면 QA
@@ -251,10 +251,10 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker/Task: Codex — 결제 후 1:1 무한대기 재발 hotfix
-- Source: local validated, deployment pending
+- Source: `6094aa9a8b1bd871190238e30eabbd2f124fbb77`
 - Scope: 단계별 유한 재시도, 요청 timeout, paid UPDATE 확인, 미완성 보관함 결과의 계정 소유권 재개
 - Validation: 관련 contracts 9종 + TypeScript + lint(0 errors, 0 warnings) + production build(34/34) PASS
-- Deploy: Preview/Production pending
+- Deploy: Preview `dpl_H17dcuKbjq2Eu8vRGnD7zsEKg3KD` / Production `dpl_B2T4RDQpG3tLryVfEZ5sSNdSWyfk` READY
 - Remaining: 기존 실패 실결제의 남은 세그먼트 생성·저장·재열람 실확인
 - Risk: 운영 실결제 식별정보와 운영 DB 비밀값을 사용하지 않아 실데이터 완료 여부는 구매 계정에서 확인 필요
 - Policy: Git 자동배포 OFF 유지
