@@ -13,7 +13,7 @@
 - [x] 1:1 결과를 큰 점수 중심 7개 직접형 제목으로 재구성하고 목차·장기 전망·매뉴얼·기계 해설 제거
 - [x] AI 서술을 주토피 반말·뜻 우선 전문용어·부드러운 근거 설명으로 갱신
 - [x] 1:1·1:N 공유 이미지와 Shared View에 이름을 항상 포함
-- [ ] 최신 커밋 Preview 배포 및 360/390/430px 실브라우저 QA
+- [x] 최신 커밋 Preview 배포 및 360/390/430px 실브라우저 QA — implementation `554ace8`, `dpl_9gaSGYsPYoR5tSF9uskYZ6F858zU` READY
 - [ ] 사용자 최종 승인 후 Production 배포 및 운영 스모크
 
 ## 우선순위
@@ -239,11 +239,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker/Task: Codex — 주토피 서비스 전면 개편
-- Source: 이 변경 커밋
+- Source: implementation 554ace8 + 현재 배포 기록 커밋
 - Scope: 필수 Kakao 로그인, 순백색·시스템 글꼴·주토피 UI, 천생연분 TOP 3, 1:1 입력·결제·대기·결과·AI 서술, 이름이 포함된 공유 카드
 - Validation: 관련 contracts + TypeScript + lint(0 errors, 0 warnings) + production build(34/34) PASS
-- Deploy: Preview 배포 및 360/390/430px QA 대기, Production은 사용자 명시 승인 대기
-- Remaining: Preview 실브라우저 QA, Production 승인·배포, 기존 실패 실결제 1:1 복구 검증
-- Risk: 보호 화면은 DB 세션 확인을 통과해야 하며 Production 배포 전 로그인·결제 회귀를 Preview에서 확인해야 함
+- Deploy: Preview dpl_9gaSGYsPYoR5tSF9uskYZ6F858zU READY, 360/390/430px·로그인 경계·가짜 세션 차단 PASS, Production은 사용자 명시 승인 대기
+- Remaining: Production 승인·배포, 로그인 계정 실데이터 QA, 기존 실패 실결제 1:1 복구 검증
+- Risk: Preview에서는 실제 Kakao 앱 세션이 없어 로그인 후 무료·1:N·1:1 실데이터 전 구간은 Production 승인 뒤 운영 스모크가 필요함
 - Policy: Git 자동배포 OFF 유지
 ```

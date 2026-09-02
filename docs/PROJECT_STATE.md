@@ -134,7 +134,7 @@
 
 ## 검증 상태
 
-- **주토피 서비스 전면 개편 local validation PASS — 2026-09-02:** 필수 카카오 로그인, 순백색·시스템 글꼴·주토피 로고, 천생연분 TOP 3, 1:1 입력·결제·대기·결과·AI 서술, 이름이 포함된 1:1·1:N 공유 계약을 갱신했다. 관련 contracts, TypeScript, lint(0 errors, 0 warnings), production build(34/34) PASS.
+- **주토피 서비스 전면 개편 Preview validation PASS — 2026-09-02:** implementation source `554ace8`. 필수 카카오 로그인, 순백색·시스템 글꼴·주토피 로고, 천생연분 TOP 3, 1:1 입력·결제·대기·결과·AI 서술, 이름이 포함된 1:1·1:N 공유 계약을 갱신했다. 관련 contracts, TypeScript, lint(0 errors, 0 warnings), production build(34/34) PASS. Preview에서 360/390/430px 홈 순서·삭제 문구 부재·흰 배경·무오버플로·console error 0, 보호 화면 로그인 이동, 임의 64자리 세션 쿠키의 보호 API `401`을 확인했다.
 - **무료 1:N 결과·공유·카카오 보관함 개편 Production validation PASS — 2026-09-02:** source `14f06fe63c3cb577c2995f2832f27bc64f105787`. 관계 네트워크·Kakao auth·계정 보관함·운영정책 contracts, TypeScript, lint(0 errors, 기존 warnings 5), production build(34/34) PASS. 운영에서 가명 3명·3관계선과 S/B/C, 연속 참여 버튼, 인물 동그라미 bottom sheet, 타인 간 점수, 1:1 CTA, 스토리 집계 카드, 출생시간 오류 입력 삭제 시 즉시 해제, 동적 OG `200 image/png`, 임시 방 전체 삭제 후 `404`를 확인했다.
 - **무료 1:N 보관함 노출·출생시간 오류 해제 hotfix Production validation PASS — 2026-09-02:** 생성 즉시 저장되는 기존 브라우저 목록을 `/account/reports`에도 렌더하고 비로그인 재열람 안내를 추가했다. 공용 생년정보 입력은 변경된 필드 오류만 즉시 제거한다. 1:N/account/input contracts + Day 23 system QA + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS. 운영에서 생성 후 재열람, 잘못된 출생시간 오류 표시 → 값 삭제 → 오류 DOM 제거, 임시 네트워크 삭제 후 `404`를 확인했다.
 - **무료 1:N 다중 참여·방장 재열람 hotfix Production validation PASS — 2026-09-01:** source `cc902bca42db57278d7614c6d008c223caf8b255`, 같은 브라우저 연속 입력, 복수 참여자 삭제 자격 보존, 방장 로컬 목록, 공개/관리 링크 분리 계약 + Day 23 system QA + TypeScript + lint(0 errors, 기존 warnings 5) + production build PASS. Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ`, Production `dpl_6seaA8Jo8CnWHGZEFgczeSJZCjfa` READY. 운영에서 가명 3명·3관계선, 다음 사람 버튼 유지, 저장 목록 재열람, 관리 링크 UI, 360/390/430px 무오버플로, console error 0, 테스트 네트워크 삭제·404를 확인했다. Preview는 `NETWORK_PII_ENCRYPTION_KEY` 미설정이라 생성 실동작 QA를 생략했고 기존 데이터 호환성 영향 때문에 환경값을 자동 변경하지 않았다.
@@ -170,13 +170,14 @@
 - **타인 초대 링크 입력 폼 hotfix Preview/Production 배포 완료 — 2026-09-01:** source `674e50cac4cf50188081a00b17b6b454f2af38b9`, Preview `dpl_8NK4jXLFrVSV66vacaUzBHVSkKrD` READY, Production `dpl_4rfsn8ZebWzEXpC5C2Zpyo2TxL17` READY. 360/390/430px 운영 검증과 테스트 네트워크 삭제 완료.
 - **무료 1:N 다중 참여·방장 재열람 Preview/Production 배포 완료 — 2026-09-01:** source `cc902bca42db57278d7614c6d008c223caf8b255`, Preview `dpl_9sMvDue51VZooy1tgQe3w7KA5ApQ`, Production `dpl_6seaA8Jo8CnWHGZEFgczeSJZCjfa` READY. 운영 별칭 스모크 및 테스트 데이터 삭제 완료.
 - **무료 1:N 결과·공유·카카오 보관함 Preview/Production 배포 완료 — 2026-09-02:** source `14f06fe63c3cb577c2995f2832f27bc64f105787`, Preview `dpl_HuBG9fm47KktSepULxuxNucfq65X`, Production `dpl_7JUwo12hN7DMikJbwTqZtxGav3Ro` READY. 안정 주소 `https://woorigunghap-uty7.vercel.app`로 승격했고 운영 3인 관계망·해설·OG·입력 오류 해제·삭제 스모크 PASS. Git 자동배포 OFF 유지.
+- **주토피 서비스 전면 개편 Preview 배포 완료 — 2026-09-02:** implementation source `554ace8`, deployment `dpl_9gaSGYsPYoR5tSF9uskYZ6F858zU` READY, URL `https://woorigunghap-uty7-rnoa3fpbf-beforebelly216-stars-projects.vercel.app`. 360/390/430px와 로그인·가짜 세션 차단 스모크 PASS. Production은 사용자 명시 승인 대기, Git 자동배포 OFF 유지.
 - `main` Git 자동배포 OFF 유지.
 
 ## 남은 핵심 작업 / 리스크
 
 1. Production에서 기존 실패 실결제 1,000원 건으로 `payment verify → prepare → intro → dynamics → action → 결과 저장 → 재열람` 실복구 및 중복 생성·중복 비용 방지 확인
 2. 실제 Sonnet 5 생성 샘플에서 사용자 노출 본문 4,000~6,000자 준수 여부와 중복/근거 밀도 확인
-3. 360 / 390 / 430px overflow/spacing QA
+3. Production 로그인 계정으로 무료·1:N·1:1 핵심 화면의 360/390/430px 실데이터 QA
 4. 실제 모바일 Instagram/Kakao의 1:N 스토리 이미지·파일 공유 수신 확인
 5. 보유 커스텀 도메인 연결과 DNS 검증 후 공유 URL의 `vercel.app` 제거
 
