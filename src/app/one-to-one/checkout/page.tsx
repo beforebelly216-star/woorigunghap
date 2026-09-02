@@ -45,7 +45,7 @@ function CheckoutContent() {
     return (
       <div className="checkout-state">
         <h1>주문 정보를 찾지 못했어요.</h1>
-        <p>입력 화면부터 다시 시작해 주세요.</p>
+        <p>입력 화면부터 다시 시작해 줘.</p>
         <Link href="/one-to-one" className="primary-link">1:1 입력으로 돌아가기</Link>
       </div>
     );
@@ -63,8 +63,8 @@ function CheckoutContent() {
     <>
       <header className="checkout-header checkout-v3-header">
         <p className="eyebrow">1:1 궁합 · 결제</p>
-        <h1>이제 두 사람의 관계를 열어볼게요.</h1>
-        <p>입력 내용을 한 번만 확인하고 결제하면, 바로 궁합 계산과 상세 리포트 생성이 시작됩니다.</p>
+        <h1>이제 두 사람의 관계를 열어볼게.</h1>
+        <p>결제가 끝나면 궁합 계산과 상세 리포트 만들기를 바로 시작할게.</p>
         <ol className="paid-flow-steps" aria-label="결제 진행 단계">
           <li className="is-done"><span>01</span><strong>입력 완료</strong></li>
           <li className="is-current"><span>02</span><strong>결제</strong></li>
@@ -111,7 +111,6 @@ function CheckoutContent() {
           <article><span>02</span><strong>갈등과 회복의 사용법</strong><p>자주 어긋나는 장면과 다시 대화가 풀리는 방식을 관계 유형에 맞춰 정리합니다.</p></article>
           <article><span>03</span><strong>실전 관계 매뉴얼</strong><p>연락, 표현, 거리 조절과 앞으로 바로 써먹을 행동 가이드를 챕터별로 제공합니다.</p></article>
         </div>
-        <p className="checkout-price-anchor">한 번 결제로 완성된 리포트를 저장해 다시 볼 수 있어요.</p>
       </section>
 
       <div className="checkout-v3-assurance" aria-label="결제 안내">
@@ -125,7 +124,6 @@ function CheckoutContent() {
         <PaymentButton product="oneToOne" paymentId={order.paymentId} inputSnapshot={order.inputSnapshot} resultAccessToken={order.resultAccessToken} agreementAccepted={policyAccepted} buttonLabel="1:1 전체 리포트 보기 · 1,000원" />
       </div>
       <Link href="/one-to-one" className="back-link checkout-back">입력 수정하기</Link>
-      <p className="checkout-note">결제 승인 뒤 바로 생성이 시작됩니다. 생성 중 화면을 이동해도 같은 결과 링크로 다시 확인할 수 있고, 완성된 결과는 복구키 또는 로그인 계정 보관함에서 재열람할 수 있습니다.</p>
     </>
   );
 }

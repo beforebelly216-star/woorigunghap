@@ -110,11 +110,11 @@ for (const [cardPath, cssPath] of shareFiles) {
   assert.match(card, /createPublicShareUrl/);
   assert.match(card, /canvas\.width = 1080/);
   assert.match(card, /canvas\.height = 1920/);
-  assert.match(card, /#FBFAF7/);
+  assert.match(card, /#FFFFFF/);
   assert.match(card, /#7652D8/);
   assert.match(card, /#222026/);
   assert.ok(!card.includes("const safeUrl = `${window.location.origin}/`"), `${cardPath} must no longer share the home URL`);
-  assert.match(card, /Shared View/);
+  assert.match(card, /includeDisplayNames: true/);
   assert.doesNotMatch(card, /#8B7BC7|#B8A9E8|createLinearGradient/);
   assert.match(css, /aspect-ratio:\s*9 \/ 16/);
   assert.match(css, /var\(--saju-action\)/);

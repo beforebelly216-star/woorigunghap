@@ -162,7 +162,7 @@ assert.match(accountNetworkRouteSource, /private, no-store/);
 assert.match(savedNetworkListSource, /\/api\/account\/relationship-networks/);
 assert.match(savedNetworkListSource, /mergeSavedNetworks/);
 assert.match(savedNetworkListSource, /카카오 보관함 · 이 기기/);
-assert.match(savedNetworkListSource, /방 관리는 처음 만든 기기 또는 관리 링크/);
+assert.match(savedNetworkListSource, /방 관리는 처음 만든 기기나 관리 링크/);
 
 const networkExperienceSource = readFileSync(
   join(process.cwd(), "src/components/relationship-network-experience.tsx"),
@@ -183,11 +183,13 @@ const zootopiStyleSource = readFileSync(
 assert.match(networkExperienceSource, /role="dialog"/);
 assert.match(networkExperienceSource, /동그라미를 눌러 점수가 나온 이유/);
 assert.match(networkExperienceSource, /카카오 로그인하고 저장/);
-assert.match(networkExperienceSource, /내 인연 네트워크도 만들어볼까요/);
+assert.match(networkExperienceSource, /내 인연 네트워크도 만들어볼까/);
 assert.match(networkExperienceSource, /<RelationshipNetworkShareCard/);
 assert.match(networkShareSource, /const STORY_WIDTH = 1080/);
 assert.match(networkShareSource, /const STORY_HEIGHT = 1920/);
-assert.match(networkShareSource, /개별 이름·점수는 이 카드에 포함되지 않습니다/);
+assert.match(networkShareSource, /drawNamedNetwork/);
+assert.match(networkShareSource, /참여자 이름은 보이고 생년정보는 공개하지 않아/);
+assert.doesNotMatch(networkShareSource, /개별 이름 비공개|개별 이름·점수는 이 카드에 포함되지/);
 assert.match(networkShareSource, /navigator\.canShare\?\.\(storyShareData\)/);
 assert.match(networkOgSource, /new ImageResponse/);
 assert.match(networkOgSource, /나는 이 지도에서 몇 등급일까/);

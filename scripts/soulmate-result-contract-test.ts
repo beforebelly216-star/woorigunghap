@@ -19,7 +19,8 @@ const second = calculateSoulmateResult(person);
 assert.equal(first.version, "soulmate-result-v1");
 assert.equal(first.pillars.length, 4, "년월일시 네 기둥을 반환해야 합니다.");
 assert.ok(first.pillars.find((pillar) => pillar.key === "day")?.stem, "일주는 반드시 존재해야 합니다.");
-assert.ok(first.recommendations.length >= 2 && first.recommendations.length <= 3, "추천 일간은 유의미한 2~3개만 노출해야 합니다.");
+assert.equal(first.recommendations.length, 3, "추천 일간은 항상 TOP 3를 노출해야 합니다.");
+assert.ok(first.recommendations.every((item) => item.personalitySummary.length === 3), "추천 일간마다 성향 설명 세 문장이 있어야 합니다.");
 assert.equal(new Set(first.recommendations.map((item) => item.stem)).size, first.recommendations.length, "추천 일간은 중복되면 안 됩니다.");
 assert.deepEqual(
   first.recommendations,
@@ -32,8 +33,7 @@ assert.deepEqual(first.detailed, second.detailed);
 const serialized = JSON.stringify(first);
 assert.ok(!serialized.includes("천생연분 지수"), "비교 대상 없는 천생연분 지수를 만들면 안 됩니다.");
 assert.ok(!serialized.includes("%"), "천생연분 결과에 확률처럼 보이는 퍼센트를 만들면 안 됩니다.");
-assert.ok(first.detailed.methodNote.includes("용신을 확정"), "용신을 확정하지 않는다는 계산 경계를 명시해야 합니다.");
-assert.ok(first.detailed.methodNote.includes("확률"), "천생연분 확률을 표시하지 않는다는 계산 경계를 명시해야 합니다.");
+assert.ok(first.detailed.methodNote.endsWith("함께 고려하여 산출합니다."), "계산 방법은 자연스러운 산출 문장으로 끝나야 합니다.");
 
 const page = readFileSync("src/app/free/result/soulmate-result-client.tsx", "utf8");
 for (const required of [

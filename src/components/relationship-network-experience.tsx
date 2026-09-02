@@ -458,9 +458,9 @@ export function RelationshipNetworkExperience({
     event.preventDefault();
     if (joining) return;
     const nextErrors: Record<string, string> = {};
-    if (!person.displayName.trim()) nextErrors["person.displayName"] = "이름 또는 별칭을 입력해 주세요.";
-    if (!person.gender) nextErrors["person.gender"] = "성별을 선택해 주세요.";
-    if (!consent) nextErrors.consent = "공개 범위와 개인정보 보관 안내에 동의해 주세요.";
+    if (!person.displayName.trim()) nextErrors["person.displayName"] = "이름 또는 별칭을 입력해 줘.";
+    if (!person.gender) nextErrors["person.gender"] = "성별을 선택해 줘.";
+    if (!consent) nextErrors.consent = "공개 범위와 개인정보 보관 안내에 동의해 줘.";
     const normalized = normalizePersonBirthForm(person, "person");
     Object.assign(nextErrors, normalized.errors);
     if (!normalized.person || Object.keys(nextErrors).length > 0) {
@@ -493,7 +493,7 @@ export function RelationshipNetworkExperience({
       if (!response.ok || !next || !memberId || !memberToken) {
         const message = typeof payload?.error === "string"
           ? payload.error
-          : "네트워크에 참여하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+          : "네트워크에 참여하지 못했어. 잠시 후 다시 시도해 줘.";
         setErrors({ form: message });
         if (payload?.code === "idempotency_conflict") joinAttemptRef.current = null;
         return;
@@ -517,7 +517,7 @@ export function RelationshipNetworkExperience({
       setStatus("내 인연이 연결됐어요. 다른 사람과의 관계선도 눌러보세요.");
       joinAttemptRef.current = null;
     } catch {
-      setErrors({ form: "네트워크에 참여하지 못했습니다. 같은 정보로 다시 시도해 주세요." });
+      setErrors({ form: "네트워크에 참여하지 못했어. 같은 정보로 다시 시도해 줘." });
     } finally {
       setJoining(false);
     }
@@ -529,7 +529,7 @@ export function RelationshipNetworkExperience({
     setConsent(false);
     setErrors({});
     setJoinFormOpen(true);
-    setStatus("다음 사람이 자기 정보를 직접 입력해 주세요.");
+    setStatus("다음 사람이 자기 정보를 직접 입력해 줘.");
   }
 
   async function copyManagementLink() {
@@ -545,9 +545,9 @@ export function RelationshipNetworkExperience({
     }).toString();
     try {
       await navigator.clipboard.writeText(`${publicUrl}#${fragment}`);
-      setStatus("방장 관리 링크를 복사했습니다. 공개 참여 링크와 구분해 보관해 주세요.");
+      setStatus("방장 관리 링크를 복사했어. 공개 참여 링크와 구분해 보관해 줘.");
     } catch {
-      setStatus("관리 링크를 복사하지 못했습니다. 이 브라우저의 내가 만든 네트워크 목록은 유지됩니다.");
+      setStatus("관리 링크를 복사하지 못했어. 이 브라우저의 내가 만든 네트워크 목록은 유지돼.");
     }
   }
 
@@ -648,7 +648,7 @@ export function RelationshipNetworkExperience({
   }
 
   if (deleted) {
-    return <main className={`${styles.page} relationship-network-page one-to-many-reference-page`}><div className={styles.shell}><section className={styles.deletedState}><h1>종료된 인연 네트워크입니다</h1><p>만료되었거나 방장이 삭제한 링크입니다.</p><Link href="/one-to-many">내 네트워크 만들기</Link></section></div></main>;
+    return <main className={`${styles.page} relationship-network-page one-to-many-reference-page`}><div className={styles.shell}><section className={styles.deletedState}><h1>종료된 인연 네트워크야</h1><p>만료됐거나 방장이 삭제한 링크야.</p><Link href="/one-to-many">내 네트워크 만들기</Link></section></div></main>;
   }
 
   const pairMembers = selectedEdge
@@ -679,9 +679,9 @@ export function RelationshipNetworkExperience({
             </div>
             <div className={styles.networkHeroContent}>
               <div>
-                <span className={styles.eyebrow}>MY CONNECTION MAP</span>
+                <span className={styles.eyebrow}>나의 인연 지도</span>
                 <h1><strong>{host?.displayName ?? "친구"}</strong>님의<br/>인연 네트워크</h1>
-                <p>친구가 들어올 때마다 새로운 관계가 이어져요. 동그라미를 눌러 점수가 나온 이유까지 확인해 보세요.</p>
+                <p>친구가 들어올 때마다 새로운 관계가 이어져. 동그라미를 눌러 점수가 나온 이유까지 확인해 봐.</p>
               </div>
               <div className={styles.resultMascot}><ZootopiMark expression="analyzing" withBody /></div>
             </div>
@@ -693,14 +693,14 @@ export function RelationshipNetworkExperience({
             <section className={styles.accountSaveCard}>
               <div className={styles.accountSaveMascot}><ZootopiMark expression="thinking" withBody /></div>
               <div>
-                <strong>이 인연 네트워크를 잃어버리지 마세요</strong>
-                <p>카카오로 로그인하면 계정 보관함에 저장되어 다른 기기에서도 다시 찾을 수 있어요.</p>
+                <strong>이 인연 네트워크를 잃어버리지 마</strong>
+                <p>카카오로 로그인하면 계정 보관함에 저장돼서 다른 기기에서도 다시 찾을 수 있어.</p>
                 <Link href={`/login?${new URLSearchParams({ returnTo: `/one-to-many/network/${token}` }).toString()}`}>카카오 로그인하고 저장</Link>
               </div>
             </section>
           ) : ownerToken && authState === "authenticated" ? (
             <p className={`${styles.accountSaveState} ${claimState === "error" ? styles.accountSaveStateError : ""}`}>
-              {claimState === "saved" ? "✓ 카카오 계정 보관함에 저장했습니다." : claimState === "error" ? "계정 저장을 완료하지 못했습니다. 관리 링크는 이 기기에 안전하게 남아 있어요." : "카카오 계정 보관함에 저장하고 있어요…"}
+              {claimState === "saved" ? "✓ 카카오 계정 보관함에 저장했어." : claimState === "error" ? "계정 저장을 완료하지 못했어. 관리 링크는 이 기기에 안전하게 남아 있어." : "카카오 계정 보관함에 저장하고 있어…"}
             </p>
           ) : null}
 
@@ -708,7 +708,7 @@ export function RelationshipNetworkExperience({
             <form className={styles.joinCard} onSubmit={submitJoin} noValidate>
               <div className={styles.joinIntro}>
                 <h2>{memberships.length > 0 || ownerToken ? "다음 사람 연결하기" : "내 정보 추가하고 관계 확인하기"}</h2>
-                <p>입력하는 사람이 자기 정보와 공개 범위를 직접 확인해 주세요. 참여하면 현재와 이후의 모든 사람과 궁합이 연결돼요.</p>
+                <p>입력하는 사람이 자기 정보와 공개 범위를 직접 확인해 줘. 참여하면 현재와 이후의 모든 사람과 궁합이 연결돼.</p>
               </div>
               {errors.form ? <p className="field-error form-error-summary" role="alert">{errors.form}</p> : null}
               <PersonBirthFields
@@ -727,19 +727,19 @@ export function RelationshipNetworkExperience({
                 <span><strong>공개 범위에 동의합니다</strong><small>만 14세 이상이며, 별칭과 모든 참여자 간 점수·등급이 링크 방문자에게 공개되는 것에 동의합니다. 생년정보는 화면에 공개되지 않으며 30일 뒤 조회가 차단되고 다음 자동 정리 때 삭제됩니다.</small></span>
               </label>
               <p className={styles.policyLinks}>
-                제출 전에 <Link href="/terms" target="_blank" rel="noreferrer">이용약관</Link>과 <Link href="/privacy" target="_blank" rel="noreferrer">개인정보처리방침</Link>을 확인해 주세요.
+                제출 전에 <Link href="/terms" target="_blank" rel="noreferrer">이용약관</Link>과 <Link href="/privacy" target="_blank" rel="noreferrer">개인정보처리방침</Link>을 확인해 줘.
               </p>
               {errors.consent ? <small className="field-error" role="alert">{errors.consent}</small> : null}
-              <button type="submit" className={styles.primaryButton} disabled={joining}>{joining ? "모든 관계를 계산하고 있어요…" : "내 인연 연결하기"}</button>
+              <button type="submit" className={styles.primaryButton} disabled={joining}>{joining ? "모든 관계를 계산하고 있어…" : "내 인연 연결하기"}</button>
               {(memberships.length > 0 || ownerToken) ? <button type="button" className={styles.joinCancelButton} onClick={() => setJoinFormOpen(false)}>입력 취소</button> : null}
             </form>
           ) : canJoin ? (
             <section className={styles.additionalJoinCard}>
-              <div><strong>다른 사람도 계속 연결할 수 있어요</strong><p>같은 휴대폰이나 브라우저에서도 다음 사람이 직접 입력할 수 있습니다.</p></div>
+              <div><strong>다른 사람도 계속 연결할 수 있어</strong><p>같은 휴대폰이나 브라우저에서도 다음 사람이 직접 입력할 수 있어.</p></div>
               <button type="button" className={styles.primaryButton} onClick={openAdditionalJoin}>다른 사람 연결하기</button>
             </section>
           ) : credentialsReady && (!network.isOpen || network.memberCount >= network.memberLimit) ? (
-            <section className={styles.emptyCard}>{network.isOpen ? "참여 인원이 가득 찼습니다. 기존 관계망은 계속 둘러볼 수 있어요." : "방장이 새 참여를 잠시 닫아두었습니다. 기존 관계망은 계속 볼 수 있어요."}</section>
+            <section className={styles.emptyCard}>{network.isOpen ? "참여 인원이 가득 찼어. 기존 관계망은 계속 둘러볼 수 있어." : "방장이 새 참여를 잠시 닫아뒀어. 기존 관계망은 계속 볼 수 있어."}</section>
           ) : null}
 
           <section className={styles.graphCard}>
@@ -747,7 +747,7 @@ export function RelationshipNetworkExperience({
               <div><h2>모든 사람의 관계망</h2><p>전체 {network.edges.length}개 관계 · 동그라미를 누르면 관계 해설이 열려요</p></div>
               <span className={styles.countBadge}>{network.memberCount}명</span>
             </div>
-            <p className={styles.graphTapHint}><span>✦</span> {memberName(network.members, viewerMemberId)}님을 기준으로 궁금한 사람을 눌러보세요</p>
+            <p className={styles.graphTapHint}><span>✦</span> {memberName(network.members, viewerMemberId)}님을 기준으로 궁금한 사람을 눌러봐</p>
             <div className={styles.modeTabs} aria-label="관계선 보기 방식">
               {(["focus", "strong", "all"] as GraphMode[]).map((value) => (
                 <button
@@ -779,7 +779,7 @@ export function RelationshipNetworkExperience({
             <div className={styles.gradeLegend} aria-label="궁합 등급 범례">
               {RELATIONSHIP_NETWORK_GRADES.map((grade) => <span key={grade} style={{ background: GRADE_COLORS[grade] }}>{grade}</span>)}
             </div>
-            <p className={styles.basisNote}>무료 네트워크 점수는 모든 참여자에게 같은 친구·지인 관계 기준을 적용합니다.</p>
+            <p className={styles.basisNote}>무료 네트워크 점수는 모든 참여자에게 같은 친구·지인 관계 기준을 적용해.</p>
           </section>
 
           {selectedEdge ? (
@@ -789,14 +789,14 @@ export function RelationshipNetworkExperience({
               <b>해설 보기 ›</b>
             </button>
           ) : (
-            <section className={styles.emptyCard}>{network.memberCount === 1 ? "공유 링크로 첫 친구가 참여하면 두 사람의 토탈 점수와 관계선이 나타납니다." : "인물이나 관계선을 선택해 두 사람의 궁합을 확인해 보세요."}</section>
+            <section className={styles.emptyCard}>{network.memberCount === 1 ? "공유 링크로 첫 친구가 참여하면 두 사람의 토탈 점수와 관계선이 나타나." : "인물이나 관계선을 선택해 두 사람의 궁합을 확인해 봐."}</section>
           )}
 
           <RelationshipNetworkShareCard network={network} onStatus={setStatus} />
 
           {selectedMember && connections.length > 0 ? (
             <section className={styles.rankingCard}>
-              <div className={styles.sectionHeader}><div><h2>{selectedMember.displayName}님의 모든 연결</h2><p>방장뿐 아니라 참여자 사이의 점수도 모두 계산했습니다.</p></div>{selectedMember.isHost ? <span className={styles.hostBadge}>방장</span> : null}</div>
+              <div className={styles.sectionHeader}><div><h2>{selectedMember.displayName}님의 모든 연결</h2><p>방장뿐 아니라 참여자 사이의 점수도 모두 계산했어.</p></div>{selectedMember.isHost ? <span className={styles.hostBadge}>방장</span> : null}</div>
               <div className={styles.connectionList}>
                 {connections.map((edge) => {
                   const otherId = otherMemberId(edge, selectedMember.id);
@@ -809,7 +809,7 @@ export function RelationshipNetworkExperience({
 
           {hostRanking.length > 0 && selectedMember?.id !== network.hostMemberId ? (
             <section className={styles.rankingCard}>
-              <div className={styles.sectionHeader}><div><h2>{host?.displayName ?? "방장"}님과의 궁합 순위</h2><p>기존의 한눈에 보는 순위도 무료 네트워크 안에 유지했습니다.</p></div></div>
+              <div className={styles.sectionHeader}><div><h2>{host?.displayName ?? "방장"}님과의 궁합 순위</h2><p>한눈에 보는 순위도 무료 네트워크 안에 그대로 뒀어.</p></div></div>
               <div className={styles.rankingList}>
                 {hostRanking.map((edge, index) => {
                   const otherId = otherMemberId(edge, network.hostMemberId);
@@ -821,7 +821,7 @@ export function RelationshipNetworkExperience({
 
           <section className={styles.ownNetworkCta}>
             <div className={styles.ownNetworkMascot}><ZootopiMark expression="idea" withBody /></div>
-            <div><small>보고만 가기 아쉽다면</small><h2>내 인연 네트워크도 만들어볼까요?</h2><p>내 정보 한 번만 입력하고 친구들의 궁합을 한 화면에 모아보세요.</p></div>
+            <div><small>보고만 가기 아쉽다면</small><h2>내 인연 네트워크도 만들어볼까?</h2><p>네 정보 한 번만 입력하고 친구들의 궁합을 한 화면에 모아봐.</p></div>
             <Link href="/one-to-many">내 네트워크 무료로 만들기</Link>
           </section>
 
@@ -830,14 +830,14 @@ export function RelationshipNetworkExperience({
               <summary>{ownerToken ? "방 관리" : "내 참여 정보 관리"}</summary>
               <div className={styles.manageBody}>
                 {ownerToken ? <div className={styles.manageRow}><div><strong>내 네트워크 저장·재열람</strong><small>이 브라우저의 목록에 자동 저장됐습니다. 다른 기기용 관리 링크는 타인에게 공유하지 마세요.</small></div><button type="button" className={styles.secondaryButton} onClick={copyManagementLink}>관리 링크 복사</button></div> : null}
-                {ownerToken ? <div className={styles.manageRow}><div><strong>새 참여 {network.isOpen ? "열림" : "닫힘"}</strong><small>관계망은 유지하고 새 입력만 제어합니다.</small></div><button type="button" className={styles.secondaryButton} disabled={managing} onClick={toggleNetwork}>{network.isOpen ? "참여 닫기" : "다시 열기"}</button></div> : null}
-                {selectedCanRemove && selectedMember ? <div className={styles.manageRow}><div><strong>{memberships.some((membership) => membership.memberId === selectedMember.id) ? "이 브라우저에서 입력한 정보 삭제" : `${selectedMember.displayName} 삭제`}</strong><small>생년정보와 연결된 모든 관계선이 함께 삭제됩니다.</small></div><button type="button" className={styles.dangerButton} disabled={managing} onClick={() => removeMember(selectedMember)}>삭제</button></div> : null}
-                {ownerToken ? <div className={styles.manageRow}><div><strong>네트워크 전체 삭제</strong><small>모든 참여 정보와 관계선을 되돌릴 수 없게 삭제합니다.</small></div><button type="button" className={styles.dangerButton} disabled={managing} onClick={deleteNetwork}>전체 삭제</button></div> : null}
+                {ownerToken ? <div className={styles.manageRow}><div><strong>새 참여 {network.isOpen ? "열림" : "닫힘"}</strong><small>관계망은 유지하고 새 입력만 제어해.</small></div><button type="button" className={styles.secondaryButton} disabled={managing} onClick={toggleNetwork}>{network.isOpen ? "참여 닫기" : "다시 열기"}</button></div> : null}
+                {selectedCanRemove && selectedMember ? <div className={styles.manageRow}><div><strong>{memberships.some((membership) => membership.memberId === selectedMember.id) ? "이 브라우저에서 입력한 정보 삭제" : `${selectedMember.displayName} 삭제`}</strong><small>생년정보와 연결된 모든 관계선이 함께 삭제돼.</small></div><button type="button" className={styles.dangerButton} disabled={managing} onClick={() => removeMember(selectedMember)}>삭제</button></div> : null}
+                {ownerToken ? <div className={styles.manageRow}><div><strong>네트워크 전체 삭제</strong><small>모든 참여 정보와 관계선을 되돌릴 수 없게 삭제해.</small></div><button type="button" className={styles.dangerButton} disabled={managing} onClick={deleteNetwork}>전체 삭제</button></div> : null}
               </div>
             </details>
           ) : null}
 
-          <p className={styles.formFootnote}>궁합 점수는 기존 사주 계산의 9가지 관계 축을 사용하며 AI가 점수나 등급을 바꾸지 않습니다.</p>
+          <p className={styles.formFootnote}>궁합 점수는 사주 계산의 9가지 관계 축을 쓰고, AI가 점수나 등급을 바꾸지 않아.</p>
         </div>
       </div>
 

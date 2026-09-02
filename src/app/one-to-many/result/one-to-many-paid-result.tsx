@@ -69,7 +69,7 @@ export default function OneToManyPaidResult() {
           return;
         }
         setMessage(response.status === 401
-          ? "이 보관함 결과를 열려면 다시 로그인해 주세요."
+          ? "이 보관함 결과를 열려면 다시 로그인해 줘."
           : payload?.error ?? "보관함에서 결과를 불러오지 못했어요.");
         setState("failed");
         return;
@@ -124,13 +124,13 @@ export default function OneToManyPaidResult() {
           return;
         }
         if (payload?.code === "REPORT_GENERATION_IN_PROGRESS") {
-          setMessage("같은 결제의 리포트를 안전하게 생성 중이에요. 중복 AI 호출 없이 완료 결과를 확인하고 있습니다.");
+          setMessage("같은 결제의 리포트를 안전하게 만들고 있어. 중복 AI 호출 없이 완료 결과를 확인 중이야.");
           await wait(Math.min(5_000, attempt * 1_000));
           continue;
         }
         throw new Error(payload?.error ?? "리포트를 생성하지 못했어요.");
       }
-      throw new Error("생성 시간이 길어지고 있어요. 잠시 후 같은 링크에서 다시 확인해 주세요.");
+      throw new Error("생성 시간이 길어지고 있어. 잠시 후 같은 링크에서 다시 확인해 줘.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "결과를 불러오지 못했어요.");
       setState("failed");
@@ -151,8 +151,8 @@ export default function OneToManyPaidResult() {
 
   return <main className="one-to-many-result-page"><div className="comparison-empty-state">
     <p className="eyebrow">1:다 비교 결과</p>
-    <h1>{state === "generating" ? "리포트를 만들고 있어요" : state === "missing" ? "복구 정보가 필요해요" : state === "failed" ? "결과를 다시 확인해 주세요" : "결과를 확인하고 있어요"}</h1>
-    <p>{state === "missing" ? "결제 후 받은 결과 링크를 같은 브라우저에서 다시 열어 주세요." : message}</p>
+    <h1>{state === "generating" ? "리포트를 만들고 있어" : state === "missing" ? "복구 정보가 필요해" : state === "failed" ? "결과를 다시 확인해 줘" : "결과를 확인하고 있어"}</h1>
+    <p>{state === "missing" ? "결제 후 받은 결과 링크를 같은 브라우저에서 다시 열어 줘." : message}</p>
     {state === "failed" && accountSource ? <Link className="primary-link" href={`/login?${new URLSearchParams({ returnTo: `/one-to-many/result?paymentId=${paymentId ?? ""}&source=account` }).toString()}`}>카카오 로그인 다시 하기</Link> : null}
     {state === "failed" && !accountSource ? <button type="button" className="primary-action" onClick={() => setRetryKey((value) => value + 1)}>같은 결제로 다시 확인하기</button> : null}
     {state === "missing" ? <Link href="/one-to-many" className="primary-link">비교 입력으로 돌아가기</Link> : null}

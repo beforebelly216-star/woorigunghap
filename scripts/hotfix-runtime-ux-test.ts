@@ -31,7 +31,7 @@ assert.ok(layout.includes('import "./app-theme-v4.css";'), "root layout must loa
 for (const legacyImport of ["theme-unification.css", "account-foundation.css", "paid-flow-v3.css", "score-library.css", "day20-mobile.css"]) {
   assert.ok(!layout.includes(legacyImport), `root layout must not load legacy design CSS: ${legacyImport}`);
 }
-assert.ok(theme.includes("--saju-bg-base: #FBFAF7"), "light base must match the mobile report canvas");
+assert.ok(theme.includes("--saju-bg-base: #FFFFFF"), "all service canvases must use pure white");
 assert.ok(theme.includes("--saju-bg-card: #FFFFFF"), "card surface must use the Design Foundation v2 card token");
 assert.ok(theme.includes("--saju-action: #7652D8"), "primary action must use the shared purple action token");
 assert.ok(theme.includes("--saju-width-report: 390px"), "all report surfaces must use the 390px mobile shell");
@@ -66,7 +66,7 @@ for (const marker of [
   "입력 완료",
   "1:1 전체 리포트 보기 · 1,000원",
   "중간 이탈 복구",
-  "같은 결과 링크로 다시 확인",
+  "자동 저장",
 ]) {
   assert.ok(oneToOneCheckout.includes(marker), `1:1 checkout must retain v3 paid-flow marker: ${marker}`);
 }

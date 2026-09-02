@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AuthStatus } from "@/components/auth-status";
+import { ZootopiBrand } from "@/components/zootopi-brand";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -20,13 +20,13 @@ export function SiteHeader() {
 
   if (pathname === "/") {
     return <header className="site-header site-header-home-a99">
-      <Link href="/" className="site-brand">우리사주</Link>
+      <ZootopiBrand className="site-brand" />
       <AuthStatus />
     </header>;
   }
 
   return <header className="site-header">
-    <Link href="/" className="site-brand">우리사주</Link>
+    <ZootopiBrand className="site-brand" />
     <AuthStatus />
   </header>;
 }

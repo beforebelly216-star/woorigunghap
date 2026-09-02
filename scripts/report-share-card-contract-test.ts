@@ -32,7 +32,9 @@ const comparisonComponent = readFileSync("src/components/one-to-many-share-card.
 const comparisonCss = readFileSync("src/components/one-to-many-share-card.module.css", "utf8");
 const comparisonResult = readFileSync("src/components/one-to-many-result.tsx", "utf8");
 
-assert.match(component, /생년월일시와 유료 본문은 카드에 포함하지 않습니다/);
+assert.match(component, /생년월일시와 유료 본문은 포함되지 않아요/);
+assert.match(component, /includeDisplayNames: true/);
+assert.doesNotMatch(component, /nameToggle|setIncludeNames|이름은 공유하지 않음/);
 assert.match(component, /createPublicShareUrl/);
 assert.match(component, /buildOneToOnePublicShare/);
 assert.doesNotMatch(component, /const safeUrl = `\$\{window\.location\.origin\}\/`/);
@@ -57,6 +59,8 @@ assert.match(comparisonComponent, /deriveOneToManySharePattern/);
 assert.match(comparisonComponent, /maskCuriosityAnswer/);
 assert.match(comparisonComponent, /createPublicShareUrl/);
 assert.match(comparisonComponent, /buildOneToManyPublicShare/);
+assert.match(comparisonComponent, /includeDisplayNames: true/);
+assert.doesNotMatch(comparisonComponent, /nameToggle|setIncludeNames|이름은 공유하지 않음/);
 assert.match(comparisonComponent, /relationship_label/);
 assert.match(comparisonComponent, /two_sides/);
 assert.match(comparisonComponent, /send_this/);

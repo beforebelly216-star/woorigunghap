@@ -99,7 +99,7 @@ function PaymentResult() {
 
           lastMessage = payload?.error ?? lastMessage;
           if (RECHECK_ONLY_PAYMENT_CODES.has(payload?.code ?? "")) {
-            setFatalMessage(`${lastMessage} 결제는 다시 하지 말고 서버 설정 복구 후 같은 결제를 다시 확인해 주세요.`);
+            setFatalMessage(`${lastMessage} 결제는 다시 하지 말고 서버 설정 복구 후 같은 결제를 다시 확인해 줘.`);
             setSafeRecheckOnly(true);
             setState("failed");
             return;
@@ -116,7 +116,7 @@ function PaymentResult() {
             return;
           }
         } catch {
-          lastMessage = "결제 확인 서버 응답이 지연되고 있습니다.";
+          lastMessage = "결제 확인 서버 응답이 늦어지고 있어.";
         }
 
         if (currentAttempt < MAX_VERIFY_ATTEMPTS) {
@@ -126,7 +126,7 @@ function PaymentResult() {
 
       if (cancelled) return;
       setSafeRecheckOnly(true);
-      setFatalMessage(`${lastMessage} 결제는 다시 하지 말고 같은 결제를 다시 확인해 주세요.`);
+      setFatalMessage(`${lastMessage} 결제는 다시 하지 말고 같은 결제를 다시 확인해 줘.`);
       setState("failed");
     }
 
@@ -143,10 +143,10 @@ function PaymentResult() {
         ? `서버에 결제 상태를 다시 확인하고 있어요. ${attempt}/${MAX_VERIFY_ATTEMPTS} · 추가 결제는 하지 않습니다.`
         : "확인되면 결과 생성을 시작하고 궁합 결과로 이동해요.",
     ],
-    success: ["결제가 확인됐어요", "결과 생성을 시작했어요. 보관함으로 이동해도 계속 진행됩니다."],
+    success: ["결제가 확인됐어", "결과 만들기를 시작했어. 보관함으로 이동해도 계속 진행돼."],
     failed: [
-      safeRecheckOnly ? "같은 결제를 다시 확인해 주세요" : "결제 정보를 확인해야 해요",
-      fatalMessage ?? "결제 상품 또는 금액을 다시 확인해 주세요.",
+      safeRecheckOnly ? "같은 결제를 다시 확인해 줘" : "결제 정보를 확인해야 해",
+      fatalMessage ?? "결제 상품 또는 금액을 다시 확인해 줘.",
     ],
     cancelled: [
       "결제가 완료되지 않았어요",
@@ -161,7 +161,7 @@ function PaymentResult() {
 
   return (
     <main className="result-page payment-result-page" aria-live="polite" aria-busy={state === "checking"}>
-      <p className="eyebrow">우리사주</p>
+      <p className="eyebrow">주토피</p>
       <h1>{copy[0]}</h1>
       <p>{copy[1]}</p>
       {state === "checking" ? (

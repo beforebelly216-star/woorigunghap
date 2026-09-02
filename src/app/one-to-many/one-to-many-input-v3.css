@@ -1,6 +1,6 @@
 body:has(.one-to-many-reference-page) > .site-header,
 body:has(.one-to-many-reference-page) > .site-footer { display: none; }
-.one-to-many-page { min-height:100vh; padding:14px 14px 44px; background:#fffdf8; }
+.one-to-many-page { min-height:100vh; padding:14px 14px 44px; background:#fff; }
 .one-to-many-page .one-to-many-shell { width:min(100%,390px); margin:0 auto; }
 .one-to-many-app-header { min-height:52px; display:grid; grid-template-columns:42px 1fr 42px; align-items:center; border-bottom:1px solid #eee9e5; }
 .one-to-many-app-header a,.one-to-many-app-header span { width:36px; height:36px; display:grid; place-items:center; border-radius:50%; color:#2d2930; text-decoration:none; font-size:1.55rem; }

@@ -140,15 +140,6 @@ function parseAiPayloadFromUserPrompt(userPrompt: string) {
   }
 }
 
-function introElementList(value: unknown) {
-  const values = Array.isArray(value) ? value : typeof value === "string" ? [value] : [];
-  const labels = values
-    .filter((item): item is string => typeof item === "string")
-    .map((item) => INTRO_ELEMENT_LABELS[item] ?? item)
-    .filter(Boolean);
-  return labels.length ? labels.join("·") : "뚜렷한 단일 기운 없음";
-}
-
 function expectedIntroElementLabels(value: unknown) {
   const values = Array.isArray(value) ? value : typeof value === "string" ? [value] : [];
   return values

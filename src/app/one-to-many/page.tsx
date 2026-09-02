@@ -9,8 +9,8 @@ import "./one-to-many-input-v3.css";
 import styles from "./relationship-network.module.css";
 
 export const metadata: Metadata = {
-  title: "무료 인연 네트워크 | 우리사주",
-  description: "내 정보만 입력하고 링크를 공유하면 친구들의 궁합 관계가 실시간 인물 네트워크로 연결됩니다.",
+  title: "무료 인연 네트워크 | 주토피",
+  description: "내 정보만 입력하고 링크를 공유하면 친구들의 궁합 관계가 실시간 인물 네트워크로 연결돼",
 };
 
 export default function OneToManyPage() {
@@ -25,9 +25,9 @@ export default function OneToManyPage() {
 
         <section className={styles.createHero}>
           <div>
-            <span className={styles.eyebrow}>SHARE · JOIN · CONNECT</span>
+            <span className={styles.eyebrow}>공유하고 · 참여하고 · 연결하기</span>
             <h1>링크 하나로<br/><em>우리 관계가 연결돼요</em></h1>
-            <p>나는 내 정보만 입력하고 공유하세요. 친구가 들어올 때마다 모든 사람 사이의 궁합이 실시간으로 이어집니다.</p>
+            <p>나는 내 정보만 입력해서 공유해. 친구가 들어올 때마다 모든 사람 사이의 궁합이 실시간으로 이어져.</p>
           </div>
           <div className={styles.heroMascot} aria-hidden="true">
             <span>✦</span><ZootopiMark expression="idea" withBody />

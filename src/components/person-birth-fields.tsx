@@ -88,7 +88,7 @@ export function normalizePersonBirthForm(
 ): { person: PersonBirthInput | null; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
   const birthDate = toIsoBirthDate(person.birthDate);
-  if (!birthDate) errors[`${prefix}.birthDate`] = "생년월일 8자리를 YYYYMMDD 형식으로 다시 입력해 주세요.";
+  if (!birthDate) errors[`${prefix}.birthDate`] = "생년월일 8자리를 YYYYMMDD 형식으로 다시 입력해 줘.";
 
   const birthTime = person.birthTimeKnown
     ? person.meridiem
@@ -96,7 +96,7 @@ export function normalizePersonBirthForm(
       : parseDirectTwentyFourHourTime(person.birthTime)
     : null;
   if (person.birthTimeKnown && !birthTime) {
-    errors[`${prefix}.birthTime`] = "출생시간을 24시간제 HHMM 4자리로 다시 입력해 주세요. (예: 1430)";
+    errors[`${prefix}.birthTime`] = "출생시간을 24시간제 HHMM 4자리로 다시 입력해 줘. (예: 1430)";
   }
 
   if (!birthDate || (person.birthTimeKnown && !birthTime)) return { person: null, errors };
@@ -192,7 +192,7 @@ export function PersonBirthFields({
             </label>
           ))}
         </div>
-        <small className="field-hint">ⓘ 양력이 기본값입니다. 음력 생일은 음력 선택 시 입력해 주세요.</small>
+        <small className="field-hint">ⓘ 양력이 기본값이야. 음력 생일은 음력을 선택하고 입력해 줘.</small>
       </div>
 
       <label className="field-stack" htmlFor={id("birthDate")}>

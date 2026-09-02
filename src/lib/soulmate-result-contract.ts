@@ -28,6 +28,7 @@ export type SoulmateRecommendation = {
   yinYangLabel: string;
   relationLabel: string;
   headline: string;
+  personalitySummary: string[];
   reasons: string[];
   relationshipPattern: string;
   betterWhen: string[];

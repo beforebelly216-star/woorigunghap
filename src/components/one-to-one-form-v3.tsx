@@ -34,9 +34,6 @@ import {
 } from "@/lib/orders";
 import { saveOrderDraft } from "@/lib/order-storage";
 import { buildOneToOneResultUrl } from "@/lib/result-access-token";
-import {
-  birthTimeNoticeFromPerson,
-} from "@/lib/partner-information-level";
 import { ZootopiMark } from "@/components/zootopi-mark";
 
 type FormState = {
@@ -139,7 +136,6 @@ export function OneToOneFormV3() {
   const [freePrefilled, setFreePrefilled] = useState(false);
   const [step, setStep] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
-  const partnerBirthTimeNotice = birthTimeNoticeFromPerson(form.personB);
 
   useEffect(() => {
     let active = true;
@@ -164,6 +160,12 @@ export function OneToOneFormV3() {
     };
   }, [fromFree, recoveryPaymentId]);
 
+  useEffect(() => {
+    if (!freePrefilled) return;
+    const timeout = window.setTimeout(() => setFreePrefilled(false), 2_600);
+    return () => window.clearTimeout(timeout);
+  }, [freePrefilled]);
+
   function showErrors(formElement: HTMLFormElement, nextErrors: Record<string, string>) {
     setErrors(nextErrors);
     focusFirstInvalidField(formElement);
@@ -173,14 +175,14 @@ export function OneToOneFormV3() {
     const nextErrors: Record<string, string> = {};
 
     if (currentStep === 0) {
-      if (!form.relationshipType) nextErrors.relationshipType = "관계 유형을 선택해 주세요.";
+      if (!form.relationshipType) nextErrors.relationshipType = "관계 유형을 선택해 줘.";
       if (form.relationshipType === "coworker" && !form.coworkerHierarchy) {
-        nextErrors.coworkerHierarchy = "상대방의 직장 내 위치를 선택해 주세요.";
+        nextErrors.coworkerHierarchy = "상대방의 직장 내 위치를 선택해 줘.";
       }
-      if (!form.personA.gender) nextErrors["personA.gender"] = "성별을 선택해 주세요.";
+      if (!form.personA.gender) nextErrors["personA.gender"] = "성별을 선택해 줘.";
       Object.assign(nextErrors, normalizePersonBirthForm(form.personA, "personA").errors);
     } else if (currentStep === 1) {
-      if (!form.personB.gender) nextErrors["personB.gender"] = "성별을 선택해 주세요.";
+      if (!form.personB.gender) nextErrors["personB.gender"] = "성별을 선택해 줘.";
       Object.assign(nextErrors, normalizePersonBirthForm(form.personB, "personB").errors);
     }
 
@@ -210,12 +212,12 @@ export function OneToOneFormV3() {
     const formElement = event.currentTarget;
 
     const nextErrors: Record<string, string> = {};
-    if (!form.relationshipType) nextErrors.relationshipType = "관계 유형을 선택해 주세요.";
+    if (!form.relationshipType) nextErrors.relationshipType = "관계 유형을 선택해 줘.";
     if (form.relationshipType === "coworker" && !form.coworkerHierarchy) {
-      nextErrors.coworkerHierarchy = "상대방의 직장 내 위치를 선택해 주세요.";
+      nextErrors.coworkerHierarchy = "상대방의 직장 내 위치를 선택해 줘.";
     }
-    if (!form.personA.gender) nextErrors["personA.gender"] = "성별을 선택해 주세요.";
-    if (!form.personB.gender) nextErrors["personB.gender"] = "성별을 선택해 주세요.";
+    if (!form.personA.gender) nextErrors["personA.gender"] = "성별을 선택해 줘.";
+    if (!form.personB.gender) nextErrors["personB.gender"] = "성별을 선택해 줘.";
 
     const normalized = toReportInput(form);
     Object.assign(nextErrors, normalized.errors);
@@ -240,7 +242,7 @@ export function OneToOneFormV3() {
         saveOrderDraft(recovered);
         router.push(buildOneToOneResultUrl(recovered.paymentId, recovered.resultAccessToken));
       } catch {
-        setErrors({ form: "기존 결제번호를 복구하지 못했어요. 결과 화면에서 다시 복구를 시작해 주세요." });
+        setErrors({ form: "기존 결제번호를 복구하지 못했어. 결과 화면에서 다시 복구를 시작해 줘." });
         setIsContinuing(false);
       }
       return;
@@ -259,7 +261,7 @@ export function OneToOneFormV3() {
     } catch (error) {
       setErrors({ form: error instanceof Error && !error.message.includes("ORDER_DRAFT")
         ? error.message
-        : "안전한 주문 저장소를 확인하지 못했어요. 결제를 시작하지 않았습니다. 잠시 후 다시 시도해 주세요." });
+        : "안전한 주문 저장소를 확인하지 못했어. 결제는 시작하지 않았어. 잠시 후 다시 시도해 줘." });
       setIsContinuing(false);
       return;
     }
@@ -273,14 +275,13 @@ export function OneToOneFormV3() {
       {recoveryPaymentId ? (
         <div className="checkout-state recovery-state" role="status">
           <strong>기존 결제 복구 중</strong>
-          <p>결제는 다시 하지 않습니다. 결제 당시 정보를 확인해 기존 결과를 복구합니다.</p>
+          <p>결제는 다시 하지 않아. 결제 당시 정보를 확인해 기존 결과를 복구할게.</p>
         </div>
       ) : null}
 
       {freePrefilled ? (
-        <div className="form-success" role="status">
-          <strong>무료 분석에서 입력한 내 정보를 이어왔습니다.</strong>
-          <p>내 정보는 미리 채워두었습니다. 관계와 상대방 정보만 이어서 확인해 주세요.</p>
+        <div className="prefill-toast" role="status" aria-live="polite">
+          입력하신 내 사주정보를 불러왔어요!
         </div>
       ) : null}
 
@@ -301,39 +302,36 @@ export function OneToOneFormV3() {
         <>
           <div className="v3-guide-card">
             <div>
-              <strong>먼저, 내 정보와 관계를 알려주세요.</strong>
-              <p>무료 분석에서 넘어왔다면 내 정보가 자동으로 채워져 있습니다.</p>
+              <strong>먼저, 네 정보와 관계를 알려줘.</strong>
+              <p>무료 분석에서 넘어왔다면 네 정보가 자동으로 채워져 있어.</p>
             </div>
             <ZootopiMark expression="smile" withBody />
           </div>
 
           <section className="form-section relationship-section v3-card-section">
-            <h2 id="one-to-one-relationship-label">어떤 관계를 보고 싶나요?</h2>
-            <div
-              className="relationship-options"
-              role="radiogroup"
-              aria-labelledby="one-to-one-relationship-label"
-              aria-invalid={Boolean(errors.relationshipType)}
-              aria-describedby={errors.relationshipType ? "one-to-one-relationship-error" : undefined}
-            >
-              {RELATIONSHIP_TYPES.map((relationshipType) => (
-                <label key={relationshipType} className={form.relationshipType === relationshipType ? "selected" : ""}>
-                  <input
-                    type="radio"
-                    name="relationshipType"
-                    value={relationshipType}
-                    checked={form.relationshipType === relationshipType}
-                    onChange={() => setForm({
-                      ...form,
-                      relationshipType,
-                      coworkerHierarchy: relationshipType === "coworker" ? form.coworkerHierarchy : "",
-                      relationshipDurationMonths: relationshipType === "crush" ? "" : form.relationshipDurationMonths,
-                    })}
-                  />
-                  {RELATIONSHIP_LABELS[relationshipType]}
-                </label>
-              ))}
-            </div>
+            <label className="field-stack v3-relationship-select" htmlFor="relationshipType">
+              <span id="one-to-one-relationship-label">어떤 관계를 보고 싶어?</span>
+              <select
+                id="relationshipType"
+                name="relationshipType"
+                value={form.relationshipType}
+                aria-invalid={Boolean(errors.relationshipType)}
+                aria-describedby={errors.relationshipType ? "one-to-one-relationship-error" : undefined}
+                onChange={(event) => {
+                  const relationshipType = event.target.value as RelationshipType | "";
+                  setForm({
+                    ...form,
+                    relationshipType,
+                    coworkerHierarchy: relationshipType === "coworker" ? form.coworkerHierarchy : "",
+                    relationshipDurationMonths: relationshipType === "crush" ? "" : form.relationshipDurationMonths,
+                  });
+                  setErrors((current) => ({ ...current, relationshipType: "" }));
+                }}
+              >
+                <option value="">관계를 선택해 줘</option>
+                {RELATIONSHIP_TYPES.map((relationshipType) => <option key={relationshipType} value={relationshipType}>{RELATIONSHIP_LABELS[relationshipType]}</option>)}
+              </select>
+            </label>
             {errors.relationshipType ? <small id="one-to-one-relationship-error" className="field-error">{errors.relationshipType}</small> : null}
           </section>
 
@@ -356,7 +354,7 @@ export function OneToOneFormV3() {
                     relationshipDurationMonths: event.target.value.replace(/\D/g, "").slice(0, 4),
                   })}
                 />
-                <small id="relationship-duration-help" className="field-hint">현재 관계 기간을 선택적으로 반영합니다. 최대 {MAX_RELATIONSHIP_DURATION_MONTHS}개월.</small>
+                <small id="relationship-duration-help" className="field-hint">현재 관계 기간을 선택적으로 반영해. 최대 {MAX_RELATIONSHIP_DURATION_MONTHS}개월이야.</small>
                 {errors.relationshipDurationMonths ? <small id="relationship-duration-error" className="field-error">{errors.relationshipDurationMonths}</small> : null}
               </label>
             </section>
@@ -413,8 +411,8 @@ export function OneToOneFormV3() {
         <>
           <div className="v3-guide-card">
             <div>
-              <strong>이제 상대방 정보를 입력해 주세요.</strong>
-              <p>출생시간을 몰라도 분석은 가능합니다. 아는 만큼만 정확하게 입력해 주세요.</p>
+              <strong>이제 상대방 정보를 입력해 줘.</strong>
+              <p>출생시간을 몰라도 분석할 수 있어. 아는 만큼만 정확하게 입력해 줘.</p>
             </div>
             <ZootopiMark expression="idea" withBody />
           </div>
@@ -444,8 +442,8 @@ export function OneToOneFormV3() {
         <>
           <div className="v3-guide-card v3-guide-card-confirm">
             <div>
-              <strong>입력한 정보를 마지막으로 확인해 주세요.</strong>
-              <p>문제가 없으면 결제 단계로 이동합니다. 아직 유료 AI 생성은 시작하지 않습니다.</p>
+              <strong>입력한 정보를 마지막으로 확인해 줘.</strong>
+              <p>문제가 없으면 결제 단계로 이동할게.</p>
             </div>
             <ZootopiMark expression="smile" withBody />
           </div>
@@ -460,8 +458,7 @@ export function OneToOneFormV3() {
           </section>
 
           <section className="form-section relationship-context-section v3-card-section">
-            <h2>가장 궁금한 것 한 가지가 있나요?</h2>
-            <p className="section-copy">선택 항목입니다. 계산 근거로 답할 수 있는 범위에서 상세 리포트에 반영합니다.</p>
+            <h2>가장 궁금한 것 한 가지가 있어?</h2>
             <label className="field-stack" htmlFor="mostCurious">
               <span>가장 궁금한 점</span>
               <textarea
@@ -469,24 +466,19 @@ export function OneToOneFormV3() {
                 name="mostCurious"
                 className="relationship-context-textarea"
                 maxLength={MAX_MOST_CURIOUS_LENGTH}
-                placeholder="예: 싸운 뒤 누가 먼저 어떻게 대화를 시작하는 게 좋을까요?"
+                placeholder="예: 싸운 뒤 누가 먼저 어떻게 대화를 시작하는 게 좋을까?"
                 value={form.mostCurious}
                 aria-invalid={Boolean(errors.mostCurious)}
                 aria-describedby={errors.mostCurious ? "most-curious-error" : "most-curious-help"}
                 onChange={(event) => setForm({ ...form, mostCurious: event.target.value })}
               />
               <div className="relationship-context-meta">
-                <small id="most-curious-help" className="field-hint">이름·연락처 같은 민감정보는 적지 않아도 됩니다.</small>
+                <small id="most-curious-help" className="field-hint">이름·연락처 같은 민감정보는 적지 않아도 돼.</small>
                 <small aria-label="입력 글자 수">{form.mostCurious.length}/{MAX_MOST_CURIOUS_LENGTH}</small>
               </div>
               {errors.mostCurious ? <small id="most-curious-error" className="field-error">{errors.mostCurious}</small> : null}
             </label>
           </section>
-
-          {partnerBirthTimeNotice ? <div className="form-success v3-info-level" role="status" aria-live="polite">
-            <strong>출생시간 미입력 안내</strong>
-            <p>{partnerBirthTimeNotice}</p>
-          </div> : null}
 
           <div className="step-nav v3-step-nav">
             <button type="button" className="secondary-action" onClick={goBack}>이전</button>

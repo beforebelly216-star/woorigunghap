@@ -10,8 +10,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "공유된 관계 결과 | 우리사주",
-  description: "친구가 공유한 우리사주 관계 결과의 일부를 확인해 보세요.",
+  title: "공유된 관계 결과 | 주토피",
+  description: "친구가 공유한 주토피 관계 결과를 확인해 봐",
   robots: { index: false, follow: false },
 };
 
@@ -27,9 +27,9 @@ export default async function SharedViewPage({ params }: { params: Promise<{ tok
     return <main className={`${styles.page} shared-view-page`}>
       <article className={`${styles.shell} shared-view-shell`}>
         <header className={styles.hero}>
-          <Link href="/" className={styles.brand}>우리사주</Link>
-          <p className={styles.eyebrow}>{share.relationshipLabel} · SHARED VIEW</p>
-          <h1>{names || "두 사람"}은 이런 조합이래요.</h1>
+          <Link href="/" className={styles.brand}>주토피</Link>
+          <p className={styles.eyebrow}>{share.relationshipLabel} · 공유 결과</p>
+          <h1>{names || "두 사람"}은 이런 조합이래.</h1>
           <p className={styles.headline}>{share.headline}</p>
           <p className={styles.summary}>{share.summary}</p>
         </header>
@@ -65,9 +65,9 @@ export default async function SharedViewPage({ params }: { params: Promise<{ tok
   return <main className={`${styles.page} shared-view-page`}>
     <article className={`${styles.shell} shared-view-shell`}>
       <header className={styles.hero}>
-        <Link href="/" className={styles.brand}>우리사주</Link>
-        <p className={styles.eyebrow}>1:다 {share.relationshipLabel} · SHARED VIEW</p>
-        <h1>{share.referenceName ? `${share.referenceName}의 관계 비교` : "이 관계 비교"}는 이렇게 나왔어요.</h1>
+        <Link href="/" className={styles.brand}>주토피</Link>
+        <p className={styles.eyebrow}>1:다 {share.relationshipLabel} · 공유 결과</p>
+        <h1>{share.referenceName ? `${share.referenceName}의 관계 비교` : "이 관계 비교"}는 이렇게 나왔어.</h1>
         <p className={styles.headline}>{share.headline}</p>
         <p className={styles.summary}>{share.summary}</p>
       </header>

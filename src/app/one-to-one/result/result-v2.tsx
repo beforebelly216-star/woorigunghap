@@ -32,7 +32,7 @@ import {
 import { CompatibilityShareCard } from "./compatibility-share-card";
 import { buildCompatibilityShareArchetype } from "@/lib/narrative/compatibility-share-card";
 import { normalizeStoredPaidReportForDisplay } from "@/lib/narrative/stored-report-compat";
-import { calibrateCompatibilityScore, getCompatibilityScoreBand } from "@/lib/compatibility/score-scale";
+import { calibrateCompatibilityScore } from "@/lib/compatibility/score-scale";
 import { COMPATIBILITY_SCORING_VERSION } from "@/lib/compatibility/weights";
 import { buildDimensionEvidenceCopy } from "@/lib/compatibility/dimension-evidence-copy";
 import ReportLayoutV3 from "./report-layout-v3";
@@ -47,10 +47,10 @@ const DIMENSION_LABELS: Record<CompatibilityDimension, string> = {
 const SEGMENTS: PaidReportSegmentName[] = ["intro", "dynamics", "action"];
 const MAX_AUTOMATIC_FORMAT_ATTEMPTS = 2;
 const STAGE_COPY: Record<"prepare" | PaidReportSegmentName, string> = {
-  prepare: "결제와 궁합 점수를 확인하고 있어요.",
-  intro: "1~3장 · 두 사람의 사주와 관계 성향을 풀어 쓰고 있어요.",
-  dynamics: "4~6장 · 기본 케미와 실제 결속·마찰을 분석하고 있어요.",
-  action: "7~10장 · 관계 흐름과 갈등 대응·실전 매뉴얼을 만들고 있어요.",
+  prepare: "결제와 두 사람의 정보를 확인하고 있어.",
+  intro: "두 사람의 사주와 관계 성향을 차근차근 읽고 있어.",
+  dynamics: "둘 사이의 케미와 관계 구조를 분석하고 있어.",
+  action: "관계에서 바로 이해할 수 있는 핵심 답을 정리하고 있어.",
 };
 
 class FatalGenerationError extends Error {
@@ -142,8 +142,6 @@ export default function ResultV2() {
   const [fatalReason, setFatalReason] = useState<string | null>(null);
   const [stage, setStage] = useState<"prepare" | PaidReportSegmentName>("prepare");
   const [stageAttempt, setStageAttempt] = useState(1);
-  const [completedSegments, setCompletedSegments] = useState(0);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [accountOwned, setAccountOwned] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
   const [generationRun, setGenerationRun] = useState(0);
@@ -162,15 +160,6 @@ export default function ResultV2() {
       window.removeEventListener("scroll", updateReadingProgress);
       window.removeEventListener("resize", updateReadingProgress);
     };
-  }, [status]);
-
-  useEffect(() => {
-    if (status !== "loading") return;
-    const startedAt = Date.now();
-    const timer = window.setInterval(() => {
-      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
-    }, 1000);
-    return () => window.clearInterval(timer);
   }, [status]);
 
   useEffect(() => {
@@ -260,13 +249,12 @@ export default function ResultV2() {
             setFacts(payload.progress.facts);
             setContent(recoveredContent);
             setSegmentMetas(payload.progress.metas);
-            setCompletedSegments(3);
             setAccountOwned(true);
             setStatus("ready");
             return;
           }
           setFatalMessage(response.status === 401
-            ? "이 보관함 결과를 열려면 다시 로그인해 주세요."
+            ? "이 보관함 결과를 열려면 다시 로그인해 줘."
             : payload?.error ?? "보관함에서 결과를 불러오지 못했습니다.");
           setStatus("fatal");
           return;
@@ -321,7 +309,6 @@ export default function ResultV2() {
         setFacts(progress.facts);
         setContent(cachedContent);
         setSegmentMetas(progress.metas);
-        setCompletedSegments(3);
         setStatus("ready");
         return;
       }
@@ -347,7 +334,6 @@ export default function ResultV2() {
 
         for (const segment of SEGMENTS) {
           if (progress.segments[segment]) {
-            setCompletedSegments((current) => Math.max(current, SEGMENTS.indexOf(segment) + 1));
             continue;
           }
 
@@ -362,7 +348,6 @@ export default function ResultV2() {
           if (segment === "action") progress.segments.action = generated.segmentContent as ActionSegment;
           progress.metas[segment] = generated.segmentMeta;
           saveReportProgress(progress);
-          setCompletedSegments(SEGMENTS.indexOf(segment) + 1);
           setSegmentMetas({ ...progress.metas });
         }
 
@@ -405,7 +390,6 @@ export default function ResultV2() {
     setFatalReason(null);
     setStage("prepare");
     setStageAttempt(1);
-    setElapsedSeconds(0);
     setStatus("loading");
     setGenerationRun((current) => current + 1);
   }
@@ -416,19 +400,19 @@ export default function ResultV2() {
       .filter(([dimension, value]) => dimension !== "luckCycleAlignment" && value.maxPoints > 0);
   }, [snapshot]);
 
-  if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 불러올 입력정보가 없어요.</h1><p>결제 자체는 사라지지 않았어요. 같은 브라우저의 원래 결제 탭이 있으면 그 탭을 다시 열어 주세요. 없으면 아래에서 두 사람의 정보만 다시 입력해 기존 결제로 결과를 복구할 수 있어요.</p>{paymentId ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력정보 다시 넣기</Link> : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}</div></main>;
+  if (status === "missing") return <main className="v2-page"><div className="v2-state"><h1>결제 결과를 불러올 입력정보가 없어.</h1><p>결제 자체는 사라지지 않았어. 같은 브라우저의 원래 결제 탭이 있으면 그 탭을 다시 열어 줘. 없으면 아래에서 두 사람의 정보만 다시 입력해 기존 결제로 결과를 복구할 수 있어.</p>{paymentId ? <Link href={`/one-to-one?recoverPaymentId=${encodeURIComponent(paymentId)}`} className="primary-link">결제 없이 입력정보 다시 넣기</Link> : <Link href="/one-to-one">1:1 입력으로 돌아가기</Link>}</div></main>;
 
-  if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리사주</p><h1>상세 리포트를 만들고 있어요.</h1><p>{STAGE_COPY[stage]}</p><p>{completedSegments}/3개 해설 묶음 완료 · {elapsedSeconds}초 경과</p>{stageAttempt > 1 ? <p>연결이 끊겨도 자동으로 이어서 시도하고 있어요. 이 화면은 완료될 때까지 계속 기다립니다.</p> : <p>첫 장문 생성은 시간이 걸릴 수 있어요. 창을 그대로 열어두면 완료될 때까지 이어서 진행합니다.</p>}</div></main>;
+  if (status === "loading") return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">주토피</p><h1 className="generation-title">상세 리포트를 만들고 있어요.</h1><p>{STAGE_COPY[stage]}</p><p>현재 응답에 통상적으로 소요되는 시간은 약 5분이야.</p>{stageAttempt > 1 ? <p>연결이 잠깐 끊겨도 같은 결제로 자동으로 이어서 시도하고 있어.</p> : <p>창을 그대로 열어두면 완성되는 즉시 보여줄게.</p>}</div></main>;
 
   if (status === "fatal" && accountSource) return <main className="v2-page"><div className="v2-state">
     <p className="v2-kicker">내 궁합 보관함</p>
     <h1>보관함 결과를 열 수 없어요.</h1>
-    <p>{fatalMessage ?? "로그인 상태와 결과 소유권을 다시 확인해 주세요."}</p>
+    <p>{fatalMessage ?? "로그인 상태와 결과 소유권을 다시 확인해 줘."}</p>
     <Link href={`/login?${new URLSearchParams({ returnTo: `/one-to-one/result?paymentId=${paymentId ?? ""}&source=account` }).toString()}`} className="primary-link">카카오 로그인 다시 하기</Link>
     <Link href="/account/reports">보관함으로 돌아가기</Link>
   </div></main>;
 
-  if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">우리사주</p><h1>{fatalGenerationTitle(fatalReason)}</h1><p>{fatalMessage ?? "결제 또는 API 상태를 확인해 주세요."}</p><p>결제는 다시 하지 않아도 됩니다.</p>{paymentId ? <button type="button" className="primary-link" onClick={retrySamePayment}>같은 결제로 다시 시도</button> : null}</div></main>;
+  if (status === "fatal" || !order || !snapshot || !content || !facts) return <main className="v2-page"><div className="v2-state"><p className="v2-kicker">주토피</p><h1>{fatalGenerationTitle(fatalReason)}</h1><p>{fatalMessage ?? "결제 또는 API 상태를 확인해 줘."}</p><p>결제는 다시 하지 않아도 돼.</p>{paymentId ? <button type="button" className="primary-link" onClick={retrySamePayment}>같은 결제로 다시 시도</button> : null}</div></main>;
 
   const { personA, personB, relationshipType } = order.inputSnapshot;
   const relationshipLabel = RELATIONSHIP_LABELS[relationshipType];
@@ -439,7 +423,6 @@ export default function ResultV2() {
     ? `${relationshipLabel} · ${coworkerHierarchyLabel}`
     : relationshipLabel;
   const publicScore = calibrateCompatibilityScore(snapshot.rawTotal);
-  const scoreBand = getCompatibilityScoreBand(publicScore);
   const publicUncertaintyRange = snapshot.scoringVersion === COMPATIBILITY_SCORING_VERSION
     ? snapshot.uncertaintyRange
     : (() => {
@@ -463,13 +446,8 @@ export default function ResultV2() {
       personBName={personB.displayName}
       relationshipLabel={displayRelationshipLabel}
       score={publicScore}
-      scoreLabel={scoreBand.label}
-      scoreDescription={scoreBand.description}
-      archetypeLabel={shareArchetype.label}
-      archetypeSubtitle={shareArchetype.subtitle}
       content={displayContent}
       facts={facts}
-      snapshot={displaySnapshot}
       visibleDimensions={visibleDimensions}
       dimensionLabels={DIMENSION_LABELS}
       shareNode={<CompatibilityShareCard

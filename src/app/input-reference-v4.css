@@ -9,7 +9,7 @@
   --ref-surface: #ffffff;
   --ref-soft: #fffdf8;
   min-height: 100vh;
-  background: #fffdf8;
+  background: #fff;
   color: var(--ref-ink);
 }
 .reference-input-screen .person-panel { min-width: 0; margin: 0; padding: 0; border: 0; }

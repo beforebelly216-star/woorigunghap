@@ -4,7 +4,7 @@
 .page {
   min-height: 100vh;
   padding: 18px 18px 48px;
-  background: #fffdf8;
+  background: #fff;
 }
 .shell { width: min(100%, 390px); margin: 0 auto; }
 .brandRow { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }

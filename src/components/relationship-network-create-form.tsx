@@ -56,9 +56,9 @@ export function RelationshipNetworkCreateForm() {
     event.preventDefault();
     if (loading) return;
     const nextErrors: Record<string, string> = {};
-    if (!person.displayName.trim()) nextErrors["person.displayName"] = "이름 또는 별칭을 입력해 주세요.";
-    if (!person.gender) nextErrors["person.gender"] = "성별을 선택해 주세요.";
-    if (!consent) nextErrors.consent = "공개 범위와 개인정보 보관 안내에 동의해 주세요.";
+    if (!person.displayName.trim()) nextErrors["person.displayName"] = "이름 또는 별칭을 입력해 줘.";
+    if (!person.gender) nextErrors["person.gender"] = "성별을 선택해 줘.";
+    if (!consent) nextErrors.consent = "공개 범위와 개인정보 보관 안내에 동의해 줘.";
     const normalized = normalizePersonBirthForm(person, "person");
     Object.assign(nextErrors, normalized.errors);
     if (!normalized.person || Object.keys(nextErrors).length > 0) {
@@ -97,7 +97,7 @@ export function RelationshipNetworkCreateForm() {
       if (!response.ok || !network || !token || !ownerToken || !memberToken || !memberId) {
         const message = typeof payload?.error === "string"
           ? payload.error
-          : "인물 네트워크를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.";
+          : "인물 네트워크를 만들지 못했어. 잠시 후 다시 시도해 줘.";
         setErrors({ form: message });
         if (payload?.code === "idempotency_conflict") createAttemptRef.current = null;
         return;
@@ -131,7 +131,7 @@ export function RelationshipNetworkCreateForm() {
       createAttemptRef.current = null;
       router.push(`${url}#${fragment}`);
     } catch {
-      setErrors({ form: "인물 네트워크를 만들지 못했습니다. 잠시 후 다시 시도해 주세요." });
+      setErrors({ form: "인물 네트워크를 만들지 못했어. 잠시 후 다시 시도해 줘." });
     } finally {
       setLoading(false);
     }
@@ -143,20 +143,20 @@ export function RelationshipNetworkCreateForm() {
       {authState === "guest" ? (
         <aside className={styles.authSaveNudge}>
           <div>
-            <strong>카카오 로그인하고 오래 기억해 두세요</strong>
-            <p>로그인하면 만든 인연 네트워크가 계정 보관함에 저장되어 다른 기기에서도 다시 찾을 수 있어요.</p>
+          <strong>카카오 로그인하고 오래 기억해 둬</strong>
+            <p>로그인하면 만든 인연 네트워크가 계정 보관함에 저장돼서 다른 기기에서도 다시 찾을 수 있어.</p>
           </div>
           <Link href="/login?returnTo=%2Fone-to-many">카카오 로그인</Link>
-          <small>로그인 없이도 무료로 만들 수 있고, 이 기기에는 자동 저장됩니다.</small>
+          <small>카카오 로그인 뒤 무료로 만들 수 있고, 계정 보관함에 자동으로 연결돼.</small>
         </aside>
       ) : authState === "authenticated" ? (
-        <p className={styles.authSavedHint}>✓ 만들면 카카오 계정 보관함에도 자동 저장됩니다.</p>
+        <p className={styles.authSavedHint}>✓ 만들면 카카오 계정 보관함에도 자동 저장돼.</p>
       ) : null}
       <section className={styles.formCard}>
         <div className={styles.formHeading}>
-          <span>STEP 1</span>
-          <h2>내 정보만 입력해 주세요</h2>
-          <p>친구들은 공유 링크에서 각자 자기 정보를 직접 입력합니다.</p>
+          <span>첫 단계</span>
+          <h2>네 정보만 입력해 줘</h2>
+          <p>친구들은 공유 링크에서 각자 자기 정보를 직접 입력해.</p>
         </div>
         <PersonBirthFields
           title=""
@@ -186,17 +186,17 @@ export function RelationshipNetworkCreateForm() {
         </span>
       </label>
       <p className={styles.policyLinks}>
-        제출 전에 <Link href="/terms" target="_blank" rel="noreferrer">이용약관</Link>과 <Link href="/privacy" target="_blank" rel="noreferrer">개인정보처리방침</Link>을 확인해 주세요.
+        제출 전에 <Link href="/terms" target="_blank" rel="noreferrer">이용약관</Link>과 <Link href="/privacy" target="_blank" rel="noreferrer">개인정보처리방침</Link>을 확인해 줘.
       </p>
       {errors.consent ? <small className="field-error" role="alert">{errors.consent}</small> : null}
 
       <aside className={styles.privacyNote}>
-        <strong>🔒 생년정보는 화면과 링크에 노출하지 않습니다</strong>
-        <p>암호화해 궁합 계산에만 사용하고, 네트워크는 만든 날부터 30일 뒤 자동 만료됩니다. 방장과 참여자는 언제든 정보를 삭제할 수 있습니다.</p>
+        <strong>🔒 생년정보는 화면과 링크에 노출하지 않아</strong>
+        <p>암호화해 궁합 계산에만 쓰고, 네트워크는 만든 날부터 30일 뒤 자동 만료돼. 방장과 참여자는 언제든 정보를 삭제할 수 있어.</p>
       </aside>
 
       <button type="submit" className={styles.primaryButton} disabled={loading}>
-        {loading ? "인연 네트워크를 만들고 있어요…" : "무료 네트워크 만들기"}
+        {loading ? "인연 네트워크를 만들고 있어…" : "무료 네트워크 만들기"}
       </button>
       <p className={styles.formFootnote}>결제 없이 시작 · 최대 12명 · 새 참여자와 모든 사람의 관계를 자동 계산</p>
     </form>

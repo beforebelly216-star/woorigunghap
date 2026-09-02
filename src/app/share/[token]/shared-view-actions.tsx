@@ -74,8 +74,8 @@ export function SharedViewActions({ token, product, relationshipType, disclosure
 
   return <>
     <section className={styles.reactionCard} aria-labelledby="shared-view-reaction-title">
-      <small>YOUR REACTION</small>
-      <h2 id="shared-view-reaction-title">이 결과, 얼마나 맞아 보여요?</h2>
+      <small>네 반응은?</small>
+      <h2 id="shared-view-reaction-title">이 결과, 얼마나 맞아 보여?</h2>
       <div className={styles.reactionButtons} role="group" aria-label="공유 결과 반응">
         {REACTIONS.map((option) => <button
           type="button"
@@ -87,7 +87,7 @@ export function SharedViewActions({ token, product, relationshipType, disclosure
         >{option.label}</button>)}
       </div>
       <p className={styles.reactionNote} aria-live="polite">
-        {reaction ? "반응 고마워요. 이제 내 관계도 같은 방식으로 확인해볼 수 있어요." : "한 번 골라보면 내 관계를 확인하는 다음 단계가 열려요."}
+        {reaction ? "반응 고마워. 이제 내 관계도 같은 방식으로 확인할 수 있어." : "한 번 골라보면 내 관계도 같은 방식으로 확인할 수 있어."}
       </p>
     </section>
 

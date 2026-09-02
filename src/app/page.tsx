@@ -1,10 +1,8 @@
 import Link from "next/link";
-import { connection } from "next/server";
 import "./report-theme.css";
 import "../components/zootopi-mark.css";
 import styles from "./home-p5.module.css";
 import { ZootopiMark } from "@/components/zootopi-mark";
-import { getDailyQuote } from "@/lib/daily-quotes";
 import { HomeRecentReports } from "./home-recent-reports";
 
 function HeartIcon() {
@@ -13,22 +11,11 @@ function HeartIcon() {
 function PeopleIcon() {
   return <svg viewBox="0 0 72 56" aria-hidden="true"><circle cx="20" cy="18" r="9" fill="#f3eaff" stroke="#202024" strokeWidth="2"/><circle cx="36" cy="13" r="10" fill="#eadcff" stroke="#202024" strokeWidth="2"/><circle cx="52" cy="18" r="9" fill="#f8eafa" stroke="#202024" strokeWidth="2"/><path d="M7 48c1-11 7-17 13-17s12 6 13 17M23 48c1-14 7-21 13-21s12 7 13 21M39 48c1-11 7-17 13-17s12 6 13 17" fill="#fff" stroke="#202024" strokeWidth="2" strokeLinecap="round"/></svg>;
 }
-async function TodayQuote() {
-  await connection();
-  const quote = getDailyQuote(new Date());
-
-  return (
-    <aside className={styles.tipCard}>
-      <div><strong>주토피의 오늘의 한마디 💛</strong><p>{quote}</p></div>
-      <ZootopiMark expression="smile" withBody />
-    </aside>
-  );
-}
 export default function Home() {
   return (
     <main className={`${styles.page} home-mobile-page`}>
       <section className={styles.heroCard}>
-        <div className={styles.heroText}><h1>당신의 궁합,<br/>지금 확인해보세요</h1><p>우리의 인연을 명확하게</p><span>1:N 무료 <b>|</b> 1:1 1,000원</span></div>
+        <div className={styles.heroText}><h1>우리 궁합,<br/>지금 확인해 봐</h1><p>헷갈리는 인연을 선명하게 풀어줄게</p><span>1:N 무료 <b>|</b> 1:1 1,000원</span></div>
         <div className={styles.heroArt}><span className={styles.sparkleOne}>✦</span><span className={styles.sparkleTwo}>✦</span><ZootopiMark expression="idea" withBody /></div>
       </section>
 
@@ -42,7 +29,6 @@ export default function Home() {
 
       <HomeRecentReports />
 
-      <TodayQuote />
       <nav className={styles.bottomNav} aria-label="주요 메뉴"><Link href="/" className={styles.active}><span>⌂</span><b>홈</b></Link><Link href="/account/reports"><span>▣</span><b>보관함</b></Link><Link href="/login"><span>♙</span><b>마이페이지</b></Link></nav>
     </main>
   );

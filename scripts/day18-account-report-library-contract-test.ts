@@ -73,7 +73,7 @@ assert.match(libraryPage, /removeOrderDraft\(report\.paymentId\)/);
 assert.match(libraryPage, /removeReportProgress\(report\.paymentId, report\.createdAt\)/);
 assert.match(loginPage, /normalizeReturnTo/);
 assert.match(loginPage, /카카오로 계속하기/);
-assert.match(loginPage, /이메일·전화번호·생년정보는 요청하지 않습니다/);
+assert.match(loginPage, /이메일·전화번호·생년정보는 요청하지 않아/);
 assert.match(accountDeletion, /aria-expanded=\{open\}/);
 assert.match(accountDeletion, /aria-controls="account-delete-details"/);
 assert.match(accountDeletion, /confirmation !== "탈퇴"/);

@@ -1,6 +1,6 @@
-.page { min-height: 100vh; background: #fbfaf7; color: #222026; }
+.page { min-height: 100vh; background: #fff; color: #222026; }
 .shell { width: min(100%, 390px); margin: 0 auto; padding: 0 14px 34px; }
-.topbar { height: 62px; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; border-bottom: 1px solid #eee9e3; background: rgba(251,250,247,.96); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); }
+.topbar { height: 62px; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; border-bottom: 1px solid #eee9e3; background: rgba(255,255,255,.96); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); }
 .topbar > strong { text-align: center; font-size: .92rem; letter-spacing: -.02em; }
 .iconButton { width: 38px; height: 38px; display: grid; place-items: center; border: 0; background: transparent; color: #222026; font: inherit; font-size: 1.55rem; text-decoration: none; cursor: pointer; }
 .hero { margin: 16px 0 24px; min-height: 210px; border-radius: 18px; padding: 24px 20px; display: grid; grid-template-columns: 1fr 112px; gap: 8px; align-items: end; overflow: hidden; position: relative; background: linear-gradient(145deg,#8f70e9 0%,#b692f2 58%,#f0b4dd 100%); color: #fff; box-shadow: 0 12px 28px rgba(112,79,182,.18); }
@@ -29,7 +29,7 @@
 .pillarsTable > :nth-last-child(-n+5) { border-bottom: 0; }
 .dayCell { background: #fff7dc; color: #8a5c00; }
 .uncertainNote { margin: 9px 2px 0; font-size: .66rem; line-height: 1.45; color: #8d8589; }
-.selfGrid { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.selfGrid { margin-top: 12px; display: grid; grid-template-columns: 1fr; gap: 9px; }
 .selfGrid article { min-height: 108px; position: relative; border: 1px solid #eee6df; border-radius: 14px; padding: 14px 12px; background: #fff; }
 .selfGrid small { display:block; color:#817982; font-size:.64rem; margin-bottom:6px; }
 .selfGrid strong { display:block; font-size:1rem; letter-spacing:-.035em; }
@@ -71,6 +71,10 @@
 .bar i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#f3bd33,#8ccf75); }
 .chips { margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; }
 .chips span { border:1px solid #e5dfd8; border-radius:7px; background:#faf8f5; padding:6px 8px; font-size:.65rem; font-weight:700; }
+.preferenceList { display:grid; gap:8px; }
+.preferenceList>div { padding:10px 11px; border:1px solid #ebe4de; border-radius:10px; background:#faf9f7; }
+.preferenceList strong { display:block; font-size:.72rem; }
+.preferenceList p { margin:4px 0 0; color:#6d666e; font-size:.67rem; line-height:1.55; }
 .yinYangBox { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .yinYangBox div { display:flex; justify-content:space-between; align-items:center; padding:11px 12px; border-radius:11px; background:#faf8f7; }
 .yinYangBox b { font-size:.68rem; }

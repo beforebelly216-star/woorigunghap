@@ -68,6 +68,12 @@ function shareText(summary: RelationshipNetworkShareSummary) {
   return `인연 ${summary.memberCount}명, 관계 ${summary.relationshipCount}쌍이 연결됐어요. 나는 이 지도에서 몇 등급일까요?`;
 }
 
+function memberNamesForPreview(network: RelationshipNetworkPublic) {
+  const visibleNames = network.members.slice(0, 4).map((member) => member.displayName);
+  const remainingCount = Math.max(0, network.members.length - visibleNames.length);
+  return `${visibleNames.join(" · ")}${remainingCount > 0 ? ` 외 ${remainingCount}명` : ""}`;
+}
+
 function roundedRect(
   context: CanvasRenderingContext2D,
   x: number,
@@ -100,13 +106,13 @@ function fillRoundedRect(
   context.fill();
 }
 
-function drawAnonymousNetwork(
+function drawNamedNetwork(
   context: CanvasRenderingContext2D,
-  memberCount: number,
+  memberNames: string[],
   strongestGrade: RelationshipNetworkGrade | null,
 ) {
   const center = { x: STORY_WIDTH / 2, y: 950 };
-  const visibleCount = Math.max(1, Math.min(memberCount, 12));
+  const visibleCount = Math.max(1, Math.min(memberNames.length, 12));
   const positions: Array<{ x: number; y: number }> = [center];
   const guestCount = Math.max(visibleCount - 1, 0);
   for (let index = 0; index < guestCount; index += 1) {
@@ -154,10 +160,17 @@ function drawAnonymousNetwork(
       ? strongestGrade ? GRADE_COLORS[strongestGrade] : "#8b64e6"
       : "#d8c7fb";
     context.stroke();
+
+    const displayName = (memberNames[index] ?? "친구").trim().slice(0, index === 0 ? 5 : 4);
+    context.fillStyle = "#2c2440";
+    context.font = `${index === 0 ? "900 28px" : "800 22px"} Pretendard, Apple SD Gothic Neo, sans-serif`;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(displayName, point.x, point.y);
   }
   context.restore();
 
-  if (memberCount <= 1) {
+  if (memberNames.length <= 1) {
     context.save();
     context.setLineDash([16, 16]);
     context.lineWidth = 5;
@@ -178,6 +191,12 @@ export async function createRelationshipNetworkStoryBlob(
   canvas.height = STORY_HEIGHT;
   const context = canvas.getContext("2d");
   if (!context) throw new Error("CANVAS_UNAVAILABLE");
+  const host = network.members.find((member) => member.id === network.hostMemberId);
+  const orderedMembers = [
+    ...(host ? [host] : []),
+    ...network.members.filter((member) => member.id !== network.hostMemberId),
+  ];
+  const memberNames = orderedMembers.map((member) => member.displayName);
 
   const background = context.createLinearGradient(0, 0, STORY_WIDTH, STORY_HEIGHT);
   background.addColorStop(0, "#f8f1ff");
@@ -195,7 +214,7 @@ export async function createRelationshipNetworkStoryBlob(
   context.textAlign = "left";
   context.fillStyle = "#5f3da9";
   context.font = "900 36px Pretendard, Apple SD Gothic Neo, sans-serif";
-  context.fillText("우리사주 · 인연 네트워크", 104, 145);
+  context.fillText("주토피 · 인연 네트워크", 104, 145);
 
   context.fillStyle = "#25202c";
   context.font = "900 72px Pretendard, Apple SD Gothic Neo, sans-serif";
@@ -207,9 +226,9 @@ export async function createRelationshipNetworkStoryBlob(
   context.fillText(summaryHeadline(summary), 142, 500);
   context.fillStyle = "rgba(255, 255, 255, .76)";
   context.font = "700 28px Pretendard, Apple SD Gothic Neo, sans-serif";
-  context.fillText("이름과 생년정보 없이, 연결된 관계만 보여드려요", 142, 555);
+  context.fillText("이름은 그대로, 생년정보는 안전하게 가렸어", 142, 555);
 
-  drawAnonymousNetwork(context, summary.memberCount, summary.strongestGrade);
+  drawNamedNetwork(context, memberNames, summary.strongestGrade);
 
   const chipY = 1320;
   const chipWidth = 236;
@@ -234,7 +253,7 @@ export async function createRelationshipNetworkStoryBlob(
   context.fillText("내 정보만 넣고 인연 연결하기", STORY_WIDTH / 2, 1576);
   context.fillStyle = "#746c78";
   context.font = "700 29px Pretendard, Apple SD Gothic Neo, sans-serif";
-  context.fillText("공유 링크에서 모든 사람과의 궁합을 한 번에 확인해요", STORY_WIDTH / 2, 1633);
+  context.fillText("공유 링크에서 모든 사람과의 궁합을 한 번에 확인해", STORY_WIDTH / 2, 1633);
 
   const buttonGradient = context.createLinearGradient(204, 1694, 876, 1812);
   buttonGradient.addColorStop(0, "#7046cc");
@@ -245,7 +264,7 @@ export async function createRelationshipNetworkStoryBlob(
   context.fillText("내 등급 확인하러 들어오기", STORY_WIDTH / 2, 1768);
   context.fillStyle = "#918991";
   context.font = "700 23px Pretendard, Apple SD Gothic Neo, sans-serif";
-  context.fillText("개별 이름·점수는 이 카드에 포함되지 않습니다", STORY_WIDTH / 2, 1870);
+  context.fillText("참여자 이름은 보이고 생년정보는 공개하지 않아", STORY_WIDTH / 2, 1870);
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
@@ -282,7 +301,7 @@ export function RelationshipNetworkShareCard({
 
   async function shareStory() {
     if (working) return;
-    updateState("working", "스토리 카드를 만들고 있어요.");
+    updateState("working", "스토리 카드를 만들고 있어.");
     try {
       const blob = await createRelationshipNetworkStoryBlob(network);
       const file = new File([blob], STORY_FILE_NAME, { type: "image/png" });
@@ -291,23 +310,23 @@ export function RelationshipNetworkShareCard({
       const storyShareData = { title: "내 인연 네트워크", text, url, files: [file] };
       if (navigator.share && navigator.canShare?.(storyShareData)) {
         await navigator.share(storyShareData);
-        updateState("shared", "스토리 카드와 참여 링크를 공유했어요.");
+        updateState("shared", "스토리 카드와 참여 링크를 공유했어.");
         return;
       }
       if (navigator.share) {
         await navigator.share({ title: "내 인연 네트워크", text, url });
-        updateState("shared", "참여 링크를 공유했어요. 스토리 이미지는 아래에서 저장할 수 있어요.");
+        updateState("shared", "참여 링크를 공유했어. 스토리 이미지는 아래에서 저장할 수 있어.");
         return;
       }
       await navigator.clipboard.writeText(`${text}\n${url}`);
       downloadBlob(blob);
-      updateState("saved", "스토리 이미지를 저장하고 참여 링크를 복사했어요.");
+      updateState("saved", "스토리 이미지를 저장하고 참여 링크를 복사했어.");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         setShareState("idle");
         return;
       }
-      updateState("failed", "공유 카드를 만들지 못했어요. 잠시 후 다시 시도해 주세요.");
+      updateState("failed", "공유 카드를 만들지 못했어. 잠시 후 다시 시도해 줘.");
     }
   }
 
@@ -315,40 +334,40 @@ export function RelationshipNetworkShareCard({
     if (working) return;
     try {
       await navigator.clipboard.writeText(`${shareText(summary)}\n${publicNetworkUrl()}`);
-      updateState("copied", "참여 링크를 복사했어요.");
+      updateState("copied", "참여 링크를 복사했어.");
     } catch {
-      updateState("failed", "링크를 복사하지 못했어요. 주소창의 링크를 복사해 주세요.");
+      updateState("failed", "링크를 복사하지 못했어. 주소창의 링크를 복사해 줘.");
     }
   }
 
   async function saveStory() {
     if (working) return;
-    updateState("working", "스토리 카드를 만들고 있어요.");
+    updateState("working", "스토리 카드를 만들고 있어.");
     try {
       const blob = await createRelationshipNetworkStoryBlob(network);
       downloadBlob(blob);
-      updateState("saved", "1080×1920 스토리 이미지를 저장했어요.");
+      updateState("saved", "1080×1920 스토리 이미지를 저장했어.");
     } catch {
-      updateState("failed", "스토리 이미지를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      updateState("failed", "스토리 이미지를 저장하지 못했어. 잠시 후 다시 시도해 줘.");
     }
   }
 
   const statusMessage = shareState === "shared"
-    ? "스토리 카드와 참여 링크를 공유했어요."
+    ? "스토리 카드와 참여 링크를 공유했어."
     : shareState === "copied"
-      ? "참여 링크를 복사했어요."
+      ? "참여 링크를 복사했어."
       : shareState === "saved"
-        ? "스토리 이미지를 저장했어요."
+        ? "스토리 이미지를 저장했어."
         : shareState === "failed"
-          ? "공유를 완료하지 못했어요. 다시 시도해 주세요."
-          : "카드에는 참여자 이름과 개별 점수가 들어가지 않아요.";
+          ? "공유를 완료하지 못했어. 다시 시도해 줘."
+          : "카드에는 참여자 이름이 들어가고 생년정보는 공개하지 않아.";
 
   return (
     <section id="network-share-card" className={styles.relationshipCard} aria-labelledby="relationship-network-share-title">
       <div className={styles.sectionHeader}>
         <div>
           <h2 id="relationship-network-share-title">스토리에 올리고 친구 초대하기</h2>
-          <p>결과의 답은 가리고, 인원과 등급 힌트만 담은 9:16 카드예요.</p>
+          <p>참여자 이름과 인원·등급 힌트를 담은 9:16 카드야.</p>
         </div>
       </div>
       <div
@@ -366,7 +385,7 @@ export function RelationshipNetworkShareCard({
         <small style={{ color: "#fff2a7", fontWeight: 900 }}>나는 이 지도에서 몇 등급일까?</small>
         <strong style={{ fontSize: "1.05rem" }}>{summaryHeadline(summary)}</strong>
         <span style={{ color: "rgba(255,255,255,.76)", fontSize: ".7rem" }}>
-          {summary.memberCount}명 연결 · {summary.relationshipCount}쌍 관계 · 개별 이름 비공개
+          {summary.memberCount}명 연결 · {summary.relationshipCount}쌍 관계 · {memberNamesForPreview(network)}
         </span>
       </div>
       <div style={{ display: "grid", gap: 8, marginTop: 14 }}>

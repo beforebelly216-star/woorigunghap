@@ -34,13 +34,13 @@ export function PaymentButton({
 
   async function startPayment() {
     if (!agreementAccepted) {
-      setMessage("결제 전에 이용약관·개인정보 처리 및 디지털 콘텐츠 제공 조건을 확인해 주세요.");
+      setMessage("결제 전에 이용약관·개인정보 처리 및 디지털 콘텐츠 제공 조건을 확인해 줘.");
       return;
     }
     const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID;
     const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY;
     if (!storeId || !channelKey) {
-      setMessage("결제 설정이 아직 완료되지 않았어요. 환경변수를 확인해 주세요.");
+      setMessage("결제 설정이 아직 완료되지 않았어. 환경변수를 확인해 줘.");
       return;
     }
 
@@ -97,11 +97,11 @@ export function PaymentButton({
       });
 
       if (response?.code) {
-        setMessage(response.message ?? "결제를 완료하지 못했어요. 다시 시도해 주세요.");
+        setMessage(response.message ?? "결제를 완료하지 못했어. 다시 시도해 줘.");
         setIsLoading(false);
       }
     } catch {
-      setMessage("안전한 주문 상태를 확인하지 못해 결제를 시작하지 않았습니다. 잠시 후 다시 시도해 주세요.");
+      setMessage("안전한 주문 상태를 확인하지 못해 결제를 시작하지 않았어. 잠시 후 다시 시도해 줘.");
       setIsLoading(false);
     }
   }
@@ -112,7 +112,7 @@ export function PaymentButton({
         {isLoading ? "결제창을 여는 중..." : buttonLabel ?? `${item.amount.toLocaleString("ko-KR")}원 결제하기`}
       </button>
       <p className="sr-only" role="status" aria-live="polite">
-        {isLoading ? "결제창을 여는 중입니다." : !agreementAccepted ? "구매 조건 확인 후 결제할 수 있습니다." : ""}
+        {isLoading ? "결제창을 여는 중이야." : !agreementAccepted ? "구매 조건을 확인하면 결제할 수 있어." : ""}
       </p>
       {message ? <p className="payment-message" role="alert">{message}</p> : null}
     </div>

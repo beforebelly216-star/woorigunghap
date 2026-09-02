@@ -18,7 +18,7 @@ type CompatibilityShareCardProps = {
 };
 
 type ShareSide = { strength: string; tuning: string };
-const SHARE_OPTION = { purpose: "recap", eyebrow: "OUR COMPATIBILITY RECAP" } as const;
+const SHARE_OPTION = { purpose: "recap", eyebrow: "우리 둘의 궁합 한 장 요약" } as const;
 
 const ARCHETYPE_SIDES: Record<CompatibilityShareArchetype["id"], ShareSide> = {
   spark: { strength: "대화·반응 템포", tuning: "말의 속도와 결정 기준" },
@@ -77,12 +77,10 @@ async function createShareImageBlob({
   relationshipLabel,
   score,
   archetype,
-  includeNames,
   eyebrow,
   shareCopy,
   sides,
 }: CompatibilityShareCardProps & {
-  includeNames: boolean;
   eyebrow: string;
   shareCopy: string;
   sides: ShareSide;
@@ -93,7 +91,7 @@ async function createShareImageBlob({
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("CANVAS_UNAVAILABLE");
 
-  ctx.fillStyle = "#FBFAF7";
+  ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, 1080, 1920);
   ctx.fillStyle = "#FFFFFF";
   roundedRect(ctx, 90, 110, 900, 1700, 52);
@@ -102,18 +100,16 @@ async function createShareImageBlob({
 
   ctx.fillStyle = "#222026";
   ctx.font = "800 42px Pretendard, sans-serif";
-  ctx.fillText("우리사주", 160, 220);
+  ctx.fillText("주토피", 160, 220);
   ctx.textAlign = "right";
   ctx.fillText(`${relationshipLabel} 궁합`, 920, 220);
   ctx.textAlign = "left";
 
-  if (includeNames) {
-    ctx.fillStyle = "#6F6870";
-    ctx.font = "700 42px Pretendard, sans-serif";
-    ctx.fillText(`${selfName}  ×  ${partnerName}`, 160, 330);
-  }
+  ctx.fillStyle = "#6F6870";
+  ctx.font = "700 42px Pretendard, sans-serif";
+  ctx.fillText(`${selfName}  ×  ${partnerName}`, 160, 330);
 
-  const contentTop = includeNames ? 430 : 350;
+  const contentTop = 430;
   ctx.fillStyle = "#918991";
   ctx.font = "900 28px Pretendard, sans-serif";
   ctx.fillText(eyebrow, 160, contentTop);
@@ -182,7 +178,6 @@ export function CompatibilityShareCard({
 }: CompatibilityShareCardProps) {
   const relationshipType = relationshipTypeForLabel(relationshipLabel);
   const [shareState, setShareState] = useState<"idle" | "shared" | "copied" | "saved" | "failed">("idle");
-  const [includeNames, setIncludeNames] = useState(false);
   const selectedCopy = selectRelationshipShareCopyForArchetype({
     relationshipType,
     archetypeId: archetype.id,
@@ -204,21 +199,21 @@ export function CompatibilityShareCard({
   }, [relationshipType]);
 
   async function share() {
-    const shareText = `우리사주 ${relationshipLabel} 궁합 · ${shareCopy} · ${score}점`;
+    const shareText = `주토피 ${relationshipLabel} 궁합 · ${selfName} × ${partnerName} · ${shareCopy} · ${score}점`;
 
     try {
-      const blob = await createShareImageBlob({ selfName, partnerName, relationshipLabel, score, archetype, includeNames, eyebrow: SHARE_OPTION.eyebrow, shareCopy, sides });
+      const blob = await createShareImageBlob({ selfName, partnerName, relationshipLabel, score, archetype, eyebrow: SHARE_OPTION.eyebrow, shareCopy, sides });
       const file = new File([blob], "woorisaju-compatibility-recap.png", { type: "image/png" });
-      const sharedViewUrl = await createPublicShareUrl(buildOneToOnePublicShare({ relationshipType, relationshipLabel, headline: shareCopy, summary: archetype.subtitle, score, selfName, partnerName, includeDisplayNames: includeNames, archetype, strength: { label: "잘 맞는 지점", copy: sides.strength }, tuning: { label: "맞추면 더 좋은 지점", copy: sides.tuning } }));
+      const sharedViewUrl = await createPublicShareUrl(buildOneToOnePublicShare({ relationshipType, relationshipLabel, headline: shareCopy, summary: archetype.subtitle, score, selfName, partnerName, includeDisplayNames: true, archetype, strength: { label: "잘 맞는 지점", copy: sides.strength }, tuning: { label: "맞추면 더 좋은 지점", copy: sides.tuning } }));
       const shareToken = publicShareTokenFromUrl(sharedViewUrl);
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         if (shareToken) trackGrowthEvent({ eventName: "share_native_open", product: "oneToOne", relationshipType, surface: "one_to_one_share_card", sharePurpose: SHARE_OPTION.purpose, shareToken });
-        await navigator.share({ title: `우리사주 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl, files: [file] });
+        await navigator.share({ title: `주토피 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl, files: [file] });
         setShareState("shared"); return;
       }
       if (navigator.share) {
         if (shareToken) trackGrowthEvent({ eventName: "share_native_open", product: "oneToOne", relationshipType, surface: "one_to_one_share_card", sharePurpose: SHARE_OPTION.purpose, shareToken });
-        await navigator.share({ title: `우리사주 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl });
+        await navigator.share({ title: `주토피 ${relationshipLabel} 궁합`, text: shareText, url: sharedViewUrl });
         setShareState("shared"); return;
       }
       await navigator.clipboard.writeText(`${shareText}\n${sharedViewUrl}`);
@@ -232,7 +227,7 @@ export function CompatibilityShareCard({
 
   async function saveImage() {
     try {
-      const blob = await createShareImageBlob({ selfName, partnerName, relationshipLabel, score, archetype, includeNames, eyebrow: SHARE_OPTION.eyebrow, shareCopy, sides });
+      const blob = await createShareImageBlob({ selfName, partnerName, relationshipLabel, score, archetype, eyebrow: SHARE_OPTION.eyebrow, shareCopy, sides });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a"); link.href = url; link.download = "woorisaju-compatibility-recap.png"; link.click();
       trackGrowthEvent({ eventName: "share_image_download", product: "oneToOne", relationshipType, surface: "one_to_one_share_card", sharePurpose: SHARE_OPTION.purpose });
@@ -241,17 +236,15 @@ export function CompatibilityShareCard({
   }
 
   return <section className={styles.section} aria-labelledby="compatibility-share-card-title">
-    <div className={styles.heading}><small>SHARE YOUR RESULT</small><h2 id="compatibility-share-card-title">둘만 보기 아까운 궁합, 한 장으로 보내기</h2><p>점수와 궁합 유형, 잘 맞는 지점만 보기 좋게 담았습니다. 생년월일시와 유료 본문은 카드에 포함하지 않습니다.</p></div>
+    <div className={styles.heading}><small>결과 공유</small><h2 id="compatibility-share-card-title">둘만 보기 아까운 궁합, 한 장으로 보내기</h2><p>두 사람의 이름과 점수, 궁합 유형, 궁금증을 부르는 핵심 단서를 한 장에 담았어.</p></div>
     <div className={styles.card} data-archetype={archetype.id} data-purpose={SHARE_OPTION.purpose}>
-      <div className={styles.topline}><span>우리사주</span><span>{relationshipLabel} 궁합</span></div>
-      {includeNames ? <div className={styles.names}>{selfName} <span>×</span> {partnerName}</div> : <div className={styles.names}>우리 둘의 관계 카드</div>}
-      <div className={styles.mystery}>{SHARE_OPTION.eyebrow}</div><span className={styles.tone}>{selectedCopy.tone}</span><strong className={styles.shareCopy}>{shareCopy}</strong><p className={styles.pairType}>궁합 유형 · <b>{archetype.label}</b></p>
+      <div className={styles.topline}><span>주토피</span><span>{relationshipLabel} 궁합</span></div>
+      <div className={styles.names}>{selfName} <span>×</span> {partnerName}</div>
+      <div className={styles.mystery}>{SHARE_OPTION.eyebrow}</div><strong className={styles.shareCopy}>{shareCopy}</strong><p className={styles.pairType}>궁합 유형 · <b>{archetype.label}</b></p>
       <p className={styles.clue}>{archetype.subtitle}</p><div className={styles.sideGrid}><div className={styles.sideBox}><small>잘 맞는 지점</small><strong>{sides.strength}</strong></div><div className={`${styles.sideBox} ${styles.sideBoxWarm}`}><small>맞추면 더 좋은 지점</small><strong>{sides.tuning}</strong></div></div>
       <div className={styles.score}><span>궁합 점수</span><strong>{score}</strong><small>/ 100</small></div><div className={styles.footer}>결과의 일부만 보여주는 9:16 공유 카드</div>
     </div>
-    <label className={styles.nameToggle}><input type="checkbox" checked={includeNames} onChange={(event) => setIncludeNames(event.target.checked)} />공유 이미지와 Shared View에 이름 넣기</label>
     <div className={styles.actions}><button type="button" className={styles.shareButton} onClick={share}>{shareState === "shared" ? "친구에게 보냈어요" : shareState === "copied" ? "공유 링크를 복사했어요" : "친구에게 궁합 카드 보내기"}</button><button type="button" className={styles.saveButton} onClick={saveImage}>{shareState === "saved" ? "이미지를 저장했어요" : "이미지로 간직하기"}</button></div>
-    {shareState === "failed" && <p className={styles.shareError}>공유 링크나 이미지를 만들지 못했어요. 잠시 후 다시 시도해 주세요.</p>}
-    <p className={styles.privacyNote}>공유 버튼은 결제 결과 주소나 접근 토큰 대신 별도의 Shared View 주소를 만듭니다. 이름은 사용자가 직접 켠 경우에만 공개 DTO에 포함됩니다.</p>
+    {shareState === "failed" && <p className={styles.shareError}>공유 링크나 이미지를 만들지 못했어. 잠시 후 다시 시도해 줘.</p>}
   </section>;
 }

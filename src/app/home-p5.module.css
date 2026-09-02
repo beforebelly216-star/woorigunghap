@@ -3,7 +3,7 @@
   min-height: 100vh;
   margin: 0 auto;
   padding: 18px 16px calc(96px + env(safe-area-inset-bottom));
-  background: #fbfaf7;
+  background: #fff;
   color: #222026;
   font-family: var(--saju-font-sans);
 }

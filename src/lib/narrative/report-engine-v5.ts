@@ -276,8 +276,8 @@ function buildPersonFacts(input: OneToOneReportInput["personA"]): BasicPersonFac
     visibleCharacterCount: visible.visibleCharacterCount,
     weightedElementShares,
     countBasisNote: input.birthTimeKnown
-      ? "오행 개수는 사주 8글자의 겉오행 기준이며, 실제 해석은 지장간까지 반영한 세력 비중을 함께 봅니다."
-      : `출생시간 미상으로 시주를 제외한 확정 ${visible.visibleCharacterCount}글자의 겉오행 개수입니다. 실제 해석은 시간 미상 시나리오와 지장간 세력을 함께 봅니다.`,
+      ? "화면의 분포와 지장간까지 포함한 실제 기운의 비중을 함께 살폈어."
+      : `시주를 제외한 확정 ${visible.visibleCharacterCount}글자와 시간에 따라 달라질 수 있는 기운, 지장간의 비중을 함께 살폈어.`,
   };
 }
 
@@ -298,7 +298,7 @@ function systemPrompt(strictExpansion: boolean) {
     "당신은 '우리사주'의 1,000원 유료 관계 사주 리포트를 쓰는 한국어 전문 편집자입니다.",
     "목표는 짧은 점수 설명이 아니라, 사용자가 '우리 둘의 이야기'라고 느낄 정도로 구체적이고 읽을 가치가 있는 상세 리포트입니다.",
     "서버가 이미 점수와 명리 근거를 계산했습니다. payload 밖의 새로운 합충, 용신, 점수, 순위, 미래 시기, 상대의 속마음을 만들어내지 마세요.",
-    "facts.pillars와 오행 개수는 기본 정보 표시용입니다. 새로운 점수를 계산하는 근거로 임의 확장하지 말고 evidence의 계산 근거와 연결해 설명하세요.",
+    "facts.pillars와 화면의 분포는 기본 정보 표시용입니다. 새로운 점수를 만들지 말고 제공된 관계 근거와 연결해 설명하세요.",
     "전체 출력은 보통 한국어 4,500~7,000자 정도의 충분한 분량을 목표로 하세요. 카드 한 줄짜리 요약문을 반복하면 안 됩니다.",
     "overview.detailedSummary는 반드시 4~5개의 완결된 문장으로 작성하고, 강점·마찰·양방향 영향·실전 의미가 한 흐름으로 이어져야 합니다.",
     "personA와 personB는 각각 overallProfile, elementAnalysis, relationshipNeeds를 합쳐 최소 8~12문장 수준의 읽을 거리가 되게 하세요. 두 사람의 문장 구조를 복사하지 마세요.",

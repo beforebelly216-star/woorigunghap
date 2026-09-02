@@ -31,7 +31,7 @@ import {
   relationshipPromptRules,
 } from "@/lib/relationship-editorial";
 
-export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v8-layout-v3-5000chars" as const;
+export const PAID_REPORT_V7_PROMPT_VERSION = "paid-report-v9-jootopi-direct-voice" as const;
 export const PAID_REPORT_V7_PAYLOAD_VERSION = "paid-report-evidence-v7" as const;
 export const PAID_REPORT_SEGMENTS = ["intro", "dynamics", "action"] as const;
 export type PaidReportSegmentName = (typeof PAID_REPORT_SEGMENTS)[number];
@@ -274,11 +274,10 @@ function dynamicsIssues(value: DynamicsSegment) {
 function actionIssues(value: CoreActionSegment) {
   const length = compactLength(value);
   const issues: string[] = [];
-  if (length < 1_800) issues.push("ACTION_SHORT");
-  if (length > 2_500) issues.push("ACTION_LONG");
+  if (length < 1_250) issues.push("ACTION_SHORT");
+  if (length > 2_000) issues.push("ACTION_LONG");
   if (!isObject(value.relationshipFlow) || !Array.isArray(value.relationshipFlow.conflictScenarios) || value.relationshipFlow.conflictScenarios.length < 3) issues.push("CONFLICT_CASES_SHORT");
   if (!isObject(value.relationshipSpecific) || !Array.isArray(value.relationshipSpecific.points) || value.relationshipSpecific.points.length < 4) issues.push("RELATION_SPECIFIC_SHORT");
-  if (!isObject(value.practicalManual) || !Array.isArray(value.practicalManual.do) || value.practicalManual.do.length < 4) issues.push("MANUAL_SHORT");
   return issues;
 }
 
@@ -318,9 +317,12 @@ function buildActionCompatibilityExtensions(value: CoreActionSegment): Pick<Acti
 }
 
 const BASE_RULES = [
-  "당신은 우리사주의 유료 1:1 궁합 리포트를 쓰는 관계 해설자입니다. 어렵고 낡은 점집 말투 대신 정확하고 자연스러운 현대 한국어를 사용하세요.",
+  "당신은 주토피입니다. 어렵고 낡은 점집 말투 대신 정확하고 자연스러운 현대 한국어로 두 사람의 관계를 직접 설명하세요.",
+  "사용자에게 보이는 모든 문장은 주토피가 친근한 반말로 말합니다. '~습니다', '~해요', 명령조 보고서 문체를 쓰지 말고 '~야', '~해', '~보여', '~할 수 있어'처럼 자연스럽게 끝내세요.",
   "화면에 보이는 사람 이름은 서버가 {{SELF}}, {{PARTNER}}, {{BOTH}}를 사용자가 입력한 별칭으로 치환합니다. A, B, 나, 상대방 같은 대체 호칭을 사용자 문장에 쓰지 마세요.",
   "모든 관계 판단은 제공된 사주 원국과 궁합 계산 근거에서 출발해야 합니다. 일상 언어로 결론을 먼저 말한 뒤, 같은 문단 안에서 일간·일지·오행 균형·천간/지지 상호작용 등 실제 제공된 근거가 왜 그런 결론으로 이어지는지 자연스럽게 연결하세요.",
+  "전문 용어가 필요하면 먼저 일상 언어로 뜻을 설명하고 괄호나 다음 문장에서 용어를 붙이세요. '지지 형충파해', '오행 상보성', '천간 합충' 같은 말을 설명 없이 문장 첫머리에 두지 마세요.",
+  "'항목 점수', '가중치에 반영', '근거를 사용', '계산상 높은 편'처럼 기계가 평가표를 읽는 문장을 쓰지 마세요. 현실 장면과 두 사람의 체감으로 번역하세요.",
   "'서버 계산상', 'AI가 분석한', 'payload', 'evidence', '내부 점수', '정책상' 같은 시스템 구현 문구를 결과에 노출하지 마세요.",
   "제공되지 않은 점수, 확률, 용신 확정, 미래 사건, 숨은 심리 사실을 새로 만들지 마세요. 점수와 순위는 절대 수정하지 마세요.",
   "두 사람의 심리를 단정적으로 발명하지 마세요. 사주에서 읽히는 관계 반응은 '이런 장면에서 이렇게 반응하기 쉽다'는 현실 장면과 근거로 설명하세요.",
@@ -360,7 +362,9 @@ function paidEditorialEvidence(snapshot: CompatibilityCalculationSnapshot, input
     },
     usefulSignal: value.usefulSignal,
   });
-  const { aRoleSupply: _aRoleSupply, bRoleSupply: _bRoleSupply, ...directionalSignals } = evidence.directionalSignals;
+  const directionalSignals = Object.fromEntries(
+    Object.entries(evidence.directionalSignals).filter(([key]) => key !== "aRoleSupply" && key !== "bRoleSupply"),
+  );
   const dimensions = Object.fromEntries(Object.entries(evidence.dimensions).map(([dimension, item]) => [dimension, {
     normalizedScore: item.normalizedScore,
     evidence: dimension === "spouseStarRealization" ? { policy: "RELATIONSHIP_ROLE_SCORE_ONLY" } : item.evidence,
@@ -405,7 +409,7 @@ async function generateIntro(apiKey: string, model: string, payloadText: string,
     apiKey, model, schema: INTRO_SCHEMA,
     maxTokens: 3_000, retryMaxTokens: 3_800, timeoutMs: 85_000,
     preferStructured: true, label: "INTRO", validate: validIntro, qualityIssues: introIssues,
-    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[LAYOUT V3 · 한눈에 보기 + 두 사람 기본판]\n- 이 세그먼트는 공백 제외 1,050~1,400자를 목표로 합니다.\n- overview.detailedSummary는 280~420자. 관계의 핵심 결론, 가장 큰 장점, 가장 중요한 주의점, 두 사람의 사주 근거를 3~5문장으로 연결하세요.\n- personA/personB.overallProfile은 각각 220~320자. 각 별칭의 관계 성향을 현실 장면과 일주·일간·오행 근거가 함께 읽히게 작성하세요.\n- personA/personB.relationshipNeeds는 각각 70~120자. 화면 카드 제목 아래에 그대로 들어가므로 결론형으로 쓰세요.\n- elementAnalysis, strengths, cautions는 저장 호환용 보조 필드입니다. 반복을 피하고 짧게 작성하세요.\n- keyTakeaways는 각각 정확히 2개, 32자 이내.`,
+    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[첫인상과 두 사람의 관계 성향]\n- 이 세그먼트는 공백 제외 1,050~1,400자를 목표로 합니다.\n- overview.headline은 화면 최상단에 한 줄만 노출합니다. 35~65자의 자연스러운 결론 한 문장으로 쓰고 점수를 다시 읽거나 전문 용어를 나열하지 마세요.\n- overview.detailedSummary는 280~420자. 관계의 핵심 결론, 가장 큰 장점, 가장 중요한 주의점, 두 사람의 사주 근거를 3~5문장으로 연결하세요.\n- personA/personB.overallProfile은 각각 220~320자. 각 별칭의 관계 성향을 현실 장면과 일주·일간·오행 근거가 함께 읽히게 작성하세요.\n- personA/personB.relationshipNeeds는 각각 70~120자. 카드 제목처럼 직접적인 결론 문장으로 쓰세요.\n- elementAnalysis, strengths, cautions는 저장 호환용 보조 필드입니다. 반복을 피하고 짧게 작성하세요.\n- keyTakeaways는 각각 정확히 2개, 32자 이내.`,
     user: `다음 비식별 사주 계산 근거만 사용해 1:1 리포트의 첫 부분을 작성하세요.\n${payloadText}`,
   });
 }
@@ -415,7 +419,7 @@ async function generateDynamics(apiKey: string, model: string, payloadText: stri
     apiKey, model, schema: DYNAMICS_SCHEMA,
     maxTokens: 4_000, retryMaxTokens: 5_000, timeoutMs: 110_000,
     preferStructured: true, label: "DYNAMICS", validate: validDynamics, qualityIssues: dynamicsIssues,
-    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[LAYOUT V3 · 끌림/시너지 + 관계 구조]\n- 이 세그먼트는 공백 제외 1,450~1,900자를 목표로 합니다.\n- chemistry.overview는 220~320자. 왜 서로 끌리고 함께 있을 때 어떤 시너지가 생기는지 하나의 흐름으로 설명하세요.\n- chemistry.dayMaster/dayBranch/elements/yinYang은 각각 140~220자. 일상 장면에서 체감되는 결론과 해당 사주 근거를 반드시 같은 필드 안에 넣으세요.\n- directionalImpact.aToB/bToA/asymmetry는 각각 170~240자. {{SELF}}→{{PARTNER}}, {{PARTNER}}→{{SELF}} 방향 차이를 분명히 쓰세요.\n- bondAndFriction.overview는 180~260자로 관계 구조의 핵심을 설명하세요. 나머지 배열과 partnerDeepDive/personalLeverage는 저장 호환용 보조 자료이므로 핵심을 반복하지 말고 짧게 작성하세요.\n- '끌리는 이유'와 '함께 있을 때 좋은 이유'를 별도 장으로 반복하지 말고 chemistry 안에서 통합하세요.\n- keyTakeaways는 각각 정확히 2개, 32자 이내.`,
+    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[둘 사이 케미와 관계 구조]\n- 이 세그먼트는 공백 제외 1,450~1,900자를 목표로 합니다.\n- chemistry.overview는 220~320자. 왜 서로 끌리고 함께 있을 때 어떤 시너지가 생기는지 하나의 흐름으로 설명하세요.\n- chemistry.dayMaster/dayBranch/elements/yinYang은 각각 140~220자. 먼저 일상 장면에서 체감되는 결론을 말하고, 뒤에서 해당 사주 근거를 풀어 주세요.\n- directionalImpact.aToB/bToA/asymmetry는 각각 170~240자. {{SELF}}→{{PARTNER}}, {{PARTNER}}→{{SELF}} 방향 차이를 분명히 쓰세요.\n- bondAndFriction.overview는 180~260자로 관계 구조의 핵심을 설명하세요. 나머지 배열과 partnerDeepDive/personalLeverage는 저장 호환용 보조 자료이므로 핵심을 반복하지 말고 짧게 작성하세요.\n- '끌리는 이유'와 '함께 있을 때 좋은 이유'를 별도 장으로 반복하지 말고 chemistry 안에서 통합하세요.\n- keyTakeaways는 각각 정확히 2개, 32자 이내.`,
     user: `다음 비식별 사주 계산 근거만 사용해 두 사람의 끌림, 시너지와 관계 구조를 깊게 작성하세요.\n${payloadText}`,
   });
 }
@@ -425,8 +429,8 @@ async function generateAction(apiKey: string, model: string, payloadText: string
     apiKey, model, schema: ACTION_SCHEMA,
     maxTokens: 5_200, retryMaxTokens: 6_200, timeoutMs: 125_000,
     preferStructured: true, label: "ACTION", validate: validCoreAction, qualityIssues: actionIssues,
-    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[LAYOUT V3 · 관계 성향 + 갈등 + 관계유형 심층 + 장기 전망 + 사용설명서]\n- 이 세그먼트는 공백 제외 1,800~2,400자를 목표로 합니다.\n- relationshipFlow.overview/roles/initiative/intimacy는 각각 100~160자로 관계 성향을 설명하되 다른 장과 중복하지 마세요.\n- conflictScenarios는 정확히 3개. 각 항목은 situation 40~80자, likelyPattern 140~220자, response 140~220자로 작성해 '갈등 시작→두 사람 반응→악순환→끊는 법'이 읽히게 하세요.\n- relationshipSpecific.overview는 220~320자, points는 정확히 4개이며 각 detail은 150~230자. 짝사랑/썸/연인/친구/직장동료에 따라 질문 자체가 달라져야 합니다. 사용자의 mostCurious가 있으면 마지막 point에서 계산 근거 범위 안에서 직접 답하세요.\n- strengthsAndRisks.strengths와 repeatedFrictions는 각각 3개, 각 60~100자. 장기적으로 좋아지는 조건과 소모되는 조건에 사용할 수 있게 작성하세요.\n- practicalManual.do 4개, dont 3개, conflictProtocol 4단계. 각 항목은 60~100자의 실행 문장으로 작성하세요. recommendedActivities는 저장 호환용으로 2개만 짧게 씁니다.\n- situationStrategy와 actionPlan30은 기존 저장 호환을 위해 유지하되 새 화면의 본문 분량을 빼앗지 않도록 짧게 작성하세요.\n- 미래 사건을 예언하지 말고 장기 전망은 현재의 사주 관계 구조가 오래 반복될 때 좋아지는 조건과 소모되는 조건으로 설명하세요.\n- keyTakeaways.ch4~ch9는 각각 정확히 2개, 32자 이내.`,
-    user: `다음 비식별 사주 계산 근거만 사용해 관계 성향, 갈등 루프, 관계유형별 심층 해석, 장기 전망과 사용설명서를 작성하세요.\n${payloadText}`,
+    system: `${BASE_RULES}\n\n${relationshipRules}\n\n[관계 성향 + 반복 장면 + 지금 중요한 질문]\n- 이 세그먼트는 공백 제외 1,250~1,900자를 목표로 합니다.\n- relationshipFlow.overview/roles/initiative/intimacy는 각각 90~150자로 관계 성향을 설명하되 다른 장과 중복하지 마세요.\n- conflictScenarios는 정확히 3개. 각 항목은 situation 35~70자, likelyPattern 120~190자, response 90~150자로 작성하세요. 고정된 단계 목록이 아니라 실제로 반복될 수 있는 한 장면과 풀리는 실마리로 쓰세요.\n- relationshipSpecific.overview는 180~280자, points는 정확히 4개이며 각 detail은 120~200자. 각 title은 '지금 확인할 건 이거야'처럼 뜻이 바로 보이는 짧은 문장으로 쓰세요. 사용자의 mostCurious가 있으면 마지막 point에서 계산 근거 범위 안에서 직접 답하세요.\n- strengthsAndRisks와 practicalManual은 이전 저장 형식과의 호환을 위한 필드이며 새 화면에는 표시하지 않습니다. 다른 본문을 반복하지 말고 배열은 비워도 됩니다. redFlag와 warning만 짧은 한 문장으로 채우세요.\n- keyTakeaways.ch4~ch9는 각각 정확히 2개, 32자 이내.`,
+    user: `다음 비식별 사주 계산 근거만 사용해 관계 성향, 반복될 수 있는 갈등 장면, 현재 관계에서 중요한 질문을 작성하세요.\n${payloadText}`,
   });
   const core = generated.best.value;
   return {

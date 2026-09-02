@@ -17,7 +17,8 @@ for (const [dimension, evidence] of samples) {
   const copy = buildDimensionEvidenceCopy(dimension, 77, evidence);
   const sentenceCount = copy.split(/[.!?](?:\s|$)/).filter(Boolean).length;
   assert.ok(sentenceCount <= 3, `${dimension} evidence must stay within three sentences`);
-  assert.match(copy, /77점/);
+  assert.ok(copy.length > 20);
+  assert.doesNotMatch(copy, /77점|가중치에 반영|항목 점수/);
 }
 
 const neutralDayBranchCopy = buildDimensionEvidenceCopy(
@@ -25,7 +26,7 @@ const neutralDayBranchCopy = buildDimensionEvidenceCopy(
   70,
   { branchA: "해", branchB: "자", primaryRelation: "NEUTRAL" },
 );
-assert.match(neutralDayBranchCopy, /중립 관계를/);
+assert.match(neutralDayBranchCopy, /중립 관계[가를]/);
 assert.doesNotMatch(neutralDayBranchCopy, /중립를/);
 
-console.log("Per-dimension score evidence copy checks: PASS");
+console.log("Per-dimension soft evidence copy checks: PASS");

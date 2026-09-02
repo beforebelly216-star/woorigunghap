@@ -72,7 +72,7 @@ export function ReportAccountLink({
         {state === "claiming" && "완료된 결제 결과를 계정에 연결하고 있어요."}
         {state === "claimed" && "다른 기기에서도 로그인하면 같은 결과를 다시 열 수 있어요."}
         {state === "conflict" && "이 결과는 이미 다른 카카오 계정에 저장되어 있어요."}
-        {state === "failed" && "자동 저장을 완료하지 못했어요. 결과 링크는 그대로 사용할 수 있습니다."}
+        {state === "failed" && "자동 저장을 완료하지 못했어. 결과 링크는 그대로 쓸 수 있어."}
       </p>
     </div>
     {state === "guest" ? <Link className="account-save-action" href={loginHref}>카카오 로그인하고 보관하기</Link> : null}

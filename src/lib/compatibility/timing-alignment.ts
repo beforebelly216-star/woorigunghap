@@ -174,7 +174,7 @@ function buildSignals(
     signals.push("해당 연도 안에 대운 전환 후보가 있어 상반기와 하반기의 체감이 달라질 수 있습니다.");
   }
   if (rangeWidth >= 5 || aLuck.informationLevel === "B" || bLuck.informationLevel === "B") {
-    signals.push("출생시간 미상 시나리오를 함께 반영한 범위값이므로 단일 점수보다 범위를 우선해서 보세요.");
+    signals.push("시간 정보에 따라 달라질 수 있는 폭을 함께 봤으니, 한 숫자보다 전체 범위를 살펴봐.");
   }
 
   return signals.slice(0, 4);
