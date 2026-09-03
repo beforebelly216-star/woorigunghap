@@ -12,7 +12,7 @@
 - [x] 1:1과 인연 네트워크의 E~S 등급 범위·판정 함수 단일화 및 1:1 결과 배지 적용
 - [x] contracts 15종 + TypeScript + lint(0 errors, 0 warnings) + production build(34/34) PASS
 - [x] 390px 로컬 브라우저 로고·브랜드·overflow·console·로그인 경계 PASS
-- [ ] Preview 배포·검증 후 사용자 승인에 따라 동일 artifact Production 승격
+- [x] Preview `dpl_Cgonh2pcic2h4VdacWAcEUa36jdv` 검증, 카카오 콜백용 Preview 별칭 최신화, 동일 artifact Production `dpl_A4tz1Qb93hGfzYKSYYpMcu3rK61P` 승격 및 운영 스모크 PASS
 
 ## 완료 — 이전 서비스 전면 개편 (2026-09-02)
 
@@ -263,11 +263,11 @@ Git 자동배포는 OFF 유지.
 ```text
 HANDOFF
 - Worker/Task: Codex — 우리사주 브랜드·점수 대비·결제 후 상태 UI
-- Source: implementation `75c18f7`
+- Source: implementation `75c18f7`, deploy source `63de1ec`
 - Scope: 차트 결합 로고, 마스코트 포즈 분산, 공통 결제 후 상태 UI, 비문 차단·복구, scoring v1.7, 1:1/1:N 공용 E~S 등급
 - Validation: 관련 contracts 15종 + TypeScript + lint(0 errors, 0 warnings) + production build(34/34) + 390px local browser PASS
-- Deploy: Preview 대기 / Production 승인 대기
-- Remaining: Preview 배포·검증, 동일 artifact Production 승격, 기존 실패 실결제의 남은 세그먼트 생성·저장·재열람 실확인
+- Deploy: Preview `dpl_Cgonh2pcic2h4VdacWAcEUa36jdv` / Production `dpl_A4tz1Qb93hGfzYKSYYpMcu3rK61P` READY. 카카오 콜백용 Preview 별칭도 최신 배포 연결 완료
+- Remaining: 기존 실패 실결제의 남은 세그먼트 생성·저장·재열람 실확인
 - Risk: 운영 실결제 식별정보와 운영 DB 비밀값을 사용하지 않아 실결제 완료 여부는 구매 계정에서 확인 필요
 - Policy: Git 자동배포 OFF 유지
 ```
