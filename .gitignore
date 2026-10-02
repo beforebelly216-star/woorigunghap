@@ -8,3 +8,5 @@ out/
 .vercel/
 *.log
 *.tsbuildinfo
+apps/toss/dist/
+*.ait

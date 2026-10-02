@@ -7,8 +7,10 @@
 - [x] 공식 로그인·결제·광고·AI 표시 요건 확인 및 전환 문서
 - [x] mTLS 로그인 서버 프로토콜 + 동일 출처 endpoint(OFF), 제공자 분리/탈퇴 경계, AI 고지
 - [x] 인증/보관함/정책 contracts + lint + build
-- [ ] 사용자 콘솔 워크스페이스·앱 생성 → appName 확인, 사업자/정산/mTLS/SKU 설정
-- [ ] 별도 WebView SDK 화면 번들, 실제 버전 Origin/인증/연결 해제/탈퇴
+- [x] 사용자 제공 appName `woorisajoo` 확정
+- [x] 별도 WebView SDK 3.7.0/TDS 화면 미리보기 + 공식 `.ait` 빌드/형식/브라우저 검증
+- [ ] 콘솔 업로드·QR 실기기 확인, 사업자/정산/mTLS/SKU 설정
+- [ ] 실제 기능 화면 이식, 서버 연결, 실제 버전 Origin/인증/연결 해제/탈퇴
 - [ ] IAP 서버 검증·지급 멱등성·미결 주문 복구·환불 및 미니앱 공유
 - [ ] Android/iOS 토스앱 QA → 번들 업로드 → 검수 요청
 - 상세: `docs/APPS_IN_TOSS_MIGRATION.md`. 기존 화면 개편을 이식 순서와 통합한다.
@@ -283,11 +285,11 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 앱인토스 전환 서버 기반 완료, 출시 연동 미완료
-- Source: baseline `0146d90`, 현재 main의 전환 기반 커밋
-- Scope: 토스 mTLS 로그인 OFF, 제공자 분리/탈퇴 경계, 결제 전·결과 AI 고지
-- Validation: Toss/Kakao/account/policy contracts + lint + TypeScript + build(35/35) PASS
-- Local: 미설정 로그인 503, 외부 Origin 403; 실기기/실DB/실결제 미검증
-- Remaining: 사용자 콘솔 생성/appName → WebView SDK/화면/인증 → IAP/복구/공유/연결 해제 → QA
-- Deploy: Vercel/토스 미배포, Git 자동배포 OFF 유지; APPS_IN_TOSS_MIGRATION 참조
+- Worker/Task: Codex — woorisajoo .ait 화면 테스트 번들 생성, 출시 연동 미완료
+- Source: baseline `f95ad87`, 현재 main의 번들 프로젝트 커밋
+- Scope: apps/toss 독립 SDK 3.7.0/TDS 홈·입력 미리보기·보관함·계정·안내
+- Validation: 공식 ait build/reader PASS; root lint/build PASS
+- Browser: Edge 360/390/430/1280px overflow/pageerror/외부 요청 0; 이동/구매 차단/미저장 PASS
+- Remaining: 실제 기능 화면/서버·인증·연결 해제/IAP·복구·공유/정책 → 토스 실기기 QA
+- Deploy: 콘솔 업로드·출시 미실시, Git 자동배포 OFF 유지; apps/toss/README 참조
 ```
