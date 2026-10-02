@@ -19,6 +19,8 @@
 
 ## 구현 상태와 설정
 
+- 2026-10-03 QA: 입력 3단계/확인·결과 구성 미리보기·광고 1회 추가 해설 세 주제 묶음 UI 추가. 실제 생성/개인화/보상 지급은 미연결. 기본 결과는 시청 없이 제공하고 배너 표시 가능 조건을 안내한다. 점검/원가/다음 구현: `TOSS_QA_AND_CLAUDE_AUDIT.md`.
+
 - `ad-client.js`: 공식 SDK initialize/attachBanner, load→loaded→show 순서, 중복 실행 방지, 취소/실패/시간 초과, userEarnedReward만 보상 인정, 전면형 placement/간격/횟수 제한. 자동 광고 재시도 없음.
 - `ad-components.jsx`: 홈/실제 보관함 단일 배너 수명 관리, 지원 여부 확인, 미설정/No Fill 영역 숨김. 광고 ID가 없는 현재는 기본 OFF다. 실제 분석 기능을 먼저 이식하고 실기기 테스트한다.
 - `.env.example`의 VITE_ADS_ENABLED, VITE_ADS_TEST_MODE와 유형별 광고 그룹 ID 사용. 개발에서는 운영 광고 ID를 사용하지 않는다. 배너 공식 테스트 ID는 ait-ad-test-banner-id. 전면/보상형 테스트 ID는 각 포맷에 맞는 공식 ID를 확인하여 설정한다.

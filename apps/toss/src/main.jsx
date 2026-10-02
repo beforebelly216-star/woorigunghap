@@ -5,6 +5,8 @@ import { TDSMobileAITProvider } from '@toss/tds-mobile-ait';
 import { SafeArea, graniteEvent, TossAuth } from '@apps-in-toss/web-framework';
 import { createSessionClient } from './session-client';
 import { BannerAd } from './ad-components';
+import { InputPreview, emptyPerson } from './input-preview';
+import { ResultPreview } from './result-preview';
 import './style.css';
 
 const session = createSessionClient({ apiBase: import.meta.env.VITE_API_BASE_URL, login: () => TossAuth.login() });
@@ -22,22 +24,16 @@ function Icon({ kind }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[kind]}</svg>;
 }
 
-function BirthFields({ title }) {
-  return <fieldset><legend>{title}</legend>
-    <label>이름 또는 별칭<input autoComplete="off" maxLength={20} placeholder="실명 대신 별칭도 괜찮습니다" /></label>
-    <div className="field-row"><label>성별<select defaultValue=""><option value="" disabled>선택해 주세요</option><option>여성</option><option>남성</option></select></label>
-      <label>달력<select defaultValue="solar"><option value="solar">양력</option><option value="lunar">음력</option></select></label></div>
-    <label>생년월일<input type="date" /></label><label>출생시간<input type="time" /></label>
-    <label className="check"><input type="checkbox" />출생시간을 모릅니다</label>
-  </fieldset>;
-}
-
 function App() {
   const [path, setPath] = useState(window.location.pathname);
   const [user, setUser] = useState(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [reports, setReports] = useState(null);
+  const [reportsError, setReportsError] = useState('');
+  const [reloadReports, setReloadReports] = useState(0);
+  const [drafts, setDrafts] = useState({});
+  const currentDraft = drafts[path] || { self: emptyPerson(), partner: emptyPerson(), relationship: '' };
   async function signIn() {
     setBusy(true); setMessage('');
     try { const result = await session.signIn(); setUser(result.user); }
@@ -53,11 +49,17 @@ function App() {
   useEffect(() => {
     if (path !== '/account/reports' || !user) return;
     let active = true;
-    session.request('/api/account/reports').then(result => { if (active) setReports(result.reports); })
-      .catch(error => { if (active) setMessage(error.message); });
+    setReports(null); setReportsError('');
+    session.request('/api/account/reports').then(result => { if (!Array.isArray(result?.reports)) throw new Error('보관함 응답을 확인하지 못했습니다. 다시 시도해 주세요.'); if (active) setReports(result.reports); })
+      .catch(error => { if (active) { setReportsError(error.message); if (error.status === 401) setUser(null); } });
     return () => { active = false; };
-  }, [path, user]);
-  const go = (next) => { window.history.pushState({}, '', next); setPath(next); window.scrollTo(0, 0); };
+  }, [path, user, reloadReports]);
+  const go = (next) => { if (next !== window.location.pathname) window.history.pushState({}, '', next); setMessage(''); setPath(next); window.scrollTo(0, 0); };
+  useEffect(() => {
+    const heading = document.querySelector('h1');
+    heading?.setAttribute('tabindex', '-1'); heading?.focus({ preventScroll: true });
+    document.title = `${services[path]?.name || ({ '/': '우리 사이를 이해하는 시간', '/result-preview': '결과 구성 미리보기', '/login': '내 계정', '/account/reports': '보관함', '/guide': '이용 안내' })[path] || '페이지를 찾을 수 없습니다'} | 우리사주`;
+  }, [path]);
   useEffect(() => {
     const pop = () => setPath(window.location.pathname);
     window.addEventListener('popstate', pop);
@@ -86,16 +88,15 @@ function App() {
           <button className="service-row" onClick={() => go('/one-to-many')}><span className="icon"><Icon kind="people" /></span><span><strong>친구들과 관계 보기 <small>무료</small></strong><span className="subtitle">초대 링크로 함께 만드는 인연 네트워크</span></span><span aria-hidden="true">›</span></button>
           <button className="service-row" onClick={() => go('/free')}><span className="icon"><Icon kind="spark" /></span><span><strong>나와 잘 맞는 사람 <small>무료</small></strong><span className="subtitle">내 성향을 바탕으로 살펴보는 이상형</span></span><span aria-hidden="true">›</span></button>
         </section>
-      </> : service ? <>
+        <section className="home-preview"><p className="eyebrow">점수만 보고 끝내기 아쉬우셨나요?</p><h2>두 사람의 차이를<br />대화의 힌트로 바꿔보세요.</h2><p>기본 계산 결과는 무료로, 더 깊은 해설은 선택형 광고로. 어떤 내용을 받는지 먼저 살펴보세요.</p><button className="secondary-button" onClick={() => go('/result-preview')}>결과 구성 미리 보기 →</button></section>
+      </> : path === '/result-preview' ? <><button className="back" onClick={() => go('/')}>← 홈으로</button><ResultPreview onStart={() => go('/one-to-one')} /></> : service ? <>
         <button className="back" onClick={() => go('/')}>← 홈으로</button><p className="eyebrow">우리사주</p><h1>{service.name}</h1><p>{service.description}</p>
-        <div className="notice"><strong>서비스 연결 준비 중입니다</strong><p>{service.status}</p><p>아래 입력 화면은 미리보기입니다. 입력한 정보는 전송하거나 저장하지 않습니다.</p></div>
-        <form onSubmit={(event) => event.preventDefault()}>
-          <BirthFields title="내 정보" />
-          {path === '/one-to-one' && <><BirthFields title="상대방 정보" /><label>관계 유형<select defaultValue=""><option disabled value="">선택해 주세요</option>{['짝사랑', '썸', '연인', '친구', '직장동료'].map(value => <option key={value}>{value}</option>)}</select></label></>}
-          {path === '/one-to-one' && <p className="disclosure">상세 해설은 사주·궁합 계산 근거를 바탕으로 생성형 AI가 작성합니다. 미래나 상대의 마음을 확정하지 않습니다.</p>}
-          <Button size="large" display="block" disabled>서비스 연결 준비 중</Button>
-        </form>
-      </> : path === '/account/reports' ? <><h1>보관함</h1>{user ? <div className="notice"><strong>{reports ? `${reports.length}개의 결과를 확인했습니다` : '보관함을 불러오고 있습니다'}</strong><p>리포트 상세 화면의 연결은 준비 중입니다.</p></div> : <div className="notice"><strong>토스 로그인이 필요합니다</strong><p>내 계정에서 로그인한 뒤 만든 결과를 확인하세요.</p><Button onClick={() => go('/login')}>내 계정으로 이동</Button></div>}</> : path === '/login' ? <><h1>{user ? '내 계정' : '우리사주 시작하기'}</h1><p>만든 결과를 안전하게 보관하고 다시 확인하세요.</p>{user ? <><div className="notice"><strong>{user.displayName}</strong><p>토스 계정으로 연결되었습니다.</p></div><Button size="large" display="block" disabled={busy} onClick={signOut}>로그아웃</Button></> : <><div className="notice"><strong>{session.ready ? '토스 계정으로 시작하세요' : '서버 연결 설정이 필요합니다'}</strong><p>로그인으로 받은 계정 식별자로 결과를 연결합니다. 토스의 이름·이메일·전화번호는 저장하지 않습니다.</p></div><Button size="large" display="block" disabled={!session.ready || busy} onClick={signIn}>{busy ? '로그인 확인 중' : '토스로 계속하기'}</Button></>}</> : <><h1>이용 안내</h1><p>우리사주는 사주 계산 근거를 관계 이해와 대화의 참고자료로 풀어내는 서비스입니다. 의료·법률·재무·심리 진단이나 확정적인 미래 예측을 제공하지 않습니다.</p><div className="notice"><strong>개발 버전 안내</strong><p>로그인은 서버 설정 후 이용할 수 있습니다. 무료 분석·광고·초대 링크는 준비 중입니다. 입력 미리보기의 생년정보는 전송하거나 저장하지 않습니다.</p><p>정식 출시 전 운영자·고객지원 연락처와 개인정보처리방침, 이용약관을 확정할 예정입니다. 미니앱에서 유료 결제를 받지 않습니다.</p></div></>}
+        <p className="preview-inline">입력 화면 미리보기 · 서버에 전송되지 않습니다</p>
+        <InputPreview key={path} path={path} draft={currentDraft} onChange={value => setDrafts(previous => ({ ...previous, [path]: value }))} onPreview={() => go('/result-preview')} />
+      </> : path === '/account/reports' ? <><h1>보관함</h1><p>한 번 만든 결과를 다시 읽는 공간입니다.</p>{user ? reportsError ? <div className="notice" role="alert"><strong>보관함을 불러오지 못했습니다</strong><p>{reportsError}</p><Button onClick={() => setReloadReports(value => value + 1)}>다시 불러오기</Button></div> : <div className="notice" role="status"><strong>{reports === null ? '보관함을 불러오고 있습니다' : reports.length === 0 ? '아직 저장된 결과가 없습니다' : `${reports.length}개의 결과를 확인했습니다`}</strong><p>{reports?.length === 0 ? '분석 기능이 연결되면 만든 결과가 여기에 보관됩니다.' : '리포트 상세 화면의 연결은 준비 중입니다.'}</p></div> : <div className="notice"><strong>로그인하면 결과를 모아볼 수 있습니다</strong><p>계정을 연결하면 내 결과를 안전하게 보관할 수 있습니다.</p><Button onClick={() => go('/login')}>내 계정으로 이동</Button></div>}<button className="secondary-button" onClick={() => go('/result-preview')}>결과 구성 미리 보기</button></>
+      : path === '/login' ? <><h1>{user ? '내 계정' : '결과를 내 계정에 보관하세요'}</h1><p>한 번 확인한 결과를 다시 찾아볼 수 있습니다.</p>{user ? <><div className="notice"><strong>{user.displayName}</strong><p>토스 계정으로 연결되었습니다.</p></div><Button size="large" display="block" disabled={busy} onClick={signOut}>로그아웃</Button></> : <><div className="notice"><strong>{session.ready ? '토스 계정으로 시작하세요' : '토스 로그인 연결 준비 중입니다'}</strong><p>결과 보관에 필요한 계정 식별자를 사용합니다. 토스의 이름·이메일·전화번호는 저장하지 않습니다.</p></div><Button size="large" display="block" disabled={!session.ready || busy} onClick={signIn}>{busy ? '로그인 확인 중' : '토스로 계속하기'}</Button><button className="secondary-button" onClick={() => go('/result-preview')}>로그인 전에 결과 구성 살펴보기</button></>}</>
+      : path === '/guide' ? <><h1>이용 안내</h1><p>우리사주는 사주 계산 근거를 관계 이해와 대화의 참고자료로 풀어내는 서비스입니다. 의료·법률·재무·심리 진단이나 확정적인 미래 예측을 제공하지 않습니다.</p><section className="value-summary"><h2>무료 결과와 추가 해설</h2><p>기본 계산 결과는 광고 시청 없이 제공할 예정입니다. 본문에 배너 광고가 표시될 수 있으며, 추가 AI 해설은 광고 시청을 직접 선택하는 방식으로 준비하고 있습니다. 미니앱에서 유료 결제를 받지 않습니다.</p></section><div className="notice"><strong>개발 버전 안내</strong><p>로그인·실제 분석·광고·결과 저장·초대 링크는 연결 준비 중입니다. 입력 미리보기의 생년정보는 전송하지 않습니다. 입력값은 이 앱을 열어둔 동안만 메모리에 유지되며 닫거나 새로고침하면 사라집니다.</p><p>정식 출시 전 운영자·고객지원 연락처와 개인정보처리방침, 이용약관을 확정할 예정입니다.</p></div></>
+      : <><h1>페이지를 찾을 수 없습니다</h1><p>홈에서 궁금한 관계를 선택해 주세요.</p><Button onClick={() => go('/')}>홈으로 이동</Button></>}
       {(path === '/' || (path === '/account/reports' && user && reports?.length > 0)) && <BannerAd key={path} />}
       <footer><button onClick={() => go('/guide')}>이용 안내</button><span>우리사주</span></footer>
     </main>
@@ -103,4 +104,6 @@ function App() {
   </TDSMobileAITProvider>;
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+const root = import.meta.hot?.data.root || createRoot(document.getElementById('root'));
+if (import.meta.hot) import.meta.hot.dispose(data => { data.root = root; });
+root.render(<App />);

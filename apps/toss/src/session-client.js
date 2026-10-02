@@ -1,4 +1,4 @@
-export function createSessionClient({ apiBase, login, fetcher = fetch }) {
+export function createSessionClient({ apiBase, login, fetcher = fetch, requestTimeoutMs = 20000 }) {
   let token = null;
   let expiresAt = 0;
   let pendingLogin = null;
@@ -10,14 +10,31 @@ export function createSessionClient({ apiBase, login, fetcher = fetch }) {
   async function request(path, options = {}) {
     if (!ready || !path.startsWith('/api/')) throw new Error('서버 연결 설정이 필요합니다.');
     if (token && Date.now() >= expiresAt) clear();
-    const response = await fetcher(base + path, {
-      ...options, credentials: 'omit', cache: 'no-store',
-      headers: { 'Content-Type': 'application/json', ...options.headers, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    });
-    const body = await response.json().catch(() => null);
-    if (response.status === 401) clear();
-    if (!response.ok) throw new Error(response.status === 503 ? '서비스 연결을 준비하고 있습니다. 잠시 후 다시 시도해 주세요.' : '요청을 완료하지 못했습니다. 다시 시도해 주세요.');
-    return body;
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    options.signal?.addEventListener('abort', abort, { once: true });
+    if (options.signal?.aborted) abort();
+    const timer = setTimeout(abort, requestTimeoutMs);
+    try {
+      const response = await fetcher(base + path, {
+        ...options, credentials: 'omit', cache: 'no-store', signal: controller.signal,
+        headers: { 'Content-Type': 'application/json', ...options.headers, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      const body = await response.json().catch(() => null);
+      if (controller.signal.aborted) throw new Error('REQUEST_ABORTED');
+      if (response.status === 401) clear();
+      if (!response.ok) {
+        const error = new Error(response.status === 401 ? '로그인 시간이 만료되었습니다. 다시 로그인해 주세요.' : response.status === 503 ? '서비스 연결을 준비하고 있습니다. 잠시 후 다시 시도해 주세요.' : '요청을 완료하지 못했습니다. 다시 시도해 주세요.');
+        error.status = response.status;
+        throw error;
+      }
+      return body;
+    } catch (error) {
+      if (controller.signal.aborted) throw new Error('연결 시간이 초과되었습니다. 다시 시도해 주세요.');
+      throw error;
+    } finally {
+      clearTimeout(timer); options.signal?.removeEventListener('abort', abort);
+    }
   }
   function signIn() {
     if (pendingLogin) return pendingLogin;

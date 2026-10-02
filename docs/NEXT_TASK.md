@@ -4,6 +4,9 @@
 
 ## 우선 — 앱인토스 전환 (2026-10-02)
 
+- [x] 2026-10-03 사용자 우선 요청: UI QA, 입력 3단계·확인/유지/삭제·시간 모름/윤달, 무료/광고 상세 미리보기, 보관함 복구 UI·timeout, Claude 경로/비용 점검. `TOSS_QA_AND_CLAUDE_AUDIT.md`
+- [ ] 실제 무료 계산·결과 먼저 연결 → 광고 상세 한 묶음의 짧은 AI/서버 권한·비용 한도/저장·복구 → ID/실기기. 사용자 광고 ID·콘솔 작업 요구는 후순위 유지
+
 - [x] 최신 사용자 결정: 미니앱 IAP 출시 작업 중단, 광고만으로 수익화. 광고 SDK/단일 배너/취소·보상·빈도 제한 기반 준비
 - [ ] 무료 기본 결과 이식 → 별도 광고 기반 상세 생성 권한/비용 한도/멱등 저장·복구 → 광고 그룹 ID/실기기 QA
 
@@ -290,11 +293,11 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 미니앱 광고 수익 전환, IAP 출시 중단
-- Source: baseline `e2e54d9`; 이번 변경 커밋은 Git 이력 참조
-- Scope: 무료 안내/단일 배너/전면·보상형 SDK 수명·취소·빈도 제한, 기존 웹 구매 보존
-- Validation: ads/client tests + root lint/build(37/37) + ait build/reader PASS
-- Browser: Chrome 홈 결제 문구 없음/배너 미설정 높이 0, 입력 광고 없음; 일반 브라우저 TDS native bridge 로그 있음
-- Remaining: 무료 기본 결과 → 광고 상세 서버 권한/한도/저장·복구 → 광고 ID/토스 실기기 QA, 약관/로그인
-- Deploy: 광고 기본 OFF, 미출시 개발 번들, 자동배포 OFF; TOSS_AD_MONETIZATION 참조
+- Worker/Task: Codex — QA·입력/광고 선택 UX·Claude 감사
+- Source: baseline `ecb1280`; 변경 커밋은 Git 이력 참조
+- Scope: 입력 3단계/확인/유지/삭제, 해설 예시/무료·광고 구분, 보관함 복구/timeout, API 감사
+- Validation: ads/session/timeout mocks + root AI contracts/lint/build(37/37) + ait build PASS
+- Browser: Chrome 4폭×8화면 overflow 없음·입력/예시 동작 PASS; native SafeArea 로그/실기기 미검증
+- Remaining: 실제 무료 계산/결과 → 짧은 광고 AI 한 묶음·서버 권한/비용/저장·복구 → 사용자 ID·로그인/실기기
+- Deploy: 광고 OFF·미출시·자동배포 OFF, Claude 실제 키/호출 미검증; TOSS_QA_AND_CLAUDE_AUDIT 참조
 ```
