@@ -15,7 +15,7 @@ button, input, select { font: inherit; }
 .woorisaju-brand__chart { width: 42px; height: 42px; flex: none; overflow: visible; filter: drop-shadow(0 4px 8px rgba(93,63,153,.12)); }
 .woorisaju-brand__wordmark { color:#211d25; font-size: 1.22rem; font-weight: 950; letter-spacing: -.07em; }
 .site-header a { min-height: 44px; display: inline-flex; align-items: center; }
-.site-header-home-a99 { width: min(100%, 390px); min-height: 64px; padding: 0 17px; border-bottom: 0; background: #fff; }
+.site-header-home-a99 { width: min(100%, 480px); min-height: 64px; padding: 0 24px; border-bottom: 0; background: #fff; }
 .site-header-home-a99 .site-brand { font-size: 1.22rem; letter-spacing: -.045em; }
 .site-header-home-a99 .auth-user { gap: 5px; }
 .site-header-home-a99 .auth-status,

@@ -58,7 +58,7 @@ export function HomeRecentReports() {
 
   return <section className={styles.rankSection} aria-labelledby="recent-reports-title">
     <div className={styles.sectionTitle}>
-      <h2 id="recent-reports-title">최근 보관함</h2>
+      <h2 id="recent-reports-title">최근 확인한 궁합</h2>
       <Link href="/account/reports">전체보기 ›</Link>
     </div>
 
@@ -72,8 +72,10 @@ export function HomeRecentReports() {
     {state.status === "ready" && state.reports.length > 0 ? <div className={styles.rankGrid}>
       {state.reports.map((report) => <Link key={report.paymentId} href={reportHref(report)} className={styles.rankItem}>
         <span className={`${styles.avatar} ${report.product === "oneToMany" ? styles.manyAvatar : ""}`} aria-hidden="true">{profileLabel(report)}</span>
-        {report.product === "oneToOne" ? <strong className={styles.rankName}>{report.subjectName}</strong> : null}
-        <span className={styles.rankRelation}>{report.relationshipLabel}</span>
+        <div className={styles.rankCopy}>
+          <strong className={styles.rankName}>{report.subjectName || "인연 네트워크"}</strong>
+          <span className={styles.rankRelation}>{report.relationshipLabel}</span>
+        </div>
         <b className={styles.rankScore}>{report.score === null ? "생성 중" : `${Math.round(report.score)}점`}</b>
       </Link>)}
     </div> : null}

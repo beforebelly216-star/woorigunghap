@@ -5,24 +5,24 @@
   /* Neutral canvas */
   --saju-bg-base: #FFFFFF;
   --saju-bg-card: #FFFFFF;
-  --saju-bg-soft: #F3EEFA;
-  --saju-bg-inverse: #272329;
+  --saju-bg-soft: #F5F6F3;
+  --saju-bg-inverse: #20251F;
 
   /* Ink */
-  --saju-ink: #222026;
-  --saju-ink-soft: #6F6870;
-  --saju-ink-faint: #918991;
+  --saju-ink: #20251F;
+  --saju-ink-soft: #626960;
+  --saju-ink-faint: #757D72;
   --saju-ink-inverse: #FFFFFF;
 
   /* Structure */
-  --saju-border: #EAE3DD;
-  --saju-border-strong: #D8CEC7;
-  --saju-track: #EEE8F2;
+  --saju-border: #E3E7DF;
+  --saju-border-strong: #CAD2C6;
+  --saju-track: #E8ECE5;
 
   /* Primary action */
-  --saju-action: #7652D8;
-  --saju-action-hover: #6342C4;
-  --saju-action-disabled: #C7B9DF;
+  --saju-action: #245B45;
+  --saju-action-hover: #194632;
+  --saju-action-disabled: #B9C9BE;
 
   /* Five elements — functional colors only */
   --saju-element-wood: #4D8B5F;
@@ -39,14 +39,14 @@
   --saju-info: #356F9C;
 
   /* Legacy compatibility aliases. New UI should prefer semantic tokens above. */
-  --saju-primary: #EEE7FB;
+  --saju-primary: #EAF2EC;
   --saju-primary-deep: var(--saju-action);
-  --saju-accent: #F2EBFF;
+  --saju-accent: #EAF2EC;
   --saju-mint: #CFE7C8;
   --saju-blush: #F3B1DB;
 
   /* Elevation is exceptional, not the default card treatment. */
-  --saju-shadow: 0 8px 24px rgba(88, 62, 137, .08);
+  --saju-shadow: 0 8px 24px rgba(32, 37, 31, .06);
 
   /* Typography */
   --saju-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;

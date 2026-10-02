@@ -1,35 +1,52 @@
 import Link from "next/link";
-import "./report-theme.css";
-import "../components/zootopi-mark.css";
 import styles from "./home-p5.module.css";
-import { ZootopiMark } from "@/components/zootopi-mark";
 import { HomeRecentReports } from "./home-recent-reports";
 
-function HeartIcon() {
-  return <svg viewBox="0 0 64 54" aria-hidden="true"><path d="M32 49C23 40 6 31 6 17 6 8 12 3 20 3c6 0 10 3 12 8 2-5 6-8 12-8 8 0 14 5 14 14 0 14-17 23-26 32Z" fill="#ff6f89" stroke="#202024" strokeWidth="2.2"/><path d="M43 39c4-2 8 1 8 5 0 5-6 8-9 11-3-3-9-6-9-11 0-4 4-7 8-5l1 2 1-2Z" fill="#ff8aa0" stroke="#202024" strokeWidth="1.7"/></svg>;
+function LineIcon({ kind }: { kind: "heart" | "people" | "spark" | "home" | "library" | "person" }) {
+  const paths = {
+    heart: <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />,
+    people: <><circle cx="9" cy="7" r="3" /><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 4a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 4v2" /></>,
+    spark: <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" />,
+    home: <><path d="m3 10 9-7 9 7v10H3V10Z" /><path d="M9 20v-7h6v7" /></>,
+    library: <><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M8 5V3h8v2M8 10h8M8 15h5" /></>,
+    person: <><circle cx="12" cy="7" r="4" /><path d="M4 21v-2a8 8 0 0 1 16 0v2" /></>,
+  };
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[kind]}</svg>;
 }
-function PeopleIcon() {
-  return <svg viewBox="0 0 72 56" aria-hidden="true"><circle cx="20" cy="18" r="9" fill="#f3eaff" stroke="#202024" strokeWidth="2"/><circle cx="36" cy="13" r="10" fill="#eadcff" stroke="#202024" strokeWidth="2"/><circle cx="52" cy="18" r="9" fill="#f8eafa" stroke="#202024" strokeWidth="2"/><path d="M7 48c1-11 7-17 13-17s12 6 13 17M23 48c1-14 7-21 13-21s12 7 13 21M39 48c1-11 7-17 13-17s12 6 13 17" fill="#fff" stroke="#202024" strokeWidth="2" strokeLinecap="round"/></svg>;
-}
+
 export default function Home() {
-  return (
-    <main className={`${styles.page} home-mobile-page`}>
-      <section className={styles.heroCard}>
-        <div className={styles.heroText}><h1>우리 궁합,<br/>지금 확인해 봐</h1><p>헷갈리는 인연을 선명하게 풀어줄게</p><span>1:N 무료 <b>|</b> 1:1 1,000원</span></div>
-        <div className={styles.heroArt}><span className={styles.sparkleOne}>✦</span><span className={styles.sparkleTwo}>✦</span><ZootopiMark expression="idea" withBody /></div>
-      </section>
-
-      <section className={styles.quickGrid} aria-label="궁합 상품 선택">
-        <Link href="/free" className={`${styles.quickCard} ${styles.soulmate}`}>
-          <strong>이상형 찾기</strong><span>내 짝의 사주 보기</span><div className={styles.soulmateIcon}><ZootopiMark expression="smile" /></div>
+  return <main className={`${styles.page} home-mobile-page`}>
+    <section className={styles.intro} aria-labelledby="home-title">
+      <p className={styles.eyebrow}>우리 사이를 이해하는 시간</p>
+      <h1 id="home-title">잘 맞는 순간도,<br />다른 이유도 알아보세요.</h1>
+      <p className={styles.introCopy}>두 사람의 성향부터 친구들과의 관계까지.<br />우리 사이를 조금 더 선명하게 살펴보세요.</p>
+    </section>
+    <section className={styles.services} aria-labelledby="services-title">
+      <div className={styles.sectionTitle}><h2 id="services-title">어떤 관계가 궁금하세요?</h2></div>
+      <Link href="/one-to-one" className={styles.featureCard}>
+        <div className={styles.featureTop}><span className={styles.serviceIcon}><LineIcon kind="heart" /></span><span className={styles.price}>1,000원 · 1회 결제</span></div>
+        <h3>두 사람 궁합</h3>
+        <p>서로의 강점과 반복되는 갈등,<br />관계에서 조율할 부분을 알아보세요.</p>
+        <span className={styles.featureAction}>두 사람 궁합 보기 <span aria-hidden="true">→</span></span>
+      </Link>
+      <div className={styles.serviceList}>
+        <Link href="/one-to-many" className={styles.serviceRow}>
+          <span className={styles.serviceIcon}><LineIcon kind="people" /></span>
+          <div><h3>친구들과 관계 보기 <span>무료</span></h3><p>초대 링크로 함께 만드는 인연 네트워크</p></div>
+          <span className={styles.chevron} aria-hidden="true">›</span>
         </Link>
-        <Link href="/one-to-many" className={`${styles.quickCard} ${styles.oneToMany}`}><strong>1:N 궁합 보기</strong><span>친구와 관계망 만들기</span><PeopleIcon /></Link>
-        <Link href="/one-to-one" className={`${styles.quickCard} ${styles.oneToOne}`}><strong>1:1 궁합 보기</strong><span>둘의 정밀궁합 보기</span><HeartIcon /></Link>
-      </section>
-
-      <HomeRecentReports />
-
-      <nav className={styles.bottomNav} aria-label="주요 메뉴"><Link href="/" className={styles.active}><span>⌂</span><b>홈</b></Link><Link href="/account/reports"><span>▣</span><b>보관함</b></Link><Link href="/login"><span>♙</span><b>마이페이지</b></Link></nav>
-    </main>
-  );
+        <Link href="/free" className={styles.serviceRow}>
+          <span className={styles.serviceIcon}><LineIcon kind="spark" /></span>
+          <div><h3>나와 잘 맞는 사람 <span>무료</span></h3><p>내 성향을 바탕으로 살펴보는 이상형</p></div>
+          <span className={styles.chevron} aria-hidden="true">›</span>
+        </Link>
+      </div>
+    </section>
+    <HomeRecentReports />
+    <nav className={styles.bottomNav} aria-label="주요 메뉴">
+      <Link href="/" className={styles.active} aria-current="page"><LineIcon kind="home" /><span>홈</span></Link>
+      <Link href="/account/reports"><LineIcon kind="library" /><span>보관함</span></Link>
+      <Link href="/login"><LineIcon kind="person" /><span>내 계정</span></Link>
+    </nav>
+  </main>;
 }

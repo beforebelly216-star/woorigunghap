@@ -55,17 +55,66 @@ export default function ReportLayoutV3({
     </header>
 
     <section className={styles.hero} aria-labelledby="result-title">
-      <div className={styles.scoreOrb}><strong>{score}</strong><small>점</small></div>
-      <div className={styles.gradeBadge} data-grade={grade} aria-label={`${grade}등급, ${gradeCopy.label}`}>
-        <strong>{grade}</strong><span>등급</span><small>{gradeCopy.label}</small>
-      </div>
+      <p className={styles.heroMeta}>{relationshipLabel} · 두 사람의 관계 노트</p>
       <h1 id="result-title">{personAName} <span>×</span> {personBName}</h1>
-      <p className={styles.heroMeta}>{relationshipLabel}</p>
       <div className={styles.heroSummary}><strong>{content.overview.headline}</strong></div>
+      <div className={styles.heroScoreRow}>
+        <div className={styles.scoreOrb}><strong>{score}</strong><small>점 / 100</small></div>
+        <div className={styles.gradeBadge} data-grade={grade} aria-label={`${grade}등급, ${gradeCopy.label}`}>
+          <strong>{grade}</strong><span>등급</span><small>{gradeCopy.label}</small>
+        </div>
+      </div>
+    </section>
+
+    <section id="chemistry" className={styles.section}>
+      <SectionHeading number="01" title="둘이 붙으면 어떤 힘이 살아날까?" description="끌림과 시너지가 어디에서 시작되는지 네 갈래로 나눠봤어." />
+      <article className={styles.leadCard}><strong>{content.chemistry.overview}</strong></article>
+      <div className={styles.quadGrid}>
+        <article><small>일간</small><p>{content.chemistry.dayMaster}</p></article>
+        <article><small>일지</small><p>{content.chemistry.dayBranch}</p></article>
+        <article><small>오행</small><p>{content.chemistry.elements}</p></article>
+        <article><small>음양 리듬</small><p>{content.chemistry.yinYang}</p></article>
+      </div>
+    </section>
+
+    <section id="structure" className={styles.section}>
+      <SectionHeading number="02" title="관계의 힘은 어느 쪽으로 흐를까?" description="두 사람이 서로에게 주는 영향의 방향을 따로 읽어봤어." />
+      <article className={styles.quoteCard}><strong>{content.bondAndFriction.overview}</strong></article>
+      <div className={styles.directionStack}>
+        <article><span>{personAName} → {personBName}</span><p>{content.directionalImpact.aToB}</p></article>
+        <article><span>{personBName} → {personAName}</span><p>{content.directionalImpact.bToA}</p></article>
+        <article><span>둘 사이의 차이</span><p>{content.directionalImpact.asymmetry}</p></article>
+      </div>
+    </section>
+
+    <section id="profiles" className={styles.section}>
+      <SectionHeading number="03" title="서로 관계에서 무엇을 원할까?" description="같은 장면에서도 각자가 원하는 반응은 다를 수 있어." />
+      <div className={styles.profileStack}>
+        <article><small>{personAName}</small><h3>{content.personA.relationshipNeeds}</h3><Paragraph>{content.personA.overallProfile}</Paragraph></article>
+        <article><small>{personBName}</small><h3>{content.personB.relationshipNeeds}</h3><Paragraph>{content.personB.overallProfile}</Paragraph></article>
+      </div>
+    </section>
+
+    <section id="conflict" className={styles.section}>
+      <SectionHeading number="04" title="부딪힐 때 어떤 장면이 반복될까?" description="갈등을 단정하지 않고, 반복될 수 있는 장면과 풀리는 실마리를 함께 볼게." />
+      <div className={styles.scenarioStack}>
+        {conflictScenarios.map((scenario, index) => <article key={`${index}-${scenario.situation}`}>
+          <span>{String(index + 1).padStart(2, "0")}</span>
+          <div><h3>{scenario.situation}</h3><p>{scenario.likelyPattern}</p><p><strong>풀리는 실마리</strong>{scenario.response}</p></div>
+        </article>)}
+      </div>
+    </section>
+
+    <section id="deep-dive" className={styles.section}>
+      <SectionHeading number="05" title="지금 이 관계에서 가장 중요한 건 뭘까?" description="현재 관계의 맥락에서 놓치기 쉬운 핵심만 골랐어." />
+      <article className={styles.leadCard}><strong>{content.relationshipSpecific.overview}</strong></article>
+      <div className={styles.numberedCards}>
+        {content.relationshipSpecific.points.slice(0, 4).map((point, index) => <article key={`${index}-${point.title}`}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{point.title}</h3><p>{point.detail}</p></div></article>)}
+      </div>
     </section>
 
     <section id="overview" className={styles.section}>
-      <SectionHeading number="01" title="둘 사이 케미는 어떨까?" description="각 항목을 누르면 뜻과 두 사람의 계산 근거를 함께 볼 수 있어." />
+      <SectionHeading number="06" title="둘 사이 케미는 어떨까?" description="각 항목을 누르면 뜻과 두 사람의 계산 근거를 함께 볼 수 있어." />
       <CompatibilityHeatmap dimensions={visibleDimensions.map(([dimension, value]) => ({
         label: dimensionLabels[dimension],
         shortLabel: dimensionLabels[dimension].replace(" 상성", "").replace("관계 ", ""),
@@ -74,8 +123,8 @@ export default function ReportLayoutV3({
       }))} />
     </section>
 
-    <section id="pillars" className={styles.section}>
-      <SectionHeading number="02" title="두 사람은 어떤 기운을 가졌을까?" description="관계 해석에 사용한 두 사람의 사주 원국이야." />
+    <details id="pillars" className={`${styles.section} ${styles.factsDisclosure}`}>
+      <summary><span>07 · 계산에 사용한 사주</span><h2>두 사람은 어떤 기운을 가졌을까?</h2><p>사주 원국과 오행 분포 확인하기</p></summary>
       <div className={styles.personStack}>
         <article className={styles.personCard}>
           <div className={styles.personHeader}><small>첫 번째 사람</small><strong>{personAName}</strong></div>
@@ -88,54 +137,7 @@ export default function ReportLayoutV3({
           <ElementFacts facts={facts.B} />
         </article>
       </div>
-    </section>
-
-    <section id="chemistry" className={styles.section}>
-      <SectionHeading number="03" title="둘이 붙으면 어떤 힘이 살아날까?" description="끌림과 시너지가 어디에서 시작되는지 네 갈래로 나눠봤어." />
-      <article className={styles.leadCard}><strong>{content.chemistry.overview}</strong></article>
-      <div className={styles.quadGrid}>
-        <article><small>일간</small><p>{content.chemistry.dayMaster}</p></article>
-        <article><small>일지</small><p>{content.chemistry.dayBranch}</p></article>
-        <article><small>오행</small><p>{content.chemistry.elements}</p></article>
-        <article><small>음양 리듬</small><p>{content.chemistry.yinYang}</p></article>
-      </div>
-    </section>
-
-    <section id="structure" className={styles.section}>
-      <SectionHeading number="04" title="관계의 힘은 어느 쪽으로 흐를까?" description="두 사람이 서로에게 주는 영향의 방향을 따로 읽어봤어." />
-      <article className={styles.quoteCard}><strong>{content.bondAndFriction.overview}</strong></article>
-      <div className={styles.directionStack}>
-        <article><span>{personAName} → {personBName}</span><p>{content.directionalImpact.aToB}</p></article>
-        <article><span>{personBName} → {personAName}</span><p>{content.directionalImpact.bToA}</p></article>
-        <article><span>둘 사이의 차이</span><p>{content.directionalImpact.asymmetry}</p></article>
-      </div>
-    </section>
-
-    <section id="profiles" className={styles.section}>
-      <SectionHeading number="05" title="서로 관계에서 무엇을 원할까?" description="같은 장면에서도 각자가 원하는 반응은 다를 수 있어." />
-      <div className={styles.profileStack}>
-        <article><small>{personAName}</small><h3>{content.personA.relationshipNeeds}</h3><Paragraph>{content.personA.overallProfile}</Paragraph></article>
-        <article><small>{personBName}</small><h3>{content.personB.relationshipNeeds}</h3><Paragraph>{content.personB.overallProfile}</Paragraph></article>
-      </div>
-    </section>
-
-    <section id="conflict" className={styles.section}>
-      <SectionHeading number="06" title="부딪힐 때 어떤 장면이 반복될까?" description="갈등을 단정하지 않고, 반복될 수 있는 장면과 풀리는 실마리를 함께 볼게." />
-      <div className={styles.scenarioStack}>
-        {conflictScenarios.map((scenario, index) => <article key={`${index}-${scenario.situation}`}>
-          <span>{String(index + 1).padStart(2, "0")}</span>
-          <div><h3>{scenario.situation}</h3><p>{scenario.likelyPattern}</p><p><strong>풀리는 실마리</strong>{scenario.response}</p></div>
-        </article>)}
-      </div>
-    </section>
-
-    <section id="deep-dive" className={styles.section}>
-      <SectionHeading number="07" title="지금 이 관계에서 가장 중요한 건 뭘까?" description="현재 관계의 맥락에서 놓치기 쉬운 핵심만 골랐어." />
-      <article className={styles.leadCard}><strong>{content.relationshipSpecific.overview}</strong></article>
-      <div className={styles.numberedCards}>
-        {content.relationshipSpecific.points.slice(0, 4).map((point, index) => <article key={`${index}-${point.title}`}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{point.title}</h3><p>{point.detail}</p></div></article>)}
-      </div>
-    </section>
+    </details>
 
     <section className={styles.ending}>
       <div><small>관계 노트</small><h2>점수보다 중요한 건, 둘 사이에서 실제로 반복되는 장면이야.</h2></div>

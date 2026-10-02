@@ -2,6 +2,16 @@
 
 > GPT와 Claude 공용 실행 큐. 최신 `main`과 최신 사용자 지시가 최우선이다.
 
+## 진행 — 화면 개편 (2026-10-02)
+
+- [x] 1단계: 홈·1:1 결과 레이아웃/정보 순서 + 화이트·딥그린 공통 기반
+- [x] Edge 모바일/데스크톱 + UI/지표 근거/공유/인증 contracts + lint + build
+- [ ] 2단계: 입력·로그인·결제·생성/복구 화면의 배치와 레거시 보라색 정리
+- [ ] 3단계: 무료 결과·관계망의 정보 순서/선택 상태/상세 패널
+- [ ] 4단계: 보관함·공유 화면/이미지
+- [ ] 5단계: 전체 화면 회귀 검증과 CSS 정리
+- 상세 기준: `docs/UI_REDESIGN_STAGES.md`
+
 ## 완료 — 우리사주 브랜드·점수 대비·결제 후 상태 UI (2026-09-03)
 
 - [x] 마스코트 티셔츠의 4색 차트와 `우리사주` 워드마크를 결합한 벡터 로고 적용
@@ -262,12 +272,11 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 우리사주 브랜드·점수 대비·결제 후 상태 UI
-- Source: implementation `75c18f7`, deploy source `63de1ec`
-- Scope: 차트 결합 로고, 마스코트 포즈 분산, 공통 결제 후 상태 UI, 비문 차단·복구, scoring v1.7, 1:1/1:N 공용 E~S 등급
-- Validation: 관련 contracts 15종 + TypeScript + lint(0 errors, 0 warnings) + production build(34/34) + 390px local browser PASS
-- Deploy: Preview `dpl_Cgonh2pcic2h4VdacWAcEUa36jdv` / Production `dpl_A4tz1Qb93hGfzYKSYYpMcu3rK61P` READY. 카카오 콜백용 Preview 별칭도 최신 배포 연결 완료
-- Remaining: 기존 실패 실결제의 남은 세그먼트 생성·저장·재열람 실확인
-- Risk: 운영 실결제 식별정보와 운영 DB 비밀값을 사용하지 않아 실결제 완료 여부는 구매 계정에서 확인 필요
-- Policy: Git 자동배포 OFF 유지
+- Worker/Task: Codex — 화면 개편 1단계 완료
+- Source: baseline `663d83d`, 현재 main의 화면 개편 커밋
+- Scope: 홈 세로 서비스/최근 목록, 1:1 해석 우선 배치/접는 원국, 480px 폭, 화이트·딥그린
+- Validation: contracts 4종 + lint + TypeScript + build(34/34), Edge 360/390/430/1280px PASS
+- Browser: 홈 실제 guest + 합성 최근 목록/결과, overflow 없음, pageerror 0, 로그인 경계 PASS
+- Remaining: UI_REDESIGN_STAGES 2단계 입력·로그인·결제·생성/복구, 기존 실결제 생성·저장·재열람 QA
+- Deploy: 이 변경은 아직 미배포, Git 자동배포 OFF 유지
 ```

@@ -29,7 +29,7 @@ const flowStatus = readFileSync("src/components/flow-status-screen.tsx", "utf8")
 const mandatoryAuth = readFileSync("src/components/mandatory-auth-gate.tsx", "utf8");
 const paymentRedirect = readFileSync("src/app/payment/redirect/page.tsx", "utf8");
 
-for (const token of ["#FFFFFF", "#F3EEFA", "#222026", "#6F6870", "#918991", "#EAE3DD", "#D8CEC7", "#EEE8F2", "#7652D8", "#4D8B5F", "#D55A4A", "#C9973D", "#858E9E", "#3E78A8", "#2F7D4A", "#9A6A12", "#B74343", "#356F9C"]) {
+for (const token of ["#FFFFFF", "#F5F6F3", "#20251F", "#626960", "#757D72", "#E3E7DF", "#CAD2C6", "#E8ECE5", "#245B45", "#4D8B5F", "#D55A4A", "#C9973D", "#858E9E", "#3E78A8", "#2F7D4A", "#9A6A12", "#B74343", "#356F9C"]) {
   assert.ok(theme.includes(token), `mobile app theme token missing: ${token}`);
 }
 assert.doesNotMatch(theme, /prefers-color-scheme:\s*dark/);
@@ -48,9 +48,9 @@ assert.match(overrides, /partner-inner-mind-hero/);
 assert.match(overrides, /deep-strategy-steps/);
 
 assert.match(home, /home-p5\.module\.css/);
-assert.match(home, /이상형 찾기/);
-assert.ok(home.indexOf("이상형 찾기") < home.indexOf("1:N 궁합 보기"));
-assert.ok(home.indexOf("1:N 궁합 보기") < home.indexOf("1:1 궁합 보기"));
+assert.match(home, /나와 잘 맞는 사람/);
+assert.ok(home.indexOf('href="/one-to-many"') < home.indexOf('href="/free"'));
+assert.ok(home.indexOf('href="/one-to-one"') < home.indexOf('href="/one-to-many"'));
 assert.match(home, /HomeRecentReports/);
 assert.match(homeRecent, /\/api\/account\/reports/);
 assert.match(homeRecent, /\.slice\(0, 3\)/);
@@ -65,7 +65,7 @@ for (const step of ["로그인 확인", "결제 확인", "결과 만들기"]) as
 assert.match(mandatoryAuth, /<FlowStatusScreen/);
 assert.match(paymentRedirect, /<FlowStatusScreen/);
 assert.match(result, /<FlowStatusScreen/);
-assert.match(homeCss, /width:\s*min\(100%,\s*390px\)/);
+assert.match(homeCss, /width:\s*min\(100%,\s*480px\)/);
 assert.match(homeCss, /grid-template-columns:\s*repeat\(3/);
 assert.match(homeCss, /\.bottomNav/);
 
@@ -123,9 +123,9 @@ assert.match(resultLayout, /지금 이 관계에서 가장 중요한 건 뭘까/
 assert.doesNotMatch(resultLayout, /장기 전망|관계 사용설명서|리포트 목차|이 관계를 살리는 힘|반복 주의 지점/);
 assert.doesNotMatch(resultLayout, /threeYearTiming|대운·세운|3년 흐름/);
 assert.match(result, /dimension !== "luckCycleAlignment"/);
-assert.match(resultLayoutCss, /width:min\(100%,390px\)/);
-assert.match(resultLayoutCss, /@media\(max-width:360px\)/);
-assert.match(resultLayoutCss, /@media\(min-width:430px\)/);
+assert.match(resultLayoutCss, /width:\s*min\(100%,\s*480px\)/);
+assert.match(resultLayoutCss, /@media\s*\(max-width:\s*360px\)/);
+assert.match(resultLayoutCss, /@media\s*\(min-width:\s*430px\)/);
 assert.doesNotMatch(resultLayout, /나의 사주|상대의 사주|label=\"나의 캐릭터\"|label=\"상대의 캐릭터\"/);
 assert.match(components, /무슨 뜻일까/);
 assert.match(components, /두 사람에게는/);

@@ -518,10 +518,9 @@ export default function ResultV2() {
   const shareArchetype = buildCompatibilityShareArchetype(displaySnapshot);
   const displayContent = normalizeStoredPaidReportForDisplay(content, facts);
 
-  return <main className="v2-page">
+  return <main className="v2-page relationship-report-page">
     <div className="v2-reading-progress" role="progressbar" aria-label="리포트 읽기 진행률" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readingProgress}>
       <span style={{ width: `${readingProgress}%` }} />
-      <b style={{ left: `${readingProgress}%` }} aria-hidden="true">용</b>
     </div>
     <ReportLayoutV3
       personAName={personA.displayName}

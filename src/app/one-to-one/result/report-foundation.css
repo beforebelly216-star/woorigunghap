@@ -1,4 +1,19 @@
 /* Foundation v2 owner for the completed 1:1 report. Loaded after legacy report styles. */
+.v2-page.relationship-report-page {
+  padding: 0;
+  overflow-x: visible;
+}
+.relationship-report-page .v2-reading-progress {
+  left: 50%;
+  width: min(100%, 480px);
+  transform: translateX(-50%);
+  height: 3px;
+  background: var(--saju-track);
+}
+.relationship-report-page .v2-reading-progress > span {
+  background: var(--saju-action);
+}
+
 .v2-page {
   min-height: 100vh;
   padding: 40px 20px 88px;
