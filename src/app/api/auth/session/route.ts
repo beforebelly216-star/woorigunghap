@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     if (!user) return NextResponse.json({ authenticated: false }, { headers: privateHeaders });
     return NextResponse.json({
       authenticated: true,
-      user: { displayName: user.displayName ?? "카카오 사용자" },
+      user: { displayName: user.displayName ?? "우리사주 사용자" },
     }, { headers: privateHeaders });
   } catch {
     return NextResponse.json({ authenticated: false }, { headers: privateHeaders });

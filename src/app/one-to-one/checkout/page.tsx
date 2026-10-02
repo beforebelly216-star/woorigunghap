@@ -119,6 +119,7 @@ function CheckoutContent() {
         <span><b>중간 이탈 복구</b>같은 주문으로 재확인</span>
       </div>
 
+      <p className="ai-disclosure">상세 해설은 사주·궁합 계산 근거를 바탕으로 생성형 AI가 작성합니다. 관계를 이해하기 위한 참고 정보이며 미래나 상대의 마음을 확정하지 않습니다.</p>
       <PurchasePolicyConsent checked={policyAccepted} onChange={setPolicyAccepted} />
       <div className="checkout-sticky-cta">
         <PaymentButton product="oneToOne" paymentId={order.paymentId} inputSnapshot={order.inputSnapshot} resultAccessToken={order.resultAccessToken} agreementAccepted={policyAccepted} buttonLabel="1:1 전체 리포트 보기 · 1,000원" />

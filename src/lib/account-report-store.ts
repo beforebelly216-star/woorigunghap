@@ -291,7 +291,7 @@ export async function deleteAccountAndScrubReports(userId: string) {
 
   const rows = await sql`
     WITH target_user AS (
-      SELECT provider_user_id
+      SELECT provider, provider_user_id
       FROM woorigunghap_users
       WHERE user_id = ${userId}
     ), owned AS (
@@ -326,10 +326,10 @@ export async function deleteAccountAndScrubReports(userId: string) {
       WHERE user_id = ${userId}
       RETURNING user_id
     )
-    SELECT provider_user_id FROM target_user
+    SELECT provider, provider_user_id FROM target_user
   `;
 
   return typeof rows[0]?.provider_user_id === "string"
-    ? { providerUserId: rows[0].provider_user_id }
+    ? { provider: rows[0].provider, providerUserId: rows[0].provider_user_id }
     : null;
 }

@@ -853,3 +853,5 @@ body .one-to-many-result-page .loading-card-grid {
 .site-header-home-a99 { width: min(100%, 480px); padding-inline: 24px; border-bottom: 0; }
 .site-header-home-a99 .auth-status { font-size: 13px; font-weight: 600; }
 .site-header-home-a99 .woorisaju-brand__wordmark { font-weight: 700; letter-spacing: -.045em; }
+.ai-disclosure { color: var(--saju-ink-soft, #626960); font-size: 13px; line-height: 1.65; margin: 16px 0; }
+.ai-result-label { max-width: 480px; margin: 0 auto; padding: 16px 24px 0; }

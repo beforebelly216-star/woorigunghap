@@ -22,7 +22,9 @@ export async function POST(request: NextRequest) {
     const deleted = await deleteAccountAndScrubReports(user.userId);
     if (!deleted) return NextResponse.json({ error: "계정을 찾지 못했습니다." }, { status: 404 });
 
-    const kakaoUnlinked = await unlinkKakaoUserByAdminKey(deleted.providerUserId).catch(() => false);
+    const kakaoUnlinked = deleted.provider === "kakao"
+      ? await unlinkKakaoUserByAdminKey(deleted.providerUserId).catch(() => false)
+      : false;
     const response = NextResponse.json({ ok: true, kakaoUnlinked }, {
       headers: { "cache-control": "private, no-store, max-age=0" },
     });

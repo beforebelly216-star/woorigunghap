@@ -2,6 +2,17 @@
 
 > GPT와 Claude 공용 실행 큐. 최신 `main`과 최신 사용자 지시가 최우선이다.
 
+## 우선 — 앱인토스 전환 (2026-10-02)
+
+- [x] 공식 로그인·결제·광고·AI 표시 요건 확인 및 전환 문서
+- [x] mTLS 로그인 서버 프로토콜 + 동일 출처 endpoint(OFF), 제공자 분리/탈퇴 경계, AI 고지
+- [x] 인증/보관함/정책 contracts + lint + build
+- [ ] 사용자 콘솔 워크스페이스·앱 생성 → appName 확인, 사업자/정산/mTLS/SKU 설정
+- [ ] 별도 WebView SDK 화면 번들, 실제 버전 Origin/인증/연결 해제/탈퇴
+- [ ] IAP 서버 검증·지급 멱등성·미결 주문 복구·환불 및 미니앱 공유
+- [ ] Android/iOS 토스앱 QA → 번들 업로드 → 검수 요청
+- 상세: `docs/APPS_IN_TOSS_MIGRATION.md`. 기존 화면 개편을 이식 순서와 통합한다.
+
 ## 진행 — 화면 개편 (2026-10-02)
 
 - [x] 1단계: 홈·1:1 결과 레이아웃/정보 순서 + 화이트·딥그린 공통 기반
@@ -272,11 +283,11 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 화면 개편 1단계 완료
-- Source: baseline `663d83d`, 현재 main의 화면 개편 커밋
-- Scope: 홈 세로 서비스/최근 목록, 1:1 해석 우선 배치/접는 원국, 480px 폭, 화이트·딥그린
-- Validation: contracts 4종 + lint + TypeScript + build(34/34), Edge 360/390/430/1280px PASS
-- Browser: 홈 실제 guest + 합성 최근 목록/결과, overflow 없음, pageerror 0, 로그인 경계 PASS
-- Remaining: UI_REDESIGN_STAGES 2단계 입력·로그인·결제·생성/복구, 기존 실결제 생성·저장·재열람 QA
-- Deploy: 이 변경은 아직 미배포, Git 자동배포 OFF 유지
+- Worker/Task: Codex — 앱인토스 전환 서버 기반 완료, 출시 연동 미완료
+- Source: baseline `0146d90`, 현재 main의 전환 기반 커밋
+- Scope: 토스 mTLS 로그인 OFF, 제공자 분리/탈퇴 경계, 결제 전·결과 AI 고지
+- Validation: Toss/Kakao/account/policy contracts + lint + TypeScript + build(35/35) PASS
+- Local: 미설정 로그인 503, 외부 Origin 403; 실기기/실DB/실결제 미검증
+- Remaining: 사용자 콘솔 생성/appName → WebView SDK/화면/인증 → IAP/복구/공유/연결 해제 → QA
+- Deploy: Vercel/토스 미배포, Git 자동배포 OFF 유지; APPS_IN_TOSS_MIGRATION 참조
 ```

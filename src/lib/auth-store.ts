@@ -72,6 +72,14 @@ export async function upsertKakaoUser(
   providerUserId: string,
   displayName: string | null,
 ): Promise<AuthenticatedUser> {
+  return upsertProviderUser("kakao", providerUserId, displayName);
+}
+
+export async function upsertProviderUser(
+  provider: "kakao" | "toss",
+  providerUserId: string,
+  displayName: string | null,
+): Promise<AuthenticatedUser> {
   if (!await ensureAuthSchema()) throw new Error("auth_store_unavailable");
   const sql = getQuery();
   if (!sql) throw new Error("auth_store_unavailable");
@@ -80,7 +88,7 @@ export async function upsertKakaoUser(
     INSERT INTO woorigunghap_users (
       user_id, provider, provider_user_id, display_name
     ) VALUES (
-      ${proposedUserId}, 'kakao', ${providerUserId}, ${displayName}
+      ${proposedUserId}, ${provider}, ${providerUserId}, ${displayName}
     )
     ON CONFLICT (provider, provider_user_id) DO UPDATE SET
       display_name = COALESCE(EXCLUDED.display_name, woorigunghap_users.display_name),
