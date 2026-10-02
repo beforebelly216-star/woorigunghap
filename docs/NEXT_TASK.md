@@ -4,6 +4,9 @@
 
 ## 우선 — 앱인토스 전환 (2026-10-02)
 
+- [x] 최신 사용자 결정: 미니앱 IAP 출시 작업 중단, 광고만으로 수익화. 광고 SDK/단일 배너/취소·보상·빈도 제한 기반 준비
+- [ ] 무료 기본 결과 이식 → 별도 광고 기반 상세 생성 권한/비용 한도/멱등 저장·복구 → 광고 그룹 ID/실기기 QA
+
 - [x] 공식 로그인·결제·광고·AI 표시 요건 확인 및 전환 문서
 - [x] mTLS 로그인 서버 프로토콜 + 동일 출처 endpoint(OFF), 제공자 분리/탈퇴 경계, AI 고지
 - [x] 인증/보관함/정책 contracts + lint + build
@@ -11,9 +14,9 @@
 - [x] 별도 WebView SDK 3.7.0/TDS 화면 미리보기 + 공식 `.ait` 빌드/형식/브라우저 검증
 - [x] SDK 로그인/메모리 세션/정확한 Origin CORS/보관함 조회/로그아웃/연결 해제 서버 처리 및 IAP 상태 검증 기반
 - [ ] 로그인 설정: 서비스 약관·국외 이전 고지 확인 → mTLS 발급 → 서버 설정/배포 승인 → 콜백 등록 → SDK 실기기 확인
-- [ ] 콘솔 업로드·QR 실기기 확인, 사업자/정산/mTLS/SKU 설정
+- [ ] 콘솔 업로드·QR 실기기 확인, 사업자/정산/mTLS/광고 그룹 ID 설정
 - [ ] 실제 기능 화면 이식, 서버 연결, 실제 버전 Origin/인증/연결 해제/탈퇴
-- [ ] IAP 서버 검증·지급 멱등성·미결 주문 복구·환불 및 미니앱 공유
+- [ ] 광고 기반 생성 저장/복구 및 미니앱 공유 (IAP 계획은 사용자 결정으로 중단)
 - [ ] Android/iOS 토스앱 QA → 번들 업로드 → 검수 요청
 - 상세: `docs/APPS_IN_TOSS_MIGRATION.md`. 기존 화면 개편을 이식 순서와 통합한다.
 
@@ -287,11 +290,11 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 토스 로그인/세션/연결 해제 + IAP 검증 기반, 출시 미완료
-- Source: baseline `7d7f162`; 이번 변경 커밋은 Git 이력 참조
-- Scope: SDK 로그인/메모리 Bearer/CORS/로그아웃/보관함 조회/콜백 및 IAP 서버 검증·SDK 어댑터
-- Validation: root contracts 5종 + client tests + lint/build(37/37) + ait build/reader PASS
-- Browser: Chrome 미설정 로그인 차단/입력 배치 확인; 토스 실기기/실DB/실결제 미검증
-- Remaining: 약관/국외 고지 → mTLS/서버/콜백 → 실제 화면·IAP 영구 지급/복구/환불/탈퇴
-- Deploy: 사용자 확인 mTLS/SKU 둘 다 없음. 배포 미실시, 자동배포 OFF; 전환 문서 참조
+- Worker/Task: Codex — 미니앱 광고 수익 전환, IAP 출시 중단
+- Source: baseline `e2e54d9`; 이번 변경 커밋은 Git 이력 참조
+- Scope: 무료 안내/단일 배너/전면·보상형 SDK 수명·취소·빈도 제한, 기존 웹 구매 보존
+- Validation: ads/client tests + root lint/build(37/37) + ait build/reader PASS
+- Browser: Chrome 홈 결제 문구 없음/배너 미설정 높이 0, 입력 광고 없음; 일반 브라우저 TDS native bridge 로그 있음
+- Remaining: 무료 기본 결과 → 광고 상세 서버 권한/한도/저장·복구 → 광고 ID/토스 실기기 QA, 약관/로그인
+- Deploy: 광고 기본 OFF, 미출시 개발 번들, 자동배포 OFF; TOSS_AD_MONETIZATION 참조
 ```

@@ -9,3 +9,6 @@
 .shell form label { display: block; width: 100%; }
 .shell form label input:not([type=checkbox]), .shell form label select { display: block; width: 100%; max-width: 100%; }
 .shell form label.check { display: flex; }
+.ad-slot { width: calc(100% + max(24px, var(--safe-left)) + max(24px, var(--safe-right))); margin-left: calc(-1 * max(24px, var(--safe-left))); height: 0; overflow: hidden; visibility: hidden; margin-top: 0; margin-bottom: 0; }
+.ad-slot > div { width: 100%; }
+.ad-slot-visible { height: auto; min-height: 96px; overflow: visible; visibility: visible; margin-top: 32px; margin-bottom: 32px; }
