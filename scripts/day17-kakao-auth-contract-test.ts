@@ -61,6 +61,6 @@ const proxy = readFileSync("src/proxy.ts", "utf8");
 assert.match(proxy, /loadAuthenticatedRequestUser/);
 assert.match(proxy, /await loadAuthenticatedRequestUser\(request\)/);
 assert.doesNotMatch(proxy, /request\.cookies\.has\(AUTH_SESSION_COOKIE\)/);
-assert.match(proxy, /카카오 로그인이 필요해/);
+assert.match(proxy, /로그인이 필요합니다/);
 
 console.log("Day 17 Kakao auth contract checks: PASS");

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AUTH_SESSION_COOKIE } from "@/lib/auth-policy";
-import { isAuthStoreConfigured, loadDatabaseSession } from "@/lib/auth-store";
+import { loadAuthenticatedRequestUser } from "@/lib/auth-request";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,12 +10,8 @@ const privateHeaders = {
 };
 
 export async function GET(request: NextRequest) {
-  const token = request.cookies.get(AUTH_SESSION_COOKIE)?.value;
-  if (!token || !isAuthStoreConfigured()) {
-    return NextResponse.json({ authenticated: false }, { headers: privateHeaders });
-  }
   try {
-    const user = await loadDatabaseSession(token);
+    const user = await loadAuthenticatedRequestUser(request);
     if (!user) return NextResponse.json({ authenticated: false }, { headers: privateHeaders });
     return NextResponse.json({
       authenticated: true,

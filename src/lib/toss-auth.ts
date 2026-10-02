@@ -4,10 +4,12 @@ import { verifyTossIdentity, type TossLoginInput, type TossTransport } from "@/l
 
 export function isTossAuthConfigured() {
   return process.env.APPS_IN_TOSS_LOGIN_ENABLED === "true"
-    && Boolean(process.env.APPS_IN_TOSS_APP_NAME && process.env.APPS_IN_TOSS_MTLS_CERT && process.env.APPS_IN_TOSS_MTLS_KEY);
+    && Boolean(process.env.APPS_IN_TOSS_APP_NAME && process.env.APPS_IN_TOSS_MTLS_CERT
+      && process.env.APPS_IN_TOSS_MTLS_KEY && process.env.APPS_IN_TOSS_UNLINK_AUTHORIZATION);
 }
 
-const transport: TossTransport = (path, body, accessToken) => new Promise((resolve, reject) => {
+export function tossApiRequest(path: string, body?: object, accessToken?: string, userKey?: string): Promise<unknown> {
+  return new Promise((resolve, reject) => {
   if (!isTossAuthConfigured()) return reject(new Error("toss_auth_unavailable"));
   const encoded = body ? JSON.stringify(body) : undefined;
   const request = httpsRequest({
@@ -20,6 +22,7 @@ const transport: TossTransport = (path, body, accessToken) => new Promise((resol
       "Content-Type": "application/json",
       ...(encoded ? { "Content-Length": Buffer.byteLength(encoded) } : {}),
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(userKey ? { "x-toss-user-key": userKey } : {}),
     },
   }, (response) => {
     const chunks: Buffer[] = [];
@@ -40,7 +43,10 @@ const transport: TossTransport = (path, body, accessToken) => new Promise((resol
   request.on("close", () => clearTimeout(deadline));
   request.on("error", reject);
   request.end(encoded);
-});
+  });
+}
+
+const transport: TossTransport = (path, body, accessToken) => tossApiRequest(path, body, accessToken);
 
 export function retrieveTossIdentity(input: TossLoginInput) {
   return verifyTossIdentity(input, transport);

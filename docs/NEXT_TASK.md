@@ -9,6 +9,8 @@
 - [x] 인증/보관함/정책 contracts + lint + build
 - [x] 사용자 제공 appName `woorisajoo` 확정
 - [x] 별도 WebView SDK 3.7.0/TDS 화면 미리보기 + 공식 `.ait` 빌드/형식/브라우저 검증
+- [x] SDK 로그인/메모리 세션/정확한 Origin CORS/보관함 조회/로그아웃/연결 해제 서버 처리 및 IAP 상태 검증 기반
+- [ ] 로그인 설정: 서비스 약관·국외 이전 고지 확인 → mTLS 발급 → 서버 설정/배포 승인 → 콜백 등록 → SDK 실기기 확인
 - [ ] 콘솔 업로드·QR 실기기 확인, 사업자/정산/mTLS/SKU 설정
 - [ ] 실제 기능 화면 이식, 서버 연결, 실제 버전 Origin/인증/연결 해제/탈퇴
 - [ ] IAP 서버 검증·지급 멱등성·미결 주문 복구·환불 및 미니앱 공유
@@ -279,17 +281,17 @@
 ## 기본 검증
 
 변경 후 관련 contract + `npm run lint` + `npm run build`.
-Preview 배포는 사용자의 상시 승인을 따라 변경 검증 후 별도 재확인 없이 수행한다. Production 배포는 사용자 명시 승인 뒤 수행한다.
+Preview/Production 배포는 해당 배치에 대한 사용자 명시 승인 뒤 수행한다.
 Git 자동배포는 OFF 유지.
 
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — woorisajoo .ait 화면 테스트 번들 생성, 출시 연동 미완료
-- Source: baseline `f95ad87`, 현재 main의 번들 프로젝트 커밋
-- Scope: apps/toss 독립 SDK 3.7.0/TDS 홈·입력 미리보기·보관함·계정·안내
-- Validation: 공식 ait build/reader PASS; root lint/build PASS
-- Browser: Edge 360/390/430/1280px overflow/pageerror/외부 요청 0; 이동/구매 차단/미저장 PASS
-- Remaining: 실제 기능 화면/서버·인증·연결 해제/IAP·복구·공유/정책 → 토스 실기기 QA
-- Deploy: 콘솔 업로드·출시 미실시, Git 자동배포 OFF 유지; apps/toss/README 참조
+- Worker/Task: Codex — 토스 로그인/세션/연결 해제 + IAP 검증 기반, 출시 미완료
+- Source: baseline `7d7f162`; 이번 변경 커밋은 Git 이력 참조
+- Scope: SDK 로그인/메모리 Bearer/CORS/로그아웃/보관함 조회/콜백 및 IAP 서버 검증·SDK 어댑터
+- Validation: root contracts 5종 + client tests + lint/build(37/37) + ait build/reader PASS
+- Browser: Chrome 미설정 로그인 차단/입력 배치 확인; 토스 실기기/실DB/실결제 미검증
+- Remaining: 약관/국외 고지 → mTLS/서버/콜백 → 실제 화면·IAP 영구 지급/복구/환불/탈퇴
+- Deploy: 사용자 확인 mTLS/SKU 둘 다 없음. 배포 미실시, 자동배포 OFF; 전환 문서 참조
 ```

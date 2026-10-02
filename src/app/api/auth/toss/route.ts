@@ -3,6 +3,7 @@ import { AUTH_SESSION_COOKIE, AUTH_SESSION_MAX_AGE_SECONDS, createOpaqueToken, i
 import { createDatabaseSession, isAuthStoreConfigured, upsertProviderUser } from "@/lib/auth-store";
 import { isTossAuthConfigured, retrieveTossIdentity } from "@/lib/toss-auth";
 import { parseTossLoginInput } from "@/lib/toss-login-protocol";
+import { isAllowedTossOrigin, TOSS_SESSION_SECONDS } from "@/lib/toss-session-policy";
 
 export const runtime = "nodejs";
 const headers = { "cache-control": "private, no-store", "referrer-policy": "no-referrer" };
@@ -25,9 +26,9 @@ async function readLoginInput(request: NextRequest) {
   finally { reader.releaseLock(); }
 }
 
-// Same-origin preparation endpoint. Cross-origin miniapp transport is a separate rollout.
 export async function POST(request: NextRequest) {
-  if (!isSameOriginPost(request)) return NextResponse.json({ error: "invalid_origin" }, { status: 403, headers });
+  const miniapp = isAllowedTossOrigin(request.headers.get("origin"));
+  if (!miniapp && !isSameOriginPost(request)) return NextResponse.json({ error: "invalid_origin" }, { status: 403, headers });
   if (!isAuthStoreConfigured() || !isTossAuthConfigured()) {
     return NextResponse.json({ error: "toss_login_not_configured" }, { status: 503, headers });
   }
@@ -40,8 +41,13 @@ export async function POST(request: NextRequest) {
     const identity = await retrieveTossIdentity(input);
     const user = await upsertProviderUser("toss", identity.providerUserId, identity.displayName);
     const sessionToken = createOpaqueToken();
-    const expires = new Date(Date.now() + AUTH_SESSION_MAX_AGE_SECONDS * 1000);
+    const seconds = miniapp ? TOSS_SESSION_SECONDS : AUTH_SESSION_MAX_AGE_SECONDS;
+    const expires = new Date(Date.now() + seconds * 1000);
     await createDatabaseSession(user.userId, sessionToken, expires);
+    if (miniapp) {
+      // Opaque first-party session, never the provider access/refresh token.
+      return NextResponse.json({ authenticated: true, sessionToken, expiresAt: expires.toISOString() }, { headers });
+    }
     const response = NextResponse.json({ authenticated: true }, { headers });
     response.cookies.set(AUTH_SESSION_COOKIE, sessionToken, {
       httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax",

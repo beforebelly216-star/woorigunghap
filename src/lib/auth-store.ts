@@ -7,6 +7,8 @@ import { hashOpaqueToken, isOpaqueToken } from "@/lib/auth-policy";
 export type AuthenticatedUser = {
   userId: string;
   displayName: string | null;
+  provider?: string;
+  providerUserId?: string;
 };
 
 let query: NeonQueryFunction<false, false> | null = null;
@@ -129,7 +131,7 @@ export async function loadDatabaseSession(sessionToken: string) {
   const sql = getQuery();
   if (!sql) return null;
   const rows = await sql`
-    SELECT users.user_id, users.display_name
+    SELECT users.user_id, users.display_name, users.provider, users.provider_user_id
     FROM woorigunghap_auth_sessions sessions
     JOIN woorigunghap_users users ON users.user_id = sessions.user_id
     WHERE sessions.session_token_hash = ${hashOpaqueToken(sessionToken)}
@@ -141,7 +143,20 @@ export async function loadDatabaseSession(sessionToken: string) {
   return {
     userId: row.user_id,
     displayName: typeof row.display_name === "string" ? row.display_name : null,
+    provider: typeof row.provider === "string" ? row.provider : undefined,
+    providerUserId: typeof row.provider_user_id === "string" ? row.provider_user_id : undefined,
   } satisfies AuthenticatedUser;
+}
+
+export async function revokeTossUserSessions(providerUserId: string) {
+  if (!await ensureAuthSchema()) throw new Error("auth_store_unavailable");
+  const sql = getQuery();
+  if (!sql) throw new Error("auth_store_unavailable");
+  await sql`
+    DELETE FROM woorigunghap_auth_sessions sessions USING woorigunghap_users users
+    WHERE sessions.user_id = users.user_id
+      AND users.provider = 'toss' AND users.provider_user_id = ${providerUserId}
+  `;
 }
 
 export async function revokeDatabaseSession(sessionToken: string) {

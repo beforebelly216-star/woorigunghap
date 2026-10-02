@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Button } from '@toss/tds-mobile';
 import { TDSMobileAITProvider } from '@toss/tds-mobile-ait';
-import { SafeArea, graniteEvent } from '@apps-in-toss/web-framework';
+import { SafeArea, graniteEvent, TossAuth } from '@apps-in-toss/web-framework';
+import { createSessionClient } from './session-client';
 import './style.css';
+
+const session = createSessionClient({ apiBase: import.meta.env.VITE_API_BASE_URL, login: () => TossAuth.login() });
 
 const services = {
   '/one-to-one': { name: '두 사람 궁합', description: '서로의 강점과 반복되는 갈등, 관계에서 조율할 부분을 살펴보세요.', status: '로그인과 인앱결제 연결 후 이용할 수 있습니다.' },
@@ -30,6 +33,29 @@ function BirthFields({ title }) {
 
 function App() {
   const [path, setPath] = useState(window.location.pathname);
+  const [user, setUser] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [reports, setReports] = useState(null);
+  async function signIn() {
+    setBusy(true); setMessage('');
+    try { const result = await session.signIn(); setUser(result.user); }
+    catch (error) { setMessage(error.message); }
+    finally { setBusy(false); }
+  }
+  async function signOut() {
+    setBusy(true); setMessage('');
+    try { await session.signOut(); }
+    catch (error) { setMessage(error.message); }
+    finally { setUser(null); setReports(null); setBusy(false); }
+  }
+  useEffect(() => {
+    if (path !== '/account/reports' || !user) return;
+    let active = true;
+    session.request('/api/account/reports').then(result => { if (active) setReports(result.reports); })
+      .catch(error => { if (active) setMessage(error.message); });
+    return () => { active = false; };
+  }, [path, user]);
   const go = (next) => { window.history.pushState({}, '', next); setPath(next); window.scrollTo(0, 0); };
   useEffect(() => {
     const pop = () => setPath(window.location.pathname);
@@ -50,7 +76,8 @@ function App() {
   const service = services[path];
   return <TDSMobileAITProvider brandPrimaryColor="#245B45">
     <main className="shell">
-      <div className="preview-note" role="status">화면 확인용 테스트 버전 · 분석과 결제는 아직 연결되지 않았습니다.</div>
+      <div className="preview-note" role="status">개발 버전 · 분석과 결제 연결을 준비하고 있습니다.</div>
+      {message && <p role="alert" className="notice">{message}</p>}
       {path === '/' ? <>
         <section className="intro"><p className="eyebrow">우리 사이를 이해하는 시간</p><h1>잘 맞는 순간도,<br />다른 이유도 알아보세요.</h1><p>두 사람의 성향부터 친구들과의 관계까지.<br />우리 사이를 조금 더 선명하게 살펴보세요.</p></section>
         <section><h2>어떤 관계가 궁금하세요?</h2>
@@ -67,7 +94,7 @@ function App() {
           {path === '/one-to-one' && <p className="disclosure">상세 해설은 사주·궁합 계산 근거를 바탕으로 생성형 AI가 작성합니다. 미래나 상대의 마음을 확정하지 않습니다.</p>}
           <Button size="large" display="block" disabled>서비스 연결 준비 중</Button>
         </form>
-      </> : path === '/account/reports' ? <><h1>보관함</h1><div className="notice"><strong>토스 로그인 연결을 준비하고 있습니다</strong><p>연결을 마치면 만든 결과를 이곳에서 다시 볼 수 있습니다.</p><p>테스트 버전에서는 구매하거나 분석한 결과가 없습니다.</p></div></> : path === '/login' ? <><h1>우리사주 시작하기</h1><p>만든 결과를 안전하게 보관하고 다시 확인하세요.</p><div className="notice"><strong>토스 로그인 연결 준비 중</strong><p>이 테스트 버전에서는 로그인 정보와 개인정보를 수집하지 않습니다.</p></div><Button size="large" display="block" disabled>토스 로그인 준비 중</Button></> : <><h1>이용 안내</h1><p>우리사주는 사주 계산 근거를 관계 이해와 대화의 참고자료로 풀어내는 서비스입니다. 의료·법률·재무·심리 진단이나 확정적인 미래 예측을 제공하지 않습니다.</p><div className="notice"><strong>테스트 버전 안내</strong><p>이 번들은 화면 확인용입니다. 로그인·분석·결제·광고·초대 링크는 아직 연결되지 않았습니다. 입력값은 서버에 전송하거나 기기에 저장하지 않습니다.</p><p>정식 출시 전 운영자·고객지원 연락처와 개인정보처리방침, 이용약관, 환불 정책을 확정할 예정입니다.</p></div></>}
+      </> : path === '/account/reports' ? <><h1>보관함</h1>{user ? <div className="notice"><strong>{reports ? `${reports.length}개의 결과를 확인했습니다` : '보관함을 불러오고 있습니다'}</strong><p>리포트 상세 화면의 연결은 준비 중입니다.</p></div> : <div className="notice"><strong>토스 로그인이 필요합니다</strong><p>내 계정에서 로그인한 뒤 만든 결과를 확인하세요.</p><Button onClick={() => go('/login')}>내 계정으로 이동</Button></div>}</> : path === '/login' ? <><h1>{user ? '내 계정' : '우리사주 시작하기'}</h1><p>만든 결과를 안전하게 보관하고 다시 확인하세요.</p>{user ? <><div className="notice"><strong>{user.displayName}</strong><p>토스 계정으로 연결되었습니다.</p></div><Button size="large" display="block" disabled={busy} onClick={signOut}>로그아웃</Button></> : <><div className="notice"><strong>{session.ready ? '토스 계정으로 시작하세요' : '서버 연결 설정이 필요합니다'}</strong><p>로그인으로 받은 계정 식별자로 결과를 연결합니다. 토스의 이름·이메일·전화번호는 저장하지 않습니다.</p></div><Button size="large" display="block" disabled={!session.ready || busy} onClick={signIn}>{busy ? '로그인 확인 중' : '토스로 계속하기'}</Button></>}</> : <><h1>이용 안내</h1><p>우리사주는 사주 계산 근거를 관계 이해와 대화의 참고자료로 풀어내는 서비스입니다. 의료·법률·재무·심리 진단이나 확정적인 미래 예측을 제공하지 않습니다.</p><div className="notice"><strong>개발 버전 안내</strong><p>로그인은 서버 설정 후 이용할 수 있습니다. 분석·결제·광고·초대 링크는 준비 중입니다. 입력 미리보기의 생년정보는 전송하거나 저장하지 않습니다.</p><p>정식 출시 전 운영자·고객지원 연락처와 개인정보처리방침, 이용약관, 환불 정책을 확정할 예정입니다.</p></div></>}
       <footer><button onClick={() => go('/guide')}>이용 안내</button><span>우리사주</span></footer>
     </main>
     <nav className="bottom-nav" aria-label="주요 메뉴">{[['/', '홈'], ['/account/reports', '보관함'], ['/login', '내 계정']].map(([url, title]) => <button key={url} onClick={() => go(url)} aria-current={path === url ? 'page' : undefined}>{title}</button>)}</nav>
