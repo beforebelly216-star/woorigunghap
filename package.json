@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:fullbuy": "tsx scripts/fullbuy-store-test.ts",
     "test:auth:toss": "tsx scripts/toss-login-protocol-test.ts",
     "test:toss:session-iap": "tsx scripts/toss-session-iap-test.ts",
     "test:manse": "tsx scripts/manse-golden-test.ts",
@@ -68,6 +69,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

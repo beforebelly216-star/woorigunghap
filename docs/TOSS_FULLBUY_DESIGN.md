@@ -2,6 +2,16 @@
 
 2026-10-03 사용자 결정. 이전 미니앱 광고 전용 결정을 대체한다. 이 문서는 출시 구현 완료 선언이 아니다.
 
+## 서버 기반 구현 상태 (후속 배치)
+
+- `fullbuy-store-core.ts`: Postgres 영구 원장, IAP/광고 출처 분리, 전역 지급 참조 중복 방지, 개인별 항목 예약/완료/반환, 동일 항목 최대 2회 시도. 계정 행 잠금과 한 트랜잭션으로 잔액 검사·예약·원장을 묶는다. 지급 함수는 서버 내부이며 외부 지급 endpoint는 없다.
+- `fullbuy-chapter-service.ts`: 서버에서 권한을 확인한 스냅샷만 받는 내부 생성 어댑터. 예약을 얻은 작업 하나만 생성, 120초 제한/AbortSignal, 품질 검증 뒤 저장·사용 확정. 실패는 출처별 반환, 늦은 작업은 attempt_id로 차단. 실제 Claude 호출과 계산 근거 품질 검사·네트워크 계정/동의 검증은 아직 연결하지 않았다.
+- 중단된 예약은 10분 뒤 서버에서 반환한다. 지갑 조회 또는 다음 내부 생성 요청이 복구를 실행한다. 10분보다 오래된 작업은 반환 후 결과를 저장할 수 없다. 주기적 cleanup/실제 다중 서버 부하 검증은 후속 작업이다.
+- `GET /api/toss/wallet`: 정확한 Origin·토스 Bearer 계정 확인, 개인 지갑만 조회/오래된 예약 복구. `APPS_IN_TOSS_FULLBUY_ENABLED=false` 기본 OFF, no-store, DB 요청 20초 제한. 실제 프런트 지갑 표시는 아직 미연결이다.
+- 주문 조회의 공식 공개 응답은 orderId/sku/status를 제공하지만 구매자 식별자는 없다. `x-toss-user-key`가 이 API에서 구매자 필터를 보장하는지는 공식 문서/실기기로 확인하지 못했다. 기존 상태 route는 `verificationScope:payment_status_only`, `productGranted:false`를 반환한다. 이 상태 조회만으로 유료 지급을 연결하지 않는다. 출처: https://developers-apps-in-toss.toss.im/api/iap
+- 주문별 유료 지급 참조와 예약별 유료/광고 출처는 기록한다. **주문별 사용량 배분(환불 재화 회수), 계정 탈퇴·결과 보관 정책, 권한 검증, IAP 주문 소유권, 보상형 서버 검증**은 활성화 전 필수 남은 작업이다. 사용자 ID는 내부 식별자이며 새 원장에는 생년정보·토스 userKey·실명·비밀값을 기록하지 않는다.
+- PGlite(개발 의존성)의 실제 PostgreSQL 엔진에서 운영과 같은 SQL을 실행했다. 중복/다른 계정 지급 참조, 잔액 부족, 같은/다른 항목 동시 요청, 보상 우선 예약/출처 반환, 늦은 작업, 재열람 보존, 2회 제한, SQL 중도 오류 rollback, stale 반환, 생성 중복/품질 실패/제공자 실패 검증 PASS. 단일 연결의 큐 동시성 검증이며 실제 Neon 다중 세션 부하/운영 DB 검증은 아니다.
+- 재현: `npm run test:fullbuy`. Windows sandbox의 tsx 사용자 조회 오류 시 제한 밖에서 `node --import tsx scripts/fullbuy-store-test.ts`로 검증했다. 운영 DB/Claude/실제 결제 접속 없음.
 ## 확정된 이용 단위
 
 - 기본 관계망과 1:1 계산 결과는 무료다. 점수·근거를 본 뒤 원하는 상세 항목을 고른다.

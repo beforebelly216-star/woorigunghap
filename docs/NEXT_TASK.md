@@ -4,6 +4,9 @@
 
 ## 우선 — 앱인토스 전환 (2026-10-02)
 
+- [x] 서버 지갑/원장·항목 예약/반환·내부 생성 single-flight/2회/120초·10분 중단 복구, 기본 OFF 개인 지갑 GET, 실제 Postgres SQL 테스트
+- [ ] 실제 무료 결과·초대/로그인·참여자 동의/계정 권한 연결; 짧은 Claude 계약/비용 한도·보관/탈퇴·환불 사용량 분배; IAP 주문 소유권 확인 후 지급/복구 연동
+
 - [x] 최신 사용자 결정: 광고+IAP 병행, 풀매수 광고 완료 3개/항목 사용 3개, 모든 쌍 → 1:1 미리보기·아이콘·서버 설계. TOSS_FULLBUY_DESIGN.md가 이전 광고 전용/묶음 해설 계획을 대체한다.
 - [ ] 무료 실제 결과·초대/로그인 → 서버 지갑/항목 권한/보관 → 짧은 AI/원가 제한 → IAP 영구 지급/미결 복구 → 별도 보상형 지급 → 실기기 QA. 가격/SKU 미정
 
@@ -298,11 +301,11 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Task: Codex — 풀매수 네트워크 유입/광고+IAP 설계; baseline 11b9d84, 변경 SHA는 Git 이력 참조
-- Scope: 4명/6쌍 미리보기 → 1:1 항목별 3개 확인, 새싹 아이콘, 설계 문서
-- Units: 보상형 완료 3개 지급, 항목별 3개 사용; 가격/SKU 미정
-- Validation: pair/session-IAP/ad-config mocks, lint/build 37/37, miniapp ait reader PASS
-- Browser: 네트워크/상세 4폭 overflow 없음·필터/선택/확인 PASS; native 실기기 미검증
-- Remaining: 무료 결과/초대/로그인 → 서버 지갑/권한/보관/AI → IAP 지급/복구·보상형
-- Deploy: UI 개발 번들만 생성, 광고/자동배포 OFF; TOSS_FULLBUY_DESIGN 참조
+- Task: Codex — 풀매수 서버 지갑·항목 예약/사용 기반; baseline b983054, 변경 SHA는 Git 이력 참조
+- Scope: 영구 원장·예약/반환/보존·2회/120초/10분 복구; 지갑 GET OFF
+- Validation: PGlite 실제 SQL/생성 실패·중복, 토스 서버/SDK/HTTP contracts·lint/build 38/38 PASS
+- Boundary: 실제 AI·네트워크 권한·프런트·IAP 지급·광고 보상은 미연결, 운영 DB 미접속
+- Critical: IAP 상태 조회는 구매자 증명 아님; payment_status_only 및 productGranted:false
+- Next: 무료 결과/초대/로그인·권한 → 비용/보관/환불 → 주문 소유권/보상 검증 → 실기기
+- Deploy: 지갑/광고/자동배포 OFF, 배포·새 miniapp 번들 없음; TOSS_FULLBUY_DESIGN 참조
 ```

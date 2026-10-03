@@ -18,11 +18,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "invalid_order" }, { status: 400, headers });
   }
   try {
-    // Filter ownership with the server-verified account key, never a client-supplied key.
+    // Send the server-authenticated account context. The documented response proves
+    // payment status, not purchaser ownership; do not use this alone to credit a wallet.
     const result = await tossApiRequest("/api-partner/v1/apps-in-toss/order/get-order-status",
       { orderId: input.orderId }, undefined, user.providerUserId);
     const verified = parseVerifiedTossOrder(result, input.orderId, sku);
     // Status verification alone does not grant a product or start AI generation.
-    return NextResponse.json({ verified, productGranted: false }, { headers });
+    return NextResponse.json({ verified, verificationScope: "payment_status_only", productGranted: false }, { headers });
   } catch { return NextResponse.json({ error: "iap_not_verified" }, { status: 409, headers }); }
 }
