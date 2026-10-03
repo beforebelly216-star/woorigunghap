@@ -4,6 +4,8 @@
 
 ## 우선 — 앱인토스 전환 (2026-10-02)
 
+- [x] 배너/전면 1차·2차 운영 ID 등록. 사용자 확인: 두 전체 화면 광고 모두 전면형, 보상형 아직 없음. ID 설정 테스트 및 개발 OFF 경계 유지
+
 - [x] 2026-10-03 사용자 우선 요청: UI QA, 입력 3단계·확인/유지/삭제·시간 모름/윤달, 무료/광고 상세 미리보기, 보관함 복구 UI·timeout, Claude 경로/비용 점검. `TOSS_QA_AND_CLAUDE_AUDIT.md`
 - [ ] 실제 무료 계산·결과 먼저 연결 → 광고 상세 한 묶음의 짧은 AI/서버 권한·비용 한도/저장·복구 → ID/실기기. 사용자 광고 ID·콘솔 작업 요구는 후순위 유지
 
@@ -293,11 +295,11 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — QA·입력/광고 선택 UX·Claude 감사
-- Source: baseline `ecb1280`; 변경 커밋은 Git 이력 참조
-- Scope: 입력 3단계/확인/유지/삭제, 해설 예시/무료·광고 구분, 보관함 복구/timeout, API 감사
-- Validation: ads/session/timeout mocks + root AI contracts/lint/build(37/37) + ait build PASS
-- Browser: Chrome 4폭×8화면 overflow 없음·입력/예시 동작 PASS; native SafeArea 로그/실기기 미검증
-- Remaining: 실제 무료 계산/결과 → 짧은 광고 AI 한 묶음·서버 권한/비용/저장·복구 → 사용자 ID·로그인/실기기
-- Deploy: 광고 OFF·미출시·자동배포 OFF, Claude 실제 키/호출 미검증; TOSS_QA_AND_CLAUDE_AUDIT 참조
+- Worker/Task: Codex — 배너/전면 운영 ID 등록
+- Source: baseline `26dc522`; 변경 커밋은 Git 이력 참조
+- Scope: 배너/전면 1차 기본 연결, 전면 2차 보관; 사용자 확인 모두 전면, 보상형 없음
+- Validation: ID 분리/ads mock/ait build·reader PASS; root lint/build 결과는 PROJECT_STATE 참조
+- Browser: 운영 ID로 자동 광고 QA 없음; 이전 UI QA 결과 유지, native 실기기 미검증
+- Remaining: 실제 무료 결과 → 서버 권한/한도/저장·복구 → 보상형 ID·로그인/실기기
+- Deploy: 광고 OFF·미출시·자동배포 OFF; TOSS_AD_MONETIZATION 및 TOSS_QA_AND_CLAUDE_AUDIT 참조
 ```
