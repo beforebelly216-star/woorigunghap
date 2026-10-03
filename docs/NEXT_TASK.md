@@ -4,12 +4,15 @@
 
 ## 우선 — 앱인토스 전환 (2026-10-02)
 
+- [x] 최신 사용자 결정: 광고+IAP 병행, 풀매수 광고 완료 3개/항목 사용 3개, 모든 쌍 → 1:1 미리보기·아이콘·서버 설계. TOSS_FULLBUY_DESIGN.md가 이전 광고 전용/묶음 해설 계획을 대체한다.
+- [ ] 무료 실제 결과·초대/로그인 → 서버 지갑/항목 권한/보관 → 짧은 AI/원가 제한 → IAP 영구 지급/미결 복구 → 별도 보상형 지급 → 실기기 QA. 가격/SKU 미정
+
 - [x] 배너/전면 1차·2차 운영 ID 등록. 사용자 확인: 두 전체 화면 광고 모두 전면형, 보상형 아직 없음. ID 설정 테스트 및 개발 OFF 경계 유지
 
 - [x] 2026-10-03 사용자 우선 요청: UI QA, 입력 3단계·확인/유지/삭제·시간 모름/윤달, 무료/광고 상세 미리보기, 보관함 복구 UI·timeout, Claude 경로/비용 점검. `TOSS_QA_AND_CLAUDE_AUDIT.md`
-- [ ] 실제 무료 계산·결과 먼저 연결 → 광고 상세 한 묶음의 짧은 AI/서버 권한·비용 한도/저장·복구 → ID/실기기. 사용자 광고 ID·콘솔 작업 요구는 후순위 유지
+- [ ] 실제 무료 계산·결과 먼저 연결 → 풀매수 항목별 짧은 AI/서버 권한·비용 한도/저장·복구 → ID/실기기. 사용자 광고 ID·콘솔 작업 요구는 후순위 유지
 
-- [x] 최신 사용자 결정: 미니앱 IAP 출시 작업 중단, 광고만으로 수익화. 광고 SDK/단일 배너/취소·보상·빈도 제한 기반 준비
+- [x] 과거 결정(2026-10-03 풀매수 병행 설계로 대체): 미니앱 IAP 출시 작업 중단, 광고만으로 수익화. 광고 SDK/단일 배너/취소·보상·빈도 제한 기반 준비
 - [ ] 무료 기본 결과 이식 → 별도 광고 기반 상세 생성 권한/비용 한도/멱등 저장·복구 → 광고 그룹 ID/실기기 QA
 
 - [x] 공식 로그인·결제·광고·AI 표시 요건 확인 및 전환 문서
@@ -21,7 +24,7 @@
 - [ ] 로그인 설정: 서비스 약관·국외 이전 고지 확인 → mTLS 발급 → 서버 설정/배포 승인 → 콜백 등록 → SDK 실기기 확인
 - [ ] 콘솔 업로드·QR 실기기 확인, 사업자/정산/mTLS/광고 그룹 ID 설정
 - [ ] 실제 기능 화면 이식, 서버 연결, 실제 버전 Origin/인증/연결 해제/탈퇴
-- [ ] 광고 기반 생성 저장/복구 및 미니앱 공유 (IAP 계획은 사용자 결정으로 중단)
+- [ ] 광고 기반 생성 저장/복구 및 미니앱 공유 (최신 풀매수 IAP 병행 계획 적용)
 - [ ] Android/iOS 토스앱 QA → 번들 업로드 → 검수 요청
 - 상세: `docs/APPS_IN_TOSS_MIGRATION.md`. 기존 화면 개편을 이식 순서와 통합한다.
 
@@ -295,11 +298,11 @@ Git 자동배포는 OFF 유지.
 ## Current HANDOFF
 ```text
 HANDOFF
-- Worker/Task: Codex — 배너/전면 운영 ID 등록
-- Source: baseline `26dc522`; 변경 커밋은 Git 이력 참조
-- Scope: 배너/전면 1차 기본 연결, 전면 2차 보관; 사용자 확인 모두 전면, 보상형 없음
-- Validation: ID 분리/ads mock/ait build·reader PASS; root lint/build 결과는 PROJECT_STATE 참조
-- Browser: 운영 ID로 자동 광고 QA 없음; 이전 UI QA 결과 유지, native 실기기 미검증
-- Remaining: 실제 무료 결과 → 서버 권한/한도/저장·복구 → 보상형 ID·로그인/실기기
-- Deploy: 광고 OFF·미출시·자동배포 OFF; TOSS_AD_MONETIZATION 및 TOSS_QA_AND_CLAUDE_AUDIT 참조
+- Task: Codex — 풀매수 네트워크 유입/광고+IAP 설계; baseline 11b9d84, 변경 SHA는 Git 이력 참조
+- Scope: 4명/6쌍 미리보기 → 1:1 항목별 3개 확인, 새싹 아이콘, 설계 문서
+- Units: 보상형 완료 3개 지급, 항목별 3개 사용; 가격/SKU 미정
+- Validation: pair/session-IAP/ad-config mocks, lint/build 37/37, miniapp ait reader PASS
+- Browser: 네트워크/상세 4폭 overflow 없음·필터/선택/확인 PASS; native 실기기 미검증
+- Remaining: 무료 결과/초대/로그인 → 서버 지갑/권한/보관/AI → IAP 지급/복구·보상형
+- Deploy: UI 개발 번들만 생성, 광고/자동배포 OFF; TOSS_FULLBUY_DESIGN 참조
 ```
