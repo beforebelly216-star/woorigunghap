@@ -26,6 +26,9 @@ export function createSessionClient({ apiBase, login, fetcher = fetch, requestTi
       if (!response.ok) {
         const error = new Error(response.status === 401 ? '로그인 시간이 만료되었습니다. 다시 로그인해 주세요.' : response.status === 503 ? '서비스 연결을 준비하고 있습니다. 잠시 후 다시 시도해 주세요.' : '요청을 완료하지 못했습니다. 다시 시도해 주세요.');
         error.status = response.status;
+        if (body?.fieldErrors && typeof body.fieldErrors === 'object' && !Array.isArray(body.fieldErrors)) {
+          error.fieldErrors = Object.fromEntries(Object.entries(body.fieldErrors).filter(([key,value]) => key.length <= 80 && typeof value === 'string' && value.length <= 200).slice(0,20));
+        }
         throw error;
       }
       return body;

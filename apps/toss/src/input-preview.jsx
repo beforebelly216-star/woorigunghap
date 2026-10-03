@@ -20,8 +20,32 @@ function BirthFields({ title, value, onChange }) {
   </fieldset>;
 }
 
-export function InputPreview({ path, draft, onChange, onPreview }) {
-  const [step, setStep] = useState(0);
+export function InputPreview({ path, draft, onChange, onPreview, onCalculate, onCalculated, authenticated=false, serverReady=false, onLogin, onSessionExpired, resumeReview=false }) {
+  const [step, setStep] = useState(resumeReview ? path==='/one-to-one'?2:1 : 0);
+  const [partnerConsent,setPartnerConsent]=useState(false);
+  const [busy,setBusy]=useState(false);
+  const [error,setError]=useState('');
+  const [fieldErrors,setFieldErrors]=useState([]);
+  const pending=useRef(null);
+  useEffect(()=>()=>pending.current?.abort(),[]);
+  useEffect(()=>{setPartnerConsent(false);setError('');setFieldErrors([]);},[draft]);
+  async function calculate() {
+    if (pending.current || !onCalculate || !partnerConsent) return;
+    const controller=new AbortController(); pending.current=controller;
+    setBusy(true);setError('');setFieldErrors([]);
+    try {
+      const result=await onCalculate(draft,partnerConsent,controller.signal);
+      if (!controller.signal.aborted) onCalculated(result);
+    } catch(failure) {
+      if (!controller.signal.aborted) {
+        setError(failure.message);setFieldErrors(Object.values(failure.fieldErrors||{}));
+        if (failure.status===401) onSessionExpired?.();
+      }
+    } finally {
+      if (!controller.signal.aborted) setBusy(false);
+      if (pending.current===controller) pending.current=null;
+    }
+  }
   const formRef = useRef(null);
   useEffect(() => {
     const heading = formRef.current?.querySelector('legend, h2');
@@ -37,18 +61,18 @@ export function InputPreview({ path, draft, onChange, onPreview }) {
     <form ref={formRef} onSubmit={next}>
       {!reviewing ? <><BirthFields title={stages[step]} value={step === 0 ? draft.self : draft.partner} onChange={person => onChange({ ...draft, [step === 0 ? 'self' : 'partner']: person })} />
         {pair && step === 1 && <label>관계 유형<select required value={draft.relationship} onChange={e => onChange({ ...draft, relationship: e.target.value })}><option disabled value="">선택해 주세요</option>{['짝사랑', '썸', '연인', '친구', '직장동료'].map(value => <option key={value}>{value}</option>)}</select></label>}
+        {pair && step===1 && draft.relationship==='직장동료' && <label>상대방의 직장 내 위치<select required value={draft.coworkerHierarchy||''} onChange={e=>onChange({...draft,coworkerHierarchy:e.target.value})}><option value="" disabled>선택해 주세요</option><option value="boss">내 상사</option><option value="peer">동급 동료</option><option value="subordinate">내 부하</option></select></label>}
         <Button type="submit" size="large" display="block">{step === stages.length - 2 ? '입력 내용 확인하기' : '상대방 정보 입력하기'}</Button>
       </> : <>
         <h2>입력 내용을 확인해 주세요</h2>{personSummary(draft.self, '내 정보')}{pair && personSummary(draft.partner, '상대방 정보')}
-        {pair && <p className="relationship-summary">관계 · {draft.relationship}</p>}
-        <div className="value-summary"><strong>기본 결과는 광고 시청 없이</strong><p>성향과 궁합의 계산 결과는 무료로 제공할 예정입니다. 추가 해설은 광고 시청 여부를 직접 선택합니다.</p></div>
-        <p className="disclosure">이 화면은 입력 미리보기입니다. 서버 연결 전이므로 분석을 실행하거나 정보를 전송하지 않습니다.</p>
-        <Button size="large" display="block" disabled>분석 연결 준비 중</Button>
+        {pair && <p className="relationship-summary">관계 · {draft.relationship}{draft.relationship === '직장동료' && ` · ${{boss:'내 상사',peer:'동급 동료',subordinate:'내 부하'}[draft.coworkerHierarchy] || '위치 미선택'}`}</p>}
+        <div className="value-summary"><strong>기본 결과는 광고 시청 없이</strong><p>기본 점수와 계산 지표는 무료입니다. 추가 해설은 항목마다 풀매수 3개로 선택하도록 준비하고 있습니다.</p></div>
+        {pair && serverReady ? <><p className="disclosure">계산하기를 누르면 두 사람의 별칭과 생년정보를 우리사주 서버에 전송합니다. 이 기본 계산에는 외부 AI를 사용하지 않습니다.</p><label className="check"><input type="checkbox" checked={partnerConsent} disabled={busy} onChange={e=>setPartnerConsent(e.target.checked)} />상대방의 정보 사용에 동의를 받았습니다</label>{error&&<div className="notice" role="alert"><strong>{error}</strong>{fieldErrors.length>0&&<ul>{fieldErrors.map((value,index)=><li key={index}>{value}</li>)}</ul>}</div>}{authenticated?<Button size="large" display="block" disabled={busy||!partnerConsent} onClick={calculate}>{busy?'기본 결과 계산 중':'무료 기본 결과 계산하기'}</Button>:<Button size="large" display="block" onClick={onLogin}>토스 로그인 후 무료로 계산하기</Button>}</>:<><p className="disclosure">서버 연결 전에는 정보를 전송하지 않습니다. 현재는 입력 화면을 확인하실 수 있습니다.</p><Button size="large" display="block" disabled>분석 연결 준비 중</Button></>}
         {pair && <button type="button" className="secondary-button" onClick={onPreview}>어떤 결과를 받는지 미리 보기</button>}
       </>}
-      {step > 0 && <button type="button" className="text-button" onClick={() => { setStep(value => value - 1); window.scrollTo(0, 0); }}>← 이전 정보 수정하기</button>}
+      {step > 0 && <button type="button" disabled={busy} className="text-button" onClick={() => { setStep(value => value - 1); window.scrollTo(0, 0); }}>← 이전 정보 수정하기</button>}
     </form>
     <p className="field-help">입력값은 앱을 열어둔 동안만 유지됩니다. 앱을 닫거나 새로고침하면 사라집니다.</p>
-    <button className="text-button muted" onClick={() => { onChange({ self: emptyPerson(), partner: emptyPerson(), relationship: '' }); setStep(0); }}>입력 내용 지우기</button>
+    <button className="text-button muted" disabled={busy} onClick={() => { onChange({ self: emptyPerson(), partner: emptyPerson(), relationship: '' }); setStep(0); }}>입력 내용 지우기</button>
   </>;
 }
