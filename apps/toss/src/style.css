@@ -74,3 +74,7 @@ input:disabled { background: #F5F6F3 !important; color: #626960 !important; }
 .dimension-row { display: flex; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 1px solid #E3E7DF; font-size: 14px; }
 .basic-score + .value-summary .network-members { margin: 16px 0; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+/* Personal item controls stay separate from the free calculation evidence. */
+.fullbuy-wallet { display:flex; align-items:center; gap:12px; margin:20px 0 8px; }
+.chapter-explanation { margin-top:16px; padding-top:12px; border-top:1px solid #e4ebe7; }
+.chapter-explanation p { white-space:pre-wrap; overflow-wrap:anywhere; }

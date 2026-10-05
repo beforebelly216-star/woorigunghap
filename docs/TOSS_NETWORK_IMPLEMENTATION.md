@@ -26,6 +26,6 @@
 - 기존 무료 결과·원장·토스 로그인/세션/IAP·웹 네트워크 회귀 PASS. 기존 웹 네트워크 테스트의 과거 홈 카드 순서만 현재 확정 디자인에 맞춰 갱신했다. 웹 홈 코드는 변경하지 않았다.
 - Chrome 게스트 입력 화면 360/390/430/1280px overflow 없음, 생성/초대 모드/입력 유지·미설정 로그인 비활성 확인. 실제 로그인 참여/공유는 실기기 검증 필요.
 - `APPS_IN_TOSS_NETWORK_ENABLED=false` 기본. DATABASE_URL, 32자 이상 NETWORK_PII_ENCRYPTION_KEY, 토스 로그인/mTLS/정확한 서버 URL·실기기·동의/정책 확인 후 활성화한다. 운영 DB/콘솔/배포 변경 없음.
-- 다음: 서버 권한 스냅샷 → 개인 지갑 항목 예약 → 짧은 Claude 계약/비용·품질·실패 반환 → 완료 시 권한 재확인/저장/보관·환불 → IAP 소유권과 보상형 증명 → 실기기 QA.
+- 후속 배치에서 권한 스냅샷/항목 사용·짧은 Claude/일일 시도 한도·완료 SQL 권한 검사·개인 저장/IAP 검증 지급을 연결했다. 최신 범위/환불·보관·실기기 차단 항목은 TOSS_FULLBUY_IMPLEMENTATION.md.
 
 공식 공유 API: https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/share/share.createlink

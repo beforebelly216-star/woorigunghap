@@ -22,7 +22,7 @@ export function NetworkScreen({session,user,flow,onFlow,onLogin,onExpired,onRemo
     if(pending.current)return; const controller=new AbortController();pending.current=controller;setBusy(true);setError('');
     try {const result=await networkRequest(session,body,controller.signal);if(controller.signal.aborted)return;
       if(result.network){setNetwork(result.network);setCreatedInvite(result.network.invite);}if(result.networks)setSaved(result.networks);if(result.invite)setCreatedInvite(result.invite);
-      if(result.result)onPair(result.result);if(result.left||result.closed){setNetwork(null);setCreatedInvite('');setRequestId(crypto.randomUUID());setConfirm(false);onRemoved();}
+      if(result.result)onPair(result.result,{networkId:body.networkId,memberAId:body.memberAId,memberBId:body.memberBId});if(result.left||result.closed){setNetwork(null);setCreatedInvite('');setRequestId(crypto.randomUUID());setConfirm(false);onRemoved();}
     } catch(e){if(!controller.signal.aborted){setError(messages[e.code]||e.message);if(e.code==='network_not_available'){setNetwork(null);setCreatedInvite('');setRequestId(crypto.randomUUID());onRemoved();}if(e.status===401)onExpired();}}
     finally{if(!controller.signal.aborted)setBusy(false);if(pending.current===controller)pending.current=null;}
   }

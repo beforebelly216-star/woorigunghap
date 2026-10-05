@@ -97,16 +97,16 @@ export function createFullbuyStore(db: FullbuyDatabase) {
     if (row.state==="failed") return { status: Number(row.attempts)>=2?"exhausted" as const:"insufficient" as const };
     return { status: row.attempt_id===attempt?"reserved" as const:"pending" as const, attemptId:String(row.attempt_id), cost:FULLBUY_CHAPTER_COST };
   }
-  async function complete(userId: string, key: string, attemptId: string, content: string) {
+  async function complete(userId: string, key: string, attemptId: string, content: string, guards: FullbuyStatement[] = []) {
     validateFullbuyId(userId); validateFullbuyKey(key); validateFullbuyId(attemptId);
     if (typeof content!=="string" || !content.trim() || content.length>8000) throw new Error("invalid_fullbuy_content");
     await ensureSchema();
-    const results = await db.transaction([lock(userId),
+    const results = await db.transaction([lock(userId), ...guards,
       statement(`UPDATE woorigunghap_fullbuy_chapters SET state='ready',content=$4,updated_at=NOW()
         WHERE user_id=$1 AND chapter_key=$2 AND attempt_id=$3 AND state='pending'`,userId,key,attemptId,content),
       statement("SELECT state,attempt_id,content FROM woorigunghap_fullbuy_chapters WHERE user_id=$1 AND chapter_key=$2",userId,key),
     ]);
-    const row = results[2][0];
+    const row = results[2 + guards.length][0];
     if (row?.state!=="ready" || row.attempt_id!==attemptId) throw new Error("stale_fullbuy_attempt");
     return { content:String(row.content) };
   }
@@ -134,5 +134,17 @@ export function createFullbuyStore(db: FullbuyDatabase) {
     ]);
     return { released:results[1].length };
   }
-  return { ensureSchema, wallet, credit, reserve, complete, release, releaseStale };
+  async function read(userId: string, key: string) {
+    validateFullbuyId(userId); validateFullbuyKey(key); await ensureSchema();
+    const rows = await db.query(statement("SELECT state,content,attempts FROM woorigunghap_fullbuy_chapters WHERE user_id=$1 AND chapter_key=$2", userId, key));
+    const row = rows[0];
+    return row ? { status: String(row.state), ...(row.state === "ready" ? { content: String(row.content) } : {}), attempts: Number(row.attempts) } : { status: "unopened" };
+  }
+  async function library(userId: string) {
+    validateFullbuyId(userId); await ensureSchema();
+    const rows = await db.query(statement(`SELECT chapter_key,content,updated_at FROM woorigunghap_fullbuy_chapters
+      WHERE user_id=$1 AND state='ready' ORDER BY updated_at DESC,chapter_key LIMIT 50`, userId));
+    return rows.map(row => ({ chapterKey: String(row.chapter_key), content: String(row.content), savedAt: new Date(String(row.updated_at)).toISOString() }));
+  }
+  return { ensureSchema, wallet, credit, reserve, complete, release, releaseStale, read, library };
 }
