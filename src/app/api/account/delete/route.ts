@@ -3,6 +3,7 @@ import { AUTH_SESSION_COOKIE, isSameOriginPost } from "@/lib/auth-policy";
 import { loadAuthenticatedRequestUser } from "@/lib/auth-request";
 import { deleteAccountAndScrubReports } from "@/lib/account-report-store";
 import { unlinkKakaoUserByAdminKey } from "@/lib/kakao-auth";
+import { getTossNetworkStore, isTossNetworkStoreConfigured } from "@/lib/toss-network-store";
 
 export const runtime = "nodejs";
 
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    if (user.provider === "toss" && isTossNetworkStoreConfigured()) await getTossNetworkStore().removeUser(user.userId);
     const deleted = await deleteAccountAndScrubReports(user.userId);
     if (!deleted) return NextResponse.json({ error: "계정을 찾지 못했습니다." }, { status: 404 });
 

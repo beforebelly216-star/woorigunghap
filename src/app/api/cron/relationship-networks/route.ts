@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { purgeExpiredRelationshipNetworkData } from "@/lib/relationship-network-store";
+import { getTossNetworkStore, isTossNetworkStoreConfigured } from "@/lib/toss-network-store";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,10 @@ export async function GET(request: NextRequest) {
       status: 503,
       headers: { "cache-control": "no-store" },
     });
+  }
+
+  if (isTossNetworkStoreConfigured()) {
+    await getTossNetworkStore().purge();
   }
 
   return NextResponse.json({ ok: true }, {

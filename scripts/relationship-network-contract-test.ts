@@ -116,11 +116,11 @@ const savedNetworks = parseSavedRelationshipNetworks(JSON.stringify([
 assert.deepEqual(savedNetworks.map((network) => network.hostName), ["두 번째", "첫 번째"], "저장 목록은 만료·중복을 제거하고 최근 순서로 보여야 합니다.");
 
 const homeSource = readFileSync(join(process.cwd(), "src/app/page.tsx"), "utf8");
-const idealIndex = homeSource.indexOf("이상형 찾기");
-const networkIndex = homeSource.indexOf("1:N 궁합 보기");
-const paidIndex = homeSource.indexOf("1:1 궁합 보기");
-assert.ok(idealIndex >= 0 && idealIndex < networkIndex && networkIndex < paidIndex, "홈 카드는 이상형 → 1:N → 1:1 순서여야 합니다.");
-assert.ok(homeSource.includes("1:N 무료"));
+const paidIndex = homeSource.indexOf('href="/one-to-one"');
+const networkIndex = homeSource.indexOf('href="/one-to-many"');
+const idealIndex = homeSource.indexOf('href="/free"');
+assert.ok(paidIndex >= 0 && paidIndex < networkIndex && networkIndex < idealIndex, "현재 홈 디자인은 두 사람 궁합 → 친구 네트워크 → 이상형 순서입니다.");
+assert.ok(homeSource.includes('친구들과 관계 보기 <span>무료</span>'));
 
 const networkPageSource = readFileSync(join(process.cwd(), "src/app/one-to-many/page.tsx"), "utf8");
 assert.ok(networkPageSource.includes("RelationshipNetworkCreateForm"));

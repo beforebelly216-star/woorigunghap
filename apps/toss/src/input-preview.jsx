@@ -3,7 +3,7 @@ import { Button } from '@toss/tds-mobile';
 
 export const emptyPerson = () => ({ name: '', gender: '', calendar: 'solar', date: '', time: '', unknownTime: false, leapMonth: false });
 
-function BirthFields({ title, value, onChange }) {
+export function BirthFields({ title, value, onChange }) {
   const update = (key, next) => onChange({ ...value, [key]: next });
   const today = new Date();
   const maximumDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;

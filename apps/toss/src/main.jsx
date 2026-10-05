@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Button } from '@toss/tds-mobile';
 import { TDSMobileAITProvider } from '@toss/tds-mobile-ait';
-import { SafeArea, graniteEvent, TossAuth } from '@apps-in-toss/web-framework';
+import { SafeArea, graniteEvent, TossAuth, Environment, Share } from '@apps-in-toss/web-framework';
 import { createSessionClient } from './session-client';
 import { BannerAd } from './ad-components';
 import { InputPreview, emptyPerson } from './input-preview';
 import { ResultPreview } from './result-preview';
 import { NetworkPreview } from './network-preview';
+import { NetworkScreen } from './network-screen';
+import { networkInvite, networkSharePath } from './network-share';
 import { BasicResult } from './basic-result';
 import { calculateBasic, validateBasicResult } from './basic-client';
 import basicSample from './basic-sample.json';
@@ -41,10 +43,21 @@ function App() {
   const [basicResult,setBasicResult]=useState(null);
   const [loginReturnTo,setLoginReturnTo]=useState(null);
   const [resumeInput,setResumeInput]=useState(false);
+  const [networkFlow,setNetworkFlow]=useState(()=>{
+    let invite=networkInvite(window.location.href);
+    if(!invite){try{invite=networkInvite(Environment.initialURL);}catch{/* Native only. */}}
+    return {person:emptyPerson(),invite,mode:invite?'join':'create',requestId:crypto.randomUUID(),network:null,createdInvite:''};
+  });
+  const clearNetwork=()=>setNetworkFlow(previous=>({...previous,network:null,createdInvite:''}));
+  async function shareNetwork(invite) {
+    const path=networkSharePath(invite,Environment.initialURL);
+    const link=await Share.createLink({path});
+    await Share.sendMessage({message:`우리 친구들 사이가 궁금하다면, 각자 참여해 보세요.\n${link}`});
+  }
   const currentDraft = drafts[path] || { self: emptyPerson(), partner: emptyPerson(), relationship: '' };
   async function signIn() {
     setBusy(true); setMessage('');
-    try { const result = await session.signIn(); setUser(result.user); setBasicResult(null); if (loginReturnTo) { go(loginReturnTo); setResumeInput(true); setLoginReturnTo(null); } }
+    try { const result = await session.signIn(); setUser(result.user); setBasicResult(null); clearNetwork(); if (loginReturnTo) { go(loginReturnTo); setResumeInput(true); setLoginReturnTo(null); } }
     catch (error) { setMessage(error.message); }
     finally { setBusy(false); }
   }
@@ -52,7 +65,7 @@ function App() {
     setBusy(true); setMessage('');
     try { await session.signOut(); }
     catch (error) { setMessage(error.message); }
-    finally { setUser(null); setReports(null); setBasicResult(null); setBusy(false); }
+    finally { setUser(null); setReports(null); setBasicResult(null); clearNetwork(); setBusy(false); }
   }
   useEffect(() => {
     if (path !== '/account/reports' || !user) return;
@@ -97,7 +110,7 @@ function App() {
           <button className="service-row" onClick={() => go('/free')}><span className="icon"><Icon kind="spark" /></span><span><strong>나와 잘 맞는 사람 <small>무료</small></strong><span className="subtitle">내 성향을 바탕으로 살펴보는 이상형</span></span><span aria-hidden="true">›</span></button>
         </section>
         <button className="secondary-button" onClick={() => go('/network-preview')}>친구 4명, 모든 관계 6쌍 살펴보기 →</button><button className="secondary-button" onClick={() => go('/basic-sample')}>실제 엔진으로 계산한 무료 결과 예시 →</button><section className="home-preview"><p className="eyebrow">점수만 보고 끝내기 아쉬우셨나요?</p><h2>두 사람의 차이를<br />대화의 힌트로 바꿔보세요.</h2><p>기본 계산 결과는 무료로, 더 깊은 해설은 풀매수로. 어떤 내용을 받는지 먼저 살펴보세요.</p><button className="secondary-button" onClick={() => { setPreviewPair(null); go('/result-preview'); }}>결과 구성 미리 보기 →</button></section>
-      </> : path === '/result-preview' ? <><button className="back" onClick={() => go('/')}>← 홈으로</button><ResultPreview key={previewPair?.id || 'standalone'} pair={previewPair} onStart={() => go('/one-to-one')} onNetwork={() => go('/network-preview')} /></> : path === '/network-preview' ? <><button className="back" onClick={() => go('/')}>← 홈으로</button><NetworkPreview onPair={pair => { setPreviewPair(pair); go('/result-preview'); }} onStart={() => go('/one-to-many')} /></> : path === '/basic-sample' || path === '/basic-result' ? <><button className="back" onClick={() => go('/')}>← 홈으로</button>{path === '/basic-sample' || (basicResult && user && basicResult.owner === user) ? <BasicResult result={path === '/basic-sample' ? validateBasicResult(basicSample) : basicResult.result} sample={path === '/basic-sample'} onEdit={() => go('/one-to-one')} onPreview={() => { setPreviewPair(null);go('/result-preview'); }} onNetwork={() => go('/network-preview')} /> : <><h1>아직 계산한 결과가 없습니다</h1><p>두 사람의 정보를 입력해 무료 기본 결과를 확인해 주세요.</p><Button onClick={() => go('/one-to-one')}>두 사람 정보 입력하기</Button></>}</> : service ? <>
+      </> : path === '/one-to-many' ? <><button className="back" onClick={() => go('/')}>← 홈으로</button><NetworkScreen key={user?'authenticated':'guest'} session={session} user={user} flow={networkFlow} onFlow={setNetworkFlow} onLogin={()=>{setLoginReturnTo(path);go('/login');}} onExpired={()=>{setUser(null);setBasicResult(null);clearNetwork();}} onRemoved={()=>setBasicResult(null)} onPair={result=>{setBasicResult({owner:user,result,network:true});go('/basic-result');}} onShare={shareNetwork}/></> : path === '/result-preview' ? <><button className="back" onClick={() => go('/')}>← 홈으로</button><ResultPreview key={previewPair?.id || 'standalone'} pair={previewPair} onStart={() => go('/one-to-one')} onNetwork={() => go('/network-preview')} /></> : path === '/network-preview' ? <><button className="back" onClick={() => go('/')}>← 홈으로</button><NetworkPreview onPair={pair => { setPreviewPair(pair); go('/result-preview'); }} onStart={() => go('/one-to-many')} /></> : path === '/basic-sample' || path === '/basic-result' ? <><button className="back" onClick={() => go('/')}>← 홈으로</button>{path === '/basic-sample' || (basicResult && user && basicResult.owner === user) ? <BasicResult result={path === '/basic-sample' ? validateBasicResult(basicSample) : basicResult.result} sample={path === '/basic-sample'} networkLive={path==='/basic-result'&&basicResult?.network} onEdit={() => go('/one-to-one')} onPreview={() => { setPreviewPair(null);go('/result-preview'); }} onNetwork={() => go(path==='/basic-result'&&basicResult?.network?'/one-to-many':'/network-preview')} /> : <><h1>아직 계산한 결과가 없습니다</h1><p>두 사람의 정보를 입력해 무료 기본 결과를 확인해 주세요.</p><Button onClick={() => go('/one-to-one')}>두 사람 정보 입력하기</Button></>}</> : service ? <>
         <button className="back" onClick={() => go('/')}>← 홈으로</button><p className="eyebrow">우리사주</p><h1>{service.name}</h1><p>{service.description}</p>
         <p className="preview-inline">{path === '/one-to-one' && session.ready ? '무료 기본 결과 · 계산 버튼을 누르기 전에는 전송하지 않습니다' : '입력 화면 미리보기 · 서버에 전송되지 않습니다'}</p>
         <InputPreview key={`${path}:${user ? 'authenticated' : 'guest'}`} resumeReview={resumeInput} authenticated={Boolean(user)} serverReady={path === '/one-to-one' && session.ready} onLogin={() => { setLoginReturnTo(path);go('/login'); }} onSessionExpired={() => {setResumeInput(true);setUser(null);setBasicResult(null);setMessage('로그인 시간이 만료되었습니다. 입력값은 유지되며 다시 로그인할 수 있습니다.');}} onCalculate={(draft,consent,signal)=>calculateBasic(session,draft,consent,signal)} onCalculated={result=>{setBasicResult({owner:user,result});go('/basic-result');}} path={path} draft={currentDraft} onChange={value => setDrafts(previous => ({ ...previous, [path]: value }))} onPreview={() => { setPreviewPair(null); go(path === '/one-to-many' ? '/network-preview' : '/result-preview'); }} />

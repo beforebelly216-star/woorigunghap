@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { revokeTossUserSessions } from "@/lib/auth-store";
+import { getTossNetworkStore, isTossNetworkStoreConfigured } from "@/lib/toss-network-store";
 
 export const runtime = "nodejs";
 const headers = { "cache-control": "private, no-store" };
@@ -22,6 +23,7 @@ async function handle(request: NextRequest) {
   }
   try {
     await revokeTossUserSessions(String(numericKey));
+    if (isTossNetworkStoreConfigured()) await getTossNetworkStore().removeProviderUser(String(numericKey));
     // Provider disconnect revokes access; account/paid-result deletion is a separate explicit flow.
     return NextResponse.json({ ok: true }, { headers });
   } catch { return NextResponse.json({ error: "session_revocation_failed" }, { status: 503, headers }); }

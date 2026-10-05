@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test:fullbuy": "tsx scripts/fullbuy-store-test.ts",
     "test:toss:basic": "tsx scripts/toss-basic-result-test.ts",
+    "test:toss:network": "tsx scripts/toss-network-test.ts",
     "test:auth:toss": "tsx scripts/toss-login-protocol-test.ts",
     "test:toss:session-iap": "tsx scripts/toss-session-iap-test.ts",
     "test:manse": "tsx scripts/manse-golden-test.ts",

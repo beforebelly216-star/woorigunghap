@@ -21,7 +21,7 @@ export function parseTossBearer(header: string | null) {
 
 export function isTossBrowserApi(path: string) {
   return ["/api/auth/toss", "/api/auth/session", "/api/auth/logout", "/api/account/reports",
-    "/api/free/soulmate", "/api/toss/iap/status", "/api/toss/wallet", "/api/toss/compatibility"].includes(path);
+    "/api/free/soulmate", "/api/toss/iap/status", "/api/toss/wallet", "/api/toss/compatibility", "/api/toss/network"].includes(path);
 }
 
 export function tossCorsHeaders(origin: string) {
